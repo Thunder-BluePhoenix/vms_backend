@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-04 20:18:50.745715",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "account_group",
+  "reconcil_account",
+  "reconcil_description"
+ ],
+ "fields": [
+  {
+   "fieldname": "account_group",
+   "fieldtype": "Link",
+   "label": "Account Group",
+   "options": "Account Group Master"
+  },
+  {
+   "fieldname": "reconcil_account",
+   "fieldtype": "Data",
+   "label": "Reconcil Account"
+  },
+  {
+   "fieldname": "reconcil_description",
+   "fieldtype": "Text",
+   "label": "Reconcil Description"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-04 20:20:24.078457",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Reconciliation Account",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
