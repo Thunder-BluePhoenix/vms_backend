@@ -1,0 +1,55 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-04 20:05:37.597415",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vendor_type_code",
+  "vendor_type_name",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "vendor_type_code",
+   "fieldtype": "Data",
+   "label": "Vendor Type Code"
+  },
+  {
+   "fieldname": "vendor_type_name",
+   "fieldtype": "Data",
+   "label": "Vendor Type Name"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-04 20:06:59.531718",
+ "modified_by": "Administrator",
+ "module": "VMS Masters",
+ "name": "Vendor Type Master",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-04 20:10:41.390214",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company_name",
+  "purchase_organization",
+  "account_group",
+  "terms_of_payment",
+  "purchase_group",
+  "reconciliation_account"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "purchase_organization",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Purchase Organization",
+   "options": "Purchase Organization Master"
+  },
+  {
+   "fieldname": "account_group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Account Group",
+   "options": "Account Group Master"
+  },
+  {
+   "fieldname": "terms_of_payment",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Terms of Payment",
+   "options": "Terms of Payment Master"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "reconciliation_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reconciliation Account",
+   "options": "Reconciliation Account"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-04 20:22:45.543856",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Multiple Company Data",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
