@@ -1,70 +1,68 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-05-04 20:26:08.307319",
+ "creation": "2025-05-05 13:55:17.007539",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "production",
-  "qaqc",
-  "logistics",
-  "marketing",
-  "r_d",
-  "hse",
-  "other"
+  "first_name",
+  "last_name",
+  "designation",
+  "column_break_sejv",
+  "email",
+  "contact_number",
+  "department_name"
  ],
  "fields": [
   {
-   "fieldname": "production",
-   "fieldtype": "Data",
-   "label": "Production"
-  },
-  {
-   "fieldname": "qaqc",
+   "fieldname": "first_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "QA/QC"
+   "label": "First Name"
   },
   {
-   "fieldname": "logistics",
+   "fieldname": "last_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Logistics"
+   "label": "Last Name"
   },
   {
-   "fieldname": "marketing",
+   "fieldname": "designation",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Marketing"
+   "label": "Designation"
   },
   {
-   "fieldname": "r_d",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "R&D"
+   "fieldname": "column_break_sejv",
+   "fieldtype": "Column Break"
   },
   {
-   "fieldname": "hse",
+   "fieldname": "email",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "HSE"
+   "label": "Email"
   },
   {
-   "fieldname": "other",
+   "fieldname": "contact_number",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Other"
+   "label": "Contact Number"
+  },
+  {
+   "fieldname": "department_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Department Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-05 16:56:05.618212",
+ "modified": "2025-05-05 13:58:41.285898",
  "modified_by": "Administrator",
  "module": "Vms",
- "name": "Employee Number",
+ "name": "Contact Details",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

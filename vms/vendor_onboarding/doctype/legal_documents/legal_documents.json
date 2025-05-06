@@ -1,0 +1,322 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-05-05 12:06:41.314911",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_pan_details_section",
+  "column_break_wtij",
+  "naming_series",
+  "ref_no",
+  "company_pan_number",
+  "column_break_ehyi",
+  "vendor_onboarding",
+  "name_on_company_pan",
+  "section_break_rtes",
+  "column_break_jgqt",
+  "pan_proof",
+  "section_break_aaci",
+  "column_break_krvj",
+  "gst_table",
+  "section_break_wuhh",
+  "column_break_xhti",
+  "gst_number",
+  "gst_date",
+  "gst_ven_type",
+  "section_break_ytxo",
+  "column_break_upri",
+  "gst_proof",
+  "entity_registration_number_section",
+  "enterprise_registration_number",
+  "entity_proof_section",
+  "entity_proof",
+  "iec_import__export_code_section",
+  "column_break_zywp",
+  "iec",
+  "iec_proof_section",
+  "iec_proof",
+  "msme_details_section",
+  "msme_registered",
+  "msme_enterprise_type",
+  "column_break_neco",
+  "udyam_number",
+  "name_on_udyam_certificate",
+  "msme_proof_section",
+  "msme_proof",
+  "form_10f_section",
+  "form_10f_proof",
+  "trc_certificate_section",
+  "trc_certificate_no",
+  "column_break_kjhb",
+  "trc_certificate",
+  "pe_certificate_section",
+  "pe_certificate"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_pan_number",
+   "fieldtype": "Data",
+   "label": "Company PAN Number"
+  },
+  {
+   "fieldname": "column_break_ehyi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "name_on_company_pan",
+   "fieldtype": "Data",
+   "label": "Name on Company PAN"
+  },
+  {
+   "fieldname": "section_break_rtes",
+   "fieldtype": "Section Break",
+   "label": "Company PAN Proof"
+  },
+  {
+   "fieldname": "pan_proof",
+   "fieldtype": "Attach",
+   "label": "Upload Company PAN Card"
+  },
+  {
+   "fieldname": "section_break_aaci",
+   "fieldtype": "Section Break",
+   "label": "GST Details Table"
+  },
+  {
+   "fieldname": "gst_table",
+   "fieldtype": "Table",
+   "label": "GST Table",
+   "options": "GST Details Table"
+  },
+  {
+   "fieldname": "section_break_wuhh",
+   "fieldtype": "Section Break",
+   "label": "GST Deatils"
+  },
+  {
+   "fieldname": "gst_number",
+   "fieldtype": "Data",
+   "label": "GST Number"
+  },
+  {
+   "fieldname": "gst_date",
+   "fieldtype": "Date",
+   "label": "GST Registration Date"
+  },
+  {
+   "fieldname": "gst_ven_type",
+   "fieldtype": "Link",
+   "label": "GST Ven. Type",
+   "options": "GST Registration Type Master"
+  },
+  {
+   "fieldname": "section_break_ytxo",
+   "fieldtype": "Section Break",
+   "label": "GST Proof"
+  },
+  {
+   "fieldname": "gst_proof",
+   "fieldtype": "Attach",
+   "label": "Upload GST Proof"
+  },
+  {
+   "fieldname": "iec",
+   "fieldtype": "Data",
+   "label": "Import / Export Code"
+  },
+  {
+   "fieldname": "company_pan_details_section",
+   "fieldtype": "Section Break",
+   "label": "Company PAN Details"
+  },
+  {
+   "fieldname": "column_break_wtij",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jgqt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_krvj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xhti",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_upri",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_zywp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "entity_registration_number_section",
+   "fieldtype": "Section Break",
+   "label": "Entity Registration Number"
+  },
+  {
+   "fieldname": "enterprise_registration_number",
+   "fieldtype": "Data",
+   "label": "Enterprise Registration Number"
+  },
+  {
+   "fieldname": "entity_proof_section",
+   "fieldtype": "Section Break",
+   "label": "Entity Proof"
+  },
+  {
+   "fieldname": "entity_proof",
+   "fieldtype": "Attach",
+   "label": "Upload Enterprise Registration File"
+  },
+  {
+   "fieldname": "iec_import__export_code_section",
+   "fieldtype": "Section Break",
+   "label": "IEC (Import / Export Code)"
+  },
+  {
+   "fieldname": "iec_proof_section",
+   "fieldtype": "Section Break",
+   "label": "IEC Proof"
+  },
+  {
+   "fieldname": "iec_proof",
+   "fieldtype": "Attach",
+   "label": "Upload IEC File"
+  },
+  {
+   "fieldname": "msme_details_section",
+   "fieldtype": "Section Break",
+   "label": "MSME Details"
+  },
+  {
+   "fieldname": "msme_registered",
+   "fieldtype": "Select",
+   "label": "MSME Registered",
+   "options": "No\nYes"
+  },
+  {
+   "fieldname": "msme_enterprise_type",
+   "fieldtype": "Select",
+   "label": "MSME Enterprise Type",
+   "options": "-Select-\nMSME - Micro\nMSME - Small\nMSME - Medium"
+  },
+  {
+   "fieldname": "column_break_neco",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "udyam_number",
+   "fieldtype": "Data",
+   "label": "Udyam Number"
+  },
+  {
+   "fieldname": "name_on_udyam_certificate",
+   "fieldtype": "Data",
+   "label": "Name on Udyam Certificate"
+  },
+  {
+   "fieldname": "msme_proof_section",
+   "fieldtype": "Section Break",
+   "label": "MSME Proof"
+  },
+  {
+   "fieldname": "msme_proof",
+   "fieldtype": "Attach",
+   "label": "Upload MSME Proof"
+  },
+  {
+   "fieldname": "form_10f_section",
+   "fieldtype": "Section Break",
+   "label": "Form_10F"
+  },
+  {
+   "fieldname": "form_10f_proof",
+   "fieldtype": "Attach",
+   "label": "Upload Form_10F"
+  },
+  {
+   "fieldname": "trc_certificate_section",
+   "fieldtype": "Section Break",
+   "label": "TRC Certificate"
+  },
+  {
+   "fieldname": "trc_certificate_no",
+   "fieldtype": "Data",
+   "label": "TRC Certificate No."
+  },
+  {
+   "fieldname": "column_break_kjhb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "trc_certificate",
+   "fieldtype": "Attach",
+   "label": "Upload TRC Certificate"
+  },
+  {
+   "fieldname": "pe_certificate_section",
+   "fieldtype": "Section Break",
+   "label": "P.E Certificate"
+  },
+  {
+   "fieldname": "pe_certificate",
+   "fieldtype": "Attach",
+   "label": "Upload P.E Certificate"
+  },
+  {
+   "bold": 1,
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "ONB-DOC-.YYYY.-.MM.-",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "vendor_onboarding",
+   "fieldtype": "Link",
+   "label": "Vendor Onboarding",
+   "options": "Vendor Onboarding"
+  },
+  {
+   "fetch_from": "vendor_onboarding.ref_no",
+   "fieldname": "ref_no",
+   "fieldtype": "Link",
+   "label": "Ref No.",
+   "options": "Vendor Master"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-06 10:18:52.879972",
+ "modified_by": "Administrator",
+ "module": "Vendor Onboarding",
+ "name": "Legal Documents",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

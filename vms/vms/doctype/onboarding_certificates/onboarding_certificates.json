@@ -1,0 +1,62 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-05 13:45:41.342139",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "certificate_code",
+  "certificate_name",
+  "other_certificate_name",
+  "valid_till",
+  "certificate_attach"
+ ],
+ "fields": [
+  {
+   "fieldname": "certificate_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Certificate Code",
+   "options": "Certificate Master"
+  },
+  {
+   "fieldname": "certificate_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Certificate Name"
+  },
+  {
+   "fieldname": "other_certificate_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Other Certificate Name"
+  },
+  {
+   "fieldname": "valid_till",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Valid Till"
+  },
+  {
+   "fieldname": "certificate_attach",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Certificate"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-05 13:49:38.510010",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Onboarding Certificates",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

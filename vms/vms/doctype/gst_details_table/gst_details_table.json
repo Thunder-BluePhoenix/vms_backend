@@ -1,50 +1,51 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-05-04 20:40:36.817916",
+ "creation": "2025-05-05 12:10:37.687565",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "equipment_name",
-  "equipment_qty",
-  "capacity",
-  "remarks"
+  "gst_state",
+  "gst_registration_date",
+  "gst_number",
+  "gst_document"
  ],
  "fields": [
   {
-   "fieldname": "equipment_name",
-   "fieldtype": "Data",
+   "fieldname": "gst_state",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Equipment Name"
+   "label": "GST State",
+   "options": "State Master"
   },
   {
-   "fieldname": "equipment_qty",
-   "fieldtype": "Data",
+   "fieldname": "gst_registration_date",
+   "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Equipment Qty"
+   "label": "GST Registration Date"
   },
   {
-   "fieldname": "capacity",
+   "fieldname": "gst_number",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Capacity"
+   "label": "GST Number"
   },
   {
-   "fieldname": "remarks",
-   "fieldtype": "Small Text",
+   "fieldname": "gst_document",
+   "fieldtype": "Attach",
    "in_list_view": 1,
-   "label": "Remarks"
+   "label": "GST Document"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-05 16:59:44.277679",
+ "modified": "2025-05-05 12:13:43.325879",
  "modified_by": "Administrator",
  "module": "Vms",
- "name": "Testing Facility",
+ "name": "GST Details Table",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

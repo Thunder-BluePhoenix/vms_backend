@@ -1,0 +1,384 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-05 14:05:50.745735",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_details_tab",
+  "vendor_details_section",
+  "ref_no",
+  "qms_required",
+  "column_break_wagn",
+  "onboarding_form_status",
+  "rejection_comment",
+  "company_details_section",
+  "vendor_company_details",
+  "status_section",
+  "purchase_t_approval",
+  "purchase_team_undertaking",
+  "accounts_t_approval",
+  "accounts_team_undertaking",
+  "purchase_h_approval",
+  "purchase_head_undertaking",
+  "multiple_location_within_state_section",
+  "multiple_locations",
+  "multiple_location_table",
+  "tables_section",
+  "vendor_types",
+  "multiple_company",
+  "number_of_employee",
+  "machinery_detail",
+  "testing_detail",
+  "reputed_partners",
+  "payment_detail_tab",
+  "payment_detail",
+  "documents_certificate_details_tab",
+  "document_details",
+  "certificate_details",
+  "manufacturing_details_tab",
+  "manufacturing_details",
+  "contact_details_tab",
+  "contact_persons_section",
+  "contact_details",
+  "purchasing_data_tab",
+  "payee_in_document",
+  "check_double_invoice",
+  "gr_based_inv_ver",
+  "service_based_inv_ver",
+  "purchase_organization",
+  "order_currency",
+  "terms_of_payment",
+  "purchase_group",
+  "incoterms",
+  "column_break_adix",
+  "account_group",
+  "purchase_team_remarks",
+  "purchase_head_remarks",
+  "enterprise",
+  "reconciliation_account",
+  "qa_team_remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "vendor_details_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Details"
+  },
+  {
+   "fieldname": "ref_no",
+   "fieldtype": "Link",
+   "label": "Ref No",
+   "options": "Vendor Master"
+  },
+  {
+   "fetch_from": "ref_no.qa_required",
+   "fieldname": "qms_required",
+   "fieldtype": "Select",
+   "label": "QMS Required?",
+   "options": "-Select-\nNo\nYes"
+  },
+  {
+   "fieldname": "column_break_wagn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "onboarding_form_status",
+   "fieldtype": "Data",
+   "label": "Onboarding Form Status"
+  },
+  {
+   "fieldname": "rejection_comment",
+   "fieldtype": "Data",
+   "label": "Rejection Comment"
+  },
+  {
+   "fieldname": "company_details_section",
+   "fieldtype": "Section Break",
+   "label": "Company Details"
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "fieldname": "purchase_t_approval",
+   "fieldtype": "Data",
+   "label": "Purchase Team Approval"
+  },
+  {
+   "default": "0",
+   "fieldname": "purchase_team_undertaking",
+   "fieldtype": "Check",
+   "label": "Purchase Team Undertaking"
+  },
+  {
+   "fieldname": "accounts_t_approval",
+   "fieldtype": "Data",
+   "label": "Accounts Team Approval"
+  },
+  {
+   "default": "0",
+   "fieldname": "accounts_team_undertaking",
+   "fieldtype": "Check",
+   "label": "Accounts Team Undertaking"
+  },
+  {
+   "fieldname": "purchase_h_approval",
+   "fieldtype": "Data",
+   "label": "Purchase Head Approval"
+  },
+  {
+   "default": "0",
+   "fieldname": "purchase_head_undertaking",
+   "fieldtype": "Check",
+   "label": "Purchase Head Undertaking"
+  },
+  {
+   "fieldname": "multiple_location_within_state_section",
+   "fieldtype": "Section Break",
+   "label": "Multiple Location within State"
+  },
+  {
+   "default": "0",
+   "fieldname": "multiple_locations",
+   "fieldtype": "Check",
+   "label": "Do you have multiple locations within the state?"
+  },
+  {
+   "fieldname": "multiple_location_table",
+   "fieldtype": "Table",
+   "label": "Multiple Location Table",
+   "options": "Multiple Address"
+  },
+  {
+   "fieldname": "tables_section",
+   "fieldtype": "Section Break",
+   "label": "Tables"
+  },
+  {
+   "fieldname": "vendor_types",
+   "fieldtype": "Table",
+   "label": "Vendor Types",
+   "options": "Vendor Type Group"
+  },
+  {
+   "fieldname": "multiple_company",
+   "fieldtype": "Table",
+   "label": "Multiple Company",
+   "options": "Multiple Company Data"
+  },
+  {
+   "fieldname": "number_of_employee",
+   "fieldtype": "Table",
+   "label": "Number of Employee",
+   "options": "Employee Number"
+  },
+  {
+   "fieldname": "machinery_detail",
+   "fieldtype": "Table",
+   "label": "Machinery Detail",
+   "options": "Machinery Detail"
+  },
+  {
+   "fieldname": "testing_detail",
+   "fieldtype": "Table",
+   "label": "Testing Detail",
+   "options": "Testing Facility"
+  },
+  {
+   "fieldname": "reputed_partners",
+   "fieldtype": "Table",
+   "label": "Reputed Partners",
+   "options": "Reputed Partners"
+  },
+  {
+   "fieldname": "company_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Company Details"
+  },
+  {
+   "fieldname": "payment_detail_tab",
+   "fieldtype": "Tab Break",
+   "label": "Vendors Payment Detail"
+  },
+  {
+   "fieldname": "payment_detail",
+   "fieldtype": "Link",
+   "label": "Payment Detail",
+   "options": "Vendor Onboarding Payment Details"
+  },
+  {
+   "fieldname": "documents_certificate_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Documents & Certificate Details"
+  },
+  {
+   "fieldname": "manufacturing_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Manufacturing Details"
+  },
+  {
+   "fieldname": "contact_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Contact Details"
+  },
+  {
+   "fieldname": "purchasing_data_tab",
+   "fieldtype": "Tab Break",
+   "label": "Purchasing Data"
+  },
+  {
+   "fieldname": "contact_persons_section",
+   "fieldtype": "Section Break",
+   "label": "Contact Persons"
+  },
+  {
+   "fieldname": "contact_details",
+   "fieldtype": "Table",
+   "label": "Contact Details",
+   "options": "Contact Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "payee_in_document",
+   "fieldtype": "Check",
+   "label": "Payee in Document"
+  },
+  {
+   "default": "0",
+   "fieldname": "check_double_invoice",
+   "fieldtype": "Check",
+   "label": "Check Double"
+  },
+  {
+   "default": "0",
+   "fieldname": "gr_based_inv_ver",
+   "fieldtype": "Check",
+   "label": "GR Based Inv Ver"
+  },
+  {
+   "default": "0",
+   "fieldname": "service_based_inv_ver",
+   "fieldtype": "Check",
+   "label": "Service Based Inv Ver"
+  },
+  {
+   "fieldname": "purchase_organization",
+   "fieldtype": "Link",
+   "label": "Purchase Organization",
+   "options": "Purchase Organization Master"
+  },
+  {
+   "fieldname": "order_currency",
+   "fieldtype": "Link",
+   "label": "Order Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "terms_of_payment",
+   "fieldtype": "Link",
+   "label": "Terms of Payment",
+   "options": "Terms of Payment Master"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Link",
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "incoterms",
+   "fieldtype": "Link",
+   "label": "Incoterms",
+   "options": "Incoterm Master"
+  },
+  {
+   "fieldname": "account_group",
+   "fieldtype": "Link",
+   "label": "Account Group",
+   "options": "Account Group Master"
+  },
+  {
+   "fieldname": "purchase_team_remarks",
+   "fieldtype": "Data",
+   "label": "Purchase Team Remarks"
+  },
+  {
+   "fieldname": "purchase_head_remarks",
+   "fieldtype": "Data",
+   "label": "Purchase Head Remarks"
+  },
+  {
+   "fieldname": "enterprise",
+   "fieldtype": "Data",
+   "label": "Enterprise"
+  },
+  {
+   "fieldname": "reconciliation_account",
+   "fieldtype": "Link",
+   "label": "Reconciliation Account",
+   "options": "Reconciliation Account"
+  },
+  {
+   "fieldname": "qa_team_remarks",
+   "fieldtype": "Data",
+   "label": "QA Team Remarks"
+  },
+  {
+   "fieldname": "column_break_adix",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "document_details",
+   "fieldtype": "Link",
+   "label": "Vendors Document Details",
+   "options": "Legal Documents"
+  },
+  {
+   "fieldname": "certificate_details",
+   "fieldtype": "Link",
+   "label": "Vendors Certificate Details",
+   "options": "Vendor Onboarding Certificates"
+  },
+  {
+   "fieldname": "manufacturing_details",
+   "fieldtype": "Link",
+   "label": "Vendors Manufacturing details",
+   "options": "Vendor Onboarding Manufacturing Details"
+  },
+  {
+   "fieldname": "vendor_company_details",
+   "fieldtype": "Link",
+   "label": "Vendor Company Details",
+   "options": "Vendor Onboarding Company Details"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-06 10:25:54.086068",
+ "modified_by": "Administrator",
+ "module": "Vendor Onboarding",
+ "name": "Vendor Onboarding",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
