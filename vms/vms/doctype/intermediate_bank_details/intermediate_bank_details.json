@@ -1,0 +1,120 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-05 11:16:28.374078",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "intermediate_bank_name",
+  "intermediate_swift_code",
+  "intermediate_iban_no",
+  "intermediate_aba_no",
+  "intermediate_bank_address",
+  "column_break_heue",
+  "intermediate_account_no",
+  "intermediate_ach_no",
+  "intermediate_routing_no",
+  "lft",
+  "rgt",
+  "is_group",
+  "old_parent",
+  "parent_intermediate_bank_details"
+ ],
+ "fields": [
+  {
+   "fieldname": "intermediate_bank_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Intermediate Bank Name"
+  },
+  {
+   "fieldname": "intermediate_swift_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Intermediate SWIFT Code"
+  },
+  {
+   "fieldname": "intermediate_iban_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Intermediate IBAN No."
+  },
+  {
+   "fieldname": "intermediate_aba_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Intermediate ABA No."
+  },
+  {
+   "fieldname": "intermediate_bank_address",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Intermediate Bank Address"
+  },
+  {
+   "fieldname": "column_break_heue",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "intermediate_account_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Intermediate Account No."
+  },
+  {
+   "fieldname": "intermediate_ach_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Intermediate ACH No."
+  },
+  {
+   "fieldname": "intermediate_routing_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Intermediate Routing No."
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "label": "Left"
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "label": "Right"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "is Group"
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "label": "Old Parent",
+   "options": "Intermediate Bank Details"
+  },
+  {
+   "fieldname": "parent_intermediate_bank_details",
+   "fieldtype": "Link",
+   "label": "Parent Intermediate Bank Details",
+   "options": "Intermediate Bank Details"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-05 11:31:02.706096",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Intermediate Bank Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

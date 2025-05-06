@@ -1,0 +1,308 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-05-05 15:40:59.486207",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_details_section",
+  "naming_series",
+  "ref_no",
+  "vendor_name",
+  "company_name",
+  "type_of_business",
+  "size_of_company",
+  "website",
+  "telephone_number",
+  "whatsapp_number",
+  "office_email_secondary",
+  "column_break_gkqv",
+  "vendor_onboarding",
+  "cin_date",
+  "nature_of_company",
+  "registered_office_number",
+  "office_email_primary",
+  "established_year",
+  "nature_of_business",
+  "corporate_identification_number",
+  "office_address_section",
+  "address_line_1",
+  "address_line_2",
+  "city",
+  "district",
+  "column_break_cbts",
+  "state",
+  "country",
+  "pincode",
+  "same_as_above_address_section",
+  "same_as_above",
+  "manufacturing_address_section",
+  "street_1",
+  "street_2",
+  "manufacturing_city",
+  "manufacturing_district",
+  "column_break_wlnc",
+  "manufacturing_state",
+  "manufacturing_country",
+  "manufacturing_pincode",
+  "address_proof_section",
+  "address_proofattachment"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_details_section",
+   "fieldtype": "Section Break",
+   "label": "Company Details"
+  },
+  {
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "label": "Vendor Name"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "label": "Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "type_of_business",
+   "fieldtype": "Data",
+   "label": "Type of Business"
+  },
+  {
+   "fieldname": "size_of_company",
+   "fieldtype": "Data",
+   "label": "Size of Company"
+  },
+  {
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "label": "Website"
+  },
+  {
+   "fieldname": "telephone_number",
+   "fieldtype": "Data",
+   "label": "Telephone Number"
+  },
+  {
+   "fieldname": "whatsapp_number",
+   "fieldtype": "Data",
+   "label": "WhatsApp Number"
+  },
+  {
+   "fieldname": "office_email_secondary",
+   "fieldtype": "Data",
+   "label": "Office Email Secondary"
+  },
+  {
+   "fieldname": "column_break_gkqv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cin_date",
+   "fieldtype": "Date",
+   "label": "CIN Date"
+  },
+  {
+   "fieldname": "nature_of_company",
+   "fieldtype": "Link",
+   "label": "Nature of Company",
+   "options": "Company Nature Master"
+  },
+  {
+   "fieldname": "registered_office_number",
+   "fieldtype": "Data",
+   "label": "Registered Office Number"
+  },
+  {
+   "fieldname": "office_email_primary",
+   "fieldtype": "Data",
+   "label": "Office Email Primary"
+  },
+  {
+   "fieldname": "established_year",
+   "fieldtype": "Data",
+   "label": "Established Year"
+  },
+  {
+   "fieldname": "nature_of_business",
+   "fieldtype": "Link",
+   "label": "Nature of Business",
+   "options": "Business Nature Master"
+  },
+  {
+   "fieldname": "corporate_identification_number",
+   "fieldtype": "Data",
+   "label": "Corporate Identification Number"
+  },
+  {
+   "fieldname": "office_address_section",
+   "fieldtype": "Section Break",
+   "label": "Office Address"
+  },
+  {
+   "fieldname": "address_line_1",
+   "fieldtype": "Data",
+   "label": "Address Line 1"
+  },
+  {
+   "fieldname": "address_line_2",
+   "fieldtype": "Data",
+   "label": "Address Line 2"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Link",
+   "label": "City",
+   "options": "City Master"
+  },
+  {
+   "fieldname": "district",
+   "fieldtype": "Link",
+   "label": "District",
+   "options": "District Master"
+  },
+  {
+   "fieldname": "column_break_cbts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Link",
+   "label": "State",
+   "options": "State Master"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Link",
+   "label": "Pincode",
+   "options": "Pincode Master"
+  },
+  {
+   "fieldname": "same_as_above_address_section",
+   "fieldtype": "Section Break",
+   "label": "Same as a"
+  },
+  {
+   "default": "0",
+   "fieldname": "same_as_above",
+   "fieldtype": "Check",
+   "label": "Same as Above"
+  },
+  {
+   "fieldname": "manufacturing_address_section",
+   "fieldtype": "Section Break",
+   "label": "Manufacturing Address"
+  },
+  {
+   "fieldname": "street_1",
+   "fieldtype": "Data",
+   "label": "Street 1"
+  },
+  {
+   "fieldname": "street_2",
+   "fieldtype": "Data",
+   "label": "Street 2"
+  },
+  {
+   "fieldname": "manufacturing_city",
+   "fieldtype": "Link",
+   "label": "City",
+   "options": "City Master"
+  },
+  {
+   "fieldname": "manufacturing_district",
+   "fieldtype": "Link",
+   "label": "District",
+   "options": "District Master"
+  },
+  {
+   "fieldname": "column_break_wlnc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "manufacturing_state",
+   "fieldtype": "Link",
+   "label": "State",
+   "options": "State Master"
+  },
+  {
+   "fieldname": "manufacturing_country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "manufacturing_pincode",
+   "fieldtype": "Link",
+   "label": "Pincode",
+   "options": "Pincode Master"
+  },
+  {
+   "fieldname": "address_proof_section",
+   "fieldtype": "Section Break",
+   "label": "Address Proof"
+  },
+  {
+   "fieldname": "address_proofattachment",
+   "fieldtype": "Attach",
+   "label": "Address Proof"
+  },
+  {
+   "bold": 1,
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "VC-.YYYY.-.MM.-",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "vendor_onboarding",
+   "fieldtype": "Link",
+   "label": "Vendor Onboarding",
+   "options": "Vendor Onboarding"
+  },
+  {
+   "fetch_from": "vendor_onboarding.ref_no",
+   "fieldname": "ref_no",
+   "fieldtype": "Link",
+   "label": "Ref No.",
+   "options": "Vendor Master"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-06 10:17:45.799583",
+ "modified_by": "Administrator",
+ "module": "Vendor Onboarding",
+ "name": "Vendor Onboarding Company Details",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

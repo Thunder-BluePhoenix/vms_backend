@@ -1,0 +1,341 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-05-05 17:03:29.525289",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "indian_bank_details_section",
+  "naming_series",
+  "ref_no",
+  "bank_name",
+  "ifsc_code",
+  "account_number",
+  "column_break_usab",
+  "vendor_onboarding",
+  "type_of_account",
+  "currency",
+  "name_of_account_holder",
+  "bank_proof_section",
+  "bank_proof",
+  "preferred_transaction_section",
+  "rtgs",
+  "column_break_yyye",
+  "neft",
+  "international_bank_details_section",
+  "beneficiary_name",
+  "beneficiary_bank_name",
+  "beneficiary_account_no",
+  "beneficiary_iban_no",
+  "beneficiary_bank_swift_code",
+  "bank_proof_for_beneficiary_bank",
+  "column_break_pqwn",
+  "beneficiary_ach_no",
+  "beneficiary_aba_no",
+  "beneficiary_routing_no",
+  "beneficiary_bank_address",
+  "beneficiary_currency",
+  "section_break_ohzw",
+  "add_intermediate_bank_details",
+  "intermediate_bank_details_section",
+  "intermediate_bank_name",
+  "intermediate_account_no",
+  "intermediate_bank_swift_code",
+  "intermediate_bank_address",
+  "bank_proof_for_intermediate_bank",
+  "column_break_wslp",
+  "intermediate_iban_no",
+  "intermediate_ach_no",
+  "intermediate_aba_no",
+  "intermediate_routing_no",
+  "intermediate_currency",
+  "bank_details_in_table_section",
+  "banker_details",
+  "international_bank_details",
+  "intermediate_bank_details"
+ ],
+ "fields": [
+  {
+   "fieldname": "indian_bank_details_section",
+   "fieldtype": "Section Break",
+   "label": "Indian Bank Details"
+  },
+  {
+   "fieldname": "bank_name",
+   "fieldtype": "Link",
+   "label": "Bank Name",
+   "options": "Bank Master"
+  },
+  {
+   "fieldname": "ifsc_code",
+   "fieldtype": "Data",
+   "label": "IFSC Code"
+  },
+  {
+   "fieldname": "account_number",
+   "fieldtype": "Data",
+   "label": "Account Number"
+  },
+  {
+   "fieldname": "column_break_usab",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type_of_account",
+   "fieldtype": "Select",
+   "label": "Type of Account",
+   "options": "-Select-\nSavings Account\nCurrent Account"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "name_of_account_holder",
+   "fieldtype": "Data",
+   "label": "Name of Account Holder"
+  },
+  {
+   "fieldname": "bank_proof_section",
+   "fieldtype": "Section Break",
+   "label": "Bank Proof"
+  },
+  {
+   "fieldname": "bank_proof",
+   "fieldtype": "Attach",
+   "label": "Bank Proof"
+  },
+  {
+   "fieldname": "preferred_transaction_section",
+   "fieldtype": "Section Break",
+   "label": "Preferred Transaction"
+  },
+  {
+   "default": "0",
+   "fieldname": "rtgs",
+   "fieldtype": "Check",
+   "label": "RTGS"
+  },
+  {
+   "fieldname": "column_break_yyye",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "neft",
+   "fieldtype": "Check",
+   "label": "NEFT"
+  },
+  {
+   "fieldname": "international_bank_details_section",
+   "fieldtype": "Section Break",
+   "label": "International Bank Details"
+  },
+  {
+   "fieldname": "beneficiary_name",
+   "fieldtype": "Data",
+   "label": "Beneficiary Name"
+  },
+  {
+   "fieldname": "beneficiary_bank_name",
+   "fieldtype": "Link",
+   "label": "Beneficiary Bank Name",
+   "options": "Bank Master"
+  },
+  {
+   "fieldname": "beneficiary_account_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary Account No."
+  },
+  {
+   "fieldname": "beneficiary_iban_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary IBAN No."
+  },
+  {
+   "fieldname": "beneficiary_bank_swift_code",
+   "fieldtype": "Data",
+   "label": "Beneficiary Bank Swift Code"
+  },
+  {
+   "fieldname": "bank_proof_for_beneficiary_bank",
+   "fieldtype": "Attach",
+   "label": "Bank Proof for Beneficiary Bank"
+  },
+  {
+   "fieldname": "column_break_pqwn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "beneficiary_ach_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary ACH No."
+  },
+  {
+   "fieldname": "beneficiary_aba_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary ABA No."
+  },
+  {
+   "fieldname": "beneficiary_routing_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary Routing No."
+  },
+  {
+   "fieldname": "beneficiary_bank_address",
+   "fieldtype": "Data",
+   "label": "Beneficiary Bank Address"
+  },
+  {
+   "fieldname": "beneficiary_currency",
+   "fieldtype": "Link",
+   "label": "Beneficiary Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "section_break_ohzw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_intermediate_bank_details",
+   "fieldtype": "Check",
+   "label": "Add Intermediate Bank Details"
+  },
+  {
+   "fieldname": "intermediate_bank_details_section",
+   "fieldtype": "Section Break",
+   "label": "Intermediate Bank Details"
+  },
+  {
+   "fieldname": "intermediate_bank_name",
+   "fieldtype": "Link",
+   "label": "Intermediate Bank Name",
+   "options": "Bank Master"
+  },
+  {
+   "fieldname": "intermediate_account_no",
+   "fieldtype": "Data",
+   "label": "Intermediate Account No."
+  },
+  {
+   "fieldname": "intermediate_bank_swift_code",
+   "fieldtype": "Data",
+   "label": "Intermediate Bank Swift Code"
+  },
+  {
+   "fieldname": "intermediate_bank_address",
+   "fieldtype": "Data",
+   "label": "Intermediate Bank Address"
+  },
+  {
+   "fieldname": "bank_proof_for_intermediate_bank",
+   "fieldtype": "Attach",
+   "label": "Bank Proof for Intermediate Bank"
+  },
+  {
+   "fieldname": "column_break_wslp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "intermediate_iban_no",
+   "fieldtype": "Data",
+   "label": "Intermediate IBAN No."
+  },
+  {
+   "fieldname": "intermediate_ach_no",
+   "fieldtype": "Data",
+   "label": "Intermediate ACH No."
+  },
+  {
+   "fieldname": "intermediate_aba_no",
+   "fieldtype": "Data",
+   "label": "Intermediate ABA No."
+  },
+  {
+   "fieldname": "intermediate_routing_no",
+   "fieldtype": "Data",
+   "label": "Intermediate Routing No."
+  },
+  {
+   "fieldname": "intermediate_currency",
+   "fieldtype": "Link",
+   "label": "Intermediate Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "bank_details_in_table_section",
+   "fieldtype": "Section Break",
+   "label": "Bank Details in Table"
+  },
+  {
+   "fieldname": "banker_details",
+   "fieldtype": "Table",
+   "label": "Banker Details",
+   "options": "Banker Details"
+  },
+  {
+   "fieldname": "international_bank_details",
+   "fieldtype": "Table",
+   "label": "International Bank Details",
+   "options": "International Bank Details"
+  },
+  {
+   "fieldname": "intermediate_bank_details",
+   "fieldtype": "Table",
+   "label": "Intermediate Bank Details",
+   "options": "Intermediate Bank Details"
+  },
+  {
+   "bold": 1,
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "VOP-.YYYY.-.MM.-",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "vendor_onboarding",
+   "fieldtype": "Link",
+   "label": "Vendor Onboarding",
+   "options": "Vendor Onboarding"
+  },
+  {
+   "fetch_from": "vendor_onboarding.ref_no",
+   "fieldname": "ref_no",
+   "fieldtype": "Link",
+   "label": "Ref No.",
+   "options": "Vendor Master"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-06 10:20:42.119478",
+ "modified_by": "Administrator",
+ "module": "Vendor Onboarding",
+ "name": "Vendor Onboarding Payment Details",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

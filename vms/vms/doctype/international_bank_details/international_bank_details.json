@@ -1,0 +1,134 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-05 11:26:55.061006",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "meril_company_name",
+  "beneficiary_name",
+  "beneficiary_swift_code",
+  "beneficiary_iban_no",
+  "beneficiary_aba_no",
+  "beneficiary_bank_address",
+  "column_break_dhrx",
+  "beneficiary_bank_name",
+  "beneficiary_account_no",
+  "beneficiary_ach_no",
+  "beneficiary_routing_no",
+  "lft",
+  "rgt",
+  "is_group",
+  "old_parent",
+  "parent_international_bank_details"
+ ],
+ "fields": [
+  {
+   "fieldname": "meril_company_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Meril Company Name"
+  },
+  {
+   "fieldname": "beneficiary_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary Name"
+  },
+  {
+   "fieldname": "beneficiary_swift_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary SWIFT Code"
+  },
+  {
+   "fieldname": "beneficiary_iban_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary IBAN No."
+  },
+  {
+   "fieldname": "beneficiary_aba_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary ABA No."
+  },
+  {
+   "fieldname": "beneficiary_bank_address",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Beneficiary Bank Address"
+  },
+  {
+   "fieldname": "column_break_dhrx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "beneficiary_bank_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary Bank Name"
+  },
+  {
+   "fieldname": "beneficiary_account_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary Account No."
+  },
+  {
+   "fieldname": "beneficiary_ach_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary ACH No."
+  },
+  {
+   "fieldname": "beneficiary_routing_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary Routing No."
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "label": "Left"
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "label": "Right"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "is Group"
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "label": "Old Parent",
+   "options": "International Bank Details"
+  },
+  {
+   "fieldname": "parent_international_bank_details",
+   "fieldtype": "Link",
+   "label": "Parent International Bank Details",
+   "options": "International Bank Details"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-05 11:50:31.068899",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "International Bank Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

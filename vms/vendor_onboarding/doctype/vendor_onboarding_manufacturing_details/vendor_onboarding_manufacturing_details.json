@@ -1,0 +1,179 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-05-05 20:40:03.046472",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "manufacturing_details_section",
+  "naming_series",
+  "ref_no",
+  "details_of_product_manufactured",
+  "total_godown",
+  "storage_capacity",
+  "spare_capacity",
+  "type_of_premises",
+  "working_hours",
+  "column_break_zpoy",
+  "vendor_onboarding",
+  "weekly_holidays",
+  "number_of_manpower",
+  "annual_revenue",
+  "google_address_pin",
+  "cold_storage",
+  "product_list_section",
+  "materials_supplied",
+  "materials_section",
+  "brochure_proof",
+  "organisation_structure_document_section",
+  "organisation_structure_document"
+ ],
+ "fields": [
+  {
+   "fieldname": "manufacturing_details_section",
+   "fieldtype": "Section Break",
+   "label": "Manufacturing Details"
+  },
+  {
+   "fieldname": "details_of_product_manufactured",
+   "fieldtype": "Data",
+   "label": "Details of Product Manufactured"
+  },
+  {
+   "fieldname": "total_godown",
+   "fieldtype": "Data",
+   "label": "Total Godown(Sq. Ft.)"
+  },
+  {
+   "fieldname": "storage_capacity",
+   "fieldtype": "Data",
+   "label": "Storage Capacity(Sq. Ft.)"
+  },
+  {
+   "fieldname": "spare_capacity",
+   "fieldtype": "Data",
+   "label": "Spare Capacity(Sq. Ft.)"
+  },
+  {
+   "fieldname": "type_of_premises",
+   "fieldtype": "Select",
+   "label": "Type of Premises",
+   "options": "-Select-\nLease\nRented\nOwned"
+  },
+  {
+   "fieldname": "working_hours",
+   "fieldtype": "Data",
+   "label": "Working Hours"
+  },
+  {
+   "fieldname": "column_break_zpoy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "weekly_holidays",
+   "fieldtype": "Data",
+   "label": "Weekly Holidays"
+  },
+  {
+   "fieldname": "number_of_manpower",
+   "fieldtype": "Data",
+   "label": "No. of Manpower/Strength"
+  },
+  {
+   "fieldname": "annual_revenue",
+   "fieldtype": "Data",
+   "label": "Annual Revenue"
+  },
+  {
+   "fieldname": "google_address_pin",
+   "fieldtype": "Data",
+   "label": "Google Address Pin"
+  },
+  {
+   "default": "0",
+   "fieldname": "cold_storage",
+   "fieldtype": "Check",
+   "label": "Cold Storage"
+  },
+  {
+   "fieldname": "product_list_section",
+   "fieldtype": "Section Break",
+   "label": "Product List"
+  },
+  {
+   "fieldname": "materials_supplied",
+   "fieldtype": "Table",
+   "label": "Materials Supplied",
+   "options": "Supplied"
+  },
+  {
+   "fieldname": "materials_section",
+   "fieldtype": "Section Break",
+   "label": "Materials "
+  },
+  {
+   "fieldname": "brochure_proof",
+   "fieldtype": "Attach",
+   "label": "Brochure Proof"
+  },
+  {
+   "fieldname": "organisation_structure_document_section",
+   "fieldtype": "Section Break",
+   "label": "Organisation Structure Document"
+  },
+  {
+   "fieldname": "organisation_structure_document",
+   "fieldtype": "Attach",
+   "label": "Upload Organisation Structure File"
+  },
+  {
+   "bold": 1,
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "VOM-.YYYY.-.MM.-s",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "vendor_onboarding",
+   "fieldtype": "Link",
+   "label": "Vendor Onboarding",
+   "options": "Vendor Onboarding"
+  },
+  {
+   "fetch_from": "vendor_onboarding.ref_no",
+   "fieldname": "ref_no",
+   "fieldtype": "Link",
+   "label": "Ref No.",
+   "options": "Vendor Master"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-06 10:18:21.127932",
+ "modified_by": "Administrator",
+ "module": "Vendor Onboarding",
+ "name": "Vendor Onboarding Manufacturing Details",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

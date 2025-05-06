@@ -15,21 +15,25 @@
   {
    "fieldname": "company_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Company Name"
   },
   {
    "fieldname": "test",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Test"
   },
   {
    "fieldname": "supplied_qtyyear",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Supplied Qty/Year"
   },
   {
    "fieldname": "remark",
    "fieldtype": "Small Text",
+   "in_list_view": 1,
    "label": "Remark"
   }
  ],
@@ -37,7 +41,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-04 20:49:17.056557",
+ "modified": "2025-05-05 17:00:12.570877",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Reputed Partners",
