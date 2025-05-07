@@ -8,6 +8,7 @@ from frappe.model.document import Document
 class OTPVerification(Document):
     pass
 
+
 @frappe.whitelist(allow_guest = True)
 def verify_otp_and_delete(docname, input_otp):
     """Verify OTP, wait 30 sec, delete if verified, and return success message."""
