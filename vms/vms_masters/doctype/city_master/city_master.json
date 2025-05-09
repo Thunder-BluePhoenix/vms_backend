@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:city_name",
  "creation": "2025-05-04 19:46:52.037418",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,7 +14,8 @@
   {
    "fieldname": "city_name",
    "fieldtype": "Data",
-   "label": "City Name"
+   "label": "City Name",
+   "unique": 1
   },
   {
    "fieldname": "district",
@@ -31,10 +33,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 19:52:40.709845",
+ "modified": "2025-05-08 11:24:07.825924",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "City Master",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

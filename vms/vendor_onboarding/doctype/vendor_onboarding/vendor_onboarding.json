@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:Onboarding/{ref_no}",
  "creation": "2025-05-05 14:05:50.745735",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -350,18 +351,19 @@
   },
   {
    "fieldname": "vendor_company_details",
-   "fieldtype": "Link",
+   "fieldtype": "Table",
    "label": "Vendor Company Details",
-   "options": "Vendor Onboarding Company Details"
+   "options": "Company of Vendor"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-06 10:25:54.086068",
+ "modified": "2025-05-09 12:58:18.288168",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

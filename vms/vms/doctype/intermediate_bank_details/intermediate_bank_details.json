@@ -11,10 +11,12 @@
   "intermediate_iban_no",
   "intermediate_aba_no",
   "intermediate_bank_address",
+  "bank_proof_for_intermediate_bank",
   "column_break_heue",
   "intermediate_account_no",
   "intermediate_ach_no",
   "intermediate_routing_no",
+  "intermediate_currency",
   "lft",
   "rgt",
   "is_group",
@@ -101,13 +103,24 @@
    "fieldtype": "Link",
    "label": "Parent Intermediate Bank Details",
    "options": "Intermediate Bank Details"
+  },
+  {
+   "fieldname": "bank_proof_for_intermediate_bank",
+   "fieldtype": "Attach",
+   "label": "Bank Proof for Intermediate Bank"
+  },
+  {
+   "fieldname": "intermediate_currency",
+   "fieldtype": "Link",
+   "label": "Intermediate Currency",
+   "options": "Currency Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-05 11:31:02.706096",
+ "modified": "2025-05-09 11:08:14.105985",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Intermediate Bank Details",

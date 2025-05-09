@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:pincode",
  "creation": "2025-05-04 19:50:38.066632",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -16,7 +17,8 @@
   {
    "fieldname": "pincode",
    "fieldtype": "Data",
-   "label": "Pincode"
+   "label": "Pincode",
+   "unique": 1
   },
   {
    "fieldname": "city",
@@ -44,16 +46,18 @@
   },
   {
    "fieldname": "zone",
-   "fieldtype": "Data"
+   "fieldtype": "Data",
+   "label": "Zone"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 19:54:48.015537",
+ "modified": "2025-05-08 11:12:51.787957",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Pincode Master",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

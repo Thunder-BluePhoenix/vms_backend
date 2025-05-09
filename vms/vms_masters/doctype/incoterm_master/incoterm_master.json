@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:incoterm_name",
  "creation": "2025-05-04 15:28:53.303287",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -21,7 +22,8 @@
   {
    "fieldname": "incoterm_name",
    "fieldtype": "Data",
-   "label": "Incoterm Name"
+   "label": "Incoterm Name",
+   "unique": 1
   },
   {
    "fieldname": "delivery_point",
@@ -47,10 +49,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 15:30:39.128472",
+ "modified": "2025-05-08 11:24:38.184974",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Incoterm Master",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

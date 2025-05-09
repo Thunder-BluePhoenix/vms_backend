@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{registration_ven_name}-{registration_ven_code}",
  "creation": "2025-05-05 12:17:31.338710",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -29,10 +30,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-05 12:19:07.578059",
+ "modified": "2025-05-08 11:08:26.822422",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "GST Registration Type Master",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:reconcil_account",
  "creation": "2025-05-04 20:18:50.745715",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -19,7 +20,8 @@
   {
    "fieldname": "reconcil_account",
    "fieldtype": "Data",
-   "label": "Reconcil Account"
+   "label": "Reconcil Account",
+   "unique": 1
   },
   {
    "fieldname": "reconcil_description",
@@ -30,10 +32,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 20:20:24.078457",
+ "modified": "2025-05-08 14:06:03.842055",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Reconciliation Account",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
