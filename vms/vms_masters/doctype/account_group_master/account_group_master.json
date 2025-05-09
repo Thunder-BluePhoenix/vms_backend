@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{account_group_name}-{account_group_code}",
  "creation": "2025-05-04 15:17:22.846839",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -36,10 +37,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 15:19:12.702400",
+ "modified": "2025-05-08 11:06:38.389532",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Account Group Master",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

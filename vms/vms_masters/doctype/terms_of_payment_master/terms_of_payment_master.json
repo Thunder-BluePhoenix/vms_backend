@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{terms_of_payment_name}",
  "creation": "2025-05-04 15:14:09.927880",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -25,7 +26,8 @@
   {
    "fieldname": "terms_of_payment_name",
    "fieldtype": "Data",
-   "label": "Terms of Payment Name"
+   "label": "Terms of Payment Name",
+   "unique": 1
   },
   {
    "fieldname": "description",
@@ -36,10 +38,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 15:16:12.231243",
+ "modified": "2025-05-08 11:28:31.628369",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Terms of Payment Master",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

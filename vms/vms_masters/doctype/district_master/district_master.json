@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{district_name}-{district_code}",
  "creation": "2025-05-04 19:48:09.161002",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -20,7 +21,8 @@
   {
    "fieldname": "district_name",
    "fieldtype": "Data",
-   "label": "District Name"
+   "label": "District Name",
+   "unique": 1
   },
   {
    "fieldname": "state",
@@ -44,10 +46,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 19:53:16.465202",
+ "modified": "2025-05-08 11:21:37.865801",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "District Master",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

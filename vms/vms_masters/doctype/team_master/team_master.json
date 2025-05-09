@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:team_name",
  "creation": "2025-05-04 18:28:31.089327",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,7 +13,8 @@
   {
    "fieldname": "team_name",
    "fieldtype": "Data",
-   "label": "Team Name"
+   "label": "Team Name",
+   "unique": 1
   },
   {
    "fieldname": "reporting_head",
@@ -23,10 +25,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 18:30:44.334371",
+ "modified": "2025-05-08 11:01:54.515019",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Team Master",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

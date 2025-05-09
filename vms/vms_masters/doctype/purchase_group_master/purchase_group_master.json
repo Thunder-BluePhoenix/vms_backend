@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{purchase_group_name}-{purchase_group_code}",
  "creation": "2025-05-04 19:04:57.854126",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -39,7 +40,8 @@
    "fieldname": "purchase_group_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Purchase Group Name"
+   "label": "Purchase Group Name",
+   "unique": 1
   },
   {
    "fieldname": "description",
@@ -50,10 +52,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 19:11:17.091702",
+ "modified": "2025-05-08 11:14:21.889893",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Purchase Group Master",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

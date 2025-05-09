@@ -6,9 +6,11 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "manufacturing_details_section",
   "naming_series",
   "ref_no",
+  "column_break_rlkf",
+  "vendor_onboarding",
+  "manufacturing_details_section",
   "details_of_product_manufactured",
   "total_godown",
   "storage_capacity",
@@ -16,7 +18,6 @@
   "type_of_premises",
   "working_hours",
   "column_break_zpoy",
-  "vendor_onboarding",
   "weekly_holidays",
   "number_of_manpower",
   "annual_revenue",
@@ -132,7 +133,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "VOM-.YYYY.-.MM.-s",
+   "options": "VOM-.YYYY.-.MM.-",
    "print_hide": 1
   },
   {
@@ -147,12 +148,16 @@
    "fieldtype": "Link",
    "label": "Ref No.",
    "options": "Vendor Master"
+  },
+  {
+   "fieldname": "column_break_rlkf",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-06 10:18:21.127932",
+ "modified": "2025-05-09 11:35:15.655439",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Manufacturing Details",

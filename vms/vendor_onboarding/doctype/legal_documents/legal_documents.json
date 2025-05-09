@@ -20,14 +20,6 @@
   "section_break_aaci",
   "column_break_krvj",
   "gst_table",
-  "section_break_wuhh",
-  "column_break_xhti",
-  "gst_number",
-  "gst_date",
-  "gst_ven_type",
-  "section_break_ytxo",
-  "column_break_upri",
-  "gst_proof",
   "entity_registration_number_section",
   "enterprise_registration_number",
   "entity_proof_section",
@@ -91,37 +83,6 @@
    "options": "GST Details Table"
   },
   {
-   "fieldname": "section_break_wuhh",
-   "fieldtype": "Section Break",
-   "label": "GST Deatils"
-  },
-  {
-   "fieldname": "gst_number",
-   "fieldtype": "Data",
-   "label": "GST Number"
-  },
-  {
-   "fieldname": "gst_date",
-   "fieldtype": "Date",
-   "label": "GST Registration Date"
-  },
-  {
-   "fieldname": "gst_ven_type",
-   "fieldtype": "Link",
-   "label": "GST Ven. Type",
-   "options": "GST Registration Type Master"
-  },
-  {
-   "fieldname": "section_break_ytxo",
-   "fieldtype": "Section Break",
-   "label": "GST Proof"
-  },
-  {
-   "fieldname": "gst_proof",
-   "fieldtype": "Attach",
-   "label": "Upload GST Proof"
-  },
-  {
    "fieldname": "iec",
    "fieldtype": "Data",
    "label": "Import / Export Code"
@@ -141,14 +102,6 @@
   },
   {
    "fieldname": "column_break_krvj",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_xhti",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_upri",
    "fieldtype": "Column Break"
   },
   {
@@ -295,7 +248,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-06 10:18:52.879972",
+ "modified": "2025-05-09 11:23:22.300630",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Legal Documents",

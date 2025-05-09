@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:category_name",
  "creation": "2025-05-04 18:33:00.381246",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,7 +13,8 @@
   {
    "fieldname": "category_name",
    "fieldtype": "Data",
-   "label": "Category Name"
+   "label": "Category Name",
+   "unique": 1
   },
   {
    "fieldname": "category_email",
@@ -23,10 +25,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 18:33:52.538175",
+ "modified": "2025-05-08 11:06:02.694899",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Category Master",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

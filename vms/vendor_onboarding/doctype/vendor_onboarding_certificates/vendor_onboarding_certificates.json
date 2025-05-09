@@ -11,50 +11,9 @@
   "column_break_kikw",
   "vendor_onboarding",
   "certificate_list_section",
-  "certificates",
-  "certificate_details_section",
-  "certificate_name",
-  "certificate_code",
-  "column_break_enlv",
-  "valid_till",
-  "certificate_proof_section",
-  "certificate_proof"
+  "certificates"
  ],
  "fields": [
-  {
-   "fieldname": "certificate_details_section",
-   "fieldtype": "Section Break",
-   "label": "Certificate Details"
-  },
-  {
-   "fieldname": "certificate_name",
-   "fieldtype": "Data",
-   "label": "Certificate Name"
-  },
-  {
-   "fieldname": "certificate_code",
-   "fieldtype": "Data",
-   "label": "Certificate C"
-  },
-  {
-   "fieldname": "column_break_enlv",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "valid_till",
-   "fieldtype": "Date",
-   "label": "Valid"
-  },
-  {
-   "fieldname": "certificate_proof_section",
-   "fieldtype": "Section Break",
-   "label": "Certificate Proof"
-  },
-  {
-   "fieldname": "certificate_proof",
-   "fieldtype": "Attach",
-   "label": "Upload Certificate File"
-  },
   {
    "fieldname": "certificate_list_section",
    "fieldtype": "Section Break",
@@ -95,7 +54,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-06 10:19:43.661636",
+ "modified": "2025-05-09 11:31:57.640267",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Certificates",

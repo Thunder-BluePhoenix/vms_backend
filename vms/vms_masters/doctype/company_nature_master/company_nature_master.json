@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:company_nature_name",
  "creation": "2025-05-04 19:39:16.732272",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -18,7 +19,8 @@
   {
    "fieldname": "company_nature_name",
    "fieldtype": "Data",
-   "label": "Company Nature Name"
+   "label": "Company Nature Name",
+   "unique": 1
   },
   {
    "fieldname": "description",
@@ -29,10 +31,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 19:40:21.570455",
+ "modified": "2025-05-08 11:07:18.960634",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Company Nature Master",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

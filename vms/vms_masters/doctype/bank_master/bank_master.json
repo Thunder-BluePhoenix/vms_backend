@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{bank_name}-{bank_code}",
  "creation": "2025-05-04 21:01:44.897613",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -49,10 +50,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 21:04:01.205403",
+ "modified": "2025-05-08 11:01:03.140253",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Bank Master",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

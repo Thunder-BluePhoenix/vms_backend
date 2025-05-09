@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{state_name}-{state_code}",
  "creation": "2025-05-04 19:43:41.218574",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -19,7 +20,8 @@
   {
    "fieldname": "state_name",
    "fieldtype": "Data",
-   "label": "State Name"
+   "label": "State Name",
+   "unique": 1
   },
   {
    "fieldname": "sap_state_code",
@@ -36,10 +38,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-04 19:46:02.729844",
+ "modified": "2025-05-08 11:22:49.438980",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "State Master",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

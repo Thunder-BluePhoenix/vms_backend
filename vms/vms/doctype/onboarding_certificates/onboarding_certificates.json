@@ -42,14 +42,14 @@
    "fieldname": "certificate_attach",
    "fieldtype": "Attach",
    "in_list_view": 1,
-   "label": "Certificate"
+   "label": "Upload Certificate"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-05 13:49:38.510010",
+ "modified": "2025-05-09 11:29:51.487194",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Onboarding Certificates",
