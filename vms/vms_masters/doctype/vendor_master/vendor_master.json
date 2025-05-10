@@ -8,7 +8,6 @@
  "field_order": [
   "vendor_title",
   "vendor_name",
-  "company_name",
   "office_email_primary",
   "search_term",
   "purchase_organization",
@@ -27,7 +26,26 @@
   "mobile_number",
   "registered_date",
   "incoterms2",
-  "qa_required"
+  "qa_required",
+  "multiple_company_data_section",
+  "multiple_company_data",
+  "vendor_type_section",
+  "vendor_types",
+  "registration_details_section",
+  "registered_by",
+  "purchase_team_approval",
+  "purchase_team_second",
+  "purchase_head_approval",
+  "purchase_head_second_approval",
+  "qa_team_approval",
+  "qa_head_approval",
+  "column_break_hgmh",
+  "accounts_team_approval",
+  "accounts_team_second_approval",
+  "status",
+  "onboarding_form_status",
+  "onboarding_ref_no",
+  "rejection_comment"
  ],
  "fields": [
   {
@@ -41,12 +59,6 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Vendor Name"
-  },
-  {
-   "fieldname": "company_name",
-   "fieldtype": "Table",
-   "label": "Company Name",
-   "options": "Company List Table"
   },
   {
    "fieldname": "office_email_primary",
@@ -157,12 +169,109 @@
    "fieldtype": "Select",
    "label": "QA Required",
    "options": "-Select-\nNo\nYes"
+  },
+  {
+   "fieldname": "multiple_company_data_section",
+   "fieldtype": "Section Break",
+   "label": "Multiple Company Data"
+  },
+  {
+   "fieldname": "multiple_company_data",
+   "fieldtype": "Table",
+   "label": "Multiple Company Data",
+   "options": "Multiple Company Data"
+  },
+  {
+   "fieldname": "vendor_type_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Type"
+  },
+  {
+   "fieldname": "vendor_types",
+   "fieldtype": "Table",
+   "label": "Vendor Types",
+   "options": "Vendor Type Group"
+  },
+  {
+   "fieldname": "registration_details_section",
+   "fieldtype": "Section Break",
+   "label": "Registration Details"
+  },
+  {
+   "fieldname": "registered_by",
+   "fieldtype": "Data",
+   "label": "Registered By"
+  },
+  {
+   "fieldname": "purchase_team_approval",
+   "fieldtype": "Data",
+   "label": "Purchase Team Approval"
+  },
+  {
+   "fieldname": "purchase_team_second",
+   "fieldtype": "Data",
+   "label": "Purchase Team Second Approval"
+  },
+  {
+   "fieldname": "purchase_head_approval",
+   "fieldtype": "Data",
+   "label": "Purchase Head Approval"
+  },
+  {
+   "fieldname": "qa_team_approval",
+   "fieldtype": "Data",
+   "label": "QA Team Approval"
+  },
+  {
+   "fieldname": "qa_head_approval",
+   "fieldtype": "Data",
+   "label": "QA Head Approval"
+  },
+  {
+   "fieldname": "column_break_hgmh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "accounts_team_approval",
+   "fieldtype": "Data",
+   "label": "Accounts Team Approval"
+  },
+  {
+   "fieldname": "accounts_team_second_approval",
+   "fieldtype": "Data",
+   "label": "Accounts Team Second Approval"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "purchase_head_second_approval",
+   "fieldtype": "Data",
+   "label": "Purchase Head Second Approval"
+  },
+  {
+   "fieldname": "onboarding_form_status",
+   "fieldtype": "Data",
+   "label": "Vendor Onboarding Form Status"
+  },
+  {
+   "fieldname": "onboarding_ref_no",
+   "fieldtype": "Link",
+   "label": "Vendor Onboarding Ref No.",
+   "options": "Vendor Onboarding"
+  },
+  {
+   "fieldname": "rejection_comment",
+   "fieldtype": "Small Text",
+   "label": "Rejection Comment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 14:36:10.679632",
+ "modified": "2025-05-09 17:32:41.676394",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
