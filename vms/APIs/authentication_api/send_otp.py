@@ -1,3 +1,4 @@
+from datetime import datetime
 import random
 import string
 import frappe
@@ -13,10 +14,15 @@ def send_otp(**kwargs):
         
         otp = ''.join(random.choices(string.digits, k=6))
         
-        
+        vendor_name = frappe.db.get_value(
+            "User",
+            filters={'email': reciever_email},
+            fieldname='full_name'
+        )
+
         subject = "One Time Password for Password Reset"
         message = f"""
-        Dear,
+        Dear {vendor_name},
 
         Your One-Time Password for the Vendor Management System (VMS) Portal is {otp}.
 
