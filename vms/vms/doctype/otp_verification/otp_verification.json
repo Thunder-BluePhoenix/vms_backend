@@ -9,7 +9,8 @@
   "is_verified",
   "is_not_verified",
   "column_break_kpak",
-  "otp"
+  "otp",
+  "expired"
  ],
  "fields": [
   {
@@ -37,12 +38,18 @@
    "fieldname": "otp",
    "fieldtype": "Data",
    "label": "OTP"
+  },
+  {
+   "default": "0",
+   "fieldname": "expired",
+   "fieldtype": "Check",
+   "label": "Expired"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 11:39:55.801003",
+ "modified": "2025-05-12 15:13:38.767440",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "OTP Verification",
@@ -61,6 +68,7 @@
    "write": 1
   }
  ],
+ "read_only": 1,
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
