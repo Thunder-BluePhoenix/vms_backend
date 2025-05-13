@@ -9,7 +9,6 @@
   "district_code",
   "district_name",
   "state",
-  "pincode",
   "country"
  ],
  "fields": [
@@ -35,18 +34,12 @@
    "fieldtype": "Link",
    "label": "Country",
    "options": "Country Master"
-  },
-  {
-   "fieldname": "pincode",
-   "fieldtype": "Link",
-   "label": "Pincode",
-   "options": "Pincode Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 11:21:37.865801",
+ "modified": "2025-05-13 16:15:24.446301",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "District Master",

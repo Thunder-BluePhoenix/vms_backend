@@ -8,7 +8,9 @@
  "field_order": [
   "city_name",
   "district",
-  "state"
+  "state",
+  "country",
+  "pincode"
  ],
  "fields": [
   {
@@ -28,12 +30,23 @@
    "fieldtype": "Link",
    "label": "State",
    "options": "State Master"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Data",
+   "label": "Pincode"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 11:24:07.825924",
+ "modified": "2025-05-13 16:14:32.045021",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "City Master",

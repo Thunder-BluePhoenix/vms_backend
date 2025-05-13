@@ -47,6 +47,9 @@
   "manufacturing_state",
   "manufacturing_country",
   "manufacturing_pincode",
+  "multiple_location_within_state_section",
+  "multiple_locations",
+  "multiple_location_table",
   "address_proof_section",
   "address_proofattachment"
  ],
@@ -69,8 +72,9 @@
   },
   {
    "fieldname": "type_of_business",
-   "fieldtype": "Data",
-   "label": "Type of Business"
+   "fieldtype": "Link",
+   "label": "Type of Business",
+   "options": "Type of Business"
   },
   {
    "fieldname": "size_of_company",
@@ -183,9 +187,8 @@
   },
   {
    "fieldname": "pincode",
-   "fieldtype": "Link",
-   "label": "Pincode",
-   "options": "Pincode Master"
+   "fieldtype": "Data",
+   "label": "Pincode"
   },
   {
    "fieldname": "same_as_above_address_section",
@@ -281,12 +284,29 @@
   {
    "fieldname": "column_break_tjil",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "multiple_location_within_state_section",
+   "fieldtype": "Section Break",
+   "label": "Multiple Location within State"
+  },
+  {
+   "default": "0",
+   "fieldname": "multiple_locations",
+   "fieldtype": "Check",
+   "label": "Do you have multiple locations within the state?"
+  },
+  {
+   "fieldname": "multiple_location_table",
+   "fieldtype": "Table",
+   "label": "Multiple Location Table",
+   "options": "Multiple Address"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 12:50:19.226044",
+ "modified": "2025-05-13 16:55:28.597559",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",
