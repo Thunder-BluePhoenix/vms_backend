@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{vendor_name}-{vendor_code}",
+ "autoname": "format:VMS-{YYYY}-{MM}-{####}",
  "creation": "2025-05-04 18:50:24.683825",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -50,9 +50,9 @@
  "fields": [
   {
    "fieldname": "vendor_title",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Vendor Title",
-   "options": "Company\nFirm\nM/S.\nMr.\nMs.\nMrs."
+   "options": "Vendor Title"
   },
   {
    "fieldname": "vendor_name",
@@ -271,7 +271,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 17:32:41.676394",
+ "modified": "2025-05-13 11:09:14.369997",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
@@ -292,7 +292,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "vendor_name"
 }

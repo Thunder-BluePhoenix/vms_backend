@@ -11,6 +11,7 @@
   "account_group",
   "terms_of_payment",
   "purchase_group",
+  "incoterm",
   "reconciliation_account"
  ],
  "fields": [
@@ -55,13 +56,20 @@
    "in_list_view": 1,
    "label": "Reconciliation Account",
    "options": "Reconciliation Account"
+  },
+  {
+   "fieldname": "incoterm",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Incoterm",
+   "options": "Incoterm Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-04 20:22:45.543856",
+ "modified": "2025-05-13 12:10:08.192170",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Multiple Company Data",
