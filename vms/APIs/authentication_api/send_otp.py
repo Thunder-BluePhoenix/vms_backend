@@ -6,13 +6,28 @@ from frappe.exceptions import DoesNotExistError
 from frappe import _
 
 @frappe.whitelist(allow_guest=True)
-def send_otp(**kwargs):
-    reciever_email = kwargs.get('email')
+def send_otp(data):
+    reciever_email = data.get('email')
 
     try:
-        user = frappe.get_doc("User", reciever_email)
+        user = frappe.get_doc("User", reciever_email) or None
+
+        if user == None:
+            return {
+                "status": "error",
+                "message": "No User found for the Mail ID"
+            }
         
         otp = ''.join(random.choices(string.digits, k=6))
+
+        otp_var = frappe.get_doc({
+                                    "doctype":"OTP Verification",
+                                    "email":reciever_email,
+                                    "otp": otp
+                                })
+        
+        otp_var.insert(ignore_permissions=True)
+        
         
         vendor_name = frappe.db.get_value(
             "User",
@@ -36,7 +51,9 @@ def send_otp(**kwargs):
             message=message,
         )
 
-        print(message)
+        # print(message)
+        frappe.db.commit()
+
 
         return {
             "status": "success",

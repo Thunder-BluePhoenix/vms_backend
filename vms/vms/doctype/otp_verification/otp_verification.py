@@ -5,17 +5,16 @@ import frappe
 import time
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
+import json
 
 class OTPVerification(Document):
     def after_insert(self):
         exp_doc = frappe.get_doc("OTP Settings") or None
-        print("@@@@@@@@@@@@@@@@@", exp_doc)
+      
         
         if exp_doc != None:
             exp_t_min = float(exp_doc.otp_expiration_time)
-            print("@@@@@@@@@@@@@@@@@", exp_t_min)
             exp_t_sec = exp_t_min * 60
-            print("@@@@@@@@@@@@@@@@@", exp_t_sec)
         else:
             exp_t_sec = 300
             
@@ -40,13 +39,6 @@ class OTPVerification(Document):
         )
         
     def handle_otp_expiration(self):
-        # This will run in the background after the specified time
-        # Put your OTP expiration logic here
-        # frappe.delete_doc("OTP Verification", self.name, force = 1)
-        # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ OTP expiration job executed")
-        # frappe.db.commit()
-        
-        # For example, you might want to update the status of the OTP verification
         exp_doc = frappe.get_doc("OTP Settings") or None
         
         if exp_doc != None:
@@ -87,23 +79,37 @@ class OTPVerification(Document):
 
 
 @frappe.whitelist(allow_guest = True)
-def verify_otp_and_delete(docname, input_otp):
-    """Verify OTP, wait 30 sec, delete if verified, and return success message."""
-    doc = frappe.get_doc("OTP Verification", docname)
+def verify_otp_and_delete(data):
+    input_otp= data.get("otp")
+    user = data.get("user")
+    doc = frappe.get_doc("OTP Verification", {"otp":input_otp}) or None
 
-    if doc.otp != input_otp:
-        frappe.throw("Invalid OTP")
+    if doc != None or doc.expired != 1 or doc.is_not_verified != 1:
+        if doc.email == user :
+            doc.is_verified = 1
+            doc.save()
+            frappe.delete_doc("OTP Verification", doc.name, force=1)
+            frappe.db.commit()
+            return {"status": "success", "message": "OTP verified"}
+
+        else:
+            doc.is_not_verified = 1
+            doc.save()
+            frappe.delete_doc("OTP Verification", doc.name, force=1)
+            frappe.db.commit()
+            return {"status": "Failed", "message": "Wrong OTP"}
+        
+    else:
+        return {"status": "Failed", "message": "Invalid OTP"}
+
+
+
 
     # Mark as verified
-    doc.is_verified = 1
-    doc.save()
+    
 
-    # Wait for 30 seconds
-    # time.sleep(3)
+   
+    
 
-    # Delete the document (move to Trash)
-    frappe.delete_doc("OTP Verification", docname, force=1)
-    frappe.db.commit()
-
-    return {"status": "success", "message": "OTP verified and record deleted"}
+    
 
