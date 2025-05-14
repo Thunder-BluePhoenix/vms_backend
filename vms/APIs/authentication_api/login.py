@@ -1,18 +1,20 @@
 import frappe
+from frappe import _
 
-def generate_keys(user):
-    user_details = frappe.get_doc('User', user)
-    api_secret = frappe.generate_hash(length=15)
+def generate_api_keys(user):
     
-    if not user_details.api_key:
-        api_key = frappe.generate_hash(length=15)
-        user_details.api_key = api_key
+    user_doc = frappe.get_doc('User', user)
+    api_secret = frappe.generate_hash(length=32) 
+    if not user_doc.api_key:
+        api_key = frappe.generate_hash(length=32)  
+        user_doc.api_key = api_key
     else:
-        api_key = user_details.api_key
+        api_key = user_doc.api_key
     
-    user_details.api_secret = api_secret
-    user_details.save()
-
+    # Save the updated secret
+    user_doc.api_secret = api_secret
+    user_doc.save(ignore_permissions=True)
+    
     return {
         "api_key": api_key,
         "api_secret": api_secret
@@ -20,82 +22,118 @@ def generate_keys(user):
 
 @frappe.whitelist(allow_guest=True)
 def login(data):
-    # frappe.logger("login").error("Login Method----")
-    usr = data.get("usr")
-    pwd = data.get("pwd")
-
+    
     try:
+        if not data or not isinstance(data, dict):
+            frappe.throw(_("Invalid request format"))
+            
+        usr = data.get("usr")
+        pwd = data.get("pwd")
+        
+        if not usr or not pwd:
+            frappe.throw(_("Username and password are required"))
+        
+        # Authenticate user
         login_manager = frappe.auth.LoginManager()
         login_manager.authenticate(user=usr, pwd=pwd)
         login_manager.post_login()
+        
+        api_credentials = generate_api_keys(frappe.session.user)
+        
+        # Fetch user data
+        user_response = build_user_response(frappe.session.user, api_credentials)
+        
+        return user_response
+        
     except frappe.exceptions.AuthenticationError:
         frappe.local.response["message"] = {
-            "success_key": 0,
-            "message": "Authentication Error!"
+            "success": False,
+            "message": _("Invalid username or password")
         }
+        frappe.local.response.http_status_code = 401
         return
 
-    # Generate API keys
-    api_generate = generate_keys(frappe.session.user)
-    user = frappe.get_doc('User', frappe.session.user)
+    except Exception as e:
+        frappe.logger().error(f"Login error: {str(e)}")
+        frappe.local.response["message"] = {
+            "success": False,
+            "message": _("An error occurred during authentication")
+        }
+        frappe.local.response.http_status_code = 500
+        return
 
-    # Full name
-    user_name = user.full_name or frappe.db.get_value("User", user.name, "full_name")
-
-    # Linked Employee
-    emp = frappe.get_value("Employee", {"user_id": user.name}, "name")
-    emp_details = {}
-
-    if emp:
-        emp_details = frappe.get_value(
+def build_user_response(user, api_credentials):
+    """
+    Build comprehensive user response with relevant details.
+    
+    Args:
+        user (str): User ID
+        api_credentials (dict): API key and secret
+        
+    Returns:
+        dict: User details and credentials
+    """
+    user_doc = frappe.get_doc('User', user)
+    user_name = user_doc.full_name or frappe.db.get_value("User", user, "full_name")
+    
+    # Get employee details if linked
+    employee_id = frappe.get_value("Employee", {"user_id": user}, "name")
+    employee_details = {}
+    
+    if employee_id:
+        employee_details = frappe.get_value(
             "Employee",
-            emp,
+            employee_id,
             ["designation", "company_email", "company"],
             as_dict=True
-        )
-
-    # Vendor Master
-    vendor_master_ref_no = frappe.get_value("Vendor Master", {"office_email_primary": user.name}, "name")
-    # vendor_code = None
-
-    # if vendor_master_ref_no:
-    #     vendor_data = frappe.get_value(
-    #         "Vendor Master",
-    #         vendor_master_ref_no,
-    #         ["vendor_code"],
-    #         as_dict=True
-    #     )
-        # vendor_code = vendor_data.vendor_code
-
-    # Company Details
+        ) or {}
+    
+    # Get vendor details if applicable
+    vendor_id = frappe.get_value("Vendor Master", {"office_email_primary": user}, "name")
+    
+    # Get company details if available
     company_details = {}
-    if emp_details.get("company"):
+    if employee_details.get("company"):
         company_details = frappe.get_value(
             "Company Master",
-            emp_details.company,
+            employee_details.get("company"),
             ["company_code", "company_short_form"],
             as_dict=True
-        )
-
-    # Final response
-    frappe.response["message"] = {
-        "success_key": 1,
-        "message": "Authentication success",
-        "email": user.email,
-        "sid": frappe.session.sid,
-        "username": user.username,
-        "full_name": user_name,
-        "employee": emp,
-        "designation": emp_details.get("designation") if emp_details else None,
-        "company_email": emp_details.get("company_email") if emp_details else None,
-        "company": emp_details.get("company") if emp_details else None,
-        "vendor_master_ref_no": vendor_master_ref_no,
-        # "vendor_code": vendor_code,
-        "company_code": company_details.get("company_code") if company_details else None,
-        "company_short_form": company_details.get("company_short_form") if company_details else None,
-        "api_key": api_generate.get("api_key"),
-        "api_secret": api_generate.get("api_secret")
+        ) or {}
+    
+    # Construct response
+    response = {
+        "success": True,
+        "message": _("Authentication successful"),
+        "user": {
+            "email": user_doc.email,
+            "username": user_doc.username,
+            "full_name": user_name,
+            "sid": frappe.session.sid,
+        },
+        "api_credentials": {
+            "api_key": api_credentials.get("api_key"),
+            "api_secret": api_credentials.get("api_secret")
+        },
+        "employee": {
+            "id": employee_id,
+            "designation": employee_details.get("designation"),
+            "company_email": employee_details.get("company_email"),
+        },
+        "company": {
+            "id": employee_details.get("company"),
+            "code": company_details.get("company_code"),
+            "short_form": company_details.get("company_short_form")
+        },
+        "vendor": {
+            "id": vendor_id
+        }
     }
+    
+    frappe.response["message"] = response
+    return response
+
+
 
 
 #  "designation_name": user_designation_name, --
