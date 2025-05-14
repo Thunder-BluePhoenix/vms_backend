@@ -10,7 +10,9 @@
   "purchase_organization",
   "account_group",
   "terms_of_payment",
+  "column_break_gygj",
   "purchase_group",
+  "order_currency",
   "incoterm",
   "reconciliation_account"
  ],
@@ -63,13 +65,24 @@
    "in_list_view": 1,
    "label": "Incoterm",
    "options": "Incoterm Master"
+  },
+  {
+   "fieldname": "column_break_gygj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "order_currency",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Order Currency",
+   "options": "Currency Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-13 12:10:08.192170",
+ "modified": "2025-05-13 22:55:32.624333",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Multiple Company Data",
