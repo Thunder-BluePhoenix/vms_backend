@@ -1,0 +1,93 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-05-14 14:46:38.847470",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vendor_ref_no",
+  "vendor_name",
+  "company_name",
+  "company_code",
+  "sap_client_code",
+  "column_break_qisg",
+  "naming_series",
+  "vendor_code"
+ ],
+ "fields": [
+  {
+   "fieldname": "vendor_ref_no",
+   "fieldtype": "Link",
+   "label": "Vendor Ref No",
+   "options": "Vendor Master"
+  },
+  {
+   "fetch_from": "vendor_ref_no.vendor_name",
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "label": "Vendor Name"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "label": "Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fetch_from": "company_name.sap_client_code",
+   "fieldname": "sap_client_code",
+   "fieldtype": "Data",
+   "label": "SAP Client Code"
+  },
+  {
+   "fieldname": "column_break_qisg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vendor_code",
+   "fieldtype": "Table",
+   "label": "Vendor Code",
+   "options": "Vendor Code"
+  },
+  {
+   "fetch_from": "company_name.company_code",
+   "fieldname": "company_code",
+   "fieldtype": "Data",
+   "label": "Company Code"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "VC-"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-14 14:59:03.531310",
+ "modified_by": "Administrator",
+ "module": "VMS Masters",
+ "name": "Company Vendor Code",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
