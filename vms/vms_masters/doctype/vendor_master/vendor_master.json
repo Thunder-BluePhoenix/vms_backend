@@ -15,7 +15,6 @@
   "service_based_inv_ver",
   "check_double_invoice",
   "column_break_skum",
-  "vendor_code",
   "country",
   "mobile_number",
   "registered_date",
@@ -90,13 +89,6 @@
   {
    "fieldname": "column_break_skum",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "vendor_code",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Vendor Code",
-   "unique": 1
   },
   {
    "fieldname": "country",
@@ -222,7 +214,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-13 22:57:26.144588",
+ "modified": "2025-05-14 15:00:13.821685",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

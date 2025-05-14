@@ -182,5 +182,26 @@ def vendor_registration(data):
 
 
 
+@frappe.whitelist(allow_guest=True)
+def onboarding_form_submit(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
 
-
+        onb_ref = data.get('onb_id')
+        onb = frappe.get_doc("Vendor Onboarding", onb_ref)
+        onb.form_fully_submitted_by_vendor = data.get("completed")
+        onb.save()
+        frappe.db.commit()
+        return {
+            "status": "Success",
+            "message": "Successfully Submitted Vendor onboarding data",
+            
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Onboarding Registration from Submit by vendor error")
+        return {
+            "status": "error",
+            "message": "Failed to update Vendor onboarding data",
+            "error": str(e)
+        }
