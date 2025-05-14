@@ -24,7 +24,6 @@
   "purchase_head_undertaking",
   "tables_section",
   "vendor_types",
-  "multiple_company",
   "number_of_employee",
   "machinery_detail",
   "testing_detail",
@@ -143,12 +142,6 @@
    "fieldtype": "Table",
    "label": "Vendor Types",
    "options": "Vendor Type Group"
-  },
-  {
-   "fieldname": "multiple_company",
-   "fieldtype": "Table",
-   "label": "Multiple Company",
-   "options": "Multiple Company Data"
   },
   {
    "fieldname": "number_of_employee",
@@ -339,7 +332,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-13 15:41:48.866451",
+ "modified": "2025-05-13 22:45:41.593337",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

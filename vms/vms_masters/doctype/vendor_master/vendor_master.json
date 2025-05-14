@@ -10,22 +10,15 @@
   "vendor_name",
   "office_email_primary",
   "search_term",
-  "purchase_organization",
-  "terms_of_payment",
-  "account_group",
   "payee_in_document",
   "gr_based_inv_ver",
   "service_based_inv_ver",
   "check_double_invoice",
   "column_break_skum",
   "vendor_code",
-  "order_currency",
-  "incoterms",
-  "purchase_group",
   "country",
   "mobile_number",
   "registered_date",
-  "incoterms2",
   "qa_required",
   "multiple_company_data_section",
   "multiple_company_data",
@@ -71,24 +64,6 @@
    "label": "Search Term"
   },
   {
-   "fieldname": "purchase_organization",
-   "fieldtype": "Link",
-   "label": "Purchase Organization",
-   "options": "Purchase Organization Master"
-  },
-  {
-   "fieldname": "terms_of_payment",
-   "fieldtype": "Link",
-   "label": "Terms of Payment",
-   "options": "Terms of Payment Master"
-  },
-  {
-   "fieldname": "account_group",
-   "fieldtype": "Link",
-   "label": "Account Group",
-   "options": "Account Group Master"
-  },
-  {
    "default": "0",
    "fieldname": "payee_in_document",
    "fieldtype": "Check",
@@ -124,24 +99,6 @@
    "unique": 1
   },
   {
-   "fieldname": "order_currency",
-   "fieldtype": "Link",
-   "label": "Order Currency",
-   "options": "Currency Master"
-  },
-  {
-   "fieldname": "incoterms",
-   "fieldtype": "Link",
-   "label": "Incoterms",
-   "options": "Incoterm Master"
-  },
-  {
-   "fieldname": "purchase_group",
-   "fieldtype": "Link",
-   "label": "Purchase Group",
-   "options": "Purchase Group Master"
-  },
-  {
    "fieldname": "country",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -157,12 +114,6 @@
    "fieldname": "registered_date",
    "fieldtype": "Datetime",
    "label": "Registered Date"
-  },
-  {
-   "fieldname": "incoterms2",
-   "fieldtype": "Link",
-   "label": "Incoterms 2",
-   "options": "Incoterm Master"
   },
   {
    "fieldname": "qa_required",
@@ -271,7 +222,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-13 11:09:14.369997",
+ "modified": "2025-05-13 22:57:26.144588",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

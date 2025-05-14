@@ -11,7 +11,7 @@
   "column_break_tjil",
   "vendor_onboarding",
   "company_details_section",
-  "vendor_name",
+  "vendor_title",
   "company_name",
   "type_of_business",
   "website",
@@ -20,6 +20,7 @@
   "telephone_number",
   "whatsapp_number",
   "column_break_gkqv",
+  "vendor_name",
   "cin_date",
   "nature_of_company",
   "size_of_company",
@@ -301,12 +302,18 @@
    "fieldtype": "Table",
    "label": "Multiple Location Table",
    "options": "Multiple Address"
+  },
+  {
+   "fieldname": "vendor_title",
+   "fieldtype": "Link",
+   "label": "Vendor Title",
+   "options": "Vendor Title"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-13 16:55:28.597559",
+ "modified": "2025-05-14 11:16:51.504782",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",

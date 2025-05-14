@@ -79,6 +79,7 @@ def vendor_registration(data):
             "vendor_title", 
             "vendor_name", 
             "office_email_primary", 
+            "search_term",
             "country", 
             "mobile_number", 
             "registered_date", 
@@ -119,9 +120,9 @@ def vendor_registration(data):
         vendor_onboarding.service_based_inv_ver = 1
         vendor_onboarding.check_double_invoice = 1
 
-        if "multiple_company" in data:
-            for row in data["multiple_company"]:
-                vendor_onboarding.append("multiple_company", row)
+        # if "multiple_company" in data:
+        #     for row in data["multiple_company"]:
+        #         vendor_onboarding.append("multiple_company", row)
 
         if "vendor_types" in data:
             for row in data["vendor_types"]:
@@ -131,7 +132,7 @@ def vendor_registration(data):
         frappe.db.commit()
 
         # Create and link additional onboarding documents
-        def create_related_doc(doctype, link_field):
+        def create_related_doc(doctype):
             doc = frappe.new_doc(doctype)
             doc.vendor_onboarding = vendor_onboarding.name
             doc.ref_no = vendor_master.name
@@ -139,16 +140,23 @@ def vendor_registration(data):
             frappe.db.commit()
             return doc.name
 
-        payment_detail = create_related_doc("Vendor Onboarding Payment Details", "vendor_onboarding")
-        document_details = create_related_doc("Legal Documents", "vendor_onboarding")
-        certificate_details = create_related_doc("Vendor Onboarding Certificates", "vendor_onboarding")
-        manufacturing_details = create_related_doc("Vendor Onboarding Manufacturing Details", "vendor_onboarding")
+        payment_detail = create_related_doc("Vendor Onboarding Payment Details")
+        document_details = create_related_doc("Legal Documents")
+        certificate_details = create_related_doc("Vendor Onboarding Certificates")
+        manufacturing_details = create_related_doc("Vendor Onboarding Manufacturing Details")
+        company_details = create_related_doc("Vendor Onboarding Company Details")
 
-        # Update vendor onboarding doc with references
+        # Add vendor_company_details in child table
+        vendor_onboarding.append("vendor_company_details", {
+            "vendor_company_details": company_details 
+        })
+
+        # Update vendor onboarding with doc names
         vendor_onboarding.payment_detail = payment_detail
         vendor_onboarding.document_details = document_details
         vendor_onboarding.certificate_details = certificate_details
         vendor_onboarding.manufacturing_details = manufacturing_details
+        
         vendor_onboarding.save()
         frappe.db.commit()
 
@@ -159,7 +167,8 @@ def vendor_registration(data):
             "payment_detail": payment_detail,
             "document_details": document_details,
             "certificate_details": certificate_details,
-            "manufacturing_details": manufacturing_details
+            "manufacturing_details": manufacturing_details,
+            "company_details": company_details
         }
 
     except Exception as e:
