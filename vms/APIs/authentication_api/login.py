@@ -56,16 +56,16 @@ def login(data):
 
     # Vendor Master
     vendor_master_ref_no = frappe.get_value("Vendor Master", {"office_email_primary": user.name}, "name")
-    vendor_code = None
+    # vendor_code = None
 
-    if vendor_master_ref_no:
-        vendor_data = frappe.get_value(
-            "Vendor Master",
-            vendor_master_ref_no,
-            ["vendor_code"],
-            as_dict=True
-        )
-        vendor_code = vendor_data.vendor_code
+    # if vendor_master_ref_no:
+    #     vendor_data = frappe.get_value(
+    #         "Vendor Master",
+    #         vendor_master_ref_no,
+    #         ["vendor_code"],
+    #         as_dict=True
+    #     )
+        # vendor_code = vendor_data.vendor_code
 
     # Company Details
     company_details = {}
@@ -90,7 +90,7 @@ def login(data):
         "company_email": emp_details.get("company_email") if emp_details else None,
         "company": emp_details.get("company") if emp_details else None,
         "vendor_master_ref_no": vendor_master_ref_no,
-        "vendor_code": vendor_code,
+        # "vendor_code": vendor_code,
         "company_code": company_details.get("company_code") if company_details else None,
         "company_short_form": company_details.get("company_short_form") if company_details else None,
         "api_key": api_generate.get("api_key"),

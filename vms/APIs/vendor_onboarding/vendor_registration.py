@@ -18,7 +18,7 @@ def create_vendor_master(data):
             "vendor_title", "vendor_name", "office_email_primary", "search_term",
             "purchase_organization", "terms_of_payment", "account_group",
             "payee_in_document", "gr_based_inv_ver", "service_based_inv_ver",
-            "check_double_invoice", "vendor_code", "order_currency", "incoterms",
+            "check_double_invoice", "order_currency", "incoterms",
             "purchase_group", "country", "mobile_number", "registered_date",
             "incoterms2", "qa_required", "registered_by", "purchase_team_approval",
             "purchase_team_second", "purchase_head_approval", "purchase_head_second_approval",
