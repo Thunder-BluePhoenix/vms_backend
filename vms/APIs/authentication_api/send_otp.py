@@ -5,13 +5,39 @@ import frappe
 from frappe.exceptions import DoesNotExistError
 from frappe import _
 
+
+
+
+def generate_api_keys(user):
+    
+    user_doc = frappe.get_doc('User', user)
+    api_secret = frappe.generate_hash(length=32) 
+    if not user_doc.api_key:
+        api_key = frappe.generate_hash(length=32)  
+        user_doc.api_key = api_key
+    else:
+        api_key = user_doc.api_key
+    
+    # Save the updated secret
+    user_doc.api_secret = api_secret
+    user_doc.save(ignore_permissions=True)
+    
+    return {
+        "api_key": api_key,
+        "api_secret": api_secret
+    }
+
 @frappe.whitelist(allow_guest=True)
 def send_otp(data):
     reciever_email = data.get('email')
 
     try:
         user = frappe.get_doc("User", reciever_email) or None
+        api_credentials = generate_api_keys(user)
 
+        api_key = api_credentials.get("api_key")
+        api_secret = api_credentials.get("api_secret")
+        auth = f"token {api_key}:{api_secret}"
         if user == None:
             return {
                 "status": "error",
@@ -57,7 +83,8 @@ def send_otp(data):
 
         return {
             "status": "success",
-            "message": f"OTP sent to {reciever_email}"
+            "message": f"OTP sent to {reciever_email}",
+            "Authorization": f"token {api_key}:{api_secret}"
         }
 
     except DoesNotExistError:
