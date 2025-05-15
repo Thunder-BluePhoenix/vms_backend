@@ -7,6 +7,9 @@ def vendor_registration_dropdown_masters():
         vendor_type = frappe.db.sql("SELECT name FROM `tabVendor Type Master`", as_dict=True)
         vendor_title = frappe.db.sql("SELECT name FROM `tabVendor Title`", as_dict=True)
         country_master = frappe.db.sql("SELECT name FROM `tabCountry Master`", as_dict=True)
+        company_master = frappe.db.sql("SELECT name FROM `tabCompany Master`", as_dict=True)
+        country_master = frappe.db.sql("SELECT name FROM `tabCountry Master`", as_dict=True)
+        incoterm_master = frappe.db.sql("SELECT name FROM `tabIncoterm Master`", as_dict=True)
 
         return {
             "status": "success",
@@ -14,7 +17,10 @@ def vendor_registration_dropdown_masters():
             "data": {
                 "vendor_type": vendor_type,
                 "vendor_title": vendor_title,
-                "country_master": country_master
+                "country_master": country_master,
+                "company_master": company_master,
+                "country_master": country_master,
+                "incoterm_master": incoterm_master
             }
         }
 
