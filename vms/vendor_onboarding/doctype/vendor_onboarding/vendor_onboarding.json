@@ -24,6 +24,9 @@
   "purchase_head_undertaking",
   "column_break_mkfw",
   "form_fully_submitted_by_vendor",
+  "rejected",
+  "rejected_by",
+  "reason_for_rejection",
   "tables_section",
   "vendor_types",
   "number_of_employee",
@@ -110,7 +113,7 @@
    "default": "0",
    "fieldname": "purchase_team_undertaking",
    "fieldtype": "Check",
-   "label": "Purchase Team Undertaking"
+   "label": "Purchase Team approved"
   },
   {
    "fieldname": "accounts_t_approval",
@@ -121,7 +124,7 @@
    "default": "0",
    "fieldname": "accounts_team_undertaking",
    "fieldtype": "Check",
-   "label": "Accounts Team Undertaking"
+   "label": "Accounts Team approved"
   },
   {
    "fieldname": "purchase_h_approval",
@@ -132,7 +135,7 @@
    "default": "0",
    "fieldname": "purchase_head_undertaking",
    "fieldtype": "Check",
-   "label": "Purchase Head Undertaking"
+   "label": "Purchase Head approved"
   },
   {
    "fieldname": "tables_section",
@@ -339,12 +342,28 @@
    "fieldname": "form_fully_submitted_by_vendor",
    "fieldtype": "Check",
    "label": "Form Fully Submitted by Vendor"
+  },
+  {
+   "default": "0",
+   "fieldname": "rejected",
+   "fieldtype": "Check",
+   "label": "Rejected"
+  },
+  {
+   "fieldname": "rejected_by",
+   "fieldtype": "Data",
+   "label": "Rejected By"
+  },
+  {
+   "fieldname": "reason_for_rejection",
+   "fieldtype": "Small Text",
+   "label": "Reason For Rejection"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-14 17:45:33.063564",
+ "modified": "2025-05-15 01:14:47.271559",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
@@ -360,6 +379,18 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guest",
    "share": 1,
    "write": 1
   }
