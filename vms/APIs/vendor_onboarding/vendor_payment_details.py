@@ -14,7 +14,7 @@ def update_vendor_onboarding_payment_details(data):
         if not ref_no or not vendor_onboarding:
             return {
                 "status": "error",
-                "message": "Both 'ref_no' and 'vendor_onboarding' are required."
+                "message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
             }
 
         doc_name = frappe.db.get_value(
@@ -26,7 +26,7 @@ def update_vendor_onboarding_payment_details(data):
         if not doc_name:
             return {
                 "status": "error",
-                "message": "Vendor Onboarding Payment Details record not found."
+                "message": f"No record found for Vendor Onboarding Payment Details"
             }
 
         doc = frappe.get_doc("Vendor Onboarding Payment Details", doc_name)
@@ -36,29 +36,31 @@ def update_vendor_onboarding_payment_details(data):
             "bank_name", "ifsc_code", "account_number", "name_of_account_holder",
             "type_of_account", "currency", "rtgs", "neft"
         ]
+
         for field in fields_to_update:
-            if field in data:
+            if field in data and data[field] is not None:
                 doc.set(field, data[field])
 
-        # Upload file to attach field
+        # attach field
         if 'bank_proof' in frappe.request.files:
             file = frappe.request.files['bank_proof']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
             doc.bank_proof = saved.file_url
 
-        doc.save()
+        doc.save(ignore_permissions=True)
         frappe.db.commit()
 
         return {
             "status": "success",
             "message": "Vendor Onboarding Payment Details updated successfully.",
-            "docname": doc.name
+            "docname": doc.name,
+            "bank_proof": doc.bank_proof if hasattr(doc, "bank_proof") else None
         }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Payment Update Error")
         return {
             "status": "error",
-            "message": "Failed to update payment details.",
+            "message": "Failed to update Vendor Onboarding Payment Details.",
             "error": str(e)
         }
