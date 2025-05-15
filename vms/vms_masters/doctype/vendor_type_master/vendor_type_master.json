@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{vendor_type_name}-{vendor_type_code}",
+ "autoname": "format:{vendor_type_name}",
  "creation": "2025-05-04 20:05:37.597415",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -19,7 +19,8 @@
   {
    "fieldname": "vendor_type_name",
    "fieldtype": "Data",
-   "label": "Vendor Type Name"
+   "label": "Vendor Type Name",
+   "unique": 1
   },
   {
    "fieldname": "description",
@@ -30,7 +31,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 11:11:05.516051",
+ "modified": "2025-05-15 11:50:03.963881",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Type Master",

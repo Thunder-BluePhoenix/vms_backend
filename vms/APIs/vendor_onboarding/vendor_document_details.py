@@ -40,7 +40,7 @@ def update_vendor_onboarding_document_details(data):
         ]
 
         for field in fields_to_update:
-            if field in data:
+            if field in data and data[field] is not None:
                 doc.set(field, data[field])
 
         # Upload and attach files
@@ -74,13 +74,16 @@ def update_vendor_onboarding_document_details(data):
 
                 index += 1
 
-        doc.save()
+        doc.save(ignore_permissions=True)
         frappe.db.commit()
 
         return {
             "status": "success",
             "message": "Legal Documents updated successfully.",
-            "docname": doc.name
+            "docname": doc.name,
+            "msme_proof": doc.msme_proof if hasattr(doc, "msme_proof") else None,
+            "pan_proof": doc.pan_proof if hasattr(doc, "pan_proof") else None,
+            "entity_proof": doc.entity_proof if hasattr(doc, "entity_proof") else None,
         }
 
     except Exception as e:
