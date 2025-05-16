@@ -1,15 +1,16 @@
 import frappe
 import json
 
+# Vednor Type, Vendor Title, Country, Company, Currency, Incoterm Masters
 @frappe.whitelist(allow_guest=True)
 def vendor_registration_dropdown_masters():
     try:
-        vendor_type = frappe.db.sql("SELECT name FROM `tabVendor Type Master`", as_dict=True)
+        vendor_type = frappe.db.sql("SELECT name  FROM `tabVendor Type Master`", as_dict=True)
         vendor_title = frappe.db.sql("SELECT name FROM `tabVendor Title`", as_dict=True)
-        country_master = frappe.db.sql("SELECT name FROM `tabCountry Master`", as_dict=True)
-        company_master = frappe.db.sql("SELECT name FROM `tabCompany Master`", as_dict=True)
-        currency_master = frappe.db.sql("SELECT name FROM `tabCurrency Master`", as_dict=True)
-        incoterm_master = frappe.db.sql("SELECT name FROM `tabIncoterm Master`", as_dict=True)
+        country_master = frappe.db.sql("SELECT name, country_name FROM `tabCountry Master`", as_dict=True)
+        company_master = frappe.db.sql("SELECT name, company_name FROM `tabCompany Master`", as_dict=True)
+        currency_master = frappe.db.sql("SELECT name, currency_name FROM `tabCurrency Master`", as_dict=True)
+        incoterm_master = frappe.db.sql("SELECT name, incoterm_name FROM `tabIncoterm Master`", as_dict=True)
 
         return {
             "status": "success",
@@ -32,7 +33,7 @@ def vendor_registration_dropdown_masters():
             "error": str(e)
         }
 
-
+# Type of Business, Company Nature, Business Nature Masters
 @frappe.whitelist(allow_guest=True)
 def vendor_onboarding_company_dropdown_master():
     try:
@@ -57,33 +58,46 @@ def vendor_onboarding_company_dropdown_master():
             "message": "Failed to fetch dropdown company masters values.",
             "error": str(e)
         }
-    
+
+# Filters the city, district, state and country Masters    
+import frappe
+
 @frappe.whitelist(allow_guest=True)
-def address_filter(city_name=None):
-    if not city_name:
-        return {
-            "status": "error",
-            "message": "City name is required."
-        }
-
+def address_filter(city_name=None, district_name=None, state_name=None, country_name=None):
     try:
-        # filter city
-        district = frappe.db.get_value("City Master", city_name, "district")
+        result = {}
 
-        # filter district
-        state = frappe.db.get_value("District Master", district, "state")
+        if city_name:
+            city = frappe.get_doc("City Master", city_name)
+            result["city"] = city.name
+            result["district"] = city.district
+            result["state"] = city.state
+            result["country"] = city.country
 
-        # filter state
-        country = frappe.db.get_value("State Master", state, "country")
+        elif district_name:
+            district = frappe.get_doc("District Master", district_name)
+            result["district"] = district.name
+            result["state"] = district.state
+            result["country"] = district.country
+
+        elif state_name:
+            state = frappe.get_doc("State Master", state_name)
+            result["state"] = state.name
+            result["country"] = state.country
+
+        elif country_name:
+            result["country"] = country_name
+
+        else:
+            return {
+                "status": "error",
+                "message": "Please provide at least one parameter (city_name, district_name, state_name, or country_name)"
+            }
+        
 
         return {
             "status": "success",
-            "data": {
-                "city": city_name,
-                "district": district,
-                "state": state,
-                "country": country
-            }
+            "data": result
         }
 
     except Exception as e:
@@ -93,3 +107,4 @@ def address_filter(city_name=None):
             "message": "Failed to fetch address hierarchy.",
             "error": str(e)
         }
+
