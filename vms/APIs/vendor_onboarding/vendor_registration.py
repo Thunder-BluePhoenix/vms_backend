@@ -101,6 +101,30 @@ def vendor_registration(data):
             for row in data["vendor_types"]:
                 vendor_master.append("vendor_types", row)
 
+        # Send welcome email
+        if not vendor_master.send_welcome_email:
+            registration_link = f"{frappe.utils.get_url()}/register?vendor={vendor_master.name}"
+
+            frappe.sendmail(
+                recipients=[vendor_master.office_email_primary],
+                subject="Welcome to VMS",
+                message=f"""
+                    <p>Hello {vendor_master.vendor_name},</p>
+                    <p>Click on the link below to complete your registration :</p>
+                    <p style="margin: 15px 0px;">
+                        <a href="{registration_link}" rel="nofollow" class="btn btn-primary">Complete Registration</a>
+                    </p>
+                    <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
+                    <br>
+                    <p>You can also copy-paste the following link into your browser:<br>
+                    <a href="{registration_link}">{registration_link}</a></p>
+                """,
+                delayed=False
+            )
+            
+            vendor_master.send_welcome_email = 1  # mark as sent
+
+
         vendor_master.save()
         frappe.db.commit()
 
