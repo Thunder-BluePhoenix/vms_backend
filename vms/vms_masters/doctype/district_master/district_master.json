@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{district_name}-{district_code}",
+ "autoname": "format:{district_name}",
  "creation": "2025-05-04 19:48:09.161002",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -39,7 +39,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-13 16:15:24.446301",
+ "modified": "2025-05-15 17:32:20.593704",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "District Master",
