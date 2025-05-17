@@ -19,6 +19,7 @@
   "mobile_number",
   "registered_date",
   "qa_required",
+  "send_welcome_email",
   "multiple_company_data_section",
   "multiple_company_data",
   "vendor_type_section",
@@ -209,12 +210,18 @@
    "fieldname": "rejection_comment",
    "fieldtype": "Small Text",
    "label": "Rejection Comment"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_welcome_email",
+   "fieldtype": "Check",
+   "label": "Send Welcome Email"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-14 15:00:13.821685",
+ "modified": "2025-05-17 01:25:45.628067",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

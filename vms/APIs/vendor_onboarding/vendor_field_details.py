@@ -63,7 +63,10 @@ def get_purchase_team_details(company_name=None):
 @frappe.whitelist(allow_guest=True)
 def account_group_details(purchase_organization=None):
     if not purchase_organization:
-        frappe.throw("Please provide a purchase organization name.")
+        return {
+            "status": "error",
+            "message": "Please provide a purchase organization."
+        }
 
     account_group_master = frappe.get_all(
         "Account Group Master", 
@@ -73,7 +76,7 @@ def account_group_details(purchase_organization=None):
 
     return account_group_master
     
-# http://127.0.0.1:8003/api/method/vms.APIs.vendor_onboarding.vendor_field_details.account_group_details?purchase_organization=Expenses-1213
+# http://127.0.0.1:8003/api/method/vms.APIs.vendor_onboarding.vendor_field_details.account_group_details?purchase_organization=Meril Medical Import-2212
 
 # @frappe.whitelist(allow_guest=True)
 # def purchase_group_details(company_name=None):

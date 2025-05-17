@@ -59,44 +59,88 @@ def vendor_onboarding_company_dropdown_master():
             "error": str(e)
         }
 
-# Filters the city, district, state and country Masters    
-import frappe
-
+# Filters the city, district, state and country Masters  
+  
 @frappe.whitelist(allow_guest=True)
 def address_filter(city_name=None, district_name=None, state_name=None, country_name=None):
     try:
-        result = {}
+        result = {
+            "city": [],
+            "district": [],
+            "state": [],
+            "country": []
+        }
 
         if city_name:
             city = frappe.get_doc("City Master", city_name)
-            result["city"] = city.name
-            result["district"] = city.district
-            result["state"] = city.state
-            result["country"] = city.country
+            result["city"] = [{
+                "name": city.name,
+                "city_code": city.city_code,
+                "city_name": city.city_name
+            }]
+            result["district"] = [{
+                "name": city.district
+            }]
+            result["state"] = [{
+                "name": city.state
+            }]
+            result["country"] = [{
+                "name": city.country
+            }]
 
         elif district_name:
             district = frappe.get_doc("District Master", district_name)
-            result["district"] = district.name
-            result["state"] = district.state
-            result["country"] = district.country
+            result["district"] = [{
+                "name": district.name,
+                "district_code": district.district_code,
+                "district_name": district.district_name
+            }]
+            result["state"] = [{
+                "name": district.state
+            }]
+            result["country"] = [{
+                "name": district.country
+            }]
+            cities = frappe.get_all("City Master", filters={"district": district.name}, fields=["name", "city_code", "city_name"])
+            result["city"] = cities
 
         elif state_name:
             state = frappe.get_doc("State Master", state_name)
-            result["state"] = state.name
-            result["country"] = state.country
+            result["state"] = [{
+                "name": state.name,
+                "state_code": state.state_code,
+                "state_name": state.state_name
+            }]
+            result["country"] = [{
+                "name": state.country_name
+            }]
+            districts = frappe.get_all("District Master", filters={"state": state.name}, fields=["name", "district_code", "district_name"])
+            result["district"] = districts
+            district_names = [d["name"] for d in districts]
+            cities = frappe.get_all("City Master", filters={"district": ["in", district_names]}, fields=["name", "city_code", "city_name"])
+            result["city"] = cities
 
         elif country_name:
-            result["country"] = country_name
+            result["country"] = frappe.get_all("Country Master", filters={"name": country_name}, fields=["name", "country_code", "country_name"])
+            states = frappe.get_all("State Master", filters={"country_name": country_name}, fields=["name", "state_code", "state_name"])
+            result["state"] = states
+            state_names = [s["name"] for s in states]
+            districts = frappe.get_all("District Master", filters={"state": ["in", state_names]}, fields=["name", "district_code", "district_name"])
+            result["district"] = districts
+            district_names = [d["name"] for d in districts]
+            cities = frappe.get_all("City Master", filters={"district": ["in", district_names]}, fields=["name", "city_code", "city_name"])
+            result["city"] = cities
 
         else:
             return {
                 "status": "error",
                 "message": "Please provide at least one parameter (city_name, district_name, state_name, or country_name)"
             }
-        
+
 
         return {
             "status": "success",
+            "message": "Address hierarchy fetched successfully.",
             "data": result
         }
 
@@ -108,3 +152,48 @@ def address_filter(city_name=None, district_name=None, state_name=None, country_
             "error": str(e)
         }
 
+
+@frappe.whitelist(allow_guest=True)
+def vendor_onboarding_document_dropdown_master():
+    try:
+        gst_vendor_type = frappe.db.sql("SELECT name, registration_ven_code, registration_ven_name FROM `tabGST Registration Type Master`", as_dict=True)
+        state_master = frappe.db.sql("SELECT name, state_code, state_name FROM `tabState Master`", as_dict=True)
+        
+        return {
+            "status": "success",
+            "message": "Dropdown masters fetched successfully.",
+            "data": {
+                "gst_vendor_type": gst_vendor_type,
+                "state_master": state_master
+            }
+        }
+    
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Dropdown Document Master Fetch Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch dropdown document values.",
+            "error": str(e)
+        }
+    
+@frappe.whitelist(allow_guest=True)
+def vendor_onboarding_payment_dropdown_master():
+    try:
+        bank_name = frappe.db.sql("SELECT name, bank_code, bank_name FROM `tabBank Master`", as_dict=True)
+        currency_master = frappe.db.sql("SELECT name, currency_code, currency_name FROM `tabCurrency Master`", as_dict=True)
+        
+        return {
+            "status": "success",
+            "message": "Dropdown Document masters fetched successfully.",
+            "data": {
+                "bank_name": bank_name,
+                "currency_master": currency_master
+            }
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Dropdown Document Master Fetch Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch dropdown document values.",
+            "error": str(e)
+        }
