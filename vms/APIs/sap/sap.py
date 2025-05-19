@@ -4,34 +4,6 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 
-
-# @frappe.whitelist(allow_guest=True)
-# #def sap_fetch_token(data, method):
-# def sap_tokens(name):
-#     url = f"http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_VENDOR_SRV/VENDORSet?sap-client={sap_code}"
-#     print("******************* First URL *************", url)
-#     headers = {
-#         'X-CSRF-TOKEN': 'Fetch',
-#         'Authorization': 'Basic V0YtQkFUQ0g6TUB3YiMkJTIwMjQ=',
-#         'Content-Type': 'application/json'
-#         }
-#     auth = HTTPBasicAuth('WF-BATCH ', 'M@wb#$%2024')
-#     response = requests.get(url, headers=headers, auth=auth)
-
-#     if response.status_code == 200:
-#         print("****** GET CSRF TOKEN *********")
-#         csrf_token = response.headers.get('x-csrf-token')
-#         key1 = response.cookies.get(f'SAP_SESSIONID_BHD_{sap_code}')
-#         key2 = response.cookies.get('sap-usercontext')
-        
-#         # Sending details to SAP
-#         send_detail(csrf_token, data, key1, key2, name, sap_code)
-#         print("*********** KEY1 ***********", key1)
-#         print("*********** KEY2 ***********", key2)
-#         print("$$$$$$$$$$$ CSRF TOKEN $$$$$$$$$$$$$$$$$$",csrf_token)
-#         print("*********** JSON DATA ************", data)
-#         print(response.headers.get('x-csrf-token'))
-#         return data
 @frappe.whitelist(allow_guest=True)
 def erp_to_sap_vendor_data(onb_ref):
     onb = frappe.get_doc("Vendor Onboarding", onb_ref)
@@ -117,40 +89,52 @@ def erp_to_sap_vendor_data(onb_ref):
             "Bkref": onb_bank.bank_name,
             "Banka": onb_bank.ifsc_code,
             # "koinh": name_of_account_holder,
-            # "Xezer": "",
-            # "ZZBENF_NAME" : benf_name,
-            # "ZZBEN_BANK_NM" : benf_bank_name,
-            # "ZZBEN_ACCT_NO" : benf_account_no,
-            # "ZZBENF_IBAN" : benf_iban_no,
-            # "ZZBENF_BANKADDR" : benf_bank_add,
-            # "ZZBENF_SHFTADDR" : benf_swift_code,
-            # "ZZBENF_ACH_NO" : benf_ach_no,
-            # "ZZBENF_ABA_NO" : benf_aba_no,
-            # "ZZBENF_ROUTING" : benf_routing_no,
-            # "ZZINTR_ACCT_NO" : intr_account_no,
-            # "ZZINTR_IBAN" : intr_iban_no,
-            # "ZZINTR_BANK_NM" : intr_bank_name,
-            # "ZZINTR_BANKADDR" : intr_bank_add,
-            # "ZZINTR_SHFTADDR" : intr_swift_code,
-            # "ZZINTR_ACH_NO" : intr_ach_no,
-            # "ZZINTR_ABA_NO" : intr_aba_no,
-            # "ZZINTR_ROUTING" : intr_routing_no,
+            "Xezer": "",
+            "ZZBENF_NAME" : onb_pmd.international_bank_details[0].beneficiary_name,
+            "ZZBEN_BANK_NM" : onb_pmd.international_bank_details[0].beneficiary_bank_name,
+            "ZZBEN_ACCT_NO" : onb_pmd.international_bank_details[0].beneficiary_account_no,
+            "ZZBENF_IBAN" : onb_pmd.international_bank_details[0].beneficiary_iban_no,
+            "ZZBENF_BANKADDR" : onb_pmd.international_bank_details[0].beneficiary_bank_address,
+            "ZZBENF_SHFTADDR" : onb_pmd.international_bank_details[0].beneficiary_swift_code,
+            "ZZBENF_ACH_NO" : onb_pmd.international_bank_details[0].beneficiary_ach_no,
+            "ZZBENF_ABA_NO" : onb_pmd.international_bank_details[0].beneficiary_aba_no,
+            "ZZBENF_ROUTING" : onb_pmd.international_bank_details[0].beneficiary_routing_no,
+            "ZZINTR_ACCT_NO" : onb_pmd.intermediate_bank_details[0].intermediate_account_no,
+            "ZZINTR_IBAN" : onb_pmd.intermediate_bank_details[0].intermediate_iban_no,
+            "ZZINTR_BANK_NM" : onb_pmd.intermediate_bank_details[0].intermediate_bank_name,
+            "ZZINTR_BANKADDR" : onb_pmd.intermediate_bank_details[0].intermediate_bank_address,
+            "ZZINTR_SHFTADDR" : onb_pmd.intermediate_bank_details[0].intermediate_swift_code,
+            "ZZINTR_ACH_NO" : onb_pmd.intermediate_bank_details[0].intermediate_ach_no,
+            "ZZINTR_ABA_NO" : onb_pmd.intermediate_bank_details[0].intermediate_aba_no,
+            "ZZINTR_ROUTING" : onb_pmd.intermediate_bank_details[0].intermediate_routing_no,
             "Refno": onb.ref_no,
             "Vedno": "",
             "Zmsg": ""
                 }
         data_list.append(data)
 
+        sap_settings = frappe.get_doc("SAP Settings")
+        erp_to_sap_url = sap_settings.url
+        url = f"{erp_to_sap_url}{sap_client_code}"
+        header_auth_type = sap_settings.authorization_type
+        header_auth_key = sap_settings.authorization_key
+        user = sap_settings.auth_user_name
+        password = sap_settings.auth_user_pass
 
-
-        url = f"http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_VENDOR_SRV/VENDORSet?sap-client={sap_client_code}"
-        
         headers = {
             'X-CSRF-TOKEN': 'Fetch',
-            'Authorization': 'Basic V0YtQkFUQ0g6TUB3YiMkJTIwMjQ=',
+            'Authorization': f"{header_auth_type} {header_auth_key}",
             'Content-Type': 'application/json'
-            }
-        auth = HTTPBasicAuth('WF-BATCH ', 'M@wb#$%2024')
+        }
+
+        # url = f"http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_VENDOR_SRV/VENDORSet?sap-client={sap_client_code}"
+        
+        # headers = {
+        #     'X-CSRF-TOKEN': 'Fetch',
+        #     'Authorization': 'Basic V0YtQkFUQ0g6TUB3YiMkJTIwMjQ=',
+        #     'Content-Type': 'application/json'
+        #     }
+        auth = HTTPBasicAuth(user, password)
         response = requests.get(url, headers=headers, auth=auth)
     
         if response.status_code == 200:
@@ -160,7 +144,7 @@ def erp_to_sap_vendor_data(onb_ref):
             key2 = response.cookies.get('sap-usercontext')
             
             # Sending details to SAP
-            send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, onb_ref)
+            send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, vcd.state, vcd.gst, vcd.company_name)
             
             return data
         else:
@@ -170,35 +154,93 @@ def erp_to_sap_vendor_data(onb_ref):
 #******************************* SAP PUSH  ************************************************************
 
 @frappe.whitelist(allow_guest=True)
-def send_detail(csrf_token, data, key1, key2, name, sap_code):
+def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, company_name):
 
-    url = f"http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_VENDOR_SRV/VENDORSet?sap-client={sap_code}"
-    key1 = key1
-    key2 = key2
-    name = name
-    #pdb.set_trace()
+    sap_settings = frappe.get_doc("SAP Settings")
+    erp_to_sap_url = sap_settings.url
+    url = f"{erp_to_sap_url}{sap_code}"
+    header_auth_type = sap_settings.authorization_type
+    header_auth_key = sap_settings.authorization_key
+    user = sap_settings.auth_user_name
+    password = sap_settings.auth_user_pass
+
     headers = {
-
         'X-CSRF-TOKEN': csrf_token,
+        'Authorization': f"{header_auth_type} {header_auth_key}",
         'Content-Type': 'application/json;charset=utf-8',
         'Accept': 'application/json',
-        'Authorization': 'Basic V0YtQkFUQ0g6TUB3YiMkJTIwMjQ=',
         'Cookie': f"SAP_SESSIONID_BHD_{sap_code}={key1}; sap-usercontext={key2}"
     }
-    auth = HTTPBasicAuth('WF-BATCH ', 'M@wb#$%2024')
+
+    # url = f"http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_VENDOR_SRV/VENDORSet?sap-client={sap_code}"
+   
+    # #pdb.set_trace()
+    # headers = {
+
+    #     'X-CSRF-TOKEN': csrf_token,
+    #     'Content-Type': 'application/json;charset=utf-8',
+    #     'Accept': 'application/json',
+    #     'Authorization': 'Basic V0YtQkFUQ0g6TUB3YiMkJTIwMjQ=',
+    #     'Cookie': f"SAP_SESSIONID_BHD_{sap_code}={key1}; sap-usercontext={key2}"
+    # }
+    auth = HTTPBasicAuth(user, password)
     print("*************")
     
     try:
         response = requests.post(url, headers=headers, auth=auth ,json=data)
-        print("****************** RESPONSE ************",response)
-        print("********* STATUS CODE *****************", response.json(), response.status_code)
-        #return response.json()
         vendor_sap_code = response.json()
-        print("********** Here is the vendor_sap_code **********", vendor_sap_code)
         vendor_code = vendor_sap_code['d']['Vedno']
+
+        ref_vm = frappe.get_doc("Vendor Master", name)
+        
+        cvc = frappe.get_doc("Company Vendor Code", {"sap_client_code":sap_code, "vendor_ref_no": ref_vm.name}) or None
+
+        if not cvc:
+            cvc = frappe.new_doc("Company Vendor Code")  
+            cvc.vendor_ref_no = ref_vm.name
+            cvc.company_name = company_name
+            cvc.append("vendor_code", {
+                "vendor_code": vendor_code,
+                "gst_no": gst,
+                "state": state
+            })
+        else:
+            found = False
+            for vc in cvc.vendor_code:
+                if vc.gst_no == gst or vc.state == state:
+                    vc.vendor_code = vendor_code
+                    vc.gst_no = gst
+                    vc.state = state
+                    found = True
+                    break
+
+            if not found:
+                cvc.append("vendor_code", {
+                    "vendor_code": vendor_code,
+                    "gst_no": gst,
+                    "state": state
+                })
+
+        cvc.save()
+
+        found = False
+        for mcd in ref_vm.multiple_company_data:
+            if mcd.sap_client_code == sap_code:
+                mcd.company_vendor_code = cvc.name
+                found = True
+                break
+
+        if not found:
+            ref_vm.append("multiple_company_data", {
+                "company_vendor_code": cvc.name,
+                "gst_no": gst,
+                "state": state
+            })
+            ref_vm.save()
+
         
 
-        frappe.db.sql(""" UPDATE `tabVendor Master` SET vendor_code=%s where name=%s """, (vendor_code, name))
+        
         frappe.db.commit()
         
         return response.json()
