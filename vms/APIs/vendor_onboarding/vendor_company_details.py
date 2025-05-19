@@ -97,7 +97,7 @@ def update_vendor_onboarding_company_address(data):
             "address_line_1", "address_line_2", "city", "district", "state", "country", "pincode",
             "same_as_above", "street_1", "street_2", "manufacturing_city", "manufacturing_district",
             "manufacturing_state", "manufacturing_country", "manufacturing_pincode",
-            "multiple_locations"
+            "multiple_locations", "gst"
         ]
 
         for field in fields_to_update:

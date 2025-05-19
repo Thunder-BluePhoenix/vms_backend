@@ -8,6 +8,7 @@
  "field_order": [
   "account_group",
   "reconcil_account",
+  "reconcil_account_code",
   "reconcil_description"
  ],
  "fields": [
@@ -27,12 +28,18 @@
    "fieldname": "reconcil_description",
    "fieldtype": "Text",
    "label": "Reconcil Description"
+  },
+  {
+   "fieldname": "reconcil_account_code",
+   "fieldtype": "Data",
+   "label": "Reconcil Account Code",
+   "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 14:06:03.842055",
+ "modified": "2025-05-17 16:25:16.258915",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Reconciliation Account",

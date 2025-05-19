@@ -14,10 +14,11 @@
   "bank_name",
   "ifsc_code",
   "account_number",
+  "name_of_account_holder",
   "column_break_usab",
   "type_of_account",
   "currency",
-  "name_of_account_holder",
+  "currency_code",
   "bank_proof_section",
   "bank_proof",
   "preferred_transaction_section",
@@ -157,12 +158,18 @@
   {
    "fieldname": "column_break_kkrt",
    "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "currency.currency_code",
+   "fieldname": "currency_code",
+   "fieldtype": "Data",
+   "label": "Currency Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 11:12:14.427580",
+ "modified": "2025-05-17 16:35:48.128624",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Payment Details",

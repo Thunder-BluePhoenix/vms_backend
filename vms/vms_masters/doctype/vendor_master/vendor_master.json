@@ -8,6 +8,8 @@
  "field_order": [
   "vendor_title",
   "vendor_name",
+  "first_name",
+  "last_name",
   "office_email_primary",
   "search_term",
   "payee_in_document",
@@ -17,6 +19,7 @@
   "column_break_skum",
   "country",
   "mobile_number",
+  "office_email_secondary",
   "registered_date",
   "qa_required",
   "send_welcome_email",
@@ -216,12 +219,29 @@
    "fieldname": "send_welcome_email",
    "fieldtype": "Check",
    "label": "Send Welcome Email"
+  },
+  {
+   "fieldname": "office_email_secondary",
+   "fieldtype": "Data",
+   "label": "Office Email Secondary"
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "First Name"
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Last Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 01:25:45.628067",
+ "modified": "2025-05-18 15:57:02.045857",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
