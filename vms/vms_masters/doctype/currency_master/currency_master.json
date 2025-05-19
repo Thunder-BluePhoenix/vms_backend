@@ -19,8 +19,9 @@
   },
   {
    "fieldname": "currency_name",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Currency Name",
+   "options": "Currency",
    "unique": 1
   },
   {
@@ -33,7 +34,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-16 11:59:32.042409",
+ "modified": "2025-05-17 16:33:53.430344",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Currency Master",

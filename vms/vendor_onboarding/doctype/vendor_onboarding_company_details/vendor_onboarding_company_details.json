@@ -10,6 +10,8 @@
   "ref_no",
   "column_break_tjil",
   "vendor_onboarding",
+  "gst",
+  "company_pan_number",
   "company_details_section",
   "vendor_title",
   "company_name",
@@ -308,12 +310,22 @@
    "fieldtype": "Link",
    "label": "Vendor Title",
    "options": "Vendor Title"
+  },
+  {
+   "fieldname": "gst",
+   "fieldtype": "Data",
+   "label": "GST"
+  },
+  {
+   "fieldname": "company_pan_number",
+   "fieldtype": "Data",
+   "label": "Company Pan Number"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-14 12:47:15.709966",
+ "modified": "2025-05-18 15:51:27.088367",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",
