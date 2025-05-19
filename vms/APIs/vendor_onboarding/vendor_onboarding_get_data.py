@@ -24,6 +24,9 @@ def get_vendor_onboarding_data(vendor_onboarding):
         # Fetch linked child documents if available
         linked_docs = {}
 
+        if onboarding_doc.ref_no:
+            linked_docs["vendor_master"] = frappe.get_doc("Vendor Master", onboarding_doc.ref_no).as_dict()
+
         if onboarding_doc.payment_detail:
             linked_docs["payment_detail"] = frappe.get_doc("Vendor Onboarding Payment Details", onboarding_doc.payment_detail).as_dict()
                                                                                               
