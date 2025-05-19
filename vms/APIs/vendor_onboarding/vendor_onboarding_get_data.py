@@ -18,8 +18,12 @@ def get_vendor_onboarding_data(vendor_onboarding):
                 "status": "error",
                 "message": "Vendor onboarding document not found."
             }
+        
+        # company name from Company Master
+        full_company_name = frappe.db.get_value("Company Master", onboarding_doc.company_name, "company_name")
 
         onboarding_data = onboarding_doc.as_dict()
+        onboarding_data["full_company_name"] = full_company_name
 
         # Fetch child documents
         linked_docs = {}
