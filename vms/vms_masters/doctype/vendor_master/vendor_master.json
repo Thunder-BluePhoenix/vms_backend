@@ -22,7 +22,6 @@
   "office_email_secondary",
   "registered_date",
   "qa_required",
-  "send_welcome_email",
   "multiple_company_data_section",
   "multiple_company_data",
   "vendor_type_section",
@@ -215,12 +214,6 @@
    "label": "Rejection Comment"
   },
   {
-   "default": "0",
-   "fieldname": "send_welcome_email",
-   "fieldtype": "Check",
-   "label": "Send Welcome Email"
-  },
-  {
    "fieldname": "office_email_secondary",
    "fieldtype": "Data",
    "label": "Office Email Secondary"
@@ -241,7 +234,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-18 15:57:02.045857",
+ "modified": "2025-05-19 14:44:47.452288",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

@@ -21,11 +21,20 @@ def get_vendor_onboarding_data(vendor_onboarding):
 
         onboarding_data = onboarding_doc.as_dict()
 
-        # Fetch linked child documents if available
+        # Fetch child documents
         linked_docs = {}
 
         if onboarding_doc.ref_no:
             linked_docs["vendor_master"] = frappe.get_doc("Vendor Master", onboarding_doc.ref_no).as_dict()
+        
+        company_details_list = []
+        if onboarding_doc.vendor_company_details:
+            for row in onboarding_doc.vendor_company_details:
+                if row.vendor_company_details:
+                    detail_doc = frappe.get_doc("Vendor Onboarding Company Details", row.vendor_company_details)
+                    company_details_list.append(detail_doc.as_dict())
+
+        linked_docs["vendor_company_details"] = company_details_list
 
         if onboarding_doc.payment_detail:
             linked_docs["payment_detail"] = frappe.get_doc("Vendor Onboarding Payment Details", onboarding_doc.payment_detail).as_dict()
@@ -38,15 +47,6 @@ def get_vendor_onboarding_data(vendor_onboarding):
 
         if onboarding_doc.manufacturing_details:
             linked_docs["manufacturing_details"] = frappe.get_doc("Vendor Onboarding Manufacturing Details", onboarding_doc.manufacturing_details).as_dict()
-
-        company_details_list = []
-        if onboarding_doc.vendor_company_details:
-            for row in onboarding_doc.vendor_company_details:
-                if row.vendor_company_details:
-                    detail_doc = frappe.get_doc("Vendor Onboarding Company Details", row.vendor_company_details)
-                    company_details_list.append(detail_doc.as_dict())
-
-        linked_docs["vendor_company_details"] = company_details_list
 
         return {
             "status": "success",

@@ -60,30 +60,28 @@ def vendor_registration(data):
         if isinstance(data, str):
             data = json.loads(data)
 
+        vendor_master = None
+
+        # Check if vendor with the given email already exists
         if data.get("office_email_primary"):
             exists = frappe.get_all(
                 "Vendor Master",
                 filters={"office_email_primary": data["office_email_primary"]},
+                fields=["name"],
                 limit=1
             )
+
             if exists:
-                return {
-                    "status": "error",
-                    "message": "Email already exists"
-                }
+                vendor_master = frappe.get_doc("Vendor Master", exists[0]["name"])
+            else:
+                vendor_master = frappe.new_doc("Vendor Master")
+        else:
+            vendor_master = frappe.new_doc("Vendor Master")
 
-        # Create Vendor Master
-        vendor_master = frappe.new_doc("Vendor Master")
-
+        # vendor master fields
         for field in [
-            "vendor_title", 
-            "vendor_name", 
-            "office_email_primary", 
-            "search_term",
-            "country", 
-            "mobile_number", 
-            "registered_date", 
-            "qa_required"
+            "vendor_title", "vendor_name", "office_email_primary", "search_term",
+            "country", "mobile_number", "registered_date", "qa_required"
         ]:
             if field in data:
                 vendor_master.set(field, data[field])
@@ -93,6 +91,7 @@ def vendor_registration(data):
         vendor_master.service_based_inv_ver = 1
         vendor_master.check_double_invoice = 1
 
+        # Update child tables
         if "multiple_company_data" in data:
             for row in data["multiple_company_data"]:
                 vendor_master.append("multiple_company_data", row)
@@ -101,39 +100,15 @@ def vendor_registration(data):
             for row in data["vendor_types"]:
                 vendor_master.append("vendor_types", row)
 
-        # Send welcome email
-        if not vendor_master.send_welcome_email:
-            registration_link = f"{frappe.utils.get_url()}/register?vendor={vendor_master.name}"
-
-            frappe.sendmail(
-                recipients=[vendor_master.office_email_primary],
-                subject="Welcome to VMS",
-                message=f"""
-                    <p>Hello {vendor_master.vendor_name},</p>
-                    <p>Click on the link below to complete your registration :</p>
-                    <p style="margin: 15px 0px;">
-                        <a href="{registration_link}" rel="nofollow" class="btn btn-primary">Complete Registration</a>
-                    </p>
-                    <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
-                    <br>
-                    <p>You can also copy-paste the following link into your browser:<br>
-                    <a href="{registration_link}">{registration_link}</a></p>
-                """,
-                delayed=False
-            )
-            
-            vendor_master.send_welcome_email = 1  # mark as sent
-
-
-        vendor_master.save()
+        vendor_master.save(ignore_permissions=True)
         frappe.db.commit()
-
+            
         # Create Vendor Onboarding
         vendor_onboarding = frappe.new_doc("Vendor Onboarding")
         vendor_onboarding.ref_no = vendor_master.name
 
         for field in [
-            "qms_required", "purchase_organization", "account_group",
+            "qms_required","company_name", "purchase_organization", "account_group",
             "purchase_group", "terms_of_payment", "order_currency", "incoterms"
         ]:
             if field in data:
@@ -227,5 +202,71 @@ def onboarding_form_submit(data):
         return {
             "status": "error",
             "message": "Failed to update Vendor onboarding data",
+            "error": str(e)
+        }
+    
+# send registration email link
+@frappe.whitelist(allow_guest=True)
+def send_registration_email_link(vendor_onboarding):
+    try:
+        if not vendor_onboarding:
+            return {
+                "status": "error",
+                "message": "Missing 'vendor_onboarding' parameter."
+            }
+
+        # get Vendor Onboarding document
+        onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+
+        # Proceed only if email hasn't been sent
+        if not onboarding_doc.sent_registration_email_link:
+            vendor_master = frappe.get_doc("Vendor Master", onboarding_doc.ref_no)
+
+            recipient_email = vendor_master.office_email_primary or vendor_master.office_email_secondary
+            if not recipient_email:
+                return {
+                    "status": "error",
+                    "message": "No recipient email found for the vendor."
+                }
+
+            registration_link = f"{frappe.utils.get_url()}/register?vendor={vendor_master.name}"
+
+            frappe.sendmail(
+                recipients=[recipient_email],
+                subject="Welcome to VMS",
+                message=f"""
+                    <p>Hello {vendor_master.vendor_name},</p>
+                    <p>Click on the link below to complete your registration:</p>
+                    <p style="margin: 15px 0px;">
+                        <a href="{registration_link}" rel="nofollow" class="btn btn-primary">Complete Registration</a>
+                    </p>
+                    <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
+                    <br>
+                    <p>You can also copy-paste the following link into your browser:<br>
+                    <a href="{registration_link}">{registration_link}</a></p>
+                """,
+                delayed=False
+            )
+
+            onboarding_doc.sent_registration_email_link = 1
+            onboarding_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": "Registration email sent successfully."
+            }
+
+        else:
+            return {
+                "status": "info",
+                "message": "Registration email has already been sent."
+            }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Onboarding Registration Email Error")
+        return {
+            "status": "error",
+            "message": "Failed to send registration email.",
             "error": str(e)
         }
