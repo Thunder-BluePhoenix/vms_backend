@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-19 14:47:45.064932",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vendor_onboarding_sap_section",
+  "url",
+  "column_break_szoq",
+  "authorization_type",
+  "authorization_key",
+  "auth_user_name",
+  "auth_user_pass"
+ ],
+ "fields": [
+  {
+   "fieldname": "vendor_onboarding_sap_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Onboarding SAP"
+  },
+  {
+   "description": "Sending data to sap and fetch vendor code. eg: http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_VENDOR_SRV/VENDORSet?sap-client=",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "length": 500
+  },
+  {
+   "fieldname": "column_break_szoq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Header Auth Type details.\neg: Basic",
+   "fieldname": "authorization_type",
+   "fieldtype": "Data",
+   "label": "Authorization type"
+  },
+  {
+   "description": "Header Auth Key.\neg: V0YtQkFUQ0g6TUB3YiMkJTIwMjQ=",
+   "fieldname": "authorization_key",
+   "fieldtype": "Data",
+   "label": "Authorization key"
+  },
+  {
+   "description": "UserName. eg:WF-BATCH ",
+   "fieldname": "auth_user_name",
+   "fieldtype": "Data",
+   "label": "Auth User Name"
+  },
+  {
+   "description": "Password. eg: M@wb#$%2024",
+   "fieldname": "auth_user_pass",
+   "fieldtype": "Data",
+   "label": "Auth User Pass"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-05-19 17:45:40.005102",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "SAP Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
