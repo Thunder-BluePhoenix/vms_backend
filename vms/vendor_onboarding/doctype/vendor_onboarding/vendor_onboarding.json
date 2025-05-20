@@ -26,6 +26,7 @@
   "form_fully_submitted_by_vendor",
   "sent_registration_email_link",
   "rejected",
+  "data_sent_to_sap",
   "rejected_by",
   "reason_for_rejection",
   "tables_section",
@@ -372,12 +373,18 @@
    "fieldtype": "Link",
    "label": "Company Name",
    "options": "Company Master"
+  },
+  {
+   "default": "0",
+   "fieldname": "data_sent_to_sap",
+   "fieldtype": "Check",
+   "label": "Data Sent to SAP"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-19 14:39:43.976831",
+ "modified": "2025-05-20 12:01:54.234528",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

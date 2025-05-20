@@ -236,7 +236,7 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
                 "gst_no": gst,
                 "state": state
             })
-            ref_vm.save()
+        ref_vm.save()
 
         
 
@@ -257,3 +257,13 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         print("******************************************")
         print("Error in POST request:", response.status_code)
         
+
+
+
+
+def update_sap_vonb(doc, method=None):
+    if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and not doc.rejected and not doc.data_sent_to_sap:
+        erp_to_sap_vendor_data(doc.name)
+        doc.data_sent_to_sap = 1
+        doc.save()
+        frappe.db.commit()
