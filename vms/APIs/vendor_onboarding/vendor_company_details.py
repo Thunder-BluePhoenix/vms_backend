@@ -113,7 +113,28 @@ def update_vendor_onboarding_company_address(data):
         # update child table
         if "multiple_location_table" in data:
             for row in data["multiple_location_table"]:
-                doc.append("multiple_location_table", row)
+                is_duplicate = False
+
+                for existing in doc.multiple_location_table:
+                    if (
+                        (existing.address_line_1 or "").strip() == (row.get("address_line_1") or "").strip() and
+                        (existing.ma_city or "").strip() == (row.get("ma_city") or "").strip() and
+                        (existing.ma_state or "").strip() == (row.get("ma_state") or "").strip() and
+                        (existing.ma_country or "").strip() == (row.get("ma_country") or "").strip()
+                    ):
+                        is_duplicate = True
+                        break
+
+                if not is_duplicate:
+                    doc.append("multiple_location_table", {
+                        "address_line_1": row.get("address_line_1"),
+                        "address_line_2": row.get("address_line_2"),
+                        "ma_pincode": row.get("ma_pincode"),
+                        "ma_district": row.get("ma_district"),
+                        "ma_city": row.get("ma_city"),
+                        "ma_state": row.get("ma_state"),
+                        "ma_country": row.get("ma_country")
+                    })
 
         doc.save()
         frappe.db.commit()

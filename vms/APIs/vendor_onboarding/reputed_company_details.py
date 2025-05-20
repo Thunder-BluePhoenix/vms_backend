@@ -18,19 +18,31 @@ def update_vendor_onboarding_reputed_company_details(data):
 
         doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
 
-        # Update reputed partner details
-        if "reputed_partners" in data:
-            contact = data["reputed_partners"]
-            doc.append("reputed_partners", {
-                "company_name": contact.get("company_name"),
-                "supplied_qtyyear": contact.get("supplied_qtyyear"),
-                "remark": contact.get("remark")
-            })
-        else:
+        if "reputed_partners" not in data:
             return {
                 "status": "error",
-                "message": "Missing required field: 'reputed_partners table'."
+                "message": "Missing child table field: 'reputed_partners'."
             }
+
+        # Update reputed partner table
+        new_row = {
+            "company_name": str(data["reputed_partners"].get("company_name") or "").strip(),
+            "supplied_qtyyear": str(data["reputed_partners"].get("supplied_qtyyear") or "").strip(),
+            "remark": str(data["reputed_partners"].get("remark") or "").strip()
+        }
+
+        # Check for duplication
+        is_duplicate = False
+        for row in doc.reputed_partners:
+            if (
+                str(row.company_name).strip() == new_row["company_name"] and
+                str(row.supplied_qtyyear).strip() == new_row["supplied_qtyyear"]
+            ):
+                is_duplicate = True
+                break
+
+        if not is_duplicate:
+            doc.append("reputed_partners", new_row)
 
         doc.save(ignore_permissions=True)
         frappe.db.commit()
