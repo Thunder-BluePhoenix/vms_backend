@@ -36,10 +36,7 @@ def update_vendor_onboarding_company_details(data):
             "vendor_title","vendor_name", "company_name", "type_of_business", "website", "office_email_primary",
             "office_email_secondary", "telephone_number", "whatsapp_number", "cin_date",
             "nature_of_company", "size_of_company", "registered_office_number", "established_year",
-            "nature_of_business", "corporate_identification_number", "address_line_1", "address_line_2",
-            "city", "district", "state", "country", "pincode", "same_as_above", "street_1", "street_2",
-            "manufacturing_city", "manufacturing_district", "manufacturing_state",
-            "manufacturing_country", "manufacturing_pincode", "multiple_locations"
+            "nature_of_business", "corporate_identification_number"
         ]
 
         for field in updatable_fields:
@@ -97,7 +94,7 @@ def update_vendor_onboarding_company_address(data):
             "address_line_1", "address_line_2", "city", "district", "state", "country", "pincode",
             "same_as_above", "street_1", "street_2", "manufacturing_city", "manufacturing_district",
             "manufacturing_state", "manufacturing_country", "manufacturing_pincode",
-            "multiple_locations", "gst"
+            "multiple_locations"
         ]
 
         for field in fields_to_update:
