@@ -94,11 +94,31 @@ def vendor_registration(data):
         # Update child tables
         if "multiple_company_data" in data:
             for row in data["multiple_company_data"]:
-                vendor_master.append("multiple_company_data", row)
+                is_duplicate = False
+                for existing in vendor_master.multiple_company_data:
+                    if (
+                        (existing.company_name or "").lower().strip() == (row.get("company_name") or "").lower().strip() and
+                        (existing.purchase_organization or "").lower().strip() == (row.get("purchase_organization") or "").lower().strip() and
+                        (existing.account_group or "").lower().strip() == (row.get("account_group") or "").lower().strip() and
+                        (existing.purchase_group or "").lower().strip() == (row.get("purchase_group") or "").lower().strip()
+                    ):
+                        is_duplicate = True
+                        break
+
+                if not is_duplicate:
+                    vendor_master.append("multiple_company_data", row)
+
 
         if "vendor_types" in data:
             for row in data["vendor_types"]:
-                vendor_master.append("vendor_types", row)
+                is_duplicate = False
+                for existing in vendor_master.vendor_types:
+                    if (existing.vendor_type or "").lower().strip() == (row.get("vendor_type") or "").lower().strip():
+                        is_duplicate = True
+                        break
+
+                if not is_duplicate:
+                    vendor_master.append("vendor_types", row)
 
         vendor_master.save(ignore_permissions=True)
         frappe.db.commit()
@@ -125,7 +145,14 @@ def vendor_registration(data):
 
         if "vendor_types" in data:
             for row in data["vendor_types"]:
-                vendor_onboarding.append("vendor_types", row)
+                is_duplicate = False
+                for existing in vendor_master.vendor_types:
+                    if (existing.vendor_type or "").lower().strip() == (row.get("vendor_type") or "").lower().strip():
+                        is_duplicate = True
+                        break
+
+                if not is_duplicate:
+                    vendor_master.append("vendor_types", row)
 
         vendor_onboarding.save()
         frappe.db.commit()

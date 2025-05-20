@@ -21,13 +21,24 @@ def update_vendor_onboarding_testing_details(data):
         # Update testing details
         if "testing_detail" in data:
             contact = data["testing_detail"]
-            doc.append("testing_detail", {
-                "equipment_name": contact.get("equipment_name"),
-                "equipment_qty": contact.get("equipment_qty"),
-                "capacity": contact.get("capacity"),
-                "email": contact.get("email"),
-                "remarks": contact.get("remarks")
-            })
+            is_duplicate = False
+
+            for existing in doc.testing_detail:
+                if (
+                    (existing.equipment_name or "").lower().strip() == (contact.get("equipment_name") or "").lower().strip() and
+                    (existing.equipment_qty or "").strip() == (contact.get("equipment_qty") or "").strip() and
+                    (existing.capacity or "").strip() == (contact.get("capacity") or "").strip()
+                ):
+                    is_duplicate = True
+                    break
+
+            if not is_duplicate:
+                doc.append("testing_detail", {
+                    "equipment_name": contact.get("equipment_name"),
+                    "equipment_qty": contact.get("equipment_qty"),
+                    "capacity": contact.get("capacity"),
+                    "remarks": contact.get("remarks")
+                })
         else:
             return {
                 "status": "error",

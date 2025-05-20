@@ -58,13 +58,25 @@ def update_vendor_onboarding_manufacturing_details(data):
         if "materials_supplied" in data:
             index = 0
             for row in data["materials_supplied"]:
-                material_row = doc.append("materials_supplied", row)
+                is_duplicate = False
 
-                file_key = f"material_images_{index}"
-                if file_key in frappe.request.files:
-                    file = frappe.request.files[file_key]
-                    saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-                    material_row.material_images = saved.file_url
+                for existing in doc.materials_supplied:
+                    if (
+                        (existing.material_description or "").strip().lower() == (row.get("material_description") or "").strip().lower() and
+                        (existing.hsnsac_code or "").strip().lower() == (row.get("hsnsac_code") or "").strip().lower()
+                    ):
+                        is_duplicate = True
+                        break
+
+                if not is_duplicate:
+                    new_row = doc.append("materials_supplied", row)
+
+                    # Attach file if available
+                    file_key = f"material_images_{index}"
+                    if file_key in frappe.request.files:
+                        file = frappe.request.files[file_key]
+                        saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                        new_row.material_images = saved.file_url
 
                 index += 1
 
