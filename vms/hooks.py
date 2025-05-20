@@ -132,6 +132,9 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
+doc_events = {
+    "Vendor Onboarding":{"on_update": "vms.APIs.sap.sap.update_sap_vonb"}
+}
 # doc_events = {
 # 	"*": {
 # 		"on_update": "method",
