@@ -33,6 +33,7 @@
   "column_break_gbqz",
   "branch",
   "district",
+  "team",
   "contact_details",
   "cell_number",
   "column_break_deuq",
@@ -118,6 +119,7 @@
    "label": "Date of Joining"
   },
   {
+   "collapsible": 1,
    "fieldname": "user_details_section",
    "fieldtype": "Section Break",
    "label": "User Details"
@@ -245,12 +247,18 @@
    "fieldname": "permanent_address",
    "fieldtype": "Small Text",
    "label": "Permanent Address"
+  },
+  {
+   "fieldname": "team",
+   "fieldtype": "Link",
+   "label": "Team",
+   "options": "Team Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 13:56:58.394484",
+ "modified": "2025-05-20 14:22:54.431503",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",
