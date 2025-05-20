@@ -61,6 +61,33 @@ def vendor_onboarding_company_dropdown_master():
 
 # Filters the city, district, state and country Masters  
   
+
+@frappe.whitelist(allow_guest=True)
+def all_address_masters():
+    try:
+        city_master = frappe.db.sql("SELECT name, city_code, city_name FROM `tabCity Master`", as_dict=True)
+        district_master = frappe.db.sql("SELECT name, district_code, district_name FROM `tabDistrict Master`", as_dict=True)
+        state_master = frappe.db.sql("SELECT name, state_code, state_name FROM `tabState Master`", as_dict=True)
+        country_master = frappe.db.sql("SELECT name, country_name FROM `tabCountry Master`", as_dict=True)
+        
+        return {
+            "status": "success",
+            "message": "Dropdown Document masters fetched successfully.",
+            "data": {
+                "city_master": city_master,
+                "district_master": district_master,
+                "state_master": state_master,
+                "country_master": country_master
+            }
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Dropdown Document Master Fetch Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch dropdown Document masters values.",
+            "error": str(e)
+        }
+
 @frappe.whitelist(allow_guest=True)
 def address_filter(city_name=None, district_name=None, state_name=None, country_name=None):
     try:
