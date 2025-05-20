@@ -18,17 +18,28 @@ def update_vendor_onboarding_contact_details(data):
 
         doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
 
-        # Update contact details
+        # Update contact details table
         if "contact_details" in data:
             contact = data["contact_details"]
-            doc.append("contact_details", {
-                "first_name": contact.get("first_name"),
-                "last_name": contact.get("last_name"),
-                "designation": contact.get("designation"),
-                "email": contact.get("email"),
-                "contact_number": contact.get("contact_number"),
-                "department_name": contact.get("department_name")
-            })
+            is_duplicate = False
+
+            for row in doc.contact_details:
+                if (
+                    (row.email or "").strip().lower() == (contact.get("email") or "").strip().lower() and
+                    (row.contact_number or "").strip() == (contact.get("contact_number") or "").strip()
+                ):
+                    is_duplicate = True
+                    break
+
+            if not is_duplicate:
+                doc.append("contact_details", {
+                    "first_name": contact.get("first_name"),
+                    "last_name": contact.get("last_name"),
+                    "designation": contact.get("designation"),
+                    "email": contact.get("email"),
+                    "contact_number": contact.get("contact_number"),
+                    "department_name": contact.get("department_name")
+                })
         else:
             return {
                 "status": "error",

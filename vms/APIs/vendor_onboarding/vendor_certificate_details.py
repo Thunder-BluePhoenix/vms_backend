@@ -32,25 +32,44 @@ def update_vendor_onboarding_certificate_details(data):
         doc = frappe.get_doc("Vendor Onboarding Certificates", doc_name)
 
         # update child table
-        if "certificates" in data:
-            index = 0
-            for row in data["certificates"]:
-                material_row = doc.append("certificates", row)
+        if "certificates" not in data:
+            return {
+                "status": "error",
+                "message": "Missing child table fields: 'certificates'."
+            }
 
+        index = 0
+        for row in data["certificates"]:
+            new_row = {
+                "certificate_code": row.get("certificate_code", "").strip(),
+                "certificate_name": row.get("certificate_name", "").strip(),
+                "other_certificate_name": row.get("other_certificate_name", "").strip(),
+                "valid_till": row.get("valid_till", "").strip()
+            }
+
+            # Check for duplicate
+            is_duplicate = False
+            for existing in doc.certificates:
+                if (
+                    (existing.certificate_code or "").strip() == new_row["certificate_code"] and
+                    (existing.certificate_name or "").strip() == new_row["certificate_name"]
+                ):
+                    is_duplicate = True
+                    break
+
+            if not is_duplicate:
+                appended_row = doc.append("certificates", new_row)
+
+                # Upload file if present
                 file_key = f"certificate_attach{index}"
                 if file_key in frappe.request.files:
                     file = frappe.request.files[file_key]
                     saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-                    material_row.material_images = saved.file_url
+                    appended_row.certificate_attach = saved.file_url
 
-                index += 1
-        else:
-            return {
-                "status": "error",
-                "message": "Missing fields: 'certificates Table'."
-            } 
+            index += 1
 
-        doc.save()
+        doc.save(ignore_permissions=True)
         frappe.db.commit()
 
         return {

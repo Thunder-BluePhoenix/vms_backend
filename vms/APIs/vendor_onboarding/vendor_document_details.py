@@ -36,7 +36,8 @@ def update_vendor_onboarding_document_details(data):
         fields_to_update = [
             "company_pan_number", "name_on_company_pan",
             "msme_registered", "enterprise_registration_number", "entity_proof",
-            "msme_enterprise_type", "udyam_number", "name_on_udyam_certificate"
+            "msme_enterprise_type", "udyam_number", "name_on_udyam_certificate", "iec", 
+            "trc_certificate_no"
         ]
 
         for field in fields_to_update:
@@ -58,19 +59,52 @@ def update_vendor_onboarding_document_details(data):
             file = frappe.request.files['entity_proof']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
             doc.entity_proof = saved.file_url
-
-        # update child table
+            
+        if 'iec_proof' in frappe.request.files:
+            file = frappe.request.files['iec_proof']
+            saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+            doc.iec_proof = saved.file_url
+        
+        if 'form_10f_proof' in frappe.request.files:
+            file = frappe.request.files['form_10f_proof']
+            saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+            doc.form_10f_proof = saved.file_url
+        
+        if 'trc_certificate' in frappe.request.files:
+            file = frappe.request.files['trc_certificate']
+            saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+            doc.trc_certificate = saved.file_url
+        
+        if 'pe_certificate' in frappe.request.files:
+            file = frappe.request.files['pe_certificate']
+            saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+            doc.pe_certificate = saved.file_url
+                                                                                                                                                                               
+        # Update gst_table table
         if "gst_table" in data:
             index = 0
             for row in data["gst_table"]:
-                gst_row = doc.append("gst_table", row)
+                is_duplicate = False
 
-                # gst_document file upload
-                file_key = f"gst_document_{index}"
-                if file_key in frappe.request.files:
-                    file = frappe.request.files[file_key]
-                    saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-                    gst_row.gst_document = saved.file_url
+                for existing_row in doc.gst_table:
+                    if (
+                        (existing_row.gst_state or "").strip().lower() == (row.get("gst_state") or "").strip().lower() and
+                        (existing_row.gst_number or "").strip().lower() == (row.get("gst_number") or "").strip().lower() and
+                        (str(existing_row.gst_registration_date or "").strip() == str(row.get("gst_registration_date") or "").strip()) and 
+                        (existing_row.gst_ven_type or "").strip().lower() == (row.get("gst_ven_type") or "").strip().lower()
+                    ):
+                        is_duplicate = True
+                        break
+
+                if not is_duplicate:
+                    gst_row = doc.append("gst_table", row)
+
+                    # Attach file if present
+                    file_key = f"gst_document_{index}"
+                    if file_key in frappe.request.files:
+                        file = frappe.request.files[file_key]
+                        saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                        gst_row.gst_document = saved.file_url
 
                 index += 1
 
@@ -84,6 +118,10 @@ def update_vendor_onboarding_document_details(data):
             "msme_proof": doc.msme_proof if hasattr(doc, "msme_proof") else None,
             "pan_proof": doc.pan_proof if hasattr(doc, "pan_proof") else None,
             "entity_proof": doc.entity_proof if hasattr(doc, "entity_proof") else None,
+            "iec_proof": doc.iec_proof if hasattr(doc, "iec_proof") else None,
+            "form_10f_proof": doc.form_10f_proof if hasattr(doc, "form_10f_proof") else None,
+            "trc_certificate": doc.trc_certificate if hasattr(doc, "trc_certificate") else None,
+            "pe_certificate": doc.pe_certificate if hasattr(doc, "pe_certificate") else None    
         }
 
     except Exception as e:
