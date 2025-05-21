@@ -1,8 +1,8 @@
 import frappe
 import json
 
-@frappe.whitelist(allow_guest=False)
-def get_vendor_master_details(usr):
+@frappe.whitelist(allow_guest=True)
+def get_vendors_details(usr):
     try:
         # usr = frappe.session.user
 
@@ -30,27 +30,45 @@ def get_vendor_master_details(usr):
             filters={"team": team},
             fields=["user_id"]
         )
-        team_user_ids = [emp.user_id for emp in team_users if emp.user_id]
+        user_ids = [emp.user_id for emp in team_users if emp.user_id]
 
-        if not team_user_ids:
+        if not user_ids:
             return {
                 "status": "error",
                 "message": "No users found in the same team.",
                 "vendor_master": []
             }
 
-        # Fetch Vendor Master records registered by users from the same team
-        vendor_records = frappe.get_all(
+        vendor_docs = frappe.get_all(
             "Vendor Master",
-            filters={"registered_by": ["in", team_user_ids]},
-            fields=["*"]
+            filters={"registered_by": ["in", user_ids]},
+            fields=["name"]
         )
+
+        vendor_master_data = []
+        vendor_onboarding_data = []
+
+        for doc in vendor_docs:
+            vendor_master_doc = frappe.get_doc("Vendor Master", doc.name)
+            vendor_master_data.append(vendor_master_doc.as_dict())
+
+            onboarding_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={"ref_no": doc.name},
+                fields=["name"]
+            )
+
+            for onboarding in onboarding_docs:
+                onboarding_doc = frappe.get_doc("Vendor Onboarding", onboarding.name)
+                vendor_onboarding_data.append(onboarding_doc.as_dict())
+
 
         return {
             "status": "success",
             "message": "Vendor Master records fetched successfully.",
             "team": team,
-            "vendor_master": vendor_records
+            "vendor_master": vendor_master_data,
+            "vendor_onboarding": vendor_onboarding_data
         }
 
     except Exception as e:
@@ -60,4 +78,70 @@ def get_vendor_master_details(usr):
             "message": "Failed to fetch Vendor Master records.",
             "error": str(e),
             "vendor_master": []
+        }
+
+
+@frappe.whitelist(allow_guest=True)
+def dashboard_card(usr):
+    try:
+        # Check if user has "Purchase Team" role
+        roles = frappe.get_roles(usr)
+        if "Purchase Team" not in roles:
+            return {
+                "status": "error",
+                "message": "User does not have the 'Purchase Team' role.",
+                "vendor_count": 0
+            }
+
+        # Get team of the logged-in user from Employee
+        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+        if not team:
+            return {
+                "status": "error",
+                "message": "No Employee record found for the logged-in user.",
+                "vendor_count": 0
+            }
+
+        # Get all users belonging to the same team
+        team_users = frappe.get_all(
+            "Employee",
+            filters={"team": team},
+            fields=["user_id"]
+        )
+        user_ids = [emp.user_id for emp in team_users if emp.user_id]
+
+        if not user_ids:
+            return {
+                "status": "error",
+                "message": "No users found in the same team.",
+                "vendor_count": 0
+            }
+
+        # Count Vendor Master records created by users from the same team
+        total_vendor_count = frappe.db.count(
+            "Vendor Master",
+            filters={"registered_by": ["in", user_ids]}
+        )
+
+        pending_vendor_count = frappe.db.count(
+            "Vendor Master",
+            filters={"registered_by": ["in", user_ids], "status": "pending"}
+        )
+
+
+        return {
+            "status": "success",
+            "message": "Vendor Master record count fetched successfully.",
+            "team": team,
+            "total_vendor_count": total_vendor_count,
+            "pending_vendor_count": pending_vendor_count
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendor Master Dashboard Card API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch vendor master count.",
+            "error": str(e),
+            "vendor_count": 0
         }
