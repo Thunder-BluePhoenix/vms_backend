@@ -27,6 +27,7 @@
   "sent_registration_email_link",
   "rejected",
   "data_sent_to_sap",
+  "expired",
   "rejected_by",
   "reason_for_rejection",
   "tables_section",
@@ -379,12 +380,18 @@
    "fieldname": "data_sent_to_sap",
    "fieldtype": "Check",
    "label": "Data Sent to SAP"
+  },
+  {
+   "default": "0",
+   "fieldname": "expired",
+   "fieldtype": "Check",
+   "label": "Expired"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-20 12:01:54.234528",
+ "modified": "2025-05-21 11:00:38.192724",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
