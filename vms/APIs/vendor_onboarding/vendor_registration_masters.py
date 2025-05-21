@@ -65,6 +65,7 @@ def vendor_onboarding_company_dropdown_master():
 @frappe.whitelist(allow_guest=True)
 def all_address_masters():
     try:
+        pincode_master = frappe.db.sql("SELECT name,zone FROM `tabPincode Master`", as_dict=True)
         city_master = frappe.db.sql("SELECT name, city_code, city_name FROM `tabCity Master`", as_dict=True)
         district_master = frappe.db.sql("SELECT name, district_code, district_name FROM `tabDistrict Master`", as_dict=True)
         state_master = frappe.db.sql("SELECT name, state_code, state_name FROM `tabState Master`", as_dict=True)
@@ -74,6 +75,7 @@ def all_address_masters():
             "status": "success",
             "message": "Dropdown Document masters fetched successfully.",
             "data": {
+                "pincode_master": pincode_master,
                 "city_master": city_master,
                 "district_master": district_master,
                 "state_master": state_master,
@@ -89,16 +91,35 @@ def all_address_masters():
         }
 
 @frappe.whitelist(allow_guest=True)
-def address_filter(city_name=None, district_name=None, state_name=None, country_name=None):
+def address_filter(pincode=None, city_name=None, district_name=None, state_name=None, country_name=None):
     try:
         result = {
+            "pincode": [],
             "city": [],
             "district": [],
             "state": [],
             "country": []
         }
 
-        if city_name:
+        if pincode:
+            pincode_doc = frappe.get_doc("Pincode Master", pincode)
+
+            city = frappe.db.get_value("City Master", pincode_doc.city, ["name", "city_code", "city_name"], as_dict=True) if pincode_doc.city else {}
+            district = frappe.db.get_value("District Master", pincode_doc.district, ["name", "district_code", "district_name"], as_dict=True) if pincode_doc.district else {}
+            state = frappe.db.get_value("State Master", pincode_doc.state, ["name", "state_code", "state_name"], as_dict=True) if pincode_doc.state else {}
+            country = frappe.db.get_value("Country Master", pincode_doc.country, ["name", "country_code", "country_name"], as_dict=True) if pincode_doc.country else {}
+
+            result["pincode"] = [{
+                "name": pincode_doc.name,
+                "zone": pincode_doc.zone
+            }]
+
+            result["city"] = [city] if city else []
+            result["district"] = [district] if district else []
+            result["state"] = [state] if state else []
+            result["country"] = [country] if country else []
+
+        elif city_name:
             city = frappe.get_doc("City Master", city_name)
             result["city"] = [{
                 "name": city.name,

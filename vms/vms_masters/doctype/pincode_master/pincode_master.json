@@ -23,26 +23,30 @@
   {
    "fieldname": "city",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "City",
    "options": "City Master"
   },
   {
    "fieldname": "district",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "District",
    "options": "District Master"
   },
   {
    "fieldname": "state",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "State",
    "options": "State Master"
   },
   {
    "fieldname": "country",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Country",
-   "options": "Country"
+   "options": "Country Master"
   },
   {
    "fieldname": "zone",
@@ -53,7 +57,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 11:12:51.787957",
+ "modified": "2025-05-21 10:24:01.026448",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Pincode Master",
