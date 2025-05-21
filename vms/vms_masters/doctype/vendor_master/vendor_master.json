@@ -145,8 +145,9 @@
   },
   {
    "fieldname": "registered_by",
-   "fieldtype": "Data",
-   "label": "Registered By"
+   "fieldtype": "Link",
+   "label": "Registered By",
+   "options": "User"
   },
   {
    "fieldname": "purchase_team_approval",
@@ -234,7 +235,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-19 14:44:47.452288",
+ "modified": "2025-05-20 16:22:13.779754",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

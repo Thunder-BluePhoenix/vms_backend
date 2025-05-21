@@ -18,14 +18,15 @@
   },
   {
    "fieldname": "reporting_head",
-   "fieldtype": "Data",
-   "label": "Reporting Head"
+   "fieldtype": "Link",
+   "label": "Reporting Head",
+   "options": "Employee"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 11:01:54.515019",
+ "modified": "2025-05-20 17:42:17.500292",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Team Master",
