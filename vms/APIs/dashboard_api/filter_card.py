@@ -7,7 +7,7 @@ def get_vendors_details(usr):
     try:
         # usr = frappe.session.user
 
-        # Check if user has "Purchase Team" role
+        # Check if user has role
         roles = frappe.get_roles(usr)
         allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
         if not any(role in allowed_roles for role in roles):
@@ -68,7 +68,7 @@ def get_vendors_details(usr):
         return {
             "status": "success",
             "message": "Vendor Master records fetched successfully.",
-            "role": role,
+            "role": roles,
             "team": team,
             "vendor_master": vendor_master_data,
             "vendor_onboarding": vendor_onboarding_data
@@ -89,11 +89,12 @@ def dashboard_card(usr):
     try:
         # Check if user has "Purchase Team" role
         roles = frappe.get_roles(usr)
-        if "Purchase Team" not in roles:
+        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+        if not any(role in allowed_roles for role in roles):
             return {
                 "status": "error",
-                "message": "User does not have the 'Purchase Team' role.",
-                "vendor_count": 0
+                "message": "User does not have the required role.",
+                "vendor_master": []
             }
 
         # Get team of the logged-in user from Employee
@@ -150,6 +151,7 @@ def dashboard_card(usr):
         return {
             "status": "success",
             "message": "Vendor Master record count fetched successfully.",
+            "role": roles,
             "team": team,
             "total_vendor_count": total_vendor_count,
             "pending_vendor_count": pending_vendor_count,

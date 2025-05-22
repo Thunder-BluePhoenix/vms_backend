@@ -56,7 +56,7 @@ def update_vendor_onboarding_manufacturing_details(data):
 
         # update child table
         if "materials_supplied" in data:
-            index = 0
+            # index = 0
             for row in data["materials_supplied"]:
                 is_duplicate = False
 
@@ -72,13 +72,13 @@ def update_vendor_onboarding_manufacturing_details(data):
                     new_row = doc.append("materials_supplied", row)
 
                     # Attach file if available
-                    file_key = f"material_images_{index}"
+                    file_key = f"material_images"
                     if file_key in frappe.request.files:
                         file = frappe.request.files[file_key]
                         saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
                         new_row.material_images = saved.file_url
 
-                index += 1
+                # index += 1
 
         doc.save()
         frappe.db.commit()
