@@ -1,17 +1,19 @@
+from frappe.utils import today, get_first_day, get_last_day
 import frappe
 import json
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def get_vendors_details(usr):
     try:
         # usr = frappe.session.user
 
         # Check if user has "Purchase Team" role
         roles = frappe.get_roles(usr)
-        if "Purchase Team" not in roles:
+        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+        if not any(role in allowed_roles for role in roles):
             return {
                 "status": "error",
-                "message": "User does not have the 'Purchase Team' role.",
+                "message": "User does not have the required role.",
                 "vendor_master": []
             }
 
@@ -66,6 +68,7 @@ def get_vendors_details(usr):
         return {
             "status": "success",
             "message": "Vendor Master records fetched successfully.",
+            "role": role,
             "team": team,
             "vendor_master": vendor_master_data,
             "vendor_onboarding": vendor_onboarding_data
@@ -81,7 +84,7 @@ def get_vendors_details(usr):
         }
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def dashboard_card(usr):
     try:
         # Check if user has "Purchase Team" role
@@ -128,13 +131,30 @@ def dashboard_card(usr):
             filters={"registered_by": ["in", user_ids], "status": "pending"}
         )
 
+        approved_vendor_count = frappe.db.count(
+            "Vendor Master",
+            filters={"registered_by": ["in", user_ids], "status": "approved"}
+        )
+
+        start_date = get_first_day(today())
+        end_date = get_last_day(today())
+
+        current_month_vendor = frappe.db.count(
+            "Vendor Master",
+            filters={
+                "registered_by": ["in", user_ids],
+                "registered_date": ["between", [start_date, end_date]]
+            }
+        )
 
         return {
             "status": "success",
             "message": "Vendor Master record count fetched successfully.",
             "team": team,
             "total_vendor_count": total_vendor_count,
-            "pending_vendor_count": pending_vendor_count
+            "pending_vendor_count": pending_vendor_count,
+            "approved_vendor_count": approved_vendor_count,
+            "current_month_vendor": current_month_vendor
         }
 
     except Exception as e:
@@ -145,3 +165,4 @@ def dashboard_card(usr):
             "error": str(e),
             "vendor_count": 0
         }
+    
