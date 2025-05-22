@@ -38,7 +38,7 @@ def update_vendor_onboarding_certificate_details(data):
                 "message": "Missing child table fields: 'certificates'."
             }
 
-        index = 0
+        # index = 0
         for row in data["certificates"]:
             new_row = {
                 "certificate_code": row.get("certificate_code", "").strip(),
@@ -61,13 +61,13 @@ def update_vendor_onboarding_certificate_details(data):
                 appended_row = doc.append("certificates", new_row)
 
                 # Upload file if present
-                file_key = f"certificate_attach{index}"
+                file_key = f"certificate_attach"
                 if file_key in frappe.request.files:
                     file = frappe.request.files[file_key]
                     saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
                     appended_row.certificate_attach = saved.file_url
 
-            index += 1
+            # index += 1
 
         doc.save(ignore_permissions=True)
         frappe.db.commit()
