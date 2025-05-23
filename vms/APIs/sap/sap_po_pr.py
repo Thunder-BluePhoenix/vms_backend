@@ -3,7 +3,7 @@ import json
 # from frappe.utils import parse_date
 
 @frappe.whitelist(allow_guest=True)
-def get_field_mappings(docname):
+def get_field_mappings():
     doctype_name = frappe.db.get_value("SAP Mapper PR", filters={'doctype_name': 'Purchase Requisition'}, fieldname='name')
     mappings = frappe.get_all('SAP Mapper PR Item', filters={'parent': doctype_name}, fields=['sap_field', 'erp_field'])
     return {mapping['sap_field']: mapping['erp_field'] for mapping in mappings}
@@ -17,7 +17,7 @@ def get_pr(data):
             return {"status": "error", "message": "No valid data received or 'items' key not found."}
 
         pr_no = data.get("pr_no", "")
-        field_mappings = get_field_mappings('SAP Mapper PR')
+        field_mappings = get_field_mappings()
 
         # Get or create PR doc
         if frappe.db.exists("Purchase Requisition", {"purchase_requisition_number": pr_no}):
@@ -83,7 +83,7 @@ def parse_date(value):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_po_field_mappings(docname):
+def get_po_field_mappings():
     doctype_name = frappe.db.get_value("SAP Mapper PR", {'doctype_name': 'Purchase Order'}, "name")
     mappings = frappe.get_all('SAP Mapper PR Item', filters={'parent': doctype_name}, fields=['sap_field', 'erp_field'])
     return {mapping['sap_field']: mapping['erp_field'] for mapping in mappings}
@@ -98,7 +98,7 @@ def get_po(data):
             return {"status": "error", "message": "No valid data received or 'items' key not found."}
 
         pr_no = data.get("po_no", "")
-        field_mappings = get_po_field_mappings('SAP Mapper PO')
+        field_mappings = get_po_field_mappings()
 
         if not field_mappings:
             return {"status": "error", "message": "No field mappings found for 'SAP Mapper PO'"}
