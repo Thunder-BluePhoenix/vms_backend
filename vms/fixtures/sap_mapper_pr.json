@@ -1,0 +1,1406 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "SAP Mapper PR",
+  "doctype_name": "Purchase Requisition",
+  "modified": "2025-05-23 15:52:50.326042",
+  "name": "Purchase Requisition",
+  "table_cjfk": [
+   {
+    "erp_field": "purchase_requisition_number",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "pr_no"
+   },
+   {
+    "erp_field": "item_code",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BNFPO"
+   },
+   {
+    "erp_field": "item_category",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EPSTP"
+   },
+   {
+    "erp_field": "material_code",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MATNR"
+   },
+   {
+    "erp_field": "short_text",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "TXZ01"
+   },
+   {
+    "erp_field": "quantity_requested",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MENGE"
+   },
+   {
+    "erp_field": "unit",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MEINS"
+   },
+   {
+    "erp_field": "plant",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WERKS"
+   },
+   {
+    "erp_field": "requisitioner",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "AFNAM"
+   },
+   {
+    "erp_field": "delivery_date",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EEIND"
+   },
+   {
+    "erp_field": "requisition_date",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BADAT"
+   },
+   {
+    "erp_field": "document_type",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BSART"
+   },
+   {
+    "erp_field": "release_date",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGDT"
+   },
+   {
+    "erp_field": "valuation",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "PREIS"
+   },
+   {
+    "erp_field": "price_unit",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "PEINH"
+   },
+   {
+    "erp_field": "total_value",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GSWRT"
+   },
+   {
+    "erp_field": "currency",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WAERS"
+   },
+   {
+    "erp_field": "planned_delivery_date",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "PLIFZ"
+   },
+   {
+    "erp_field": "delivery_date_fromto",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LFDAT"
+   },
+   {
+    "erp_field": "period_ind_for",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "IPRKZ"
+   },
+   {
+    "erp_field": "goods_receipt",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WEPOS"
+   },
+   {
+    "erp_field": "gr_non_valuated",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WEUNB"
+   },
+   {
+    "erp_field": "invoice",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "REPOS"
+   },
+   {
+    "erp_field": "mrp",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "DISPO"
+   },
+   {
+    "erp_field": "storage_location",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LGORT"
+   },
+   {
+    "erp_field": "expected_delivery_date",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEDNR"
+   },
+   {
+    "erp_field": "desired_vendor",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LIFNR"
+   },
+   {
+    "erp_field": "fixed_vendor",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FLIEF"
+   },
+   {
+    "erp_field": "supplying_plant",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "RESWK"
+   },
+   {
+    "erp_field": "purchase_organization",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EKORG"
+   },
+   {
+    "erp_field": "outlet_agreement",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "KONNR"
+   },
+   {
+    "erp_field": "principal",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "KTPNR"
+   },
+   {
+    "erp_field": "purchasing_information_rec",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "INFNR"
+   },
+   {
+    "erp_field": "mpn_material",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EMATN"
+   },
+   {
+    "erp_field": "material_group",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MATKL"
+   },
+   {
+    "erp_field": "po_date",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEDAT"
+   },
+   {
+    "erp_field": "purchase_number",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EBELN"
+   },
+   {
+    "erp_field": "value_price",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "PREIS"
+   },
+   {
+    "erp_field": "pr_change_date",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ERDAT"
+   },
+   {
+    "erp_field": "account_assign_category",
+    "parent": "Purchase Requisition",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "KNTTP"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "SAP Mapper PR",
+  "doctype_name": "Purchase Order",
+  "modified": "2025-05-23 15:53:12.677038",
+  "name": "Purchase Order",
+  "table_cjfk": [
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ADDCD_CR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ADDCD_NCR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ADDCDP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ADDCST"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ADDR_GROUP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ADDVAT_CR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ADDVAT_NCR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ADDVATCSTP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "AFNAM"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "AGNC_CHRG"
+   },
+   {
+    "erp_field": "material_category",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ATTYP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "AZPOS"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_ADDR_GROUP"
+   },
+   {
+    "erp_field": "city",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_CITY1"
+   },
+   {
+    "erp_field": "district",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_CITY2"
+   },
+   {
+    "erp_field": "country",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_COUNTRY1"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_LANGU"
+   },
+   {
+    "erp_field": "bill_to_company",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_NAME1"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_NAME2"
+   },
+   {
+    "erp_field": "pincode",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_POST_CODE1"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_POST_CODE2"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_REGION"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_SMTP_ADDR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_SORT1"
+   },
+   {
+    "erp_field": "street_2",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_STR_SUPPL1"
+   },
+   {
+    "erp_field": "street_3",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_STR_SUPPL2"
+   },
+   {
+    "erp_field": "street_4",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_STR_SUPPL3"
+   },
+   {
+    "erp_field": "street_1",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_STREET"
+   },
+   {
+    "erp_field": "phone_no",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "B_TEL_NUMBER"
+   },
+   {
+    "erp_field": "ref_pr_date",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BADAT"
+   },
+   {
+    "erp_field": "ref_pr_no",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BANFN"
+   },
+   {
+    "erp_field": "base_amount",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BASE_AMT"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BCD"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BCDP"
+   },
+   {
+    "erp_field": "po_date",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEDAT"
+   },
+   {
+    "erp_field": "schedule_date",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEDNR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEXCISE_CR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEXCISE_NCR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEXCISEP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BPRME"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BSAKZ"
+   },
+   {
+    "erp_field": "purchase_order_type",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BSART"
+   },
+   {
+    "erp_field": "uom",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BSTME"
+   },
+   {
+    "erp_field": "quantity",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BSTMG"
+   },
+   {
+    "erp_field": "purchase_order_category",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BSTYP"
+   },
+   {
+    "erp_field": "company_code",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BUKRS"
+   },
+   {
+    "erp_field": "dispatch_mode",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BWART"
+   },
+   {
+    "erp_field": "total_input_cgst",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CGST"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CGSTP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CHA_MISC"
+   },
+   {
+    "erp_field": "shipping_city",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CITY1"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CITY2"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CLFW_CHRG"
+   },
+   {
+    "erp_field": "shipping_country",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "COUNTRY1"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CSTAMT"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CVDAMT_CR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CVDAMT_NCR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CVDAMTP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "DEV_CHRG"
+   },
+   {
+    "erp_field": "discount",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "DISCOUNT"
+   },
+   {
+    "erp_field": "po_no",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EBELN"
+   },
+   {
+    "erp_field": "product_code",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EBELP"
+   },
+   {
+    "erp_field": "delivery_date",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EINDT"
+   },
+   {
+    "erp_field": "purchase_group",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EKGRP"
+   },
+   {
+    "erp_field": "purchase_organization",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EKORG"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ELIKZ"
+   },
+   {
+    "erp_field": "po_change_date",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ERDAT"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EXCESS_CR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EXCESS_NCR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EXCESSP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EXHCESS_CR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EXHCESS_NCR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EXHCESSP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FNF_AIRSEA"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FNF_DEST"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FNF_MISC"
+   },
+   {
+    "erp_field": "po_release_date",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGDT"
+   },
+   {
+    "erp_field": "total_gross_amount",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GROSS_AMT"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "IDNLF"
+   },
+   {
+    "erp_field": "total_input_igst",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "IGST"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "IGSTP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "IMPCESS"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "IMPCESSP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "IMPHCESS"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "IMPHCESSP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "INST_CHRG"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "INSURANCE"
+   },
+   {
+    "erp_field": "hsnsac",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "J_1BNBM"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "KNUMV"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LANDED_CHRG"
+   },
+   {
+    "erp_field": "country",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LANDX"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LANGU"
+   },
+   {
+    "erp_field": "vendor_code",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LIFNR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LMEIN"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LOCAL_FRGT"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LOEKZ"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MATKL"
+   },
+   {
+    "erp_field": "material_code",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MATNR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MISC"
+   },
+   {
+    "erp_field": "material_type",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MTART"
+   },
+   {
+    "erp_field": "tax_code",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MWSKZ"
+   },
+   {
+    "erp_field": "ship_to_company",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NAME1"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NAME2"
+   },
+   {
+    "erp_field": "price",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NET_AMT"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NETPR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NETWR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NETWR1"
+   },
+   {
+    "erp_field": "rate",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NLP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NLP_UNIT"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "OCTROI"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "OREMG"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "OREWR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "OWEMG"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "OWEWR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "PEINH"
+   },
+   {
+    "erp_field": "packaging_shipping_details",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "PNH"
+   },
+   {
+    "erp_field": "shipping_pincode",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "POST_CODE1"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "POST_CODE2"
+   },
+   {
+    "erp_field": "product_category",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "PSTYP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "REGION"
+   },
+   {
+    "erp_field": "po_plant",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "RESWK"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "RETPO"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SERV_CHA"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SERV_DEST"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SERVCESS"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SERVCESSP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SERVHCESS"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SERVHCESSP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SERVTAX"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SERVTAXP"
+   },
+   {
+    "erp_field": "total_input_sgst",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SGST"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SGSTP"
+   },
+   {
+    "erp_field": "email2",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SMTP_ADDR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SORT1"
+   },
+   {
+    "erp_field": "shipping_street2",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "STR_SUPPL1"
+   },
+   {
+    "erp_field": "shipping_street3",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "STR_SUPPL2"
+   },
+   {
+    "erp_field": "shipping_street4",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "STR_SUPPL3"
+   },
+   {
+    "erp_field": "shipping_street1",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "STREET"
+   },
+   {
+    "erp_field": "collection_number",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SUBMI"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SURCHARGE"
+   },
+   {
+    "erp_field": "telephone_no",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "TEL_NUMBER"
+   },
+   {
+    "erp_field": "terms_of_payment",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "TEXT1"
+   },
+   {
+    "erp_field": "short_text",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "TXZ01"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "VATAMT_CR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "VATAMT_NCR"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "VATCSTP"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "VEND_MISC"
+   },
+   {
+    "erp_field": "supplier_name",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "VENDNAME"
+   },
+   {
+    "erp_field": "currency",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WAERS"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WEBRE"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WEMNG"
+   },
+   {
+    "erp_field": "plant",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WERKS"
+   },
+   {
+    "erp_field": "exchange_rate",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WKURS"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZBD1T"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZBD2T"
+   },
+   {
+    "erp_field": null,
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZBD3T"
+   },
+   {
+    "erp_field": "terms_of_payment_code",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZTERM"
+   },
+   {
+    "erp_field": "storage_location",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LGORT"
+   }
+  ]
+ }
+]
