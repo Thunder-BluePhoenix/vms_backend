@@ -79,34 +79,44 @@ def update_vendor_onboarding_document_details(data):
             file = frappe.request.files['pe_certificate']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
             doc.pe_certificate = saved.file_url
-                                                                                                                                                                               
+
+        doc.set("gst_table", [])
+
         # Update gst_table table
         if "gst_table" in data:
-            index = 0
             for row in data["gst_table"]:
-                is_duplicate = False
+                gst_row = doc.append("gst_table", {
+                    "gst_state": row.get("gst_state"),
+                    "gst_number": row.get("gst_number"),
+                    "gst_registration_date": row.get("gst_registration_date"),
+                    "gst_ven_type": row.get("gst_ven_type")
+                })
 
-                for existing_row in doc.gst_table:
-                    if (
-                        (existing_row.gst_state or "").strip().lower() == (row.get("gst_state") or "").strip().lower() and
-                        (existing_row.gst_number or "").strip().lower() == (row.get("gst_number") or "").strip().lower() and
-                        (str(existing_row.gst_registration_date or "").strip() == str(row.get("gst_registration_date") or "").strip()) and 
-                        (existing_row.gst_ven_type or "").strip().lower() == (row.get("gst_ven_type") or "").strip().lower()
-                    ):
-                        is_duplicate = True
-                        break
+            # index = 0
+            # for row in data["gst_table"]:
+            #     is_duplicate = False
 
-                if not is_duplicate:
-                    gst_row = doc.append("gst_table", row)
+                # for existing_row in doc.gst_table:
+                #     if (
+                #         (existing_row.gst_state or "").strip().lower() == (row.get("gst_state") or "").strip().lower() and
+                #         (existing_row.gst_number or "").strip().lower() == (row.get("gst_number") or "").strip().lower() and
+                #         (str(existing_row.gst_registration_date or "").strip() == str(row.get("gst_registration_date") or "").strip()) and 
+                #         (existing_row.gst_ven_type or "").strip().lower() == (row.get("gst_ven_type") or "").strip().lower()
+                #     ):
+                #         is_duplicate = True
+                #         break
 
-                    # Attach file if present
-                    file_key = f"gst_document_{index}"
-                    if file_key in frappe.request.files:
-                        file = frappe.request.files[file_key]
-                        saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-                        gst_row.gst_document = saved.file_url
+                # if not is_duplicate:
+                #     gst_row = doc.append("gst_table", row)
 
-                index += 1
+                # Attach file if present
+                file_key = f"gst_document"
+                if file_key in frappe.request.files:
+                    file = frappe.request.files[file_key]
+                    saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                    gst_row.gst_document = saved.file_url
+
+                # index += 1
 
         doc.save(ignore_permissions=True)
         frappe.db.commit()

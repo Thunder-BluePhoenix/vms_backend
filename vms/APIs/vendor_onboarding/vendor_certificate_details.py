@@ -2,6 +2,28 @@ import frappe
 import json
 from frappe.utils.file_manager import save_file
 
+# certificate names master
+@frappe.whitelist(allow_guest=True)
+def vendor_certificate_name_masters():
+    try:
+        certificate_names = frappe.db.sql("SELECT name, certificate_name, certificate_code  FROM `tabCertificate Master`", as_dict=True)
+
+        return {
+            "status": "success",
+            "message": "Vendor certificate names fetched successfully.",
+            "data": {
+                "certificate_names": certificate_names
+            }
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendor certificate names Fetch Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch Vendor certificate names values.",
+            "error": str(e)
+        }
+
 @frappe.whitelist(allow_guest=True)
 def update_vendor_onboarding_certificate_details(data):
     try:
@@ -38,34 +60,36 @@ def update_vendor_onboarding_certificate_details(data):
                 "message": "Missing child table fields: 'certificates'."
             }
 
+        doc.set("certificates", [])   
+
         # index = 0
-        for row in data["certificates"]:
-            new_row = {
-                "certificate_code": row.get("certificate_code", "").strip(),
-                "certificate_name": row.get("certificate_name", "").strip(),
-                "other_certificate_name": row.get("other_certificate_name", "").strip(),
-                "valid_till": row.get("valid_till", "").strip()
-            }
+        for row in (data["certificates"]):
+            new_row = doc.append("certificates", {
+                "certificate_code": str(row.get("certificate_code", "")).strip(),
+                "certificate_name": str(row.get("certificate_name", "")).strip(),
+                "other_certificate_name": str(row.get("other_certificate_name", "")).strip(),
+                "valid_till": str(row.get("valid_till", "")).strip()
+            })
 
             # Check for duplicate
-            is_duplicate = False
-            for existing in doc.certificates:
-                if (
-                    (existing.certificate_code or "").strip() == new_row["certificate_code"] and
-                    (existing.certificate_name or "").strip() == new_row["certificate_name"]
-                ):
-                    is_duplicate = True
-                    break
+            # is_duplicate = False
+            # for existing in doc.certificates:
+            #     if (
+            #         (existing.certificate_code or "").strip() == new_row["certificate_code"] and
+            #         (existing.certificate_name or "").strip() == new_row["certificate_name"]
+            #     ):
+            #         is_duplicate = True
+            #         break
 
-            if not is_duplicate:
-                appended_row = doc.append("certificates", new_row)
+            # if not is_duplicate:
+            #     appended_row = doc.append("certificates", new_row)
 
-                # Upload file if present
-                file_key = f"certificate_attach"
-                if file_key in frappe.request.files:
-                    file = frappe.request.files[file_key]
-                    saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-                    appended_row.certificate_attach = saved.file_url
+            # Upload file if present
+            file_key = f"certificate_attach"
+            if file_key in frappe.request.files:
+                file = frappe.request.files[file_key]
+                saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                new_row.certificate_attach = saved.file_url
 
             # index += 1
 

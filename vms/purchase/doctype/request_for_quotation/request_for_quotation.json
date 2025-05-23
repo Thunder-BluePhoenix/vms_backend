@@ -1,0 +1,560 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-23 13:04:54.534508",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "logistics_section",
+  "select_service",
+  "company_name",
+  "rfq_cutoff_date",
+  "mode_of_shipment",
+  "destination_port",
+  "port_of_loading",
+  "ship_to_address",
+  "no_of_pkg_units",
+  "vol_weight",
+  "invoice_date",
+  "shipment_date",
+  "remarks",
+  "vendor_list",
+  "column_break_akhk",
+  "consignee_name",
+  "sr_no",
+  "rfq_date",
+  "country",
+  "port_code",
+  "inco_terms",
+  "package_type",
+  "product_category",
+  "actual_weight",
+  "invoice_no",
+  "shipment_type",
+  "file",
+  "rfq_type",
+  "raised_by",
+  "status",
+  "material",
+  "quantity",
+  "required_by",
+  "meril_invoice_date",
+  "material_section",
+  "pr_code",
+  "company_code",
+  "purchase_organization",
+  "purchase_group",
+  "currency",
+  "collection_number",
+  "column_break_pugn",
+  "quotation_deadline",
+  "validity_start_date",
+  "validity_end_date",
+  "requestor_name",
+  "materialitem_details_section",
+  "item_code",
+  "item_category",
+  "item_description",
+  "item_dimension",
+  "add_special_remarksif_any",
+  "column_break_ynfu",
+  "material_category",
+  "plant_code",
+  "short_text",
+  "catalogue_number",
+  "make",
+  "pack_size",
+  "quantity_and_date_section",
+  "rfq_quantity",
+  "quantity_unit",
+  "delivery_date",
+  "add_attachmentfor_material_reference_section",
+  "uploadpdfjpeg_excel",
+  "deadline_monitoring_section",
+  "first_reminder",
+  "second_reminder",
+  "third_reminder",
+  "payment_terms_section",
+  "non_negotiable",
+  "column_break_fslg",
+  "negotiable",
+  "add_vendors_section",
+  "vendor_code",
+  "services_section",
+  "bidding_person",
+  "select_language",
+  "service_code",
+  "service_category",
+  "storage_location",
+  "section_break_affd",
+  "table_jsfj"
+ ],
+ "fields": [
+  {
+   "fieldname": "select_service",
+   "fieldtype": "Link",
+   "label": "Select Service",
+   "options": "Vendor Type Master"
+  },
+  {
+   "fieldname": "rfq_cutoff_date",
+   "fieldtype": "Datetime",
+   "label": "RFQ CutOff"
+  },
+  {
+   "fieldname": "mode_of_shipment",
+   "fieldtype": "Select",
+   "label": "Mode Of Shipment",
+   "options": "By Road\nBy Sea\nBy Air"
+  },
+  {
+   "fieldname": "destination_port",
+   "fieldtype": "Link",
+   "label": "Destination Port",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "port_of_loading",
+   "fieldtype": "Link",
+   "label": "Port Of Loading",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "ship_to_address",
+   "fieldtype": "Small Text",
+   "label": "Ship To Address"
+  },
+  {
+   "fieldname": "no_of_pkg_units",
+   "fieldtype": "Data",
+   "label": "No. Of Pkg Units"
+  },
+  {
+   "fieldname": "vol_weight",
+   "fieldtype": "Data",
+   "label": "Vol Weight (KG)"
+  },
+  {
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Invoice Date"
+  },
+  {
+   "fieldname": "shipment_date",
+   "fieldtype": "Date",
+   "label": "Shipment Date"
+  },
+  {
+   "fieldname": "consignee_name",
+   "fieldtype": "Data",
+   "label": "Consignee Name"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "sr_no",
+   "fieldtype": "Data",
+   "label": "Sr. No."
+  },
+  {
+   "fieldname": "rfq_date",
+   "fieldtype": "Date",
+   "label": "RFQ Date"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "port_code",
+   "fieldtype": "Link",
+   "label": "Port Code",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "inco_terms",
+   "fieldtype": "Link",
+   "label": "Inco Terms",
+   "options": "Incoterm Master"
+  },
+  {
+   "fieldname": "package_type",
+   "fieldtype": "Link",
+   "label": "Package Type",
+   "options": "Package Type Master"
+  },
+  {
+   "fieldname": "product_category",
+   "fieldtype": "Link",
+   "label": "Product Category",
+   "options": "Product Category Master"
+  },
+  {
+   "fieldname": "actual_weight",
+   "fieldtype": "Data",
+   "label": "Actual Weight (KG)"
+  },
+  {
+   "fieldname": "invoice_no",
+   "fieldtype": "Data",
+   "label": "Invoice No."
+  },
+  {
+   "fieldname": "shipment_type",
+   "fieldtype": "Link",
+   "label": "Shipment Type",
+   "options": "Shipment Type Master"
+  },
+  {
+   "fieldname": "column_break_akhk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "file",
+   "fieldtype": "Attach",
+   "label": "File"
+  },
+  {
+   "fieldname": "rfq_type",
+   "fieldtype": "Link",
+   "label": "RFQ Type",
+   "options": "RFQ Type Master"
+  },
+  {
+   "fieldname": "raised_by",
+   "fieldtype": "Data",
+   "label": "Raised By"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "material",
+   "fieldtype": "Link",
+   "label": "Material",
+   "options": "Material Master"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Data",
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "required_by",
+   "fieldtype": "Date",
+   "label": "Required By"
+  },
+  {
+   "fieldname": "logistics_section",
+   "fieldtype": "Section Break",
+   "label": "Logistics"
+  },
+  {
+   "fieldname": "material_section",
+   "fieldtype": "Section Break",
+   "label": "Material"
+  },
+  {
+   "fieldname": "pr_code",
+   "fieldtype": "Data",
+   "label": "PR Code"
+  },
+  {
+   "fieldname": "purchase_organization",
+   "fieldtype": "Link",
+   "label": "Purchase Organization",
+   "options": "Purchase Organization Master"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Link",
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "collection_number",
+   "fieldtype": "Data",
+   "label": "Collection Number"
+  },
+  {
+   "fieldname": "quotation_deadline",
+   "fieldtype": "Date",
+   "label": "Quotation Deadline"
+  },
+  {
+   "fieldname": "validity_start_date",
+   "fieldtype": "Date",
+   "label": "Validity Start Date"
+  },
+  {
+   "fieldname": "validity_end_date",
+   "fieldtype": "Date",
+   "label": "Validity End Date"
+  },
+  {
+   "fieldname": "requestor_name",
+   "fieldtype": "Data",
+   "label": "Requestor Name"
+  },
+  {
+   "fieldname": "column_break_pugn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "materialitem_details_section",
+   "fieldtype": "Section Break",
+   "label": "Material/Item Details"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Product Master"
+  },
+  {
+   "fieldname": "item_category",
+   "fieldtype": "Link",
+   "label": "Item Category",
+   "options": "Product Category Master"
+  },
+  {
+   "fieldname": "item_description",
+   "fieldtype": "Text",
+   "label": "Item Description"
+  },
+  {
+   "fieldname": "item_dimension",
+   "fieldtype": "Data",
+   "label": "Item Dimension"
+  },
+  {
+   "fieldname": "material_category",
+   "fieldtype": "Link",
+   "label": "Material Category",
+   "options": "Material Category Master"
+  },
+  {
+   "fieldname": "plant_code",
+   "fieldtype": "Link",
+   "label": "Plant Code",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "short_text",
+   "fieldtype": "Small Text",
+   "label": "Short Text"
+  },
+  {
+   "fieldname": "catalogue_number",
+   "fieldtype": "Data",
+   "label": "Catalogue Number"
+  },
+  {
+   "fieldname": "make",
+   "fieldtype": "Data",
+   "label": "Make"
+  },
+  {
+   "fieldname": "pack_size",
+   "fieldtype": "Data",
+   "label": "Pack Size"
+  },
+  {
+   "fieldname": "add_special_remarksif_any",
+   "fieldtype": "Small Text",
+   "label": "Add Special Remarks(If any)"
+  },
+  {
+   "fieldname": "column_break_ynfu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quantity_and_date_section",
+   "fieldtype": "Section Break",
+   "label": "Quantity and Date"
+  },
+  {
+   "fieldname": "rfq_quantity",
+   "fieldtype": "Data",
+   "label": "RFQ Quantity"
+  },
+  {
+   "fieldname": "quantity_unit",
+   "fieldtype": "Link",
+   "label": "Quantity Unit",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "label": "Delivery Date"
+  },
+  {
+   "fieldname": "add_attachmentfor_material_reference_section",
+   "fieldtype": "Section Break",
+   "label": "Add Attachment(for material reference)"
+  },
+  {
+   "fieldname": "uploadpdfjpeg_excel",
+   "fieldtype": "Attach",
+   "label": "Upload(pdf,jpeg, excel)"
+  },
+  {
+   "fieldname": "deadline_monitoring_section",
+   "fieldtype": "Section Break",
+   "label": "Deadline Monitoring"
+  },
+  {
+   "fieldname": "first_reminder",
+   "fieldtype": "Date",
+   "label": "First Reminder"
+  },
+  {
+   "fieldname": "second_reminder",
+   "fieldtype": "Date",
+   "label": "Second Reminder"
+  },
+  {
+   "fieldname": "third_reminder",
+   "fieldtype": "Date",
+   "label": "Third Reminder"
+  },
+  {
+   "fieldname": "payment_terms_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Terms"
+  },
+  {
+   "default": "0",
+   "fieldname": "negotiable",
+   "fieldtype": "Check",
+   "label": "Negotiable"
+  },
+  {
+   "default": "0",
+   "fieldname": "non_negotiable",
+   "fieldtype": "Check",
+   "label": "Non Negotiable"
+  },
+  {
+   "fieldname": "column_break_fslg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "add_vendors_section",
+   "fieldtype": "Section Break",
+   "label": "Add Vendors"
+  },
+  {
+   "fieldname": "vendor_code",
+   "fieldtype": "Link",
+   "label": "Vendor Code",
+   "options": "Vendor Master"
+  },
+  {
+   "fieldname": "services_section",
+   "fieldtype": "Section Break",
+   "label": "Services"
+  },
+  {
+   "fieldname": "bidding_person",
+   "fieldtype": "Data",
+   "label": "Bidding Person"
+  },
+  {
+   "fieldname": "select_language",
+   "fieldtype": "Link",
+   "label": "Select Language",
+   "options": "Language"
+  },
+  {
+   "fieldname": "service_code",
+   "fieldtype": "Select",
+   "label": "Service Code",
+   "options": "Service Code1\nService Code2\nService Code3\nService Code4"
+  },
+  {
+   "fieldname": "service_category",
+   "fieldtype": "Select",
+   "label": "Service Category",
+   "options": "Category1\nCategory2\nCategory3\nCategory4"
+  },
+  {
+   "fieldname": "storage_location",
+   "fieldtype": "Select",
+   "label": "Storage Location",
+   "options": "Storage Location1\nStorage Location2\nStorage Location3\nStorage Location4"
+  },
+  {
+   "fieldname": "meril_invoice_date",
+   "fieldtype": "Date",
+   "label": "Meril Invoice Date"
+  },
+  {
+   "fieldname": "section_break_affd",
+   "fieldtype": "Section Break",
+   "label": "RFQ Items"
+  },
+  {
+   "fieldname": "table_jsfj",
+   "fieldtype": "Table",
+   "options": "RFQ Items"
+  },
+  {
+   "fieldname": "vendor_list",
+   "fieldtype": "Text",
+   "label": "Vendor List"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "label": "Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "company_code",
+   "fieldtype": "Link",
+   "label": "Company Code",
+   "options": "Company Master"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-23 13:04:54.534508",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Request For Quotation",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

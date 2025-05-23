@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{certificate_name}-{certificate_code}",
+ "autoname": "format:{certificate_code}",
  "creation": "2025-05-05 13:09:26.601922",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -54,7 +54,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 10:56:36.674170",
+ "modified": "2025-05-23 12:01:19.331260",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Certificate Master",

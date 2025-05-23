@@ -19,6 +19,7 @@ def update_vendor_onboarding_production_facility_details(data):
 
         doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
 
+        doc.set("number_of_employee", [])
 
         new_row = {
             "qaqc": str(data.get("qaqc") or "").strip(),
@@ -30,22 +31,22 @@ def update_vendor_onboarding_production_facility_details(data):
             "production": str(data.get("production") or "").strip()
         }
 
-        is_duplicate = False
-        for row in doc.number_of_employee:
-            if (
-                str(row.qaqc).strip() == new_row["qaqc"] and
-                str(row.logistics).strip() == new_row["logistics"] and
-                str(row.marketing).strip() == new_row["marketing"] and
-                str(row.r_d).strip() == new_row["r_d"] and
-                str(row.hse).strip() == new_row["hse"] and
-                str(row.other).strip() == new_row["other"] and
-                str(row.production).strip() == new_row["production"]
-            ):
-                is_duplicate = True
-                break
+        # is_duplicate = False
+        # for row in doc.number_of_employee:
+        #     if (
+        #         str(row.qaqc).strip() == new_row["qaqc"] and
+        #         str(row.logistics).strip() == new_row["logistics"] and
+        #         str(row.marketing).strip() == new_row["marketing"] and
+        #         str(row.r_d).strip() == new_row["r_d"] and
+        #         str(row.hse).strip() == new_row["hse"] and
+        #         str(row.other).strip() == new_row["other"] and
+        #         str(row.production).strip() == new_row["production"]
+        #     ):
+        #         is_duplicate = True
+        #         break
 
-        if not is_duplicate:
-            doc.append("number_of_employee", new_row)
+        # if not is_duplicate:
+        doc.append("number_of_employee", new_row)
 
         doc.save(ignore_permissions=True)
         frappe.db.commit()
@@ -89,22 +90,25 @@ def update_vendor_onboarding_machinery_detail(data):
                 "status": "error",
                 "message": "Missing required field: 'machinery_detail'."
             }
+        
+        doc.set("machinery_detail", [])
 
         for row in data["machinery_detail"]:
-            duplicate = any(
-                existing.equipment_name == row.get("equipment_name") and
-                existing.equipment_qty == row.get("equipment_qty") and
-                existing.capacity == row.get("capacity")
-                for existing in doc.machinery_detail
-            )
+            # duplicate = any(
+            #     existing.equipment_name == row.get("equipment_name") and
+            #     existing.equipment_qty == row.get("equipment_qty") and
+            #     existing.capacity == row.get("capacity")
+            #     for existing in doc.machinery_detail
+            # )
 
-            if not duplicate:
-                doc.append("machinery_detail", {
-                    "equipment_name": row.get("equipment_name"),
-                    "equipment_qty": row.get("equipment_qty"),
-                    "capacity": row.get("capacity"),
-                    "remarks": row.get("remarks")
-                })
+            # if not duplicate:
+            
+            doc.append("machinery_detail", {
+                "equipment_name": row.get("equipment_name"),
+                "equipment_qty": row.get("equipment_qty"),
+                "capacity": row.get("capacity"),
+                "remarks": row.get("remarks")
+            })
 
         doc.save(ignore_permissions=True)
         frappe.db.commit()

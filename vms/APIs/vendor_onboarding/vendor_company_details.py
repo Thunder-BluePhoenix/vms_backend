@@ -107,31 +107,43 @@ def update_vendor_onboarding_company_address(data):
             saved_file = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
             doc.address_proofattachment = saved_file.file_url
 
+        doc.set("multiple_location_table", [])
+
         # update child table
-        if "multiple_location_table" in data:
+        if "multiple_location_table" in data and isinstance(data["multiple_location_table"], list):
             for row in data["multiple_location_table"]:
-                is_duplicate = False
+                doc.append("multiple_location_table", {
+                    "address_line_1": row.get("address_line_1"),
+                    "address_line_2": row.get("address_line_2"),
+                    "ma_pincode": row.get("ma_pincode"),
+                    "ma_district": row.get("ma_district"),
+                    "ma_city": row.get("ma_city"),
+                    "ma_state": row.get("ma_state"),
+                    "ma_country": row.get("ma_country")
+                })
 
-                for existing in doc.multiple_location_table:
-                    if (
-                        (existing.address_line_1 or "").strip() == (row.get("address_line_1") or "").strip() and
-                        (existing.ma_city or "").strip() == (row.get("ma_city") or "").strip() and
-                        (existing.ma_state or "").strip() == (row.get("ma_state") or "").strip() and
-                        (existing.ma_country or "").strip() == (row.get("ma_country") or "").strip()
-                    ):
-                        is_duplicate = True
-                        break
+                # is_duplicate = False
 
-                if not is_duplicate:
-                    doc.append("multiple_location_table", {
-                        "address_line_1": row.get("address_line_1"),
-                        "address_line_2": row.get("address_line_2"),
-                        "ma_pincode": row.get("ma_pincode"),
-                        "ma_district": row.get("ma_district"),
-                        "ma_city": row.get("ma_city"),
-                        "ma_state": row.get("ma_state"),
-                        "ma_country": row.get("ma_country")
-                    })
+                # for existing in doc.multiple_location_table:
+                #     if (
+                #         (existing.address_line_1 or "").strip() == (row.get("address_line_1") or "").strip() and
+                #         (existing.ma_city or "").strip() == (row.get("ma_city") or "").strip() and
+                #         (existing.ma_state or "").strip() == (row.get("ma_state") or "").strip() and
+                #         (existing.ma_country or "").strip() == (row.get("ma_country") or "").strip()
+                #     ):
+                #         is_duplicate = True
+                #         break
+
+                # if not is_duplicate:
+                #     doc.append("multiple_location_table", {
+                #         "address_line_1": row.get("address_line_1"),
+                #         "address_line_2": row.get("address_line_2"),
+                #         "ma_pincode": row.get("ma_pincode"),
+                #         "ma_district": row.get("ma_district"),
+                #         "ma_city": row.get("ma_city"),
+                #         "ma_state": row.get("ma_state"),
+                #         "ma_country": row.get("ma_country")
+                #     })
 
         doc.save()
         frappe.db.commit()
