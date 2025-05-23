@@ -11,6 +11,7 @@
   "ref_no",
   "qms_required",
   "column_break_wagn",
+  "mandatory_data_filled",
   "onboarding_form_status",
   "rejection_comment",
   "company_details_section",
@@ -386,12 +387,18 @@
    "fieldname": "expired",
    "fieldtype": "Check",
    "label": "Expired"
+  },
+  {
+   "default": "0",
+   "fieldname": "mandatory_data_filled",
+   "fieldtype": "Check",
+   "label": "Mandatory Data Filled"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 11:00:38.192724",
+ "modified": "2025-05-23 12:18:32.615820",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
