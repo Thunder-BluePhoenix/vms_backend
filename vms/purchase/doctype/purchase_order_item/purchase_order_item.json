@@ -1,0 +1,183 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-23 12:14:54.959450",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+  "field_order": [
+  "product_code",
+  "product_name",
+  "material_code",
+  "material_type",
+  "material_category",
+  "product_category",
+  "hsnsac",
+  "uom",
+  "quantity",
+  "rate",
+  "pending_qty",
+  "dispatch_qty",
+  "price",
+  "base_amount",
+  "total_input_sgst",
+  "total_input_cgst",
+  "total_input_igst",
+  "column_break_iiah",
+  "short_text",
+  "plant",
+  "schedule_date",
+  "po_date",
+  "delivery_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "product_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Product Code",
+   "options": "Product Master"
+  },
+  {
+   "fieldname": "product_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Product Name"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Net Amount"
+  },
+  {
+   "fieldname": "hsnsac",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "HSN/SAC"
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "UOM",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "dispatch_qty",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Dispatch Qty"
+  },
+  {
+   "fieldname": "pending_qty",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Pending Qty"
+  },
+  {
+   "fieldname": "column_break_iiah",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "material_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material Code"
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Delivery Date"
+  },
+  {
+   "fieldname": "product_category",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Product Category"
+  },
+  {
+   "fieldname": "total_input_sgst",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Total Input SGST"
+  },
+  {
+   "fieldname": "total_input_cgst",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Total Input CGST"
+  },
+  {
+   "fieldname": "plant",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Plant"
+  },
+  {
+   "fieldname": "material_category",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material Category"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Rate"
+  },
+  {
+   "fieldname": "short_text",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Short Text"
+  },
+  {
+   "fieldname": "po_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "PO Date"
+  },
+  {
+   "fieldname": "base_amount",
+   "fieldtype": "Data",
+   "label": "Base Amount"
+  },
+  {
+   "fieldname": "schedule_date",
+   "fieldtype": "Date",
+   "label": "Schedule Date"
+  },
+  {
+   "fieldname": "material_type",
+   "fieldtype": "Data",
+   "label": "Material Type"
+  },
+  {
+   "fieldname": "total_input_igst",
+   "fieldtype": "Data",
+   "label": "Total Input IGST"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-23 12:14:54.959450",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Purchase Order Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

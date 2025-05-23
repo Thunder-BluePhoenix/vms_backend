@@ -1,0 +1,592 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-23 11:27:15.755967",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+  "field_order": [
+  "reference_to_rfq_section",
+  "supplier_name",
+  "po_no",
+  "bill_to_company",
+  "ship_to_company",
+  "rfq_code",
+  "vendor_gst_no",
+  "contact_person",
+  "phonemobile_no",
+  "email",
+  "delivery_terms",
+  "dispatch_mode",
+  "currency",
+  "supplier_quote_ref",
+  "po_date",
+  "ref_pr_date",
+  "contact_person2",
+  "telephone_no",
+  "email2",
+  "total_gross_amount",
+  "total_value_in_words",
+  "column_break_ynic",
+  "vendor_code",
+  "purchase_order_type",
+  "purchase_order_category",
+  "purchase_organization",
+  "company_code",
+  "collection_number",
+  "delivery_date",
+  "purchase_group",
+  "ref_pr_no",
+  "ref_pr_person",
+  "phone_no",
+  "msme_no",
+  "total_input_cgst",
+  "delivery_schedule",
+  "po_change_date",
+  "po_release_date",
+  "tax_code",
+  "exchange_rate",
+  "total_input_sgst",
+  "vendors_reason_to_reject",
+  "column_break_aeka",
+  "storage_location",
+  "po_plant",
+  "lead_time",
+  "packaging_shipping_details",
+  "warranty_support_details",
+  "return_refund_policy",
+  "quote_vol_per_unit",
+  "total_order_pricing",
+  "rfq_date",
+  "status",
+  "po_number",
+  "dl_no",
+  "gstin_no",
+  "terms_of_payment",
+  "terms_of_payment_code",
+  "total_value_of_po__so",
+  "other_note",
+  "total_input_igst",
+  "vendor_status",
+  "vendors_tentative_delivery_date",
+  "billing_address_section",
+  "street_1",
+  "street_4",
+  "city",
+  "district",
+  "state",
+  "column_break_dnod",
+  "street_2",
+  "street_3",
+  "country",
+  "pincode",
+  "shipping_address_section",
+  "shipping_street1",
+  "shipping_street4",
+  "shipping_city",
+  "shipping_state",
+  "description",
+  "column_break_zyit",
+  "shipping_street2",
+  "shipping_street3",
+  "shipping_district",
+  "shipping_country",
+  "shipping_pincode",
+  "instructions",
+  "section_break_mqft",
+  "po_items"
+ ],
+ "fields": [
+  {
+   "fieldname": "rfq_code",
+   "fieldtype": "Link",
+   "label": "RFQ Code",
+   "options": "Request For Quotation"
+  },
+  {
+   "fieldname": "purchase_organization",
+   "fieldtype": "Link",
+   "label": "Purchase Organization",
+   "options": "Purchase Organization Master"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Data",
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "company_code",
+   "fieldtype": "Link",
+   "label": "Company Code",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "collection_number",
+   "fieldtype": "Data",
+   "label": "Collection Number"
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "label": "Delivery Date"
+  },
+  {
+   "fieldname": "storage_location",
+   "fieldtype": "Data",
+   "label": "Storage Location"
+  },
+  {
+   "fieldname": "lead_time",
+   "fieldtype": "Data",
+   "label": "Lead Time"
+  },
+  {
+   "fieldname": "packaging_shipping_details",
+   "fieldtype": "Data",
+   "label": "Packaging & Shipping Details"
+  },
+  {
+   "fieldname": "warranty_support_details",
+   "fieldtype": "Data",
+   "label": "Warranty & Support Details"
+  },
+  {
+   "fieldname": "return_refund_policy",
+   "fieldtype": "Data",
+   "label": "Return & Refund Policy"
+  },
+  {
+   "fieldname": "quote_vol_per_unit",
+   "fieldtype": "Data",
+   "label": "Quote Vol Per Unit"
+  },
+  {
+   "fieldname": "total_order_pricing",
+   "fieldtype": "Data",
+   "label": "Total Order Pricing"
+  },
+  {
+   "fieldname": "rfq_date",
+   "fieldtype": "Data",
+   "label": "RFQ Date"
+  },
+  {
+   "fieldname": "reference_to_rfq_section",
+   "fieldtype": "Section Break",
+   "label": "Reference to RFQ(Main Fields)"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "column_break_aeka",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "billing_address_section",
+   "fieldtype": "Section Break",
+   "label": "Billing Address "
+  },
+  {
+   "fieldname": "street_1",
+   "fieldtype": "Data",
+   "label": "Street 1"
+  },
+  {
+   "fieldname": "street_2",
+   "fieldtype": "Data",
+   "label": "Street 2"
+  },
+  {
+   "fieldname": "street_3",
+   "fieldtype": "Data",
+   "label": "Street 3"
+  },
+  {
+   "fieldname": "street_4",
+   "fieldtype": "Data",
+   "label": "Street 4"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City",
+   "options": "City Master"
+  },
+  {
+   "fieldname": "district",
+   "fieldtype": "Link",
+   "label": "District",
+   "options": "District Master"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Link",
+   "label": "State",
+   "options": "State Master"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Link",
+   "label": "Pincode",
+   "options": "Pincode Master"
+  },
+  {
+   "fieldname": "shipping_address_section",
+   "fieldtype": "Section Break",
+   "label": "Shipping Address"
+  },
+  {
+   "fieldname": "shipping_street1",
+   "fieldtype": "Data",
+   "label": "Street 1"
+  },
+  {
+   "fieldname": "shipping_street2",
+   "fieldtype": "Data",
+   "label": "Street 2"
+  },
+  {
+   "fieldname": "shipping_street3",
+   "fieldtype": "Data",
+   "label": "Street 3"
+  },
+  {
+   "fieldname": "shipping_street4",
+   "fieldtype": "Data",
+   "label": "Street 4"
+  },
+  {
+   "fieldname": "shipping_city",
+   "fieldtype": "Data",
+   "label": "City",
+   "options": "City Master"
+  },
+  {
+   "fieldname": "shipping_district",
+   "fieldtype": "Link",
+   "label": "District",
+   "options": "District Master"
+  },
+  {
+   "fieldname": "shipping_state",
+   "fieldtype": "Link",
+   "label": "State",
+   "options": "State Master"
+  },
+  {
+   "fieldname": "shipping_country",
+   "fieldtype": "Data",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "shipping_pincode",
+   "fieldtype": "Link",
+   "label": "Pincode",
+   "options": "Pincode Master"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "instructions",
+   "fieldtype": "Long Text",
+   "label": "Instructions"
+  },
+  {
+   "fieldname": "column_break_dnod",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_zyit",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_mqft",
+   "fieldtype": "Section Break",
+   "label": "Add Items"
+  },
+  {
+   "fieldname": "purchase_order_type",
+   "fieldtype": "Data",
+   "label": "Purchase Order Type",
+   "options": "Order Type 1\nOrder Type 2\nOrder Type 3"
+  },
+  {
+   "fieldname": "vendor_code",
+   "fieldtype": "Data",
+   "label": "Vendor Code",
+   "options": "Vendor Master"
+  },
+  {
+   "fieldname": "vendor_gst_no",
+   "fieldtype": "Data",
+   "label": "Vendor GST No."
+  },
+  {
+   "fieldname": "contact_person",
+   "fieldtype": "Data",
+   "label": "Contact Person"
+  },
+  {
+   "fieldname": "phonemobile_no",
+   "fieldtype": "Data",
+   "label": "Phone/Mobile no."
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email"
+  },
+  {
+   "fieldname": "delivery_terms",
+   "fieldtype": "Data",
+   "label": "Delivery Terms"
+  },
+  {
+   "fieldname": "dispatch_mode",
+   "fieldtype": "Data",
+   "label": "Dispatch Mode",
+   "options": "By Ship\nBy Air\nBy Road\nBy Rail"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "supplier_quote_ref",
+   "fieldtype": "Data",
+   "label": "Supplier Quote Ref"
+  },
+  {
+   "fieldname": "po_number",
+   "fieldtype": "Data",
+   "label": "PO Number",
+   "unique": 1
+  },
+  {
+   "fieldname": "po_date",
+   "fieldtype": "Date",
+   "label": "PO Date"
+  },
+  {
+   "fieldname": "ref_pr_no",
+   "fieldtype": "Data",
+   "label": "Ref PR No"
+  },
+  {
+   "fieldname": "ref_pr_date",
+   "fieldtype": "Date",
+   "label": "Ref PR Date"
+  },
+  {
+   "fieldname": "ref_pr_person",
+   "fieldtype": "Data",
+   "label": "Ref PR Person"
+  },
+  {
+   "fieldname": "contact_person2",
+   "fieldtype": "Data",
+   "label": "Contact Person"
+  },
+  {
+   "fieldname": "phone_no",
+   "fieldtype": "Data",
+   "label": "Phone No"
+  },
+  {
+   "fieldname": "email2",
+   "fieldtype": "Data",
+   "label": "Email"
+  },
+  {
+   "fieldname": "dl_no",
+   "fieldtype": "Data",
+   "label": "D/L No"
+  },
+  {
+   "fieldname": "gstin_no",
+   "fieldtype": "Data",
+   "label": "GSTIN No"
+  },
+  {
+   "fieldname": "column_break_ynic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "msme_no",
+   "fieldtype": "Data",
+   "label": "MSME No"
+  },
+  {
+   "fieldname": "total_gross_amount",
+   "fieldtype": "Data",
+   "label": "Total Gross Amount"
+  },
+  {
+   "fieldname": "total_input_cgst",
+   "fieldtype": "Data",
+   "label": "Total Input CGST"
+  },
+  {
+   "fieldname": "total_input_sgst",
+   "fieldtype": "Data",
+   "label": "Total Input SGST"
+  },
+  {
+   "fieldname": "total_value_of_po__so",
+   "fieldtype": "Data",
+   "label": "Total Value of PO / SO"
+  },
+  {
+   "fieldname": "total_value_in_words",
+   "fieldtype": "Data",
+   "label": "Total Value in Words"
+  },
+  {
+   "fieldname": "terms_of_payment",
+   "fieldtype": "Data",
+   "label": "Terms of Payment",
+   "options": "Terms Of Payment Master"
+  },
+  {
+   "fieldname": "delivery_schedule",
+   "fieldtype": "Data",
+   "label": "Delivery Schedule"
+  },
+  {
+   "fieldname": "other_note",
+   "fieldtype": "Small Text",
+   "label": "Other Note"
+  },
+  {
+   "fieldname": "bill_to_company",
+   "fieldtype": "Data",
+   "label": "Bill To Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "ship_to_company",
+   "fieldtype": "Data",
+   "label": "Ship To Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "supplier_name",
+   "fieldtype": "Data",
+   "label": "Supplier"
+  },
+  {
+   "fieldname": "po_items",
+   "fieldtype": "Table",
+   "options": "Purchase Order Item"
+  },
+  {
+   "fieldname": "po_plant",
+   "fieldtype": "Link",
+   "label": "PO Plant",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "purchase_order_category",
+   "fieldtype": "Data",
+   "label": "Purchase Order Category"
+  },
+  {
+   "fieldname": "po_change_date",
+   "fieldtype": "Date",
+   "label": "PO Change Date"
+  },
+  {
+   "fieldname": "po_release_date",
+   "fieldtype": "Date",
+   "label": "PO Release Date"
+  },
+  {
+   "fieldname": "total_input_igst",
+   "fieldtype": "Data",
+   "label": "Total Input IGST"
+  },
+  {
+   "fieldname": "tax_code",
+   "fieldtype": "Data",
+   "label": "Tax Code"
+  },
+  {
+   "fieldname": "telephone_no",
+   "fieldtype": "Data",
+   "label": "Telelphone Number"
+  },
+  {
+   "fieldname": "terms_of_payment_code",
+   "fieldtype": "Data",
+   "label": "Terms of Payment Code",
+   "options": "Terms Of Payment Master"
+  },
+  {
+   "fieldname": "po_no",
+   "fieldtype": "Data",
+   "label": "PO No."
+  },
+  {
+   "fieldname": "exchange_rate",
+   "fieldtype": "Data",
+   "label": "Exchange Rate"
+  },
+  {
+   "fieldname": "vendors_reason_to_reject",
+   "fieldtype": "Small Text",
+   "label": "Vendor's Reason to Reject"
+  },
+  {
+   "fieldname": "vendor_status",
+   "fieldtype": "Select",
+   "label": "Vendor Status",
+   "options": "Pending\nAccepted\nRejected"
+  },
+  {
+   "fieldname": "vendors_tentative_delivery_date",
+   "fieldtype": "Date",
+   "label": "Vendor's Tentative Delivery Date"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-23 11:27:15.755967",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Purchase Order",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

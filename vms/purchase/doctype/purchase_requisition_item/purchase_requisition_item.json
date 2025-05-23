@@ -1,0 +1,284 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-23 12:34:23.135930",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "item_category",
+  "material",
+  "quantity_requested",
+  "unit",
+  "plant",
+  "requisitioner",
+  "valuation",
+  "currency",
+  "planned_delivery_date",
+  "invoice",
+  "period_ind_for",
+  "gr_non_valuated",
+  "desired_vendor",
+  "supplying_plant",
+  "outlet_agreement",
+  "purchasing_information_rec",
+  "purchase_group",
+  "account_assign_category",
+  "pr_change_date",
+  "invoice_reciept",
+  "po_date",
+  "column_break_jssv",
+  "delivery_date",
+  "document_type",
+  "short_text",
+  "requisition_date",
+  "release_date",
+  "price_unit",
+  "storage_location",
+  "expected_delivery_date",
+  "total_value",
+  "delivery_date_fromto",
+  "goods_receipt",
+  "mrp",
+  "fixed_vendor",
+  "purchase_organization",
+  "principal",
+  "mpn_material",
+  "material_group",
+  "value_price",
+  "gr_reciept",
+  "purchase_number"
+ ],
+ "fields": [
+  {
+   "fieldname": "material",
+   "fieldtype": "Data",
+   "label": "Material"
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "label": "Unit"
+  },
+  {
+   "fieldname": "plant",
+   "fieldtype": "Data",
+   "label": "Plant"
+  },
+  {
+   "fieldname": "requisitioner",
+   "fieldtype": "Data",
+   "label": "Requisitioner"
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Data",
+   "label": "Delivery Date"
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Data",
+   "label": "Document Type"
+  },
+  {
+   "fieldname": "short_text",
+   "fieldtype": "Small Text",
+   "label": "Short Text"
+  },
+  {
+   "fieldname": "requisition_date",
+   "fieldtype": "Data",
+   "label": "Requisition Date"
+  },
+  {
+   "fieldname": "release_date",
+   "fieldtype": "Data",
+   "label": "Release Date"
+  },
+  {
+   "fieldname": "valuation",
+   "fieldtype": "Data",
+   "label": "Valuation"
+  },
+  {
+   "fieldname": "column_break_jssv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "price_unit",
+   "fieldtype": "Data",
+   "label": "Price Unit"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "label": "Currency"
+  },
+  {
+   "fieldname": "planned_delivery_date",
+   "fieldtype": "Data",
+   "label": "Planned Delivery Date"
+  },
+  {
+   "fieldname": "storage_location",
+   "fieldtype": "Data",
+   "label": "Storage Location"
+  },
+  {
+   "fieldname": "expected_delivery_date",
+   "fieldtype": "Data",
+   "label": "Expected Delivery Date"
+  },
+  {
+   "fieldname": "invoice",
+   "fieldtype": "Data",
+   "label": "Invoice"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Data",
+   "label": "Item Code"
+  },
+  {
+   "fieldname": "item_category",
+   "fieldtype": "Data",
+   "label": "Item Category"
+  },
+  {
+   "fieldname": "quantity_requested",
+   "fieldtype": "Data",
+   "label": "Quantity Requested"
+  },
+  {
+   "fieldname": "total_value",
+   "fieldtype": "Data",
+   "label": "Total Value"
+  },
+  {
+   "fieldname": "delivery_date_fromto",
+   "fieldtype": "Data",
+   "label": "Delivery Date (from/to)"
+  },
+  {
+   "fieldname": "period_ind_for",
+   "fieldtype": "Data",
+   "label": "Period Ind. For"
+  },
+  {
+   "fieldname": "goods_receipt",
+   "fieldtype": "Data",
+   "label": "Goods Receipt"
+  },
+  {
+   "fieldname": "gr_non_valuated",
+   "fieldtype": "Data",
+   "label": "GR Non Valuated"
+  },
+  {
+   "fieldname": "mrp",
+   "fieldtype": "Data",
+   "label": "MRP"
+  },
+  {
+   "fieldname": "desired_vendor",
+   "fieldtype": "Data",
+   "label": "Desired Vendor"
+  },
+  {
+   "fieldname": "fixed_vendor",
+   "fieldtype": "Data",
+   "label": "Fixed Vendor"
+  },
+  {
+   "fieldname": "supplying_plant",
+   "fieldtype": "Data",
+   "label": "Supplying Plant"
+  },
+  {
+   "fieldname": "purchase_organization",
+   "fieldtype": "Data",
+   "label": "Purchase Organization"
+  },
+  {
+   "fieldname": "outlet_agreement",
+   "fieldtype": "Data",
+   "label": "Outlet Agreement"
+  },
+  {
+   "fieldname": "principal",
+   "fieldtype": "Data",
+   "label": "Principal"
+  },
+  {
+   "fieldname": "purchasing_information_rec",
+   "fieldtype": "Data",
+   "label": "Purchasing Information Rec."
+  },
+  {
+   "fieldname": "mpn_material",
+   "fieldtype": "Data",
+   "label": "MPN Material"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Data",
+   "label": "Purchase Group"
+  },
+  {
+   "fieldname": "account_assign_category",
+   "fieldtype": "Data",
+   "label": "Account Assign Category"
+  },
+  {
+   "fieldname": "pr_change_date",
+   "fieldtype": "Data",
+   "label": "PR Change Date"
+  },
+  {
+   "fieldname": "invoice_reciept",
+   "fieldtype": "Data",
+   "label": "Invoice Reciept"
+  },
+  {
+   "fieldname": "po_date",
+   "fieldtype": "Data",
+   "label": "PO Date"
+  },
+  {
+   "fieldname": "material_group",
+   "fieldtype": "Data",
+   "label": "Material Group"
+  },
+  {
+   "fieldname": "value_price",
+   "fieldtype": "Data",
+   "label": "Value Price"
+  },
+  {
+   "fieldname": "gr_reciept",
+   "fieldtype": "Data",
+   "label": "GR Reciept"
+  },
+  {
+   "fieldname": "purchase_number",
+   "fieldtype": "Data",
+   "label": "Purchase Number",
+   "options": "Purchase Order"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-23 12:34:23.135930",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Purchase Requisition Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

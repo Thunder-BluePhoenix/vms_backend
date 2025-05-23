@@ -24,25 +24,27 @@ def update_vendor_onboarding_reputed_company_details(data):
 
         doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
 
+        doc.set("reputed_partners", [])
+
         # Update reputed partner table
         for partner in data["reputed_partners"]:
-            new_row = {
+            doc.append("reputed_partners", {
                 "company_name": str(partner.get("company_name") or "").strip(),
                 "supplied_qtyyear": str(partner.get("supplied_qtyyear") or "").strip(),
                 "remark": str(partner.get("remark") or "").strip()
-            }
+            })
 
-            is_duplicate = False
-            for row in doc.reputed_partners:
-                if (
-                    str(row.company_name).strip() == new_row["company_name"] and
-                    str(row.supplied_qtyyear).strip() == new_row["supplied_qtyyear"]
-                ):
-                    is_duplicate = True
-                    break
+            # is_duplicate = False
+            # for row in doc.reputed_partners:
+            #     if (
+            #         str(row.company_name).strip() == new_row["company_name"] and
+            #         str(row.supplied_qtyyear).strip() == new_row["supplied_qtyyear"]
+            #     ):
+            #         is_duplicate = True
+            #         break
 
-            if not is_duplicate:
-                doc.append("reputed_partners", new_row)
+            # if not is_duplicate:
+                # doc.append("reputed_partners", new_row)
 
         doc.save(ignore_permissions=True)
         frappe.db.commit()

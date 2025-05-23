@@ -54,33 +54,41 @@ def update_vendor_onboarding_manufacturing_details(data):
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
             doc.organisation_structure_document = saved.file_url
 
+        doc.set("materials_supplied", [])
+
         # update child table
         if "materials_supplied" in data:
             # index = 0
             for row in data["materials_supplied"]:
-                is_duplicate = False
+                new_row = doc.append("materials_supplied", {
+                    "material_description": row.get("material_description"),
+                    "annual_capacity": row.get("annual_capacity"),
+                    "hsnsac_code": row.get("hsnsac_code")
+                })
+                
+                # is_duplicate = False
 
-                for existing in doc.materials_supplied:
-                    if (
-                        (existing.material_description or "").strip().lower() == (row.get("material_description") or "").strip().lower() and
-                        (existing.hsnsac_code or "").strip().lower() == (row.get("hsnsac_code") or "").strip().lower()
-                    ):
-                        is_duplicate = True
-                        break
+                # for existing in doc.materials_supplied:
+                #     if (
+                #         (existing.material_description or "").strip().lower() == (row.get("material_description") or "").strip().lower() and
+                #         (existing.hsnsac_code or "").strip().lower() == (row.get("hsnsac_code") or "").strip().lower()
+                #     ):
+                #         is_duplicate = True
+                #         break
 
-                if not is_duplicate:
-                    new_row = doc.append("materials_supplied", row)
+                # if not is_duplicate:
+                #     new_row = doc.append("materials_supplied", row)
 
-                    # Attach file if available
-                    file_key = f"material_images"
-                    if file_key in frappe.request.files:
-                        file = frappe.request.files[file_key]
-                        saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-                        new_row.material_images = saved.file_url
+                # Attach file if available
+                file_key = f"material_images"
+                if file_key in frappe.request.files:
+                    file = frappe.request.files[file_key]
+                    saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                    new_row.material_images = saved.file_url
 
                 # index += 1
 
-        doc.save()
+        doc.save(ignore_permissions=True)
         frappe.db.commit()
 
         return {
