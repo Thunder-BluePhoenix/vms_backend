@@ -63,7 +63,10 @@ app_license = "mit"
 # role_home_page = {
 # 	"Role": "home_page"
 # }
-
+fixtures = [
+    {"dt": "SAP Mapper PR"},
+    
+]
 # Generators
 # ----------
 
