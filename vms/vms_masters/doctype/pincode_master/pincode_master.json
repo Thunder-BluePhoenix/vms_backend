@@ -50,14 +50,15 @@
   },
   {
    "fieldname": "zone",
-   "fieldtype": "Data",
-   "label": "Zone"
+   "fieldtype": "Link",
+   "label": "Zone",
+   "options": "Zone Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 10:24:01.026448",
+ "modified": "2025-05-24 17:29:15.608768",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Pincode Master",
