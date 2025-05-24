@@ -9,6 +9,7 @@
   "company_details_tab",
   "vendor_details_section",
   "ref_no",
+  "vendor_name",
   "qms_required",
   "column_break_wagn",
   "mandatory_data_filled",
@@ -393,12 +394,18 @@
    "fieldname": "mandatory_data_filled",
    "fieldtype": "Check",
    "label": "Mandatory Data Filled"
+  },
+  {
+   "fetch_from": "ref_no.vendor_name",
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "label": "Vendor Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-23 12:18:32.615820",
+ "modified": "2025-05-24 11:59:23.846047",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
