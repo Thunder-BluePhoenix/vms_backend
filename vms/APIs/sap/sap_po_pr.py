@@ -10,9 +10,9 @@ def get_field_mappings():
 
 
 @frappe.whitelist(allow_guest=True)
-def get_pr(data):
+def get_pr():
     try:
-        # data = frappe.request.get_json()
+        data = frappe.request.get_json()
         if not data or "items" not in data:
             return {"status": "error", "message": "No valid data received or 'items' key not found."}
 
@@ -90,9 +90,9 @@ def get_po_field_mappings():
 
 
 @frappe.whitelist(allow_guest=True)
-def get_po(data):
+def get_po():
     try:
-        # data = frappe.request.get_json()
+        data = frappe.request.get_json()
 
         if not data or "items" not in data:
             return {"status": "error", "message": "No valid data received or 'items' key not found."}
