@@ -33,13 +33,13 @@
    "fieldname": "purchase_organisation",
    "fieldtype": "Table MultiSelect",
    "label": "Purchase Organisation",
-   "options": "Purchase Org Master"
+   "options": "Purchase Org MS"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-24 14:54:01.980738",
+ "modified": "2025-05-24 17:41:38.365224",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Country Master",
