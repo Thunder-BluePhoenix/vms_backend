@@ -8,7 +8,8 @@
  "field_order": [
   "country_code",
   "country_name",
-  "mobile_code"
+  "mobile_code",
+  "purchase_organisation"
  ],
  "fields": [
   {
@@ -27,12 +28,18 @@
    "fieldname": "mobile_code",
    "fieldtype": "Data",
    "label": "Mobile Code"
+  },
+  {
+   "fieldname": "purchase_organisation",
+   "fieldtype": "Table MultiSelect",
+   "label": "Purchase Organisation",
+   "options": "Purchase Org Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-16 11:54:14.509943",
+ "modified": "2025-05-24 14:54:01.980738",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Country Master",
