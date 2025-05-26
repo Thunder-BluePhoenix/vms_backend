@@ -24,6 +24,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         doc = frappe.get_doc("Vendor Onboarding Company Details", docname)
 
         # --- Company Details Tab ---
+
         company_fields = [
             "vendor_title", "vendor_name", "company_name", "type_of_business", "size_of_company",
             "website", "registered_office_number", "telephone_number", "whatsapp_number",
@@ -43,6 +44,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         company_details["vendor_types"] = vendor_type_list
 
         # --- Company Address Tab ---
+
         address_fields = [
             "address_line_1", "address_line_2", "city", "district", "state", "country", "pincode",
             "same_as_above", "street_1", "street_2", "manufacturing_city", "manufacturing_district",
@@ -52,9 +54,94 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         address_details = {field: doc.get(field) for field in address_fields}
 
-        address_details["multiple_location_table"] = [
-            row.as_dict() for row in doc.multiple_location_table
-        ]
+        # Fetch and add related city, district, state, and country records with limited fields
+
+        # Billing Address
+        billing_address = {}
+
+        billing_address["city_details"] = (
+            frappe.db.get_value("City Master", doc.city, ["name", "city_code", "city_name"], as_dict=True)
+            if doc.city and frappe.db.exists("City Master", doc.city) else {}
+        )
+
+        billing_address["district_details"] = (
+            frappe.db.get_value("District Master", doc.district, ["name", "district_code", "district_name"], as_dict=True)
+            if doc.district and frappe.db.exists("District Master", doc.district) else {}
+        )
+
+        billing_address["state_details"] = (
+            frappe.db.get_value("State Master", doc.state, ["name", "state_code", "state_name"], as_dict=True)
+            if doc.state and frappe.db.exists("State Master", doc.state) else {}
+        )
+
+        billing_address["country_details"] = (
+            frappe.db.get_value("Country Master", doc.country, ["name", "country_code", "country_name"], as_dict=True)
+            if doc.country and frappe.db.exists("Country Master", doc.country) else {}
+        )
+
+        address_details["billing_address"] = billing_address
+
+
+        # Shipping Address
+        shipping_address = {}
+
+        shipping_address["city_details"] = (
+            frappe.db.get_value("City Master", doc.manufacturing_city, ["name", "city_code", "city_name"], as_dict=True)
+            if doc.city and frappe.db.exists("City Master", doc.city) else {}
+        )
+
+        shipping_address["district_details"] = (
+            frappe.db.get_value("District Master", doc.manufacturing_district, ["name", "district_code", "district_name"], as_dict=True)
+            if doc.district and frappe.db.exists("District Master", doc.district) else {}
+        )
+
+        shipping_address["state_details"] = (
+            frappe.db.get_value("State Master", doc.manufacturing_state, ["name", "state_code", "state_name"], as_dict=True)
+            if doc.state and frappe.db.exists("State Master", doc.state) else {}
+        )
+
+        shipping_address["country_details"] = (
+            frappe.db.get_value("Country Master", doc.manufacturing_country, ["name", "country_code", "country_name"], as_dict=True)
+            if doc.country and frappe.db.exists("Country Master", doc.country) else {}
+        )
+
+        address_details["shipping_address"] = shipping_address
+
+        # Multiple Location Table with master details
+        multiple_location_data = []
+
+        for row in doc.multiple_location_table:
+            location = row.as_dict()
+
+            location["city_details"] = (
+                frappe.db.get_value("City Master", row.ma_city, ["name", "city_code", "city_name"], as_dict=True)
+                if row.ma_city and frappe.db.exists("City Master", row.ma_city) else {}
+            )
+
+            location["district_details"] = (
+                frappe.db.get_value("District Master", row.ma_district, ["name", "district_code", "district_name"], as_dict=True)
+                if row.ma_district and frappe.db.exists("District Master", row.ma_district) else {}
+            )
+
+            location["state_details"] = (
+                frappe.db.get_value("State Master", row.ma_state, ["name", "state_code", "state_name"], as_dict=True)
+                if row.ma_state and frappe.db.exists("State Master", row.ma_state) else {}
+            )
+
+            location["country_details"] = (
+                frappe.db.get_value("Country Master", row.ma_country, ["name", "country_code", "country_name"], as_dict=True)
+                if row.ma_country and frappe.db.exists("Country Master", row.ma_country) else {}
+            )
+
+            multiple_location_data.append(location)
+
+        # Set to address_details
+        address_details["multiple_location_table"] = multiple_location_data
+
+        # child table data   
+        # address_details["multiple_location_table"] = [
+        #     row.as_dict() for row in doc.multiple_location_table
+        # ]
         
         # attach field
         if doc.address_proofattachment:
@@ -73,6 +160,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
 
         #--- Documents details Tab--------
+
         legal_docname = frappe.db.get_value(
             "Legal Documents",
             {"vendor_onboarding": vendor_onboarding, "ref_no": ref_no},
@@ -115,6 +203,10 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         gst_table = []
         for row in legal_doc.gst_table:
             gst_row = row.as_dict()
+            gst_row["state_details"] = (
+                frappe.db.get_value("State Master", row.gst_state, ["name", "state_code", "state_name"], as_dict=True)
+                if row.gst_state and frappe.db.exists("State Master", row.gst_state) else {}
+            )
             if row.gst_document:
                 file_doc = frappe.get_doc("File", {"file_url": row.gst_document})
                 gst_row["gst_document"] = {
@@ -175,6 +267,59 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         contact_details = [row.as_dict() for row in ven_onb_doc.contact_details]
 
 
+        #------------Manufacturing details tab------------------
+
+        manuf_docname = frappe.db.get_value("Vendor Onboarding Manufacturing Details", {
+            "vendor_onboarding": vendor_onboarding, "ref_no": ref_no
+        }, "name")
+
+        if not manuf_docname:
+            return {
+                "status": "error", 
+                "message": "No matching Manufacturing Details record found."
+            }
+
+        manuf_doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", manuf_docname)
+
+        manuf_fields = [
+            "total_godown", "storage_capacity", "spare_capacity", "type_of_premises", "working_hours",
+            "weekly_holidays", "number_of_manpower", "annual_revenue", "cold_storage"
+        ]
+
+        manuf_details = {field: manuf_doc.get(field) for field in manuf_fields}
+
+        materials_supplied = []
+        for row in manuf_doc.materials_supplied:
+            row_data = row.as_dict()
+            if row.material_images:
+                file_doc = frappe.get_doc("File", {"file_url": row.material_images})
+                row_data["material_images"] = {
+                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                }
+            else:
+                row_data["material_images"] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
+            materials_supplied.append(row_data)
+
+        manuf_details["materials_supplied"] = materials_supplied
+
+
+        for field in ["brochure_proof", "organisation_structure_document"]:
+            file_url = manuf_doc.get(field)
+            if file_url:
+                file_doc = frappe.get_doc("File", {"file_url": file_url})
+                manuf_details[field] = {
+                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                }
+            else:
+                manuf_details[field] = {"url": "", "name": "", "file_name": ""}
 
 
         return {
@@ -184,7 +329,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "company_address_tab": address_details,
             "document_details_tab": document_details,
             "payment_details_tab": payment_details,
-            "contact_details_tab": contact_details
+            "contact_details_tab": contact_details,
+            "manufacturing_details_tab": manuf_details
         }
 
     except Exception as e:
