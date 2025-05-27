@@ -14,7 +14,8 @@
   {
    "fieldname": "vendor_type_code",
    "fieldtype": "Data",
-   "label": "Vendor Type Code"
+   "label": "Vendor Type Code",
+   "unique": 1
   },
   {
    "fieldname": "vendor_type_name",
@@ -31,7 +32,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-15 11:50:03.963881",
+ "modified": "2025-05-27 12:07:40.895761",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Type Master",
@@ -52,7 +53,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "vendor_type_name"
 }

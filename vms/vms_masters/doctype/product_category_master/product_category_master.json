@@ -21,7 +21,8 @@
   {
    "fieldname": "product_category_code",
    "fieldtype": "Data",
-   "label": "Product Category Code"
+   "label": "Product Category Code",
+   "unique": 1
   },
   {
    "fieldname": "product_category_name",
@@ -38,7 +39,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-23 13:24:05.997572",
+ "modified": "2025-05-27 11:55:19.365826",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Product Category Master",
@@ -59,7 +60,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "product_category_name"
 }

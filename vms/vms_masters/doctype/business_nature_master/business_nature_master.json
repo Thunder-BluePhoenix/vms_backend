@@ -14,7 +14,8 @@
   {
    "fieldname": "business_nature_code",
    "fieldtype": "Data",
-   "label": "Business Nature Code"
+   "label": "Business Nature Code",
+   "unique": 1
   },
   {
    "fieldname": "business_nature_name",
@@ -31,7 +32,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 11:23:36.561228",
+ "modified": "2025-05-27 12:17:34.156326",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Business Nature Master",
@@ -52,7 +53,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "business_nature_name"
 }

@@ -14,7 +14,8 @@
   {
    "fieldname": "registration_ven_code",
    "fieldtype": "Data",
-   "label": "GST Registration Ven Code"
+   "label": "GST Registration Ven Code",
+   "unique": 1
   },
   {
    "fieldname": "registration_ven_name",
@@ -30,7 +31,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-14 14:53:53.863136",
+ "modified": "2025-05-27 12:08:24.339906",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "GST Registration Type Master",
@@ -51,7 +52,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "registration_ven_name"
 }

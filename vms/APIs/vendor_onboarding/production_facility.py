@@ -10,6 +10,7 @@ def update_vendor_onboarding_production_facility_details(data):
 
         ref_no = data.get("ref_no")
         vendor_onboarding = data.get("vendor_onboarding")
+        employee_rows = data.get("number_of_employee", [])
 
         if not ref_no or not vendor_onboarding:
             return {
@@ -21,32 +22,16 @@ def update_vendor_onboarding_production_facility_details(data):
 
         doc.set("number_of_employee", [])
 
-        new_row = {
-            "qaqc": str(data.get("qaqc") or "").strip(),
-            "logistics": str(data.get("logistics") or "").strip(),
-            "marketing": str(data.get("marketing") or "").strip(),
-            "r_d": str(data.get("r_d") or "").strip(),
-            "hse": str(data.get("hse") or "").strip(),
-            "other": str(data.get("other") or "").strip(),
-            "production": str(data.get("production") or "").strip()
-        }
-
-        # is_duplicate = False
-        # for row in doc.number_of_employee:
-        #     if (
-        #         str(row.qaqc).strip() == new_row["qaqc"] and
-        #         str(row.logistics).strip() == new_row["logistics"] and
-        #         str(row.marketing).strip() == new_row["marketing"] and
-        #         str(row.r_d).strip() == new_row["r_d"] and
-        #         str(row.hse).strip() == new_row["hse"] and
-        #         str(row.other).strip() == new_row["other"] and
-        #         str(row.production).strip() == new_row["production"]
-        #     ):
-        #         is_duplicate = True
-        #         break
-
-        # if not is_duplicate:
-        doc.append("number_of_employee", new_row)
+        for row in employee_rows:
+            doc.append("number_of_employee", {
+                "qaqc": str(row.get("qaqc") or "").strip(),
+                "logistics": str(row.get("logistics") or "").strip(),
+                "marketing": str(row.get("marketing") or "").strip(),
+                "r_d": str(row.get("r_d") or "").strip(),
+                "hse": str(row.get("hse") or "").strip(),
+                "other": str(row.get("other") or "").strip(),
+                "production": str(row.get("production") or "").strip()
+            })
 
         doc.save(ignore_permissions=True)
         frappe.db.commit()
@@ -59,12 +44,13 @@ def update_vendor_onboarding_production_facility_details(data):
 
     except Exception as e:
         frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Number of emplloyee Update Error")
+        frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Number of Employee Update Error")
         return {
             "status": "error",
             "message": "Failed to update Vendor Onboarding Number of employee details.",
             "error": str(e)
         }
+
 
 
 # update Machinery details table
