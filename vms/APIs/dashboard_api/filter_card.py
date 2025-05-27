@@ -313,27 +313,23 @@ def approved_vendor_details(usr):
 
         onboarding_docs = frappe.get_all(
             "Vendor Onboarding",
-            filters={"ref_no": ["in", vendor_names]},
-            fields=["name", "onboarding_form_status"]
+            filters={
+                "ref_no": ["in", vendor_names],
+                "onboarding_form_status": "Approved"
+            },
+            fields=[
+                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
+                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+            ]
         )
-
-        approved_vendors = []
-        for onboarding in onboarding_docs:
-            if (onboarding.onboarding_form_status or "").lower().strip() == "approved":
-                doc = frappe.get_doc("Vendor Onboarding", onboarding.name)
-                approved_vendors.append(doc.as_dict())
-
-        if not approved_vendors:
-            return {
-                "status": "error",
-                "message": "No approved vendor onboarding records found.",
-                "vendor_onboarding": []
-            }
 
         return {
             "status": "success",
             "message": "Approved vendor onboarding records fetched successfully.",
-            "vendor_onboarding": approved_vendors
+            "approved_vendor_onboarding": onboarding_docs
         }
 
     except Exception as e:
@@ -344,6 +340,8 @@ def approved_vendor_details(usr):
             "error": str(e),
             "vendor_onboarding": []
         }
+
+
 
 
 # rejected vendor details
@@ -391,27 +389,23 @@ def rejected_vendor_details(usr):
 
         onboarding_docs = frappe.get_all(
             "Vendor Onboarding",
-            filters={"ref_no": ["in", vendor_names]},
-            fields=["name", "onboarding_form_status"]
+            filters={
+                "ref_no": ["in", vendor_names],
+                "onboarding_form_status": "Rejected"
+            },
+            fields=[
+                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
+                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+            ]
         )
-
-        rejected_vendors = []
-        for onboarding in onboarding_docs:
-            if (onboarding.onboarding_form_status or "").lower().strip() == "rejected":
-                doc = frappe.get_doc("Vendor Onboarding", onboarding.name)
-                rejected_vendors.append(doc.as_dict())
-
-        if not rejected_vendors:
-            return {
-                "status": "error",
-                "message": "No rejected vendor onboarding records found.",
-                "vendor_onboarding": []
-            }
-
+        
         return {
             "status": "success",
             "message": "Rejected vendor onboarding records fetched successfully.",
-            "vendor_onboarding": rejected_vendors
+            "rejected_vendor_onboarding": onboarding_docs
         }
 
     except Exception as e:
@@ -469,37 +463,34 @@ def pending_vendor_details(usr):
 
         onboarding_docs = frappe.get_all(
             "Vendor Onboarding",
-            filters={"ref_no": ["in", vendor_names]},
-            fields=["name", "onboarding_form_status"]
+            filters={
+                "ref_no": ["in", vendor_names],
+                "onboarding_form_status": "Pending"
+            },
+            fields=[
+                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
+                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+            ]
         )
-
-        pending_vendors = []
-        for onboarding in onboarding_docs:
-            if (onboarding.onboarding_form_status or "").lower().strip() == "pending":
-                doc = frappe.get_doc("Vendor Onboarding", onboarding.name)
-                pending_vendors.append(doc.as_dict())
-
-        if not pending_vendors:
-            return {
-                "status": "error",
-                "message": "No Pending vendor onboarding records found.",
-                "vendor_onboarding": []
-            }
 
         return {
             "status": "success",
             "message": "Pending vendor onboarding records fetched successfully.",
-            "vendor_onboarding": pending_vendors
+            "pending_vendor_onboarding": onboarding_docs
         }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Pending Vendor Details API Error")
         return {
             "status": "error",
-            "message": "Failed to fetch Pending vendor onboarding data.",
+            "message": "Failed to fetch pending vendor onboarding data.",
             "error": str(e),
             "vendor_onboarding": []
         }
+
     
 
 # Expired vendor details
@@ -547,34 +538,102 @@ def expired_vendor_details(usr):
 
         onboarding_docs = frappe.get_all(
             "Vendor Onboarding",
-            filters={"ref_no": ["in", vendor_names]},
-            fields=["name", "onboarding_form_status"]
+            filters={
+                "ref_no": ["in", vendor_names],
+                "onboarding_form_status": "Expired"
+            },
+            fields=[
+                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
+                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+            ]
         )
-
-        expired_vendors = []
-        for onboarding in onboarding_docs:
-            if (onboarding.onboarding_form_status or "").lower().strip() == "expired":
-                doc = frappe.get_doc("Vendor Onboarding", onboarding.name)
-                expired_vendors.append(doc.as_dict())
-
-        if not expired_vendors:
-            return {
-                "status": "error",
-                "message": "No Expired vendor onboarding records found.",
-                "vendor_onboarding": []
-            }
 
         return {
             "status": "success",
             "message": "Expired vendor onboarding records fetched successfully.",
-            "vendor_onboarding": expired_vendors
+            "expired_vendor_onboarding": onboarding_docs
         }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Expired Vendor Details API Error")
         return {
             "status": "error",
-            "message": "Failed to fetch Expired vendor onboarding data.",
+            "message": "Failed to fetch expired vendor onboarding data.",
+            "error": str(e),
+            "vendor_onboarding": []
+        }
+
+# Total vendor details
+
+@frappe.whitelist(allow_guest=False)
+def total_vendor_details(usr):
+    try:
+        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+        user_roles = frappe.get_roles(usr)
+
+        if not any(role in allowed_roles for role in user_roles):
+            return {
+                "status": "error",
+                "message": "User does not have the required role.",
+                "vendor_onboarding": []
+            }
+
+        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+        if not team:
+            return {
+                "status": "error",
+                "message": "No Employee record found for the user.",
+                "vendor_onboarding": []
+            }
+
+        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+        if not user_ids:
+            return {
+                "status": "error",
+                "message": "No users found in the same team.",
+                "vendor_onboarding": []
+            }
+
+        vendor_names = frappe.get_all(
+            "Vendor Master",
+            filters={"registered_by": ["in", user_ids]},
+            pluck="name"
+        )
+        if not vendor_names:
+            return {
+                "status": "error",
+                "message": "No vendor records found for this team.",
+                "vendor_onboarding": []
+            }
+
+        onboarding_docs = frappe.get_all(
+            "Vendor Onboarding",
+            filters={
+                "ref_no": ["in", vendor_names]
+            },
+            fields=[
+                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
+                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+            ]
+        )
+
+        return {
+            "status": "success",
+            "message": "Approved vendor onboarding records fetched successfully.",
+            "total_vendor_onboarding": onboarding_docs
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Approved Vendor Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch approved vendor onboarding data.",
             "error": str(e),
             "vendor_onboarding": []
         }
