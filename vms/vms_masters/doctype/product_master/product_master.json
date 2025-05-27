@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:product_code",
  "creation": "2025-05-23 13:45:32.839731",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -43,7 +44,8 @@
    "fieldname": "product_code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Product Code"
+   "label": "Product Code",
+   "unique": 1
   },
   {
    "fieldname": "product_name",
@@ -207,10 +209,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-23 13:45:32.839731",
+ "modified": "2025-05-27 11:52:26.504939",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Product Master",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -227,7 +230,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "product_name"
 }

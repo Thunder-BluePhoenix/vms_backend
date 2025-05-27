@@ -24,7 +24,8 @@
    "fieldname": "purchase_group_code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Purchase Group Code"
+   "label": "Purchase Group Code",
+   "unique": 1
   },
   {
    "fieldname": "team",
@@ -52,7 +53,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-12 16:41:42.851957",
+ "modified": "2025-05-27 12:10:44.900148",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Purchase Group Master",
@@ -73,7 +74,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "purchase_group_name"
 }

@@ -14,7 +14,8 @@
   {
    "fieldname": "rfq_code",
    "fieldtype": "Data",
-   "label": "RFQ Code"
+   "label": "RFQ Code",
+   "unique": 1
   },
   {
    "fieldname": "rfq_name",
@@ -31,7 +32,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-23 13:30:07.759236",
+ "modified": "2025-05-27 12:04:13.346208",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "RFQ Type Master",
@@ -52,7 +53,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "rfq_name"
 }

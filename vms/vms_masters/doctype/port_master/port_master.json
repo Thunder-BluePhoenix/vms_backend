@@ -14,7 +14,8 @@
   {
    "fieldname": "port_code",
    "fieldtype": "Data",
-   "label": "Port Code"
+   "label": "Port Code",
+   "unique": 1
   },
   {
    "fieldname": "port_name",
@@ -30,7 +31,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-23 13:12:33.918354",
+ "modified": "2025-05-27 11:47:36.221714",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Port Master",
@@ -51,7 +52,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "port_name"
 }

@@ -15,7 +15,8 @@
   {
    "fieldname": "purchase_organization_code",
    "fieldtype": "Data",
-   "label": "Purchase Organization Code"
+   "label": "Purchase Organization Code",
+   "unique": 1
   },
   {
    "fieldname": "purchase_organization_name",
@@ -37,7 +38,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 11:09:22.308026",
+ "modified": "2025-05-27 12:12:40.051759",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Purchase Organization Master",
@@ -58,7 +59,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "purchase_organization_name"
 }

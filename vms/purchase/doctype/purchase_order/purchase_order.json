@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:po_number",
  "creation": "2025-05-23 11:27:15.755967",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -211,7 +212,7 @@
   },
   {
    "fieldname": "city",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "City",
    "options": "City Master"
   },
@@ -229,7 +230,7 @@
   },
   {
    "fieldname": "country",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Country",
    "options": "Country Master"
   },
@@ -266,7 +267,7 @@
   },
   {
    "fieldname": "shipping_city",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "City",
    "options": "City Master"
   },
@@ -284,7 +285,7 @@
   },
   {
    "fieldname": "shipping_country",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Country",
    "options": "Country Master"
   },
@@ -566,10 +567,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-23 16:11:40.053583",
+ "modified": "2025-05-27 12:23:37.728588",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -598,7 +600,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "po_number"
 }
