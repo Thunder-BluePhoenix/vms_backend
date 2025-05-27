@@ -46,9 +46,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         # --- Company Address Tab ---
 
         address_fields = [
-            "address_line_1", "address_line_2", "city", "district", "state", "country", "pincode",
-            "same_as_above", "street_1", "street_2", "manufacturing_city", "manufacturing_district",
-            "manufacturing_state", "manufacturing_country", "manufacturing_pincode",
+
+            "same_as_above", 
             "multiple_locations"
         ]
 
@@ -58,6 +57,10 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         # Billing Address
         billing_address = {}
+
+        billing_address_field = ["address_line_1", "address_line_2", "pincode", "city", "district", "state", "country"]
+
+        billing_address = {field: doc.get(field) for field in billing_address_field}
 
         billing_address["city_details"] = (
             frappe.db.get_value("City Master", doc.city, ["name", "city_code", "city_name"], as_dict=True)
@@ -85,6 +88,11 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         # Shipping Address
         shipping_address = {}
 
+        shipping_address_field = ["street_1", "street_2", "manufacturing_pincode", "manufacturing_city", "manufacturing_district",
+            "manufacturing_state", "manufacturing_country"]
+
+        shipping_address = {field: doc.get(field) for field in shipping_address_field}
+        
         shipping_address["city_details"] = (
             frappe.db.get_value("City Master", doc.manufacturing_city, ["name", "city_code", "city_name"], as_dict=True)
             if doc.city and frappe.db.exists("City Master", doc.city) else {}
@@ -322,6 +330,61 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 manuf_details[field] = {"url": "", "name": "", "file_name": ""}
 
 
+        #----------------------Employee Detail Tab--------------------
+
+        number_of_employee = [row.as_dict() for row in ven_onb_doc.number_of_employee]
+
+        #---------------------Machinery Detail--------------------------
+
+        machinery_detail = [row.as_dict() for row in ven_onb_doc.machinery_detail]
+
+        #-------------------testing_detail----------------------------------
+        
+        testing_detail = [row.as_dict() for row in ven_onb_doc.testing_detail]
+
+        #------------------Reputed partners details--------------------
+
+        reputed_partners = [row.as_dict() for row in ven_onb_doc.reputed_partners]
+        
+        #----------------Certificate Details ------------------------------
+
+                #------------------Certificate Details ------------------------------
+        certificate_docname = frappe.db.get_value("Vendor Onboarding Certificates", {
+            "vendor_onboarding": vendor_onboarding, "ref_no": ref_no
+        }, "name")
+
+        certificate_details = []
+
+        if certificate_docname:
+            certificate_doc = frappe.get_doc("Vendor Onboarding Certificates", certificate_docname)
+
+            for row in certificate_doc.certificates:
+                row_data = {
+                    "name": row.name,
+                    "idx": row.idx,
+                    "certificate_code": row.certificate_code,
+                    "valid_till": row.valid_till
+                }
+
+                if row.certificate_attach:
+                    file_doc = frappe.get_doc("File", {"file_url": row.certificate_attach})
+                    row_data["certificate_attach"] = {
+                        "url": frappe.utils.get_url(file_doc.file_url),
+                        "name": file_doc.name,
+                        "file_name": file_doc.file_name
+                    }
+                else:
+                    row_data["certificate_attach"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
+
+                certificate_details.append(row_data)
+        else:
+            certificate_details = []
+
+
         return {
             "status": "success",
             "message": "Vendor onboarding company and address details fetched successfully.",
@@ -330,7 +393,12 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "document_details_tab": document_details,
             "payment_details_tab": payment_details,
             "contact_details_tab": contact_details,
-            "manufacturing_details_tab": manuf_details
+            "manufacturing_details_tab": manuf_details,
+            "employee_details_tab": number_of_employee,
+            "machinery_details_tab": machinery_detail,
+            "testing_details_tab": testing_detail,
+            "reputed_partners_details_tab": reputed_partners,
+            "certificate_details_tab": certificate_details
         }
 
     except Exception as e:

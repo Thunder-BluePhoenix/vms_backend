@@ -19,7 +19,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-13 11:10:36.899545",
+ "modified": "2025-05-27 00:18:04.625776",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Vendor Title",
@@ -40,7 +40,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "salutation"
 }

@@ -38,7 +38,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-23 13:39:07.899341",
+ "modified": "2025-05-27 00:23:14.831804",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Material Master",
@@ -59,7 +59,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "material_name"
 }
