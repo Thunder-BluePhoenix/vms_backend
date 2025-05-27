@@ -43,3 +43,13 @@ def get_po_printfomat(po_name):
 
 #  send_email(message, subject, customer_email, pdf, f"{doc.name}.pdf")
         
+
+
+@frappe.whitelist(allow_guest=True)
+def get_po_whole(po_name):
+	if not po_name:
+		frappe.throw("Missing Purchase Order name")
+
+	po_doc = frappe.get_doc("Purchase Order", po_name)
+
+	return po_doc.ad_dict()
