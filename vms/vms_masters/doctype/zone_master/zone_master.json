@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:zone_name",
+ "autoname": "field:zone_code",
  "creation": "2025-05-24 17:27:01.323870",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,7 +13,8 @@
   {
    "fieldname": "zone_code",
    "fieldtype": "Data",
-   "label": "Zone Code"
+   "label": "Zone Code",
+   "unique": 1
   },
   {
    "fieldname": "zone_name",
@@ -25,7 +26,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-24 17:28:35.048228",
+ "modified": "2025-05-27 00:22:14.729097",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Zone Master",
@@ -46,7 +47,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "zone_name"
 }
