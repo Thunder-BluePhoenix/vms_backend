@@ -64,8 +64,8 @@ app_license = "mit"
 # 	"Role": "home_page"
 # }
 fixtures = [
-    {"dt": "SAP Mapper PR"},
-    
+    # {"dt": "SAP Mapper PR"},
+    {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"]]}}
 ]
 # Generators
 # ----------

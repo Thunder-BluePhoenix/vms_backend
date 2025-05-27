@@ -110,3 +110,67 @@ def update_vendor_onboarding_certificate_details(data):
             "message": "Failed to update Vendor Onboarding Certificates.",
             "error": str(e)
         }
+
+
+# to delete the row of vendor onboarding certificates
+import frappe
+
+@frappe.whitelist(allow_guest=True)
+def delete_vendor_onboarding_certificate_row(row_id, ref_no, vendor_onboarding):
+    try:
+        if not row_id or not ref_no or not vendor_onboarding:
+            return {
+                "status": "error",
+                "message": "Missing required fields: 'row_id', 'ref_no', or 'vendor_onboarding'."
+            }
+
+        # Fetch the parent document name
+        doc_name = frappe.db.get_value(
+            "Vendor Onboarding Certificates",
+            {"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+            "name"
+        )
+
+        if not doc_name:
+            return {
+                "status": "error",
+                "message": "Vendor Onboarding Certificates record not found."
+            }
+
+        # Fetch parent document
+        parent_doc = frappe.get_doc("Vendor Onboarding Certificates", doc_name)
+
+        # Find and remove the matching row
+        found = False
+        new_rows = []
+        for row in parent_doc.certificates:
+            if row.name != row_id:
+                new_rows.append(row)
+            else:
+                found = True
+
+        if not found:
+            return {
+                "status": "error",
+                "message": f"No row with ID {row_id} found in certificates table."
+            }
+
+        # Update the child table
+        parent_doc.set("certificates", new_rows)
+        parent_doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": f"Row {row_id} deleted successfully from certificates table.",
+            "docname": parent_doc.name
+        }
+
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "Delete Vendor Certificate Row Error")
+        return {
+            "status": "error",
+            "message": "Failed to delete row from Vendor Onboarding Certificates.",
+            "error": str(e)
+        }
