@@ -333,7 +333,7 @@ def get_vendors_based_on_status(usr):
 # get vendor onboarding details based on status with limited fields
 
 # approved vendor details
-@frappe.whitelist(allow_guest=False)
+@frappe.whitelist(allow_guest=True)
 def approved_vendor_details(usr):
     try:
         allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
@@ -389,6 +389,31 @@ def approved_vendor_details(usr):
             ]
         )
 
+        for doc in onboarding_docs:
+            ref_no = doc.get("ref_no")
+
+            # Get Company Vendor Code documents linked by vendor_ref_no
+            company_vendor = frappe.get_all(
+                "Company Vendor Code",
+                filters={"vendor_ref_no": ref_no},
+                fields=["name", "company_code"]
+            )
+
+            enriched_codes = []
+            for cvc in company_vendor:
+                # Get child table rows (vendor_code table)
+                vendor_code_children = frappe.get_all(
+                    "Vendor Code",
+                    filters={"parent": cvc.name},
+                    fields=["state", "gst_no", "vendor_code"]
+                )
+                enriched_codes.append({
+                    "company_code": cvc.company_code,
+                    "vendor_codes": vendor_code_children
+                })
+
+            doc["company_vendor_codes"] = enriched_codes
+
         return {
             "status": "success",
             "message": "Approved vendor onboarding records fetched successfully.",
@@ -403,8 +428,6 @@ def approved_vendor_details(usr):
             "error": str(e),
             "vendor_onboarding": []
         }
-
-
 
 
 # rejected vendor details
