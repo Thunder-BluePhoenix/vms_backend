@@ -128,6 +128,10 @@ def get_po():
         if po_doc.is_new():
             po_doc.status = "Pending"
             po_doc.insert()
+
+            po_id = po_doc.name
+            po_creation_send_mail(po_id)
+
             return {"status": "success", "message": "Purchase Order Created Successfully.", "po": po_doc.name}
         else:
             po_doc.save()
@@ -137,3 +141,65 @@ def get_po():
         frappe.log_error(frappe.get_traceback(), "get_po Error")
         return {"status": "error", "message": str(e)}
 
+
+# send mail
+@frappe.whitelist()
+def po_creation_send_mail(po_id):
+    try:
+        po_doc = frappe.get_doc("Purchase Order", po_id)
+        vendor_code_id = po_doc.vendor_code
+
+        # Find parent Company Vendor Code where child Vendor Code table has a row with matching vendor_code
+        com_vendor_code_name = frappe.db.get_value(
+            "Vendor Code", {"vendor_code": vendor_code_id}, "parent"
+        )
+
+        if not com_vendor_code_name:
+            return {"status": "error", "message": "No matching Company Vendor Code found for vendor_code."}
+
+        com_vendor_doc = frappe.get_doc("Company Vendor Code", com_vendor_code_name)
+
+        vendor_ref_no = com_vendor_doc.vendor_ref_no
+        vendor_master_doc = frappe.get_doc("Vendor Master", vendor_ref_no)
+
+        vendor_email = vendor_master_doc.office_email_primary or vendor_master_doc.office_email_secondary
+        vendor_name = vendor_master_doc.vendor_name
+        if not vendor_email:
+            return {"status": "error", "message": "No email found for vendor."}
+
+        print_format = frappe.db.get_single_value("Print Format Settings", "purchase_order_print_format")
+
+        pdf_data = frappe.get_print(doctype="Purchase Order", name=po_id, print_format=print_format, as_pdf=True)
+        file_name = f"{po_doc.name}.pdf"
+
+        # Send email with attachment
+        frappe.sendmail(
+            recipients=[vendor_email],
+            subject="New Purchase Order Created",
+            message=f"Dear {vendor_name},<br><br>A new Purchase Order <strong>{po_doc.name}</strong> has been created. Please find the attached document.",
+            attachments=[{
+                "fname": file_name,
+                "fcontent": pdf_data
+            }]
+        )
+
+        return {
+            "status": "success",
+            "vendor_name": vendor_name,
+            "message": "Email sent successfully to vendor.",
+            "email": vendor_email,
+            "file_name": file_name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "PO Creation Email Error")
+        return {
+            "status": "error",
+            "message": "An error occurred.",
+            "error": str(e)
+        }
+
+
+
+
+    
