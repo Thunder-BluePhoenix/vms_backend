@@ -60,36 +60,43 @@ def update_vendor_onboarding_certificate_details(data):
                 "message": "Missing child table fields: 'certificates'."
             }
 
-        doc.set("certificates", [])   
+        # doc.set("certificates", [])   
 
         # index = 0
-        for row in (data["certificates"]):
-            new_row = doc.append("certificates", {
-                "certificate_code": str(row.get("certificate_code", "")).strip(),
-                "certificate_name": str(row.get("certificate_name", "")).strip(),
-                "other_certificate_name": str(row.get("other_certificate_name", "")).strip(),
-                "valid_till": str(row.get("valid_till", "")).strip()
-            })
+        for row in data["certificates"]:
+            certificate_code = str(row.get("certificate_code", "")).strip()
+            certificate_name = str(row.get("certificate_name", "")).strip()
+            other_certificate_name = str(row.get("other_certificate_name", "")).strip()
+            valid_till = str(row.get("valid_till", "")).strip()
+
+        #     new_row = doc.append("certificates", {
+        #         "certificate_code": str(row.get("certificate_code", "")).strip(),
+        #         "certificate_name": str(row.get("certificate_name", "")).strip(),
+        #         "other_certificate_name": str(row.get("other_certificate_name", "")).strip(),
+        #         "valid_till": str(row.get("valid_till", "")).strip()
+        #     })
 
             # Check for duplicate
-            # is_duplicate = False
-            # for existing in doc.certificates:
-            #     if (
-            #         (existing.certificate_code or "").strip() == new_row["certificate_code"] and
-            #         (existing.certificate_name or "").strip() == new_row["certificate_name"]
-            #     ):
-            #         is_duplicate = True
-            #         break
+            is_duplicate = any(
+                (c.certificate_code or "").strip() == certificate_code
+                for c in doc.certificates
+            )
 
-            # if not is_duplicate:
-            #     appended_row = doc.append("certificates", new_row)
 
-            # Upload file if present
-            file_key = f"certificate_attach"
-            if file_key in frappe.request.files:
-                file = frappe.request.files[file_key]
-                saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-                new_row.certificate_attach = saved.file_url
+            if not is_duplicate:
+                new_row = doc.append("certificates", {
+                    "certificate_code": certificate_code,
+                    "certificate_name": certificate_name,
+                    "other_certificate_name": other_certificate_name,
+                    "valid_till": valid_till
+                })
+
+                # Upload file if present
+                file_key = "certificate_attach"
+                if file_key in frappe.request.files:
+                    file = frappe.request.files[file_key]
+                    saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                    new_row.certificate_attach = saved.file_url
 
             # index += 1
 
@@ -113,7 +120,7 @@ def update_vendor_onboarding_certificate_details(data):
 
 
 # to delete the row of vendor onboarding certificates
-import frappe
+
 
 @frappe.whitelist(allow_guest=True)
 def delete_vendor_onboarding_certificate_row(row_id, ref_no, vendor_onboarding):
