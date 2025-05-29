@@ -15,8 +15,7 @@
   {
    "fieldname": "account_group_code",
    "fieldtype": "Data",
-   "label": "Account Group Code",
-   "unique": 1
+   "label": "Account Group Code"
   },
   {
    "fieldname": "account_group_name",
@@ -38,7 +37,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-27 12:14:49.462159",
+ "modified": "2025-05-29 14:16:31.076641",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Account Group Master",
