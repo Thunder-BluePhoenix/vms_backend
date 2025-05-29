@@ -21,8 +21,7 @@
   {
    "fieldname": "terms_of_payment_code",
    "fieldtype": "Data",
-   "label": "Terms of Payment Code",
-   "unique": 1
+   "label": "Terms of Payment Code"
   },
   {
    "fieldname": "terms_of_payment_name",
@@ -39,7 +38,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-27 12:18:01.178007",
+ "modified": "2025-05-29 14:12:50.625836",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Terms of Payment Master",
