@@ -32,14 +32,13 @@
   {
    "fieldname": "reconcil_account_code",
    "fieldtype": "Data",
-   "label": "Reconcil Account Code",
-   "unique": 1
+   "label": "Reconcil Account Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-27 00:16:27.691594",
+ "modified": "2025-05-29 14:16:50.060033",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Reconciliation Account",
