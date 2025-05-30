@@ -145,7 +145,7 @@ def update_vendor_onboarding_company_address(data):
                 #         "ma_country": row.get("ma_country")
                 #     })
 
-        doc.save()
+        # doc.save()
         frappe.db.commit()
 
         return {
