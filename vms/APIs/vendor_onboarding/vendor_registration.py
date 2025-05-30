@@ -234,7 +234,7 @@ def onboarding_form_submit(data):
     
 # send registration email link
 @frappe.whitelist(allow_guest=True)
-def send_registration_email_link(vendor_onboarding):
+def send_registration_email_link(vendor_onboarding, refno):
     try:
         if not vendor_onboarding:
             return {
@@ -247,7 +247,7 @@ def send_registration_email_link(vendor_onboarding):
 
         # Proceed only if email hasn't been sent
         if not onboarding_doc.sent_registration_email_link:
-            vendor_master = frappe.get_doc("Vendor Master", onboarding_doc.ref_no)
+            vendor_master = frappe.get_doc("Vendor Master", refno)
 
             recipient_email = vendor_master.office_email_primary or vendor_master.office_email_secondary
             if not recipient_email:
@@ -256,7 +256,12 @@ def send_registration_email_link(vendor_onboarding):
                     "message": "No recipient email found for the vendor."
                 }
 
-            registration_link = f"{frappe.utils.get_url()}/register?vendor={vendor_master.name}"
+            registration_link = (
+                f"{frappe.utils.get_url()}/vendor-details-form"
+                f"?tabtype=Company%20Detail"
+                f"&refno={refno}"
+                f"&vendor_onboarding={vendor_onboarding}"
+            )
 
             frappe.sendmail(
                 recipients=[recipient_email],
