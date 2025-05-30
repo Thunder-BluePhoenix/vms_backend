@@ -99,9 +99,27 @@ def update_vendor_onboarding_company_address(data):
 
         for field in fields_to_update:
             if field in data:
-                doc.set(field, data[field])
+                value = data[field]
+                
+                # If value is a dict, try to extract 'name' or relevant key
+                if isinstance(value, dict):
+                    # Prioritize explicit field mapping if needed
+                    if field == "city":
+                        value = value.get("name") or value.get("city_name")
+                    elif field == "district":
+                        value = value.get("name") or value.get("district_name")
+                    elif field == "state":
+                        value = value.get("name") or value.get("state_name")
+                    elif field == "country":
+                        value = value.get("name") or value.get("country_name")
 
+                doc.set(field, value)
 
+        # upload and set address_proofattachment if file provided
+        if 'file' in frappe.request.files:
+            file = frappe.request.files['file']
+            saved_file = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+            doc.address_proofattachment = saved_file.file_url
 
         doc.set("multiple_location_table", [])
 
@@ -143,17 +161,7 @@ def update_vendor_onboarding_company_address(data):
 
         doc.save()
         frappe.db.commit()
-
-        #  # upload and set address_proofattachment if file provided
-        # if 'file' in frappe.request.files:
-        #     file = frappe.request.files['file']
-        #     saved_file = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-        #     doc.address_proofattachment = saved_file.file_url
         
-        # doc.db_update()
-        # frappe.db.commit()
-
-        upload_vendor_onboarding_attachment(data)
 
         return {
             "status": "success",
@@ -168,47 +176,4 @@ def update_vendor_onboarding_company_address(data):
             "message": "Failed to update company address.",
             "error": str(e)
         }
-
-def upload_vendor_onboarding_attachment(data):
-    try:
-        if isinstance(data, str):
-            data = json.loads(data)
-
-        ref_no = data.get("ref_no")
-        vendor_onboarding = data.get("vendor_onboarding")
-
-        if not ref_no or not vendor_onboarding:
-            return {
-                "status": "error",
-                "message": "Both 'ref_no' and 'vendor_onboarding' are required."
-            }
-
-        doc_name = frappe.db.get_value(
-            "Vendor Onboarding Company Details",
-            {"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
-            "name"
-        )
-
-        if not doc_name:
-            return {
-                "status": "error",
-                "message": "Vendor Onboarding Company Details record not found."    
-            }
-
-        doc = frappe.get_doc("Vendor Onboarding Company Details", doc_name)
-
-        if 'file' in frappe.request.files:
-            file = frappe.request.files['file']
-            saved_file = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.address_proofattachment = saved_file.file_url
-
-        doc.db_update()
-        frappe.db.commit()
-
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Company Address Update Error")
-        return {
-            "status": "error",
-            "message": "Failed to update company address.",
-            "error": str(e)
-        }
+    
