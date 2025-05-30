@@ -184,6 +184,7 @@ def vendor_registration(data):
         vendor_onboarding.manufacturing_details = manufacturing_details
         
         vendor_onboarding.save()
+        send_registration_email_link(vendor_onboarding.name, vendor_master.name)
         frappe.db.commit()
 
         return {
