@@ -190,8 +190,9 @@
   },
   {
    "fieldname": "pincode",
-   "fieldtype": "Data",
-   "label": "Pincode"
+   "fieldtype": "Link",
+   "label": "Pincode",
+   "options": "Pincode Master"
   },
   {
    "fieldname": "same_as_above_address_section",
@@ -249,7 +250,7 @@
   },
   {
    "fieldname": "manufacturing_pincode",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Pincode",
    "options": "Pincode Master"
   },
@@ -325,7 +326,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-18 15:51:27.088367",
+ "modified": "2025-05-30 10:15:16.135259",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",
@@ -341,6 +342,19 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guest",
+   "select": 1,
    "share": 1,
    "write": 1
   }
