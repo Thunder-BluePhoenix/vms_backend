@@ -101,11 +101,7 @@ def update_vendor_onboarding_company_address(data):
             if field in data:
                 doc.set(field, data[field])
 
-        # upload and set address_proofattachment if file provided
-        if 'file' in frappe.request.files:
-            file = frappe.request.files['file']
-            saved_file = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.address_proofattachment = saved_file.file_url
+
 
         doc.set("multiple_location_table", [])
 
@@ -145,7 +141,16 @@ def update_vendor_onboarding_company_address(data):
                 #         "ma_country": row.get("ma_country")
                 #     })
 
-        # doc.save()
+        doc.save()
+        frappe.db.commit()
+
+         # upload and set address_proofattachment if file provided
+        if 'file' in frappe.request.files:
+            file = frappe.request.files['file']
+            saved_file = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+            doc.address_proofattachment = saved_file.file_url
+        
+        doc.db_update()
         frappe.db.commit()
 
         return {
