@@ -172,6 +172,15 @@ def vendor_registration(data):
         manufacturing_details = create_related_doc("Vendor Onboarding Manufacturing Details")
         company_details = create_related_doc("Vendor Onboarding Company Details")
 
+        if company_details:
+            vendor_onb_company = frappe.get_doc("Vendor Onboarding Company Details", company_details)
+
+            for field in ["vendor_title", "vendor_name", "company_name"]:
+                if field in data:
+                    vendor_onb_company.set(field, data[field])
+
+            vendor_onb_company.save()
+
         # Add vendor_company_details in child table
         vendor_onboarding.append("vendor_company_details", {
             "vendor_company_details": company_details 
