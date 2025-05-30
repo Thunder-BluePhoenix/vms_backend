@@ -257,8 +257,11 @@ def send_registration_email_link(vendor_onboarding, refno):
                     "message": "No recipient email found for the vendor."
                 }
 
+            conf = frappe.conf
+            http_server = conf.get("frontend_http")
+            
             registration_link = (
-                f"{frappe.utils.get_url()}/vendor-details-form"
+                f"{http_server}/vendor-details-form"
                 f"?tabtype=Company%20Detail"
                 f"&refno={refno}"
                 f"&vendor_onboarding={vendor_onboarding}"
