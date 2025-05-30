@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:pincode",
+ "autoname": "format:{pincode}",
  "creation": "2025-05-04 19:50:38.066632",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -58,11 +58,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:37:36.131674",
+ "modified": "2025-05-30 15:36:24.315069",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Pincode Master",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
