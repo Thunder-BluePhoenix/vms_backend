@@ -138,11 +138,11 @@ def dashboard_card(usr):
         start_date = get_first_day(today())
         end_date = get_last_day(today())
 
-        # Count Vendor Onboarding records by status
-        total_vendor_count = frappe.db.count(
-            "Vendor Onboarding",
-            filters={"ref_no": ["in", vendor_names]}
-        )
+        # Count of Vendor Onboarding records by status
+        # total_vendor_count = frappe.db.count(
+        #     "Vendor Onboarding",
+        #     filters={"ref_no": ["in", vendor_names]}
+        # )
 
         approved_vendor_count = frappe.db.count(
             "Vendor Onboarding",
@@ -172,11 +172,11 @@ def dashboard_card(usr):
             }
         )
 
-        # Count Vendor Master records created by users from the same team
-        # total_vendor_count = frappe.db.count(
-        #     "Vendor Master",
-        #     filters={"registered_by": ["in", user_ids]}
-        # )
+        # Count of Vendor Master records created by users from the same team
+        total_vendor_count = frappe.db.count(
+            "Vendor Master",
+            filters={"registered_by": ["in", user_ids]}
+        )
 
         # pending_vendor_count = frappe.db.count(
         #     "Vendor Master",
