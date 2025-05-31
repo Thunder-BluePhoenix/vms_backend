@@ -695,19 +695,36 @@ def total_vendor_details(usr):
                 "vendor_onboarding": []
             }
 
-        onboarding_docs = frappe.get_all(
-            "Vendor Onboarding",
-            filters={
-                "ref_no": ["in", vendor_names]
-            },
-            fields=[
-                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
-                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
-                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
-                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
-                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
-            ]
-        )
+        # onboarding_docs = frappe.get_all(
+        #     "Vendor Onboarding",
+        #     filters={
+        #         "ref_no": ["in", vendor_names]
+        #     },
+        #     fields=[
+        #         "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
+        #         "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+        #         "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+        #         "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+        #         "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+        #     ]
+        # )
+        onboarding_docs = frappe.db.sql("""
+            SELECT
+                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status,
+                vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+                vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
+                vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+                vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
+                vo.creation
+            FROM `tabVendor Onboarding` vo
+            INNER JOIN (
+                SELECT ref_no, MAX(creation) AS max_creation
+                FROM `tabVendor Onboarding`
+                WHERE ref_no IN %(vendor_names)s
+                GROUP BY ref_no
+            ) latest ON vo.ref_no = latest.ref_no AND vo.creation = latest.max_creation
+        """, {"vendor_names": vendor_names}, as_dict=True)
+
 
         return {
             "status": "success",
@@ -787,6 +804,27 @@ def current_month_vendor_details(usr):
                 "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
             ]
         )
+
+        # onboarding_docs = frappe.db.sql("""
+        #     SELECT
+        #         vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status,
+        #         vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+        #         vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
+        #         vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+        #         vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver
+        #     FROM `tabVendor Onboarding` vo
+        #     INNER JOIN (
+        #         SELECT ref_no, MAX(creation) AS max_creation
+        #         FROM `tabVendor Onboarding`
+        #         WHERE ref_no IN %(vendor_names)s AND creation BETWEEN %(start_date)s AND %(end_date)s
+        #         GROUP BY ref_no
+        #     ) latest ON vo.ref_no = latest.ref_no AND vo.creation = latest.max_creation
+        # """, {
+        #     "vendor_names": vendor_names,
+        #     "start_date": start_date,
+        #     "end_date": end_date
+        # }, as_dict=True)
+
 
         return {
             "status": "success",
