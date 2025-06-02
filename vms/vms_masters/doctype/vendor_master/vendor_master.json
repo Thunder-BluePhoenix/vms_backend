@@ -22,6 +22,7 @@
   "office_email_secondary",
   "registered_date",
   "qa_required",
+  "created_from_registration",
   "multiple_company_data_section",
   "multiple_company_data",
   "vendor_type_section",
@@ -230,12 +231,18 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Last Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "created_from_registration",
+   "fieldtype": "Check",
+   "label": "Created From Registration"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-20 16:22:13.779754",
+ "modified": "2025-06-02 12:37:04.407464",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

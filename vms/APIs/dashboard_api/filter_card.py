@@ -710,7 +710,7 @@ def total_vendor_details(usr):
         # )
         onboarding_docs = frappe.db.sql("""
             SELECT
-                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status,
+                vo.name, vo.ref_no, vo.company_name, vo.company, vo.vendor_name, vo.onboarding_form_status,
                 vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
