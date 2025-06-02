@@ -28,6 +28,7 @@
   "sub_department",
   "column_break_qsjv",
   "designation",
+  "meril_designation",
   "reports_to",
   "head_of_department",
   "column_break_gbqz",
@@ -253,12 +254,18 @@
    "fieldtype": "Link",
    "label": "Team",
    "options": "Team Master"
+  },
+  {
+   "fieldname": "meril_designation",
+   "fieldtype": "Link",
+   "label": "Meril Designation",
+   "options": "Meril Designation Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-20 15:59:57.614493",
+ "modified": "2025-06-02 10:22:02.058291",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",
