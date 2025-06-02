@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:meril_designation",
+ "creation": "2025-06-02 10:18:52.934796",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "meril_designation",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "meril_designation",
+   "fieldtype": "Data",
+   "label": "Meril Designation",
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-02 10:19:54.092104",
+ "modified_by": "Administrator",
+ "module": "VMS Masters",
+ "name": "Meril Designation Master",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "meril_designation"
+}

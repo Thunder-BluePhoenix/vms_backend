@@ -1,0 +1,908 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:QMS-Assess/{ref_no}",
+ "creation": "2025-06-02 10:44:01.019120",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vendor_information_tab",
+  "vendor_information_section",
+  "naming_series",
+  "organization_name",
+  "ref_no",
+  "vendor_name1",
+  "date1",
+  "name_of_parent_company",
+  "name_of_manufacturer_of_supplied_material",
+  "column_break_jhxm",
+  "mobile_number",
+  "status",
+  "vendor_signature",
+  "qms_form_status",
+  "qas_tab",
+  "quality_assurance_systems_and_procedures_section",
+  "quality_control_system",
+  "others_certificates",
+  "have_documentsprocedure",
+  "if_yes_for_prior_notification",
+  "regular_review_of_quality_system",
+  "column_break_jmwb",
+  "sites_inspected_by",
+  "inspected_by_others",
+  "prior_notification",
+  "calibrations_performed",
+  "review_frequency",
+  "structure_tab",
+  "organizational_structure_and_training_section",
+  "organizational_chart",
+  "maintain_training_records",
+  "written_authority",
+  "column_break_mchk",
+  "procedure_for_training",
+  "effectiveness_of_training",
+  "building_tab",
+  "building_and_facility_section",
+  "area_of_facility",
+  "valid_license",
+  "air_handling_unit",
+  "pest_control",
+  "clean_rooms",
+  "safety_committee",
+  "column_break_wljl",
+  "no_of_employees",
+  "license_registrations_attach",
+  "humidity",
+  "adequate_sizes",
+  "water_disposal",
+  "material_tab",
+  "material_control_section",
+  "approved_supplierlist",
+  "control_and_inspection",
+  "inspection_reports",
+  "column_break_uasb",
+  "agreements",
+  "defined_areas",
+  "quality_tab",
+  "quality_control_section",
+  "qc_independent_of_production",
+  "testing_laboratories",
+  "column_break_sefj",
+  "analytical_methods_validated",
+  "failure_investigation",
+  "production_tab",
+  "production_and_process_control_section",
+  "manufactruing_process_validate",
+  "handling_of_start_materials",
+  "quarantined_finish_products",
+  "identification_number",
+  "traceability",
+  "testing_or_inspection",
+  "details_of_batch_records",
+  "column_break_zknl",
+  "nonconforming_materials_removed",
+  "manufacturing",
+  "storage_of_approved_finished_products",
+  "product_identifiable",
+  "prevent_cross_contamination",
+  "batch_record",
+  "duration_of_batch_records",
+  "complaint_tab",
+  "complaint_and_recalls_section",
+  "customer_complaints",
+  "reviews_customer_complaints",
+  "reporting_environmental_accident",
+  "column_break_qzxg",
+  "retain_complaints_records",
+  "any_recalls",
+  "supplement_tab",
+  "supplemental_information_section",
+  "additional_or_supplement_information",
+  "quality_manual",
+  "column_break_vnpt",
+  "name1",
+  "title",
+  "date",
+  "ssignature",
+  "signature",
+  "quality_agreement_tab",
+  "mdpl_quality_agreement_section",
+  "mdpl_qa_date",
+  "supplier_company_name",
+  "vendor_name",
+  "name_of_person",
+  "signed_date",
+  "column_break_jdgf",
+  "designation_of_person",
+  "person_signature",
+  "list_of_products_in_qa_section",
+  "products_in_qa",
+  "mlspl_qa_section",
+  "tissue_supplier",
+  "new_supplier",
+  "column_break_uocp",
+  "technical_agreement_labs",
+  "amendent_existing_supplier",
+  "qa_list_section",
+  "mlspl_qa_list",
+  "conclusion_tab",
+  "final_conclusion_section",
+  "conclusion_by_meril",
+  "column_break_lkby",
+  "assessment_outcome",
+  "assessment_performed_by_section",
+  "performer_name",
+  "performer_signature",
+  "performer_esignature",
+  "column_break_lwai",
+  "performer_title",
+  "performent_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "vendor_information_tab",
+   "fieldtype": "Tab Break",
+   "label": "Vendor Information"
+  },
+  {
+   "fieldname": "vendor_information_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Information"
+  },
+  {
+   "fieldname": "organization_name",
+   "fieldtype": "Data",
+   "label": "Organization Name"
+  },
+  {
+   "fieldname": "qas_tab",
+   "fieldtype": "Tab Break",
+   "label": "QAS"
+  },
+  {
+   "fieldname": "structure_tab",
+   "fieldtype": "Tab Break",
+   "label": "Organizational"
+  },
+  {
+   "fieldname": "building_tab",
+   "fieldtype": "Tab Break",
+   "label": "Building"
+  },
+  {
+   "fieldname": "material_tab",
+   "fieldtype": "Tab Break",
+   "label": "Material"
+  },
+  {
+   "fieldname": "quality_tab",
+   "fieldtype": "Tab Break",
+   "label": "Quality"
+  },
+  {
+   "fieldname": "production_tab",
+   "fieldtype": "Tab Break",
+   "label": "Production"
+  },
+  {
+   "fieldname": "complaint_tab",
+   "fieldtype": "Tab Break",
+   "label": "Complaint"
+  },
+  {
+   "fieldname": "supplement_tab",
+   "fieldtype": "Tab Break",
+   "label": "Supplement"
+  },
+  {
+   "fieldname": "conclusion_tab",
+   "fieldtype": "Tab Break",
+   "label": "Conclusion"
+  },
+  {
+   "fieldname": "ref_no",
+   "fieldtype": "Link",
+   "label": "Ref No",
+   "options": "Vendor Master"
+  },
+  {
+   "fieldname": "column_break_jhxm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mobile_number",
+   "fieldtype": "Data",
+   "label": "Mobile Number"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "quality_assurance_systems_and_procedures_section",
+   "fieldtype": "Section Break",
+   "label": "Quality Assurance Systems and Procedures"
+  },
+  {
+   "fieldname": "others_certificates",
+   "fieldtype": "Small Text",
+   "label": "1a.Others certificates"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "quality_control_system",
+   "fieldtype": "Small Text",
+   "label": "1.Quality Control System is derived to comply",
+   "options": "-Select-\nISO 9001\nISO 13485\nGMP\nISO/IEC 17025:2005\nISO 14001\nISO 45001\nOthers:"
+  },
+  {
+   "fieldname": "have_documentsprocedure",
+   "fieldtype": "Small Text",
+   "label": "3.Have Documents/procedure",
+   "options": "Quality Management Manual\nInternal Quality Audit\nChange Control\nCorrective and Preventive Action\nEnvironmental Monitoring\nRisk Management\nCalibration\nEmergency Mitigation plan"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "prior_notification",
+   "fieldtype": "Select",
+   "label": "4.Prior Notification",
+   "options": "-Select-\nYes\nNo"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "calibrations_performed",
+   "fieldtype": "Select",
+   "label": "5.Calibrations Performed",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "column_break_jmwb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "sites_inspected_by",
+   "fieldtype": "Select",
+   "label": "2.Sites Inspected by",
+   "options": "-Select-\nLocal health authorities\nOthers:"
+  },
+  {
+   "fieldname": "inspected_by_others",
+   "fieldtype": "Small Text",
+   "label": "2a.Inspected By Others"
+  },
+  {
+   "fieldname": "if_yes_for_prior_notification",
+   "fieldtype": "Small Text",
+   "label": "4a.If yes for prior notification",
+   "options": "Change in the method of manufacturing\nChange in the manufacturing site\nChange in the registration / licensing status of the site\nChange in the Raw Material specification"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "regular_review_of_quality_system",
+   "fieldtype": "Select",
+   "label": "6.Regular review of Quality System",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "review_frequency",
+   "fieldtype": "Small Text",
+   "label": "6a.If yes provide the review frequency"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "organizational_chart",
+   "fieldtype": "Select",
+   "label": "1.Organizational Chart",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "maintain_training_records",
+   "fieldtype": "Select",
+   "label": "3.Maintain Training Records",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "written_authority",
+   "fieldtype": "Select",
+   "label": "5.Written Authority",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "column_break_mchk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "procedure_for_training",
+   "fieldtype": "Select",
+   "label": "2.Procedure for Training",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "effectiveness_of_training",
+   "fieldtype": "Select",
+   "label": "4.Effectiveness of Training",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "area_of_facility",
+   "fieldtype": "Data",
+   "label": "1.Area of Facility"
+  },
+  {
+   "fieldname": "valid_license",
+   "fieldtype": "Data",
+   "label": "3.Valid License/Registrations"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "humidity",
+   "fieldtype": "Select",
+   "label": "5.Humidity",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "adequate_sizes",
+   "fieldtype": "Select",
+   "label": "7.Adequate Sizes",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "water_disposal",
+   "fieldtype": "Select",
+   "label": "9.Water Disposal",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "column_break_wljl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "no_of_employees",
+   "fieldtype": "Data",
+   "label": "2.Number of Employees"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "air_handling_unit",
+   "fieldtype": "Select",
+   "label": "4.Air Handling Unit",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "pest_control",
+   "fieldtype": "Select",
+   "label": "6.Pest Control",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "clean_rooms",
+   "fieldtype": "Select",
+   "label": "8.Clean Rooms",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "safety_committee",
+   "fieldtype": "Select",
+   "label": "10.Safety Committee",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "approved_supplierlist",
+   "fieldtype": "Select",
+   "label": "1.Approved SupplierList",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "control_and_inspection",
+   "fieldtype": "Select",
+   "label": "3.Control and Inspection",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "inspection_reports",
+   "fieldtype": "Small Text",
+   "label": "5.Inspection Reports",
+   "options": "In-house lot Identity\nSuppliers Lot No\nDate of Receipt\nSuppliers Name\nQuantity\nShelf Life Test Results\nDetails whether the lot is Accepted / Rejected"
+  },
+  {
+   "fieldname": "column_break_uasb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "agreements",
+   "fieldtype": "Select",
+   "label": "2.Agreements ",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "defined_areas",
+   "fieldtype": "Select",
+   "label": "4.Defined Areas",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "qc_independent_of_production",
+   "fieldtype": "Select",
+   "label": "1.QC independent of Production",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "testing_laboratories",
+   "fieldtype": "Select",
+   "label": "3.Testing Laboratories",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "column_break_sefj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "analytical_methods_validated",
+   "fieldtype": "Select",
+   "label": "2.Analytical methods validated",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "failure_investigation",
+   "fieldtype": "Select",
+   "label": "4.Failure investigation",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "manufactruing_process_validate",
+   "fieldtype": "Select",
+   "label": "1.Manufactruing process validate",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "handling_of_start_materials",
+   "fieldtype": "Select",
+   "label": "3a.Handling of start materials",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "quarantined_finish_products",
+   "fieldtype": "Select",
+   "label": "3c.Quarantined finish products",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "identification_number",
+   "fieldtype": "Select",
+   "label": "4.Identification number",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "traceability",
+   "fieldtype": "Select",
+   "label": "6.Traceability",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "testing_or_inspection",
+   "fieldtype": "Select",
+   "label": "8.Testing or Inspection",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "details_of_batch_records",
+   "fieldtype": "Small Text",
+   "label": "9a.Details of batch records",
+   "options": "Description, Lot Number & Quantities of Material used\nProcessing Conditions - Temperature, Time, etc\nThe identification of the personnel who performed the particular step\nResults of any In-process tests\nDetails of deviations from standard conditions"
+  },
+  {
+   "fieldname": "column_break_zknl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "nonconforming_materials_removed",
+   "fieldtype": "Select",
+   "label": "2.Nonconforming materials removed",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "manufacturing",
+   "fieldtype": "Select",
+   "label": "3b.Manufacturing",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "storage_of_approved_finished_products",
+   "fieldtype": "Select",
+   "label": "3d.Storage of approved finished products",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "product_identifiable",
+   "fieldtype": "Select",
+   "label": "5.Product Identifiable",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "prevent_cross_contamination",
+   "fieldtype": "Select",
+   "label": "7.Prevent cross contamination",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "batch_record",
+   "fieldtype": "Select",
+   "label": "9.Batch record",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "duration_of_batch_records",
+   "fieldtype": "Data",
+   "label": "10.Duration of batch records"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "customer_complaints",
+   "fieldtype": "Select",
+   "label": "1.Customer Complaints",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "reviews_customer_complaints",
+   "fieldtype": "Select",
+   "label": "3.Reviews customer complaints",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "reporting_environmental_accident",
+   "fieldtype": "Select",
+   "label": "5.Reporting Environmental accident",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "column_break_qzxg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "retain_complaints_records",
+   "fieldtype": "Select",
+   "label": "2.Retain Complaints records",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "any_recalls",
+   "fieldtype": "Select",
+   "label": "4.Any Recalls",
+   "options": "-Select-\nYes\nNo\nN/A"
+  },
+  {
+   "fieldname": "additional_or_supplement_information",
+   "fieldtype": "Small Text",
+   "label": "Additional or Supplement Information"
+  },
+  {
+   "fieldname": "quality_manual",
+   "fieldtype": "Attach",
+   "label": "Quality Manual"
+  },
+  {
+   "fieldname": "name1",
+   "fieldtype": "Data",
+   "label": "Name"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "column_break_vnpt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "options": "dd-mm-yyyy"
+  },
+  {
+   "fieldname": "ssignature",
+   "fieldtype": "Signature",
+   "label": "SSignature"
+  },
+  {
+   "fieldname": "signature",
+   "fieldtype": "Attach",
+   "label": "Signature"
+  },
+  {
+   "fieldname": "conclusion_by_meril",
+   "fieldtype": "Small Text",
+   "label": "Conclusion By Meril"
+  },
+  {
+   "default": "-Select-",
+   "fieldname": "assessment_outcome",
+   "fieldtype": "Select",
+   "label": "Assessment outcome",
+   "options": "-Select-\nSatisfactory\nNot Satisfactory"
+  },
+  {
+   "fieldname": "performer_name",
+   "fieldtype": "Data",
+   "label": "Performer Name"
+  },
+  {
+   "fieldname": "column_break_lkby",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "performer_signature",
+   "fieldtype": "Attach",
+   "label": "Performer Signature"
+  },
+  {
+   "fieldname": "performer_title",
+   "fieldtype": "Data",
+   "label": "Performer Title"
+  },
+  {
+   "fieldname": "performent_date",
+   "fieldtype": "Date",
+   "label": "Performent Date",
+   "options": "dd-mm-yyyy"
+  },
+  {
+   "fieldname": "organizational_structure_and_training_section",
+   "fieldtype": "Section Break",
+   "label": "Organizational Structure and Training"
+  },
+  {
+   "fieldname": "building_and_facility_section",
+   "fieldtype": "Section Break",
+   "label": "Building and Facility"
+  },
+  {
+   "fieldname": "material_control_section",
+   "fieldtype": "Section Break",
+   "label": "Material Control"
+  },
+  {
+   "fieldname": "quality_control_section",
+   "fieldtype": "Section Break",
+   "label": "Quality Control"
+  },
+  {
+   "fieldname": "production_and_process_control_section",
+   "fieldtype": "Section Break",
+   "label": "Production and Process Control"
+  },
+  {
+   "fieldname": "complaint_and_recalls_section",
+   "fieldtype": "Section Break",
+   "label": "Complaint and Recalls"
+  },
+  {
+   "fieldname": "supplemental_information_section",
+   "fieldtype": "Section Break",
+   "label": "Supplemental Information"
+  },
+  {
+   "fieldname": "final_conclusion_section",
+   "fieldtype": "Section Break",
+   "label": "Final Conclusion (To be filled by Meril)"
+  },
+  {
+   "fieldname": "performer_esignature",
+   "fieldtype": "Signature",
+   "label": "Performer Esignature"
+  },
+  {
+   "fieldname": "license_registrations_attach",
+   "fieldtype": "Attach",
+   "label": "3a.License Registrations Attach"
+  },
+  {
+   "fieldname": "date1",
+   "fieldtype": "Date",
+   "label": "Date1"
+  },
+  {
+   "fieldname": "name_of_parent_company",
+   "fieldtype": "Small Text",
+   "label": "Name of Parent Company"
+  },
+  {
+   "fieldname": "name_of_manufacturer_of_supplied_material",
+   "fieldtype": "Small Text",
+   "label": "Name of manufacturer of supplied material"
+  },
+  {
+   "fieldname": "vendor_signature",
+   "fieldtype": "Signature",
+   "label": "Vendor Signature"
+  },
+  {
+   "fieldname": "vendor_name1",
+   "fieldtype": "Data",
+   "label": "Vendor Name"
+  },
+  {
+   "fieldname": "assessment_performed_by_section",
+   "fieldtype": "Section Break",
+   "label": "Assessment Performed by"
+  },
+  {
+   "fieldname": "column_break_lwai",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "qms_form_status",
+   "fieldtype": "Data",
+   "label": "QMS Form Status"
+  },
+  {
+   "fieldname": "quality_agreement_tab",
+   "fieldtype": "Tab Break",
+   "label": "Quality Agreement"
+  },
+  {
+   "fieldname": "mdpl_quality_agreement_section",
+   "fieldtype": "Section Break",
+   "label": "MDPL Quality Agreement"
+  },
+  {
+   "fieldname": "mdpl_qa_date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "designation_of_person",
+   "fieldtype": "Data",
+   "label": "Designation of Person"
+  },
+  {
+   "fieldname": "column_break_jdgf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "supplier_company_name",
+   "fieldtype": "Data",
+   "label": "Supplier Company Name"
+  },
+  {
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "label": "Vendor Name"
+  },
+  {
+   "fieldname": "name_of_person",
+   "fieldtype": "Data",
+   "label": "Name of Person"
+  },
+  {
+   "fieldname": "signed_date",
+   "fieldtype": "Date",
+   "label": "Signed Date"
+  },
+  {
+   "fieldname": "person_signature",
+   "fieldtype": "Signature",
+   "label": "Person Signature"
+  },
+  {
+   "fieldname": "list_of_products_in_qa_section",
+   "fieldtype": "Section Break",
+   "label": "List of Products in QA"
+  },
+  {
+   "fieldname": "mlspl_qa_section",
+   "fieldtype": "Section Break",
+   "label": "MLSPL QA"
+  },
+  {
+   "fieldname": "tissue_supplier",
+   "fieldtype": "Attach",
+   "label": "Tissue Supplier"
+  },
+  {
+   "fieldname": "new_supplier",
+   "fieldtype": "Attach",
+   "label": "New Supplier"
+  },
+  {
+   "fieldname": "column_break_uocp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "technical_agreement_labs",
+   "fieldtype": "Attach",
+   "label": "Technical Agreement Labs"
+  },
+  {
+   "fieldname": "amendent_existing_supplier",
+   "fieldtype": "Attach",
+   "label": "Amendent Existing Supplier"
+  },
+  {
+   "fieldname": "products_in_qa",
+   "fieldtype": "Table",
+   "label": "Products in QA",
+   "options": "QA List of Products"
+  },
+  {
+   "fieldname": "qa_list_section",
+   "fieldtype": "Section Break",
+   "label": "QA List"
+  },
+  {
+   "fieldname": "mlspl_qa_list",
+   "fieldtype": "Table",
+   "label": "MLSPL QA List",
+   "options": "MLSPL QA Table"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "label": "Naming Series"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-02 11:14:39.462064",
+ "modified_by": "Administrator",
+ "module": "Assessment Forms",
+ "name": "Supplier QMS Assessment Form",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "naming_series"
+}
