@@ -54,18 +54,19 @@
   "gr_based_inv_ver",
   "service_based_inv_ver",
   "company_name",
+  "company",
   "purchase_organization",
   "order_currency",
   "terms_of_payment",
   "purchase_group",
-  "incoterms",
   "column_break_adix",
   "account_group",
   "purchase_team_remarks",
   "purchase_head_remarks",
   "enterprise",
   "reconciliation_account",
-  "qa_team_remarks"
+  "qa_team_remarks",
+  "incoterms"
  ],
  "fields": [
   {
@@ -400,12 +401,18 @@
    "fieldname": "vendor_name",
    "fieldtype": "Data",
    "label": "Vendor Name"
+  },
+  {
+   "fetch_from": "company_name.company_name",
+   "fieldname": "company",
+   "fieldtype": "Data",
+   "label": "Company"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-24 11:59:23.846047",
+ "modified": "2025-06-02 14:54:26.255489",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
