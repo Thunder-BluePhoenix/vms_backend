@@ -90,6 +90,7 @@ def vendor_registration(data):
         vendor_master.gr_based_inv_ver = 1
         vendor_master.service_based_inv_ver = 1
         vendor_master.check_double_invoice = 1
+        vendor_master.created_from_registration = 1
 
         # Update child tables
         if "multiple_company_data" in data:
