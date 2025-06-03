@@ -844,8 +844,17 @@ def current_month_vendor_details(usr):
     
 
 @frappe.whitelist(allow_guest=False)
-def filtering_total_vendor_details(page=None, company=None, refno=None, status=None, usr=None, limit=5):
+def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None):
     try:
+        if usr is None:
+            usr = frappe.session.user
+        elif usr != frappe.session.user:
+            return {
+                "status": "error",
+                "message": "User mismatch or unauthorized access.",
+                "code": 404
+            }
+                                      
         allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
         user_roles = frappe.get_roles(usr)
 
@@ -884,12 +893,10 @@ def filtering_total_vendor_details(page=None, company=None, refno=None, status=N
                 "vendor_onboarding": []
             }
 
-        # Dynamic filters
-        conditions = []
+        # Build dynamic filters
+        conditions = ["vo.ref_no IN %(vendor_names)s"]
         values = {
-            "vendor_names": vendor_names,
-            "limit": int(limit),
-            "offset": (int(page) - 1) * int(limit) if page else 0
+            "vendor_names": vendor_names
         }
 
         if company:
@@ -904,28 +911,47 @@ def filtering_total_vendor_details(page=None, company=None, refno=None, status=N
             conditions.append("vo.onboarding_form_status = %(status)s")
             values["status"] = status
 
-        filter_clause = " AND " + " AND ".join(conditions) if conditions else ""
+        filter_clause = " AND ".join(conditions)
 
-        # Final query with pagination
+        # Total count for pagination metadata
+        total_count = frappe.db.sql(f"""
+            SELECT COUNT(*) AS count
+            FROM `tabVendor Onboarding` vo
+            WHERE {filter_clause}
+        """, values)[0][0]
+
+        # Pagination logic
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        offset = (page_no - 1) * page_length
+        values["limit"] = page_length
+        values["offset"] = offset
+
+        # Final query with LIMIT and OFFSET
         onboarding_docs = frappe.db.sql(f"""
-        SELECT
-            vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status,
-            vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
-            vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
-            vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
-            vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
-            vo.creation
-        FROM `tabVendor Onboarding` vo
-        WHERE vo.ref_no IN %(vendor_names)s
-        {filter_clause}
-        ORDER BY vo.creation DESC
-        LIMIT %(limit)s OFFSET %(offset)s
-    """, values, as_dict=True)
+            SELECT
+                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status,
+                vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+                vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
+                vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+                vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
+                vo.creation
+            FROM `tabVendor Onboarding` vo
+            WHERE {filter_clause}
+            ORDER BY vo.creation DESC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """, values, as_dict=True)
+
+        # onboarding_docs.append(usr)
 
         return {
             "status": "success",
             "message": "Paginated and filtered vendor onboarding records fetched successfully.",
-            "total_vendor_onboarding": onboarding_docs
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length,
+            "total_vendor_onboarding": onboarding_docs,
+            "vendor_names": vendor_names
         }
 
     except Exception as e:
@@ -936,3 +962,114 @@ def filtering_total_vendor_details(page=None, company=None, refno=None, status=N
             "error": str(e),
             "vendor_onboarding": []
         }
+
+
+
+
+    # try:
+    #     allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+    #     user_roles = frappe.get_roles(usr)
+
+    #     if not any(role in allowed_roles for role in user_roles):
+    #         return {
+    #             "status": "error",
+    #             "message": "User does not have the required role.",
+    #             "vendor_onboarding": []
+    #         }
+
+    #     team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+    #     if not team:
+    #         return {
+    #             "status": "error",
+    #             "message": "No Employee record found for the user.",
+    #             "vendor_onboarding": []
+    #         }
+
+    #     user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+    #     if not user_ids:
+    #         return {
+    #             "status": "error",
+    #             "message": "No users found in the same team.",
+    #             "vendor_onboarding": []
+    #         }
+
+    #     vendor_names = frappe.get_all(
+    #         "Vendor Master",
+    #         filters={"registered_by": ["in", user_ids]},
+    #         pluck="name"
+    #     )
+    #     if not vendor_names:
+    #         return {
+    #             "status": "error",
+    #             "message": "No vendor records found for this team.",
+    #             "vendor_onboarding": []
+    #         }
+
+
+    #     return {
+    #         "status": "success",
+    #         "message": "Vendor onboarding records for the current month fetched successfully.",
+    #         "vendor_names": vendor_names
+    #     }
+    
+    # except Exception as e:
+    #     frappe.log_error(frappe.get_traceback(), "Current Month Vendor Details API Error")
+    #     return {
+    #         "status": "error",
+    #         "message": "Failed to fetch vendor onboarding data.",
+    #         "error": str(e),
+    #         "vendor_onboarding": []
+    #     }
+
+    #     # Dynamic filters
+    # #     conditions = []
+    # #     values = {
+    # #         "vendor_names": vendor_names,
+    # #         "limit": int(limit),
+    # #         "offset": (int(page) - 1) * int(limit) if page else 0
+    # #     }
+
+    # #     if company:
+    # #         conditions.append("vo.company_name = %(company)s")
+    # #         values["company"] = company
+
+    # #     if refno:
+    # #         conditions.append("vo.ref_no = %(refno)s")
+    # #         values["refno"] = refno
+
+    # #     if status:
+    # #         conditions.append("vo.onboarding_form_status = %(status)s")
+    # #         values["status"] = status
+
+    # #     filter_clause = " AND " + " AND ".join(conditions) if conditions else ""
+
+    # #     # Final query with pagination
+    # #     onboarding_docs = frappe.db.sql(f"""
+    # #     SELECT
+    # #         vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status,
+    # #         vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+    # #         vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
+    # #         vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+    # #         vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
+    # #         vo.creation
+    # #     FROM `tabVendor Onboarding` vo
+    # #     WHERE vo.ref_no IN %(vendor_names)s
+    # #     {filter_clause}
+    # #     ORDER BY vo.creation DESC
+    # #     LIMIT %(limit)s OFFSET %(offset)s
+    # # """, values, as_dict=True)
+
+    # #     return {
+    # #         "status": "success",
+    # #         "message": "Paginated and filtered vendor onboarding records fetched successfully.",
+    # #         "total_vendor_onboarding": onboarding_docs
+    # #     }
+
+    # # except Exception as e:
+    # #     frappe.log_error(frappe.get_traceback(), "Total Vendor Details API Error")
+    # #     return {
+    # #         "status": "error",
+    # #         "message": "Failed to fetch vendor onboarding data.",
+    # #         "error": str(e),
+    # #         "vendor_onboarding": []
+    # #     }

@@ -7,7 +7,7 @@ def vendor_registration_dropdown_masters():
     try:
         vendor_type = frappe.db.sql("SELECT name  FROM `tabVendor Type Master`", as_dict=True)
         vendor_title = frappe.db.sql("SELECT name FROM `tabVendor Title`", as_dict=True)
-        country_master = frappe.db.sql("SELECT name, country_name FROM `tabCountry Master`", as_dict=True)
+        country_master = frappe.db.sql("SELECT name, country_name, mobile_code FROM `tabCountry Master`", as_dict=True)
         company_master = frappe.db.sql("SELECT name, company_name FROM `tabCompany Master`", as_dict=True)
         currency_master = frappe.db.sql("SELECT name, currency_name FROM `tabCurrency Master`", as_dict=True)
         incoterm_master = frappe.db.sql("SELECT name, incoterm_name FROM `tabIncoterm Master`", as_dict=True)
@@ -69,7 +69,7 @@ def all_address_masters():
         city_master = frappe.db.sql("SELECT name, city_code, city_name FROM `tabCity Master`", as_dict=True)
         district_master = frappe.db.sql("SELECT name, district_code, district_name FROM `tabDistrict Master`", as_dict=True)
         state_master = frappe.db.sql("SELECT name, state_code, state_name FROM `tabState Master`", as_dict=True)
-        country_master = frappe.db.sql("SELECT name, country_name FROM `tabCountry Master`", as_dict=True)
+        country_master = frappe.db.sql("SELECT name, country_name, mobile_code FROM `tabCountry Master`", as_dict=True)
         
         return {
             "status": "success",
