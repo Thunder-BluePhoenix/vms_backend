@@ -728,15 +728,15 @@ def total_vendor_details(usr):
 
         return {
             "status": "success",
-            "message": "Approved vendor onboarding records fetched successfully.",
+            "message": "Total vendor onboarding records fetched successfully.",
             "total_vendor_onboarding": onboarding_docs
         }
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Approved Vendor Details API Error")
+        frappe.log_error(frappe.get_traceback(), "Toatl Vendor Details API Error")
         return {
             "status": "error",
-            "message": "Failed to fetch approved vendor onboarding data.",
+            "message": "Failed to fetch Total8/ vendor onboarding data.",
             "error": str(e),
             "vendor_onboarding": []
         }
@@ -842,4 +842,97 @@ def current_month_vendor_details(usr):
         }
 
     
-    
+
+@frappe.whitelist(allow_guest=False)
+def filtering_total_vendor_details(page=None, company=None, refno=None, status=None, usr=None, limit=5):
+    try:
+        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+        user_roles = frappe.get_roles(usr)
+
+        if not any(role in allowed_roles for role in user_roles):
+            return {
+                "status": "error",
+                "message": "User does not have the required role.",
+                "vendor_onboarding": []
+            }
+
+        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+        if not team:
+            return {
+                "status": "error",
+                "message": "No Employee record found for the user.",
+                "vendor_onboarding": []
+            }
+
+        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+        if not user_ids:
+            return {
+                "status": "error",
+                "message": "No users found in the same team.",
+                "vendor_onboarding": []
+            }
+
+        vendor_names = frappe.get_all(
+            "Vendor Master",
+            filters={"registered_by": ["in", user_ids]},
+            pluck="name"
+        )
+        if not vendor_names:
+            return {
+                "status": "error",
+                "message": "No vendor records found for this team.",
+                "vendor_onboarding": []
+            }
+
+        # Dynamic filters
+        conditions = []
+        values = {
+            "vendor_names": vendor_names,
+            "limit": int(limit),
+            "offset": (int(page) - 1) * int(limit) if page else 0
+        }
+
+        if company:
+            conditions.append("vo.company_name = %(company)s")
+            values["company"] = company
+
+        if refno:
+            conditions.append("vo.ref_no = %(refno)s")
+            values["refno"] = refno
+
+        if status:
+            conditions.append("vo.onboarding_form_status = %(status)s")
+            values["status"] = status
+
+        filter_clause = " AND " + " AND ".join(conditions) if conditions else ""
+
+        # Final query with pagination
+        onboarding_docs = frappe.db.sql(f"""
+        SELECT
+            vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status,
+            vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+            vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
+            vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+            vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
+            vo.creation
+        FROM `tabVendor Onboarding` vo
+        WHERE vo.ref_no IN %(vendor_names)s
+        {filter_clause}
+        ORDER BY vo.creation DESC
+        LIMIT %(limit)s OFFSET %(offset)s
+    """, values, as_dict=True)
+
+        return {
+            "status": "success",
+            "message": "Paginated and filtered vendor onboarding records fetched successfully.",
+            "total_vendor_onboarding": onboarding_docs
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Total Vendor Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch vendor onboarding data.",
+            "error": str(e),
+            "vendor_onboarding": []
+        }
