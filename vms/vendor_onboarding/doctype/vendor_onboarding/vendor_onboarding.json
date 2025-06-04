@@ -10,6 +10,7 @@
   "vendor_details_section",
   "ref_no",
   "vendor_name",
+  "registered_by",
   "qms_required",
   "column_break_wagn",
   "mandatory_data_filled",
@@ -426,12 +427,17 @@
    "fieldname": "purchase_head_approval_remarks",
    "fieldtype": "Small Text",
    "label": "Purchase Head Approval Remarks"
+  },
+  {
+   "fieldname": "registered_by",
+   "fieldtype": "Data",
+   "label": "Registered By"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-04 12:20:17.233765",
+ "modified": "2025-06-04 14:02:01.971154",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

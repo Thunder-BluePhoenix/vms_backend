@@ -121,6 +121,9 @@ def vendor_registration(data):
                 if not is_duplicate:
                     vendor_master.append("vendor_types", row)
 
+        usr = frappe.session.user
+        vendor_master.registered_by = usr
+
         vendor_master.save(ignore_permissions=True)
         frappe.db.commit()
             
@@ -154,6 +157,8 @@ def vendor_registration(data):
 
                 if not is_duplicate:
                     vendor_master.append("vendor_types", row)
+
+        vendor_onboarding.registered_by = usr
 
         vendor_onboarding.save()
         frappe.db.commit()
