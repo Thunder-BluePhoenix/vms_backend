@@ -9,10 +9,12 @@
   "company_information_section",
   "name_of_the_company",
   "location",
+  "column_break_warf",
   "name_of_product",
   "general_disclosure_section",
   "valid_consent_from_pollution_control",
   "expiry_date_of_consent",
+  "column_break_tjmk",
   "recycle_plastic_package_material",
   "plans_for_recycle_materials",
   "governance_tab",
@@ -640,12 +642,20 @@
    "fieldname": "esat_score",
    "fieldtype": "Data",
    "label": "If yes, provide the ESAT score."
+  },
+  {
+   "fieldname": "column_break_warf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_tjmk",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-02 23:00:58.182964",
+ "modified": "2025-06-04 10:52:39.581745",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Annual Supplier Assessment Questionnaire",

@@ -19,11 +19,11 @@
   "vendor_company_details",
   "status_section",
   "purchase_t_approval",
-  "purchase_team_undertaking",
+  "purchase_team_approval_remarks",
   "accounts_t_approval",
-  "accounts_team_undertaking",
+  "accounts_team_approval_remarks",
   "purchase_h_approval",
-  "purchase_head_undertaking",
+  "purchase_head_approval_remarks",
   "column_break_mkfw",
   "form_fully_submitted_by_vendor",
   "sent_registration_email_link",
@@ -32,6 +32,9 @@
   "expired",
   "rejected_by",
   "reason_for_rejection",
+  "purchase_team_undertaking",
+  "purchase_head_undertaking",
+  "accounts_team_undertaking",
   "tables_section",
   "vendor_types",
   "number_of_employee",
@@ -408,12 +411,27 @@
    "fieldname": "company",
    "fieldtype": "Data",
    "label": "Company"
+  },
+  {
+   "fieldname": "purchase_team_approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "Purchase Team Approval Remarks"
+  },
+  {
+   "fieldname": "accounts_team_approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "Accounts Team Approval Remarks"
+  },
+  {
+   "fieldname": "purchase_head_approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "Purchase Head Approval Remarks"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-04 08:57:39.107406",
+ "modified": "2025-06-04 12:20:17.233765",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
