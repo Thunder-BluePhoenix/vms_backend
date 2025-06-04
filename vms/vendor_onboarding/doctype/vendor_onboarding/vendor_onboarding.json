@@ -92,6 +92,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Pending",
    "fieldname": "onboarding_form_status",
    "fieldtype": "Data",
    "label": "Onboarding Form Status"
@@ -412,7 +413,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-02 14:54:26.255489",
+ "modified": "2025-06-04 08:57:39.107406",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
