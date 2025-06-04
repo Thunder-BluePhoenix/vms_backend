@@ -48,18 +48,22 @@ class VendorOnboarding(Document):
 		frappe.db.commit()
 
 
-	
-	
 	def on_update(self):
-		"""
-		Alternative function that returns a detailed validation summary
-		"""
-		result = validate_mandatory_data(self.name)
-		
-		if result["success"]:
-			return f"✅ Validation passed for {len(result['data'])} company records"
-		else:
-			return f"❌ Validation failed: {result['message']}"
+          set_vendor_onboarding_status(self,method=None)
+          on_update_check_fields(self,method=None)
+	
+def on_update_check_fields(self,method=None):
+    """
+    Alternative function that returns a detailed validation summary
+    """
+    result = validate_mandatory_data(self.name)
+
+    # set_vendor_onboarding_status(self,method=None)
+
+    if result["success"]:
+        return f"✅ Validation passed for {len(result['data'])} company records"
+    else:
+        return f"❌ Validation failed: {result['message']}"
 
 
 
@@ -346,3 +350,28 @@ def validate_mandatory_data(onb_ref):
 #         return f"❌ Validation failed: {result['message']}"
 
 
+@frappe.whitelist(allow_guest=True)
+def set_vendor_onboarding_status(doc, method=None):
+    try:
+        if doc.rejected:
+            doc.onboarding_form_status = "Rejected"
+        elif doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking:
+            doc.onboarding_form_status = "Approved"
+
+        # doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": f"Status updated to '{doc.status}' successfully.",
+            "doc_status": doc.status
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Set Status Onboarding Error")
+        return {
+            "status": "error",
+            "message": "An error occurred while updating status.",
+            "error": str(e)
+        }
+         
