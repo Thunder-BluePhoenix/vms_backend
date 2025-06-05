@@ -80,34 +80,41 @@ def update_vendor_onboarding_document_details(data):
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
             doc.pe_certificate = saved.file_url
 
-        doc.set("gst_table", [])
+        # doc.set("gst_table", [])
 
         # Update gst_table table
+        # if "gst_table" in data:
+        #     for row in data["gst_table"]:
+        #         gst_row = doc.append("gst_table", {
+        #             "gst_state": row.get("gst_state"),
+        #             "gst_number": row.get("gst_number"),
+        #             "gst_registration_date": row.get("gst_registration_date"),
+        #             "gst_ven_type": row.get("gst_ven_type")
+                # })
+
+        # index = 0
         if "gst_table" in data:
             for row in data["gst_table"]:
-                gst_row = doc.append("gst_table", {
-                    "gst_state": row.get("gst_state"),
-                    "gst_number": row.get("gst_number"),
-                    "gst_registration_date": row.get("gst_registration_date"),
-                    "gst_ven_type": row.get("gst_ven_type")
-                })
+                if not row.get("name"):
+                    # Append new row if no name provided (new row from frontend)
+                    gst_row = doc.append("gst_table", {})
+                else:
+                    # Update existing row if name is present
+                    # gst_row = None
+                    for existing_row in doc.gst_table:
+                        if existing_row.name == row.get("name"):
+                            gst_row = existing_row
+                            break
 
-            # index = 0
-            # for row in data["gst_table"]:
-            #     is_duplicate = False
+                    if not gst_row:
+                        # If row name provided but not matched, skip or log error
+                        continue  
 
-                # for existing_row in doc.gst_table:
-                #     if (
-                #         (existing_row.gst_state or "").strip().lower() == (row.get("gst_state") or "").strip().lower() and
-                #         (existing_row.gst_number or "").strip().lower() == (row.get("gst_number") or "").strip().lower() and
-                #         (str(existing_row.gst_registration_date or "").strip() == str(row.get("gst_registration_date") or "").strip()) and 
-                #         (existing_row.gst_ven_type or "").strip().lower() == (row.get("gst_ven_type") or "").strip().lower()
-                #     ):
-                #         is_duplicate = True
-                #         break
-
-                # if not is_duplicate:
-                #     gst_row = doc.append("gst_table", row)
+                # Update only fields that are present and changed
+                fields = ["gst_state", "gst_number", "gst_registration_date", "gst_ven_type"]
+                for field in fields:
+                    if field in row and getattr(gst_row, field, None) != row[field]:
+                        gst_row.set(field, row[field])
 
                 # Attach file if present
                 file_key = f"gst_document"
