@@ -23,6 +23,7 @@
   "registered_date",
   "qa_required",
   "created_from_registration",
+  "user_create",
   "multiple_company_data_section",
   "multiple_company_data",
   "vendor_type_section",
@@ -237,12 +238,18 @@
    "fieldname": "created_from_registration",
    "fieldtype": "Check",
    "label": "Created From Registration"
+  },
+  {
+   "default": "0",
+   "fieldname": "user_create",
+   "fieldtype": "Check",
+   "label": "User Create"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-02 12:37:04.407464",
+ "modified": "2025-06-05 18:46:18.195253",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
@@ -267,5 +274,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "vendor_name"
+ "title_field": "vendor_name",
+ "track_changes": 1
 }

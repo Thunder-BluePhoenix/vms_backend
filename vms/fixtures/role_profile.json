@@ -1,0 +1,17 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-06-05 20:01:14.388701",
+  "name": "Vendor",
+  "role_profile": "Vendor",
+  "roles": [
+   {
+    "parent": "Vendor",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Vendor"
+   }
+  ]
+ }
+]
