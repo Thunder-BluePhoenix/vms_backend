@@ -386,19 +386,20 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         purchasing_details = []
 
-        if doc:
+        if vendor_onboarding:
+            vonb = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
             pur_data = {
-            "company_name" : doc.company_name,
-            "purchase_organization" : doc.purchase_organization,
-            "order_currency" : doc.order_currency,
-            "terms_of_payment": doc.terms_of_payment,
-            "purchase_group" : doc.purchase_group,
-            "account_group" : doc.account_group,
-            "reconciliation_account" : doc.reconciliation_account,
-            "qa_team_remarks" : doc.qa_team_remarks,
-            "purchase_team_remarks" : doc.purchase_team_remarks,
-            "purchase_head_remarks" : doc.purchase_head_remarks,
-            "incoterms" : doc.incoterms,
+            "company_name" : vonb.company_name or None,
+            "purchase_organization" : vonb.purchase_organization or None,
+            "order_currency" : vonb.order_currency or None,
+            "terms_of_payment": vonb.terms_of_payment or None,
+            "purchase_group" : vonb.purchase_group or None,
+            "account_group" : vonb.account_group or None,
+            "reconciliation_account" : vonb.reconciliation_account or None,
+            "qa_team_remarks" : vonb.qa_team_remarks or None,
+            "purchase_team_remarks" : vonb.purchase_team_remarks or None,
+            "purchase_head_remarks" : vonb.purchase_head_remarks or None,
+            "incoterms" : vonb.incoterms or None,
             }
         else :
              pur_data = {
