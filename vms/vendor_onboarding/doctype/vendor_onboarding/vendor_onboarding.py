@@ -61,6 +61,7 @@ def on_update_check_fields(self,method=None):
     # set_vendor_onboarding_status(self,method=None)
 
     if result["success"]:
+        self.mandatory_data_filled = 1
         return f"✅ Validation passed for {len(result['data'])} company records"
     else:
         return f"❌ Validation failed: {result['message']}"
@@ -320,7 +321,7 @@ def validate_mandatory_data(onb_ref):
             # print("Runninggggggggggggggggggggggggggggggggggggg@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
             onb.mandatory_data_filled = 1
             # frappe.db.commit()
-            onb.db_update()
+            # onb.db_update()
             return {
                 "success": True,
                 "message": "Validation successful",

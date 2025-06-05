@@ -130,10 +130,11 @@ def accounts_team_check(data):
         onboard_id = data.get("onboard_id")
         user = data.get("user")
         is_approved = int(data.get("approve"))
+        
         is_rejected = int(data.get("reject"))
         rejection_reason = data.get("rejected_reason")
         comments = data.get("comments")
-
+        reconciliation_account = data.get("reconciliation_account")
         if is_approved and is_rejected:
             frappe.throw(_("Cannot approve and reject at the same time."))
 
@@ -144,6 +145,7 @@ def accounts_team_check(data):
             onb_doc.accounts_t_approval = user
             onb_doc.accounts_team_undertaking = 1
             onb_doc.accounts_team_approval_remarks = comments
+            onb_doc.reconciliation_account = reconciliation_account
             message = _("Onboarding approved by Accounts Team.")
         elif is_rejected:
             if not rejection_reason:
