@@ -384,6 +384,38 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         else:
             certificate_details = []
 
+        purchasing_details = []
+
+        if doc:
+            pur_data = {
+            "company_name" : doc.company_name,
+            "purchase_organization" : doc.purchase_organization,
+            "order_currency" : doc.order_currency,
+            "terms_of_payment": doc.terms_of_payment,
+            "purchase_group" : doc.purchase_group,
+            "account_group" : doc.account_group,
+            "reconciliation_account" : doc.reconciliation_account,
+            "qa_team_remarks" : doc.qa_team_remarks,
+            "purchase_team_remarks" : doc.purchase_team_remarks,
+            "purchase_head_remarks" : doc.purchase_head_remarks,
+            "incoterms" : doc.incoterms,
+            }
+        else :
+             pur_data = {
+            "company_name" : "",
+            "purchase_organization" : "",
+            "order_currency" : "",
+            "terms_of_payment": "",
+            "purchase_group" : "",
+            "account_group" : "",
+            "reconciliation_account" : "",
+            "qa_team_remarks" : "",
+            "purchase_team_remarks" : "",
+            "purchase_head_remarks" : "",
+            "incoterms" : "",
+            }
+        purchasing_details.append(pur_data)
+
 
         return {
             "status": "success",
@@ -398,7 +430,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "machinery_details_tab": machinery_detail,
             "testing_details_tab": testing_detail,
             "reputed_partners_details_tab": reputed_partners,
-            "certificate_details_tab": certificate_details
+            "certificate_details_tab": certificate_details,
+            "purchasing_details": purchasing_details
         }
 
     except Exception as e:
