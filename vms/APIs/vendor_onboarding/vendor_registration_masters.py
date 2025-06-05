@@ -206,7 +206,7 @@ def vendor_onboarding_document_dropdown_master():
     try:
         gst_vendor_type = frappe.db.sql("SELECT name, registration_ven_code, registration_ven_name FROM `tabGST Registration Type Master`", as_dict=True)
         state_master = frappe.db.sql("SELECT name, state_code, state_name FROM `tabState Master`", as_dict=True)
-        
+
         return {
             "status": "success",
             "message": "Dropdown masters fetched successfully.",
