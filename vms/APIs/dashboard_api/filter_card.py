@@ -449,6 +449,14 @@ def approved_vendor_details(usr):
                 "message": "User does not have the required role.",
                 "vendor_onboarding": []
             }
+        
+        fields=[
+            "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status", "modified",
+            "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+            "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+            "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+            "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+            ]
 
         if "Accounts Team" in user_roles:
             # Filter by company for Accounts Team
@@ -468,13 +476,8 @@ def approved_vendor_details(usr):
                     "onboarding_form_status": "Approved",
                     "company_name": ["in", company_list]
                 },
-                fields=[
-                    "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
-                    "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
-                    "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
-                    "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
-                    "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
-                ]
+                fields=fields,
+                order_by="modified desc"
             )
         else:
             # Filter by team for Purchase/QA teams
@@ -500,13 +503,8 @@ def approved_vendor_details(usr):
                     "registered_by": ["in", user_ids],
                     "onboarding_form_status": "Approved"
                 },
-                fields=[
-                    "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
-                    "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
-                    "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
-                    "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
-                    "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
-                ]
+                fields=fields,
+                order_by="modified desc"
             )
 
         # Enrich with company vendor codes
@@ -531,6 +529,7 @@ def approved_vendor_details(usr):
                     "company_code": cvc.company_code,
                     "vendor_codes": vendor_code_children
                 })
+
 
             doc["company_vendor_codes"] = enriched_codes
 
@@ -565,50 +564,65 @@ def rejected_vendor_details(usr):
                 "message": "User does not have the required role.",
                 "vendor_onboarding": []
             }
-
-        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
-        if not team:
-            return {
-                "status": "error",
-                "message": "No Employee record found for the user.",
-                "vendor_onboarding": []
-            }
-
-        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
-        if not user_ids:
-            return {
-                "status": "error",
-                "message": "No users found in the same team.",
-                "vendor_onboarding": []
-            }
-
-        vendor_names = frappe.get_all(
-            "Vendor Master",
-            filters={"registered_by": ["in", user_ids]},
-            pluck="name"
-        )
-        if not vendor_names:
-            return {
-                "status": "error",
-                "message": "No vendor records found for this team.",
-                "vendor_onboarding": []
-            }
-
-        onboarding_docs = frappe.get_all(
-            "Vendor Onboarding",
-            filters={
-                "ref_no": ["in", vendor_names],
-                "onboarding_form_status": "Rejected"
-            },
-            fields=[
-                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
-                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
-                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
-                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
-                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
-            ]
-        )
         
+        fields=[
+            "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status", "moidified",
+            "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+            "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+            "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+            "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+        ]
+
+        if "Accounts Team" in user_roles:
+            # Filter by company for Accounts Team
+            employee = frappe.get_doc("Employee", {"user_id": usr})
+            company_list = [row.company_name for row in employee.company]
+
+            if not company_list:
+                return {
+                    "status": "error",
+                    "message": "No company records found in Employee.",
+                    "vendor_onboarding": []
+                }
+            
+
+            onboarding_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "onboarding_form_status": "Rejected",
+                    "company_name": ["in", company_list]
+                },
+                fields=fields,
+                order_by="modified desc" 
+            )
+        else:
+            # Filter by team for Purchase/QA teams
+            team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+            if not team:
+                return {
+                    "status": "error",
+                    "message": "No Employee record found for the user.",
+                    "vendor_onboarding": []
+                }
+
+            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+            if not user_ids:
+                return {
+                    "status": "error",
+                    "message": "No users found in the same team.",
+                    "vendor_onboarding": []
+                }
+
+            onboarding_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "registered_by": ["in", user_ids],
+                    "onboarding_form_status": "Rejected"
+                },
+                fields=fields,
+                order_by="modified desc"
+            )
+
         return {
             "status": "success",
             "message": "Rejected vendor onboarding records fetched successfully.",
@@ -639,49 +653,63 @@ def pending_vendor_details(usr):
                 "message": "User does not have the required role.",
                 "vendor_onboarding": []
             }
+        
+        fields=[
+            "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status", "modified",
+            "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+            "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+            "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+            "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+        ]
 
-        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
-        if not team:
-            return {
-                "status": "error",
-                "message": "No Employee record found for the user.",
-                "vendor_onboarding": []
-            }
+        if "Accounts Team" in user_roles:
+            # Filter by company for Accounts Team
+            employee = frappe.get_doc("Employee", {"user_id": usr})
+            company_list = [row.company_name for row in employee.company]
 
-        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
-        if not user_ids:
-            return {
-                "status": "error",
-                "message": "No users found in the same team.",
-                "vendor_onboarding": []
-            }
+            if not company_list:
+                return {
+                    "status": "error",
+                    "message": "No company records found in Employee.",
+                    "vendor_onboarding": []
+                }
 
-        vendor_names = frappe.get_all(
-            "Vendor Master",
-            filters={"registered_by": ["in", user_ids]},
-            pluck="name"
-        )
-        if not vendor_names:
-            return {
-                "status": "error",
-                "message": "No vendor records found for this team.",
-                "vendor_onboarding": []
-            }
+            onboarding_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "onboarding_form_status": "Pending",
+                    "company_name": ["in", company_list]
+                },
+                fields=fields,
+                order_by="modified desc"                
+            )
+        else:
+            # Filter by team for Purchase/QA teams
+            team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+            if not team:
+                return {
+                    "status": "error",
+                    "message": "No Employee record found for the user.",
+                    "vendor_onboarding": []
+                }
 
-        onboarding_docs = frappe.get_all(
-            "Vendor Onboarding",
-            filters={
-                "ref_no": ["in", vendor_names],
-                "onboarding_form_status": "Pending"
-            },
-            fields=[
-                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
-                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
-                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
-                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
-                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
-            ]
-        )
+            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+            if not user_ids:
+                return {
+                    "status": "error",
+                    "message": "No users found in the same team.",
+                    "vendor_onboarding": []
+                }
+
+            onboarding_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "registered_by": ["in", user_ids],
+                    "onboarding_form_status": "Pending"
+                },
+                fields=fields,
+                order_by="modified desc"
+            )
 
         return {
             "status": "success",
@@ -714,49 +742,64 @@ def expired_vendor_details(usr):
                 "message": "User does not have the required role.",
                 "vendor_onboarding": []
             }
+        
+        fields=[
+            "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status", "modified",
+            "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+            "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+            "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+            "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+        ]
 
-        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
-        if not team:
-            return {
-                "status": "error",
-                "message": "No Employee record found for the user.",
-                "vendor_onboarding": []
-            }
+        if "Accounts Team" in user_roles:
+            # Filter by company for Accounts Team
+            employee = frappe.get_doc("Employee", {"user_id": usr})
+            company_list = [row.company_name for row in employee.company]
 
-        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
-        if not user_ids:
-            return {
-                "status": "error",
-                "message": "No users found in the same team.",
-                "vendor_onboarding": []
-            }
+            if not company_list:
+                return {
+                    "status": "error",
+                    "message": "No company records found in Employee.",
+                    "vendor_onboarding": []
+                }
 
-        vendor_names = frappe.get_all(
-            "Vendor Master",
-            filters={"registered_by": ["in", user_ids]},
-            pluck="name"
-        )
-        if not vendor_names:
-            return {
-                "status": "error",
-                "message": "No vendor records found for this team.",
-                "vendor_onboarding": []
-            }
+            onboarding_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "onboarding_form_status": "Expired",
+                    "company_name": ["in", company_list]
+                },
+                fields=fields,
+                order_by="modified desc"
+                
+            )
+        else:
+            # Filter by team for Purchase/QA teams
+            team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+            if not team:
+                return {
+                    "status": "error",
+                    "message": "No Employee record found for the user.",
+                    "vendor_onboarding": []
+                }
 
-        onboarding_docs = frappe.get_all(
-            "Vendor Onboarding",
-            filters={
-                "ref_no": ["in", vendor_names],
-                "onboarding_form_status": "Expired"
-            },
-            fields=[
-                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
-                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
-                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
-                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
-                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
-            ]
-        )
+            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+            if not user_ids:
+                return {
+                    "status": "error",
+                    "message": "No users found in the same team.",
+                    "vendor_onboarding": []
+                }
+
+            onboarding_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "registered_by": ["in", user_ids],
+                    "onboarding_form_status": "Expired"
+                },
+                fields=fields,
+                order_by="modified desc"
+            )
 
         return {
             "status": "success",
@@ -773,6 +816,7 @@ def expired_vendor_details(usr):
             "vendor_onboarding": []
         }
 
+
 # Total vendor details
 
 @frappe.whitelist(allow_guest=False)
@@ -788,64 +832,83 @@ def total_vendor_details(usr):
                 "vendor_onboarding": []
             }
 
-        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
-        if not team:
-            return {
-                "status": "error",
-                "message": "No Employee record found for the user.",
-                "vendor_onboarding": []
-            }
+        if "Accounts Team" in user_roles:
+            employee = frappe.get_doc("Employee", {"user_id": usr})
+            company_list = [row.company_name for row in employee.company]
 
-        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
-        if not user_ids:
-            return {
-                "status": "error",
-                "message": "No users found in the same team.",
-                "vendor_onboarding": []
-            }
+            if not company_list:
+                return {
+                    "status": "error",
+                    "message": "No company records found in Employee.",
+                    "vendor_onboarding": []
+                }
 
-        vendor_names = frappe.get_all(
-            "Vendor Master",
-            filters={"registered_by": ["in", user_ids]},
-            pluck="name"
-        )
-        if not vendor_names:
-            return {
-                "status": "error",
-                "message": "No vendor records found for this team.",
-                "vendor_onboarding": []
-            }
+            onboarding_docs = frappe.db.sql("""
+                SELECT
+                    vo.name, vo.ref_no, vo.company_name, vo.company, vo.vendor_name, vo.onboarding_form_status,
+                    vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+                    vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
+                    vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+                    vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
+                    vo.creation, vo.modified
+                FROM `tabVendor Onboarding` vo
+                INNER JOIN (
+                    SELECT ref_no, MAX(creation) AS max_creation
+                    FROM `tabVendor Onboarding`
+                    WHERE company_name IN %(company_list)s
+                    GROUP BY ref_no
+                ) latest ON vo.ref_no = latest.ref_no AND vo.creation = latest.max_creation
+                ORDER BY vo.modified DESC
+            """, {"company_list": company_list}, as_dict=True)
 
-        # onboarding_docs = frappe.get_all(
-        #     "Vendor Onboarding",
-        #     filters={
-        #         "ref_no": ["in", vendor_names]
-        #     },
-        #     fields=[
-        #         "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
-        #         "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
-        #         "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
-        #         "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
-        #         "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
-        #     ]
-        # )
-        onboarding_docs = frappe.db.sql("""
-            SELECT
-                vo.name, vo.ref_no, vo.company_name, vo.company, vo.vendor_name, vo.onboarding_form_status,
-                vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
-                vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
-                vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
-                vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
-                vo.creation
-            FROM `tabVendor Onboarding` vo
-            INNER JOIN (
-                SELECT ref_no, MAX(creation) AS max_creation
-                FROM `tabVendor Onboarding`
-                WHERE ref_no IN %(vendor_names)s
-                GROUP BY ref_no
-            ) latest ON vo.ref_no = latest.ref_no AND vo.creation = latest.max_creation
-        """, {"vendor_names": vendor_names}, as_dict=True)
+        else:
+            team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+            if not team:
+                return {
+                    "status": "error",
+                    "message": "No Employee record found for the user.",
+                    "vendor_onboarding": []
+                }
 
+            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+            if not user_ids:
+                return {
+                    "status": "error",
+                    "message": "No users found in the same team.",
+                    "vendor_onboarding": []
+                }
+
+            # onboarding_docs = frappe.get_all(
+            #     "Vendor Onboarding",
+            #     filters={
+            #         "registered_by": ["in", user_ids]
+            #     },
+            #     fields=[
+            #         "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
+            #         "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+            #         "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+            #         "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+            #         "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+            #     ]
+            # )
+
+            onboarding_docs = frappe.db.sql("""
+                SELECT
+                    vo.name, vo.ref_no, vo.company_name, vo.company, vo.vendor_name, vo.onboarding_form_status,
+                    vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+                    vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
+                    vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+                    vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
+                    vo.creation, vo.modified
+                FROM `tabVendor Onboarding` vo
+                INNER JOIN (
+                    SELECT ref_no, MAX(creation) AS max_creation
+                    FROM `tabVendor Onboarding`
+                    WHERE registered_by IN %(user_ids)s
+                    GROUP BY ref_no
+                ) latest ON vo.ref_no = latest.ref_no AND vo.creation = latest.max_creation
+                ORDER BY vo.modified DESC
+            """, {"user_ids": user_ids}, as_dict=True)
 
         return {
             "status": "success",
@@ -854,10 +917,10 @@ def total_vendor_details(usr):
         }
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Toatl Vendor Details API Error")
+        frappe.log_error(frappe.get_traceback(), "Total Vendor Details API Error")
         return {
             "status": "error",
-            "message": "Failed to fetch Total8/ vendor onboarding data.",
+            "message": "Failed to fetch total vendor onboarding data.",
             "error": str(e),
             "vendor_onboarding": []
         }
@@ -878,53 +941,65 @@ def current_month_vendor_details(usr):
                 "vendor_onboarding": []
             }
 
-        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
-        if not team:
-            return {
-                "status": "error",
-                "message": "No Employee record found for the user.",
-                "vendor_onboarding": []
-            }
-
-        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
-        if not user_ids:
-            return {
-                "status": "error",
-                "message": "No users found in the same team.",
-                "vendor_onboarding": []
-            }
-
-        vendor_names = frappe.get_all(
-            "Vendor Master",
-            filters={"registered_by": ["in", user_ids]},
-            pluck="name"
-        )
-        if not vendor_names:
-            return {
-                "status": "error",
-                "message": "No vendor records found for this team.",
-                "vendor_onboarding": []
-            }
-
         # Get start and end of current month
         start_date = get_first_day(today())
         end_date = get_last_day(today())
 
-        # Fetch onboarding records created in current month
-        onboarding_docs = frappe.get_all(
-            "Vendor Onboarding",
-            filters={
-                "ref_no": ["in", vendor_names],
-                "creation": ["between", [start_date, end_date]]
-            },
-            fields=[
-                "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status",
-                "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
-                "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
-                "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
-                "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
-            ]
-        )
+        fields=[
+            "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status", "modified",
+            "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+            "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
+            "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
+            "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
+        ]
+
+        if "Accounts Team" in user_roles:
+            employee = frappe.get_doc("Employee", {"user_id": usr})
+            company_list = [row.company_name for row in employee.company]
+
+            if not company_list:
+                return {
+                    "status": "error",
+                    "message": "No company records found in Employee.",
+                    "vendor_onboarding": []
+                }
+
+            onboarding_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "company_name": ["in", company_list],
+                    "creation": ["between", [start_date, end_date]]
+                },
+                fields=fields,
+                order_by="modified desc"
+                
+            )
+        else:
+            team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+            if not team:
+                return {
+                    "status": "error",
+                    "message": "No Employee record found for the user.",
+                    "vendor_onboarding": []
+                }
+
+            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+            if not user_ids:
+                return {
+                    "status": "error",
+                    "message": "No users found in the same team.",
+                    "vendor_onboarding": []
+                }
+
+            onboarding_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "registered_by": ["in", user_ids],
+                    "creation": ["between", [start_date, end_date]]
+                },
+                fields=fields,
+                order_by="modified desc"
+            )
 
         # onboarding_docs = frappe.db.sql("""
         #     SELECT
@@ -963,6 +1038,7 @@ def current_month_vendor_details(usr):
         }
 
     
+# filtering total vendor details with pagination and dynamic filters
 
 @frappe.whitelist(allow_guest=False)
 def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None):
@@ -975,7 +1051,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
                 "message": "User mismatch or unauthorized access.",
                 "code": 404
             }
-                                      
+
         allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
         user_roles = frappe.get_roles(usr)
 
@@ -986,39 +1062,43 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
                 "vendor_onboarding": []
             }
 
-        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
-        if not team:
-            return {
-                "status": "error",
-                "message": "No Employee record found for the user.",
-                "vendor_onboarding": []
-            }
+        # Base filters
+        conditions = []
+        values = {}
 
-        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
-        if not user_ids:
-            return {
-                "status": "error",
-                "message": "No users found in the same team.",
-                "vendor_onboarding": []
-            }
+        if "Accounts Team" in user_roles:
+            employee = frappe.get_doc("Employee", {"user_id": usr})
+            company_list = [row.company_name for row in employee.company]
 
-        vendor_names = frappe.get_all(
-            "Vendor Master",
-            filters={"registered_by": ["in", user_ids]},
-            pluck="name"
-        )
-        if not vendor_names:
-            return {
-                "status": "error",
-                "message": "No vendor records found for this team.",
-                "vendor_onboarding": []
-            }
+            if not company_list:
+                return {
+                    "status": "error",
+                    "message": "No company records found in Employee.",
+                    "vendor_onboarding": []
+                }
 
-        # Build dynamic filters
-        conditions = ["vo.ref_no IN %(vendor_names)s"]
-        values = {
-            "vendor_names": vendor_names
-        }
+            conditions.append("vo.company_name IN %(company_list)s")
+            values["company_list"] = company_list
+
+        else:
+            team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+            if not team:
+                return {
+                    "status": "error",
+                    "message": "No Employee record found for the user.",
+                    "vendor_onboarding": []
+                }
+
+            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+            if not user_ids:
+                return {
+                    "status": "error",
+                    "message": "No users found in the same team.",
+                    "vendor_onboarding": []
+                }
+
+            conditions.append("vo.registered_by IN %(user_ids)s")
+            values["user_ids"] = user_ids
 
         if company:
             conditions.append("vo.company_name = %(company)s")
@@ -1034,21 +1114,21 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
 
         filter_clause = " AND ".join(conditions)
 
-        # Total count for pagination metadata
+        # Total count for pagination
         total_count = frappe.db.sql(f"""
             SELECT COUNT(*) AS count
             FROM `tabVendor Onboarding` vo
             WHERE {filter_clause}
         """, values)[0][0]
 
-        # Pagination logic
+        # Pagination
         page_no = int(page_no) if page_no else 1
         page_length = int(page_length) if page_length else 5
         offset = (page_no - 1) * page_length
         values["limit"] = page_length
         values["offset"] = offset
 
-        # Final query with LIMIT and OFFSET
+        # Final query
         onboarding_docs = frappe.db.sql(f"""
             SELECT
                 vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status,
@@ -1072,7 +1152,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
             "page_no": page_no,
             "page_length": page_length,
             "total_vendor_onboarding": onboarding_docs,
-            "vendor_names": vendor_names
+            # "vendor_names": vendor_names
         }
 
     except Exception as e:
@@ -1084,4 +1164,3 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
             "vendor_onboarding": []
         }
 
- 
