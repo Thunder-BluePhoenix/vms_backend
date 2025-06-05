@@ -62,6 +62,7 @@ def on_update_check_fields(self,method=None):
 
     if result["success"]:
         self.mandatory_data_filled = 1
+        frappe.db.commit()
         return f"✅ Validation passed for {len(result['data'])} company records"
     else:
         return f"❌ Validation failed: {result['message']}"
@@ -97,13 +98,18 @@ def validate_mandatory_data(onb_ref):
         vendor_type_names_str = ", ".join(vendor_type_names)
 
         validation_errors = []
-
+#--------------------------- impt bnk details check
         # Check for missing table validations first
-        if not onb_pmd.international_bank_details or len(onb_pmd.international_bank_details) == 0:
-            validation_errors.append("International Bank Details table is empty (Vendor Onboarding Payment Details)")
+        # if not onb_pmd.international_bank_details or len(onb_pmd.international_bank_details) == 0:
+        #     validation_errors.append("International Bank Details table is empty (Vendor Onboarding Payment Details)")
         
-        if not onb_pmd.intermediate_bank_details or len(onb_pmd.intermediate_bank_details) == 0:
-            validation_errors.append("Intermediate Bank Details table is empty (Vendor Onboarding Payment Details)")
+        # if not onb_pmd.intermediate_bank_details or len(onb_pmd.intermediate_bank_details) == 0:
+        #     validation_errors.append("Intermediate Bank Details table is empty (Vendor Onboarding Payment Details)")
+
+#-----------------------------------------------------------------------
+
+
+
 
         # If tables are missing, don't proceed with company-specific validation
         # if validation_errors:
@@ -172,60 +178,60 @@ def validate_mandatory_data(onb_ref):
             }
 
             # Check if international banking details exist
-            if not onb_pmd.international_bank_details or len(onb_pmd.international_bank_details) == 0:
-                validation_errors.append(f"Company {com_vcd.company_code}: International bank details are mandatory but missing")
-                # Set empty values for international bank fields
-                data.update({
-                    "ZZBENF_NAME": "",
-                    "ZZBEN_BANK_NM": "",
-                    "ZZBEN_ACCT_NO": "",
-                    "ZZBENF_IBAN": "",
-                    "ZZBENF_BANKADDR": "",
-                    "ZZBENF_SHFTADDR": "",
-                    "ZZBENF_ACH_NO": "",
-                    "ZZBENF_ABA_NO": "",
-                    "ZZBENF_ROUTING": "",
-                })
-            else:
-                intl_bank = onb_pmd.international_bank_details[0]
-                data.update({
-                    "ZZBENF_NAME": intl_bank.beneficiary_name,
-                    "ZZBEN_BANK_NM": intl_bank.beneficiary_bank_name,
-                    "ZZBEN_ACCT_NO": intl_bank.beneficiary_account_no,
-                    "ZZBENF_IBAN": intl_bank.beneficiary_iban_no,
-                    "ZZBENF_BANKADDR": intl_bank.beneficiary_bank_address,
-                    "ZZBENF_SHFTADDR": intl_bank.beneficiary_swift_code,
-                    "ZZBENF_ACH_NO": intl_bank.beneficiary_ach_no,
-                    "ZZBENF_ABA_NO": intl_bank.beneficiary_aba_no,
-                    "ZZBENF_ROUTING": intl_bank.beneficiary_routing_no,
-                })
+            # if not onb_pmd.international_bank_details or len(onb_pmd.international_bank_details) == 0:
+            #     validation_errors.append(f"Company {com_vcd.company_code}: International bank details are mandatory but missing")
+            #     # Set empty values for international bank fields
+            #     data.update({
+            #         "ZZBENF_NAME": "",
+            #         "ZZBEN_BANK_NM": "",
+            #         "ZZBEN_ACCT_NO": "",
+            #         "ZZBENF_IBAN": "",
+            #         "ZZBENF_BANKADDR": "",
+            #         "ZZBENF_SHFTADDR": "",
+            #         "ZZBENF_ACH_NO": "",
+            #         "ZZBENF_ABA_NO": "",
+            #         "ZZBENF_ROUTING": "",
+            #     })
+            # else:
+            #     intl_bank = onb_pmd.international_bank_details[0]
+            #     data.update({
+            #         "ZZBENF_NAME": intl_bank.beneficiary_name,
+            #         "ZZBEN_BANK_NM": intl_bank.beneficiary_bank_name,
+            #         "ZZBEN_ACCT_NO": intl_bank.beneficiary_account_no,
+            #         "ZZBENF_IBAN": intl_bank.beneficiary_iban_no,
+            #         "ZZBENF_BANKADDR": intl_bank.beneficiary_bank_address,
+            #         "ZZBENF_SHFTADDR": intl_bank.beneficiary_swift_code,
+            #         "ZZBENF_ACH_NO": intl_bank.beneficiary_ach_no,
+            #         "ZZBENF_ABA_NO": intl_bank.beneficiary_aba_no,
+            #         "ZZBENF_ROUTING": intl_bank.beneficiary_routing_no,
+            #     })
 
             # Check if intermediate banking details exist
-            if not onb_pmd.intermediate_bank_details or len(onb_pmd.intermediate_bank_details) == 0:
-                validation_errors.append(f"Company {com_vcd.company_code}: Intermediate bank details are mandatory but missing")
-                # Set empty values for intermediate bank fields
-                data.update({
-                    "ZZINTR_ACCT_NO": "",
-                    "ZZINTR_IBAN": "",
-                    "ZZINTR_BANK_NM": "",
-                    "ZZINTR_BANKADDR": "",
-                    "ZZINTR_SHFTADDR": "",
-                    "ZZINTR_ACH_NO": "",
-                    "ZZINTR_ABA_NO": "",
-                    "ZZINTR_ROUTING": "",
-                })
-            else:
-                inter_bank = onb_pmd.intermediate_bank_details[0]
-                data.update({
-                    "ZZINTR_ACCT_NO": inter_bank.intermediate_account_no,
-                    "ZZINTR_IBAN": inter_bank.intermediate_iban_no,
-                    "ZZINTR_BANK_NM": inter_bank.intermediate_bank_name,
-                    "ZZINTR_BANKADDR": inter_bank.intermediate_bank_address,
-                    "ZZINTR_SHFTADDR": inter_bank.intermediate_swift_code,
-                    "ZZINTR_ACH_NO": inter_bank.intermediate_ach_no,
-                    "ZZINTR_ABA_NO": inter_bank.intermediate_aba_no,
-                    "ZZINTR_ROUTING": inter_bank.intermediate_routing_no,
-                })
+            # if not onb_pmd.intermediate_bank_details or len(onb_pmd.intermediate_bank_details) == 0:
+            #     validation_errors.append(f"Company {com_vcd.company_code}: Intermediate bank details are mandatory but missing")
+            #     # Set empty values for intermediate bank fields
+            #     data.update({
+            #         "ZZINTR_ACCT_NO": "",
+            #         "ZZINTR_IBAN": "",
+            #         "ZZINTR_BANK_NM": "",
+            #         "ZZINTR_BANKADDR": "",
+            #         "ZZINTR_SHFTADDR": "",
+            #         "ZZINTR_ACH_NO": "",
+            #         "ZZINTR_ABA_NO": "",
+            #         "ZZINTR_ROUTING": "",
+            #     })
+            # else:
+            #     inter_bank = onb_pmd.intermediate_bank_details[0]
+            #     data.update({
+            #         "ZZINTR_ACCT_NO": inter_bank.intermediate_account_no,
+            #         "ZZINTR_IBAN": inter_bank.intermediate_iban_no,
+            #         "ZZINTR_BANK_NM": inter_bank.intermediate_bank_name,
+            #         "ZZINTR_BANKADDR": inter_bank.intermediate_bank_address,
+            #         "ZZINTR_SHFTADDR": inter_bank.intermediate_swift_code,
+            #         "ZZINTR_ACH_NO": inter_bank.intermediate_ach_no,
+            #         "ZZINTR_ABA_NO": inter_bank.intermediate_aba_no,
+            #         "ZZINTR_ROUTING": inter_bank.intermediate_routing_no,
+            #     })
 
             # Define fields that are intentionally allowed to be empty (these won't be validated)
             allowed_empty_fields = {
