@@ -138,9 +138,9 @@
   },
   {
    "fieldname": "company",
-   "fieldtype": "Link",
+   "fieldtype": "Table",
    "label": "Company",
-   "options": "Company Master"
+   "options": "Multiple Company Name"
   },
   {
    "fieldname": "department",
@@ -265,7 +265,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-02 10:22:02.058291",
+ "modified": "2025-06-04 14:08:24.144827",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",
