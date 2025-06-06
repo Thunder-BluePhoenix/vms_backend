@@ -42,6 +42,7 @@ class CompanyVendorCode(Document):
 			# Update vendor master
 			vend.user_create = 1
 			vend.save(ignore_permissions=True)
+			frappe.db.commit()
 			
 			frappe.msgprint(f"User created and email sent successfully for vendor: {vend.vendor_name}")
 		else:
