@@ -110,7 +110,7 @@ def erp_to_sap_vendor_data(onb_ref):
             "ZZINTR_ROUTING": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_routing_no"),
             "Refno": onb.ref_no,
             "Vedno": "",
-            "Zmsg": ""
+            "Zmsg": "Ind"
                 }
         data_list.append(data)
 
