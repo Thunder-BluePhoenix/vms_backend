@@ -145,7 +145,7 @@ def erp_to_sap_vendor_data(onb_ref):
             key2 = response.cookies.get('sap-usercontext')
             
             # Sending details to SAP
-            send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, vcd.state, vcd.gst, vcd.company_name)
+            send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, vcd.state, vcd.gst, com_code)
             
             return data
         else:
