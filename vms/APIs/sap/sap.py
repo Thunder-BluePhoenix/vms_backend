@@ -198,6 +198,7 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         response = requests.post(url, headers=headers, auth=auth ,json=data)
         vendor_sap_code = response.json()
         vendor_code = vendor_sap_code['d']['Vedno']
+        frappe.log_error(f"vendor code: {vendor_sap_code if response else 'No response'}")
 
         ref_vm = frappe.get_doc("Vendor Master", name)
         
@@ -249,7 +250,7 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
                 "gst_no": gst,
                 "state": state
             })
-        ref_vm.save()
+        ref_vm.db_update()
 
         
 
@@ -279,6 +280,7 @@ def update_sap_vonb(doc, method=None):
         erp_to_sap_vendor_data(doc.name)
         doc.data_sent_to_sap = 1
         # doc.save()
+        doc.db_update()
         frappe.db.commit()
 
 
