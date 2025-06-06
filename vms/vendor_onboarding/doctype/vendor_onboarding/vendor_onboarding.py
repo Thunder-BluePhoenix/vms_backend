@@ -370,8 +370,8 @@ def set_vendor_onboarding_status(doc, method=None):
 
         return {
             "status": "success",
-            "message": f"Status updated to '{doc.status}' successfully.",
-            "doc_status": doc.status
+            "message": f"Status updated to '{doc.onboarding_form_status}' successfully.",
+            "doc_status": doc.onboarding_form_status
         }
 
     except Exception as e:
