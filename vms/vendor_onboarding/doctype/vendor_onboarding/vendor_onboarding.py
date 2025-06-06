@@ -165,8 +165,8 @@ def validate_mandatory_data(onb_ref):
                 "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                 "J1ipanno": vcd.company_pan_number,
                 "J1ipanref": onb_vm.vendor_name,
-                "Namev": onb_vm.first_name,
-                "Name11": onb_vm.last_name,
+                "Namev": onb_vm.first_name or "",
+                "Name11": onb_vm.last_name or "",
                 "Bankl": onb_bank.bank_code,
                 "Bankn": onb_pmd.account_number,
                 "Bkref": onb_bank.bank_name,
@@ -235,7 +235,7 @@ def validate_mandatory_data(onb_ref):
 
             # Define fields that are intentionally allowed to be empty (these won't be validated)
             allowed_empty_fields = {
-                "Title", "Name2", "StrSuppl1", "StrSuppl2", "StrSuppl3", "TelNumber", 
+                "Title", "Name2", "StrSuppl1", "StrSuppl2", "StrSuppl3", "TelNumber", "Namev", "Name11",
                 "SmtpAddr1", "J1kftind", "Zuawa", "Kalsk", "Xezer", "Vedno", "Zmsg"
             }
             
