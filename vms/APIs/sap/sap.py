@@ -90,23 +90,24 @@ def erp_to_sap_vendor_data(onb_ref):
             "Banka": onb_bank.ifsc_code,
             # "koinh": name_of_account_holder,
             "Xezer": "",
-            "ZZBENF_NAME" : onb_pmd.international_bank_details[0].beneficiary_name or "",
-            "ZZBEN_BANK_NM" : onb_pmd.international_bank_details[0].beneficiary_bank_name or "",
-            "ZZBEN_ACCT_NO" : onb_pmd.international_bank_details[0].beneficiary_account_no or "",
-            "ZZBENF_IBAN" : onb_pmd.international_bank_details[0].beneficiary_iban_no or "",
-            "ZZBENF_BANKADDR" : onb_pmd.international_bank_details[0].beneficiary_bank_address or "",
-            "ZZBENF_SHFTADDR" : onb_pmd.international_bank_details[0].beneficiary_swift_code or "",
-            "ZZBENF_ACH_NO" : onb_pmd.international_bank_details[0].beneficiary_ach_no or "",
-            "ZZBENF_ABA_NO" : onb_pmd.international_bank_details[0].beneficiary_aba_no or "",
-            "ZZBENF_ROUTING" : onb_pmd.international_bank_details[0].beneficiary_routing_no or "",
-            "ZZINTR_ACCT_NO" : onb_pmd.intermediate_bank_details[0].intermediate_account_no or "" or "",
-            "ZZINTR_IBAN" : onb_pmd.intermediate_bank_details[0].intermediate_iban_no or "",
-            "ZZINTR_BANK_NM" : onb_pmd.intermediate_bank_details[0].intermediate_bank_name or "",
-            "ZZINTR_BANKADDR" : onb_pmd.intermediate_bank_details[0].intermediate_bank_address or "",
-            "ZZINTR_SHFTADDR" : onb_pmd.intermediate_bank_details[0].intermediate_swift_code or "",
-            "ZZINTR_ACH_NO" : onb_pmd.intermediate_bank_details[0].intermediate_ach_no or "",
-            "ZZINTR_ABA_NO" : onb_pmd.intermediate_bank_details[0].intermediate_aba_no or "",
-            "ZZINTR_ROUTING" : onb_pmd.intermediate_bank_details[0].intermediate_routing_no or "",
+            "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
+            "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
+            "ZZBEN_ACCT_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_account_no"),
+            "ZZBENF_IBAN": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_iban_no"),
+            "ZZBENF_BANKADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_address"),
+            "ZZBENF_SHFTADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_swift_code"),
+            "ZZBENF_ACH_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_ach_no"),
+            "ZZBENF_ABA_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_aba_no"),
+            "ZZBENF_ROUTING": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_routing_no"),
+
+            "ZZINTR_ACCT_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_account_no"),
+            "ZZINTR_IBAN": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_iban_no"),
+            "ZZINTR_BANK_NM": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_name"),
+            "ZZINTR_BANKADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_address"),
+            "ZZINTR_SHFTADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_swift_code"),
+            "ZZINTR_ACH_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_ach_no"),
+            "ZZINTR_ABA_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_aba_no"),
+            "ZZINTR_ROUTING": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_routing_no"),
             "Refno": onb.ref_no,
             "Vedno": "",
             "Zmsg": ""
@@ -151,6 +152,13 @@ def erp_to_sap_vendor_data(onb_ref):
             frappe.log_error(f"Failed to fetch CSRF token from SAP: {response.status_code if response else 'No response'}")
             return None
    
+
+def safe_get(obj, list_name, index, attr, default=""):
+    try:
+        return getattr(getattr(obj, list_name)[index], attr) or default
+    except (AttributeError, IndexError, TypeError):
+        return default
+
 #******************************* SAP PUSH  ************************************************************
 
 @frappe.whitelist(allow_guest=True)
@@ -267,3 +275,30 @@ def update_sap_vonb(doc, method=None):
         doc.data_sent_to_sap = 1
         # doc.save()
         frappe.db.commit()
+
+
+
+
+
+
+
+# data = {
+#     "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
+#     "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
+#     "ZZBEN_ACCT_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_account_no"),
+#     "ZZBENF_IBAN": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_iban_no"),
+#     "ZZBENF_BANKADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_address"),
+#     "ZZBENF_SHFTADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_swift_code"),
+#     "ZZBENF_ACH_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_ach_no"),
+#     "ZZBENF_ABA_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_aba_no"),
+#     "ZZBENF_ROUTING": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_routing_no"),
+
+#     "ZZINTR_ACCT_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_account_no"),
+#     "ZZINTR_IBAN": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_iban_no"),
+#     "ZZINTR_BANK_NM": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_name"),
+#     "ZZINTR_BANKADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_address"),
+#     "ZZINTR_SHFTADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_swift_code"),
+#     "ZZINTR_ACH_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_ach_no"),
+#     "ZZINTR_ABA_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_aba_no"),
+#     "ZZINTR_ROUTING": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_routing_no"),
+# }
