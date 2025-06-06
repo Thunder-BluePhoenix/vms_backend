@@ -145,7 +145,7 @@ def erp_to_sap_vendor_data(onb_ref):
             key2 = response.cookies.get('sap-usercontext')
             
             # Sending details to SAP
-            send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, vcd.state, vcd.gst, com_code)
+            send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, vcd.state, vcd.gst, vcd.company_name)
             
             return data
         else:
@@ -201,9 +201,14 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
 
         ref_vm = frappe.get_doc("Vendor Master", name)
         
-        cvc = frappe.get_doc("Company Vendor Code", {"sap_client_code":sap_code, "vendor_ref_no": ref_vm.name}) or None
+        cvc = None
+        try:
+            cvc = frappe.get_doc("Company Vendor Code", {"sap_client_code": sap_code, "vendor_ref_no": ref_vm.name})
+        except frappe.DoesNotExistError:
+            cvc = None
 
-        if not cvc:
+
+        if cvc == None:
             cvc = frappe.new_doc("Company Vendor Code")  
             cvc.vendor_ref_no = ref_vm.name
             cvc.company_name = company_name
