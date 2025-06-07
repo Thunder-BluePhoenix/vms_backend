@@ -279,7 +279,6 @@
    "options": "Vendor Onboarding"
   },
   {
-   "fetch_from": "vendor_onboarding.ref_no",
    "fieldname": "ref_no",
    "fieldtype": "Link",
    "label": "Ref No.",
@@ -326,7 +325,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:15:16.135259",
+ "modified": "2025-06-07 14:59:21.454594",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",
