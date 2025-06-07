@@ -71,7 +71,7 @@ def account_group_details(purchase_organization=None):
     account_group_master = frappe.get_all(
         "Account Group Master", 
         filters={"purchase_organization": purchase_organization},
-        fields=["name", "account_group_name"]
+        fields=["name", "account_group_name", "account_group_description"]
     )
 
     return account_group_master
