@@ -7,6 +7,10 @@ def country_details(data):
     country = data.get("country")
 
     country_details = frappe.get_doc("Country Master", country)
-    country_code = country_details.mobile_code
+    mobile_code = None
+    if country_details.mobile_code != None:
+        mobile_code = country_details.mobile_code
+    else:
+        mobile_code = "None"
 
-    return country_code
+    return mobile_code
