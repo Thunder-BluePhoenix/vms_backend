@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 
 # Purchase Team Details
 @frappe.whitelist(allow_guest=True)
@@ -9,6 +10,9 @@ def get_purchase_team_details(company_name=None):
                 "status": "error",
                 "message": "Please provide a company name."
             }
+        
+        user = frappe.session.user
+        emp = frappe.get_doc("Employee", {"user_id": user})
 
         # Validate Company
         company = frappe.get_value("Company Master", {"name": company_name}, "name")
@@ -28,7 +32,7 @@ def get_purchase_team_details(company_name=None):
         # Fetch Purchase Groups
         purchase_groups = frappe.get_all(
             "Purchase Group Master",
-            filters={"company": company},
+            filters={"company": company, "team": emp.team},
             fields=["name", "purchase_group_name", "description"]
         )
 
@@ -75,6 +79,9 @@ def account_group_details(purchase_organization=None):
     )
 
     return account_group_master
+
+
+
     
 # http://127.0.0.1:8003/api/method/vms.APIs.vendor_onboarding.vendor_field_details.account_group_details?purchase_organization=Meril Medical Import-2212
 
