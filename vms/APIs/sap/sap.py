@@ -66,7 +66,7 @@ def erp_to_sap_vendor_data(onb_ref):
             "City1": vcd.city,
             "Country": country_code,
             "J1kftind": "",
-            "Region": vcd_state.state_code,
+            "Region": vcd_state.sap_state_code,
             "TelNumber": "",
             "MobNumber": onb_vm.mobile_number,
             "SmtpAddr": onb_vm.office_email_primary,
