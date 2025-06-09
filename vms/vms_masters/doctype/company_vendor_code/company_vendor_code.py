@@ -10,11 +10,23 @@ import base64
 class CompanyVendorCode(Document):
 	def on_update(self):
 		vend = frappe.get_doc("Vendor Master", self.vendor_ref_no)
+		found = False
+		for mcd in vend.multiple_company_data:
+			if mcd.company_name == self.company_name:
+				mcd.company_vendor_code = self.name
+				found = True
+				break
+
+		if not found:
+			vend.append("multiple_company_data", {
+				"company_vendor_code": self.name
+			})
+		# vend.db_update()
 		
 		# Collect all vendor code data for PDF
 		vendor_code_data = self.collect_vendor_code_data(vend)
 		
-		if not vend.user_create:
+		if not frappe.db.exists("User", vend.office_email_primary):
 			# User doesn't exist - create user and send email with PDF
 			password = self.generate_random_password()
 			
@@ -55,6 +67,9 @@ class CompanyVendorCode(Document):
 				vendor_code_data=vendor_code_data,
 				is_new_user=False
 			)
+			vend.user_create = 1
+			vend.save(ignore_permissions=True)
+			frappe.db.commit()
 			
 			frappe.msgprint(f"Email with vendor code data sent successfully for vendor: {vend.vendor_name}")
 
