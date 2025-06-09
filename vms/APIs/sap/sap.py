@@ -44,6 +44,8 @@ def erp_to_sap_vendor_data(onb_ref):
         com_code = com_vcd.company_code
         sap_client_code = com_vcd.sap_client_code
 
+        
+
 
 
 
@@ -67,7 +69,7 @@ def erp_to_sap_vendor_data(onb_ref):
             "TelNumber": "",
             "MobNumber": onb_vm.mobile_number,
             "SmtpAddr": onb_vm.office_email_primary,
-            "SmtpAddr1": onb_vm.office_email_secondary,
+            "SmtpAddr1": onb_vm.office_email_secondary or "",
             "Zuawa": "",
             "Akont": onb_reco.reconcil_account_code,
             "Waers": onb_pmd.currency_code,
@@ -84,8 +86,8 @@ def erp_to_sap_vendor_data(onb_ref):
             "J1ivtyp": vendor_type_names[0],
             "J1ipanno": vcd.company_pan_number,
             "J1ipanref": onb_vm.vendor_name,
-            "Namev": onb_vm.first_name,
-            "Name11": onb_vm.last_name,
+            "Namev": safe_get(onb, "contact_details", 0, "first_name"),
+            "Name11": safe_get(onb, "contact_details", 0, "last_name"),
             "Bankl": onb_bank.bank_code,
             "Bankn": onb_pmd.account_number,
             "Bkref": onb_bank.bank_name,
