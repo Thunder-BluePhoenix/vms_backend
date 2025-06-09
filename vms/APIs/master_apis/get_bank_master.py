@@ -5,12 +5,12 @@ import json
 
 
 @frappe.whitelist(allow_guest=True)
-def get_bank_list():
+def get_bank_list(company_name=None):
     try:
         
 
         # Fetch all currency records
-        all_banks = frappe.get_all("Bank Master", fields="name")
+        all_banks = frappe.get_all("Bank Master",filters={"company": company_name}, fields=["name", "bank_code", "bank_name", "description", "ifsc_code"])
 
         if not all_banks:
             return {
