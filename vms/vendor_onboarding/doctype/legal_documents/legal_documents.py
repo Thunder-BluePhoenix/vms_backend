@@ -36,10 +36,14 @@ class LegalDocuments(Document):
 		vonb_comp = frappe.get_doc("Vendor Onboarding Company Details", vonb_comp_name)
 
 		# ✅ Check if gst_table exists and has at least one row
+		vonb_comp.company_pan_number = self.company_pan_number
 		if self.gst_table and len(self.gst_table) > 0:
 			vonb_comp.gst = self.gst_table[0].gst_number
-			vonb_comp.save()
-			frappe.db.commit()
+			
+			# vonb_comp.save()
+			# frappe.db.commit()
 		else:
 			frappe.log_error("GST table is empty or missing in Legal Documents", "on_update")
 			pass
+		vonb_comp.save()
+		frappe.db.commit()
