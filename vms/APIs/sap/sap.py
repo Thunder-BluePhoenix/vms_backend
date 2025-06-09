@@ -38,6 +38,8 @@ def erp_to_sap_vendor_data(onb_ref):
     data_list = []
     for company in onb.vendor_company_details:
         vcd = frappe.get_doc("Vendor Onboarding Company Details", company.vendor_company_details)
+        country_doc = frappe.get_doc("Country Master", vcd.country)
+        country_code = country_doc.country_code
         com_vcd = frappe.get_doc("Company Master", vcd.company_name)
         com_code = com_vcd.company_code
         sap_client_code = com_vcd.sap_client_code
@@ -59,7 +61,7 @@ def erp_to_sap_vendor_data(onb_ref):
             "StrSuppl3": "",
             "PostCode1": vcd.pincode,
             "City1": vcd.city,
-            "Country": vcd.country,
+            "Country": country_code,
             "J1kftind": "",
             "Region": vcd.state,
             "TelNumber": "",
