@@ -257,7 +257,7 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         sap_log.vendor_onboarding_link = onb_name
         sap_log.erp_to_sap_data = data
         sap_log.sap_response = response
-        sap_log.save()
+        sap_log.save(ignore_permissions=False)
         
 
         
