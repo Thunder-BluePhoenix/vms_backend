@@ -145,7 +145,7 @@ def erp_to_sap_vendor_data(onb_ref):
             key2 = response.cookies.get('sap-usercontext')
             
             # Sending details to SAP
-            send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, vcd.state, vcd.gst, vcd.company_name)
+            send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, vcd.state, vcd.gst, vcd.company_name, onb.name)
             
             return data
         else:
@@ -162,7 +162,7 @@ def safe_get(obj, list_name, index, attr, default=""):
 #******************************* SAP PUSH  ************************************************************
 
 @frappe.whitelist(allow_guest=True)
-def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, company_name):
+def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, company_name, onb_name):
 
     sap_settings = frappe.get_doc("SAP Settings")
     erp_to_sap_url = sap_settings.url
@@ -198,7 +198,9 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         response = requests.post(url, headers=headers, auth=auth ,json=data)
         vendor_sap_code = response.json()
         vendor_code = vendor_sap_code['d']['Vedno']
-        frappe.log_error(f"vendor code: {vendor_sap_code if response else 'No response'}")
+        # frappe.log_error(f"vendor code: {vendor_sap_code if response else 'No response'}")
+        
+
 
         ref_vm = frappe.get_doc("Vendor Master", name)
         
@@ -251,7 +253,11 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
                 "state": state
             })
         ref_vm.db_update()
-
+        sap_log = frappe.new_doc("VMS SAP Logs")
+        sap_log.vendor_onboarding_link = onb_name
+        sap_log.erp_to_sap_data = data
+        sap_log.sap_response = response
+        sap_log.save()
         
 
         
@@ -260,6 +266,11 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         return response.json()
     except ValueError:
         print("************************** Response is here *********************", response.json())
+        sap_log = frappe.new_doc("VMS SAP Logs")
+        sap_log.vendor_onboarding_link = onb_name
+        sap_log.erp_to_sap_data = data
+        sap_log.sap_response = response
+        sap_log.save()
     
     
     if response.status_code == 201:  
