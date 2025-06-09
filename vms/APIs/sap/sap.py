@@ -256,8 +256,9 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         sap_log = frappe.new_doc("VMS SAP Logs")
         sap_log.vendor_onboarding_link = onb_name
         sap_log.erp_to_sap_data = data
-        sap_log.sap_response = response
-        sap_log.save(ignore_permissions=False)
+        sap_log.sap_response = response.text
+
+        sap_log.save(ignore_permissions=True)
         
 
         
@@ -269,7 +270,7 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         sap_log = frappe.new_doc("VMS SAP Logs")
         sap_log.vendor_onboarding_link = onb_name
         sap_log.erp_to_sap_data = data
-        sap_log.sap_response = response
+        sap_log.sap_response =  response.text
         sap_log.save()
     
     
@@ -277,6 +278,7 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         print("*****************************************")
         print("Vendor details posted successfully.")
         return response.json()
+    
 
     else:
         print("******************************************")

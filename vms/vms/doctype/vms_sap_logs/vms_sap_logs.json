@@ -26,22 +26,23 @@
   },
   {
    "fieldname": "erp_to_sap_data",
-   "fieldtype": "Long Text",
+   "fieldtype": "JSON",
    "label": "ERP to SAP DATA"
   },
   {
    "fieldname": "sap_response",
-   "fieldtype": "Long Text",
-   "label": "SAP Response"
+   "fieldtype": "JSON",
+   "label": "SAP Respnse"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-09 10:51:54.950754",
+ "modified": "2025-06-09 13:00:12.338042",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "VMS SAP Logs",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
