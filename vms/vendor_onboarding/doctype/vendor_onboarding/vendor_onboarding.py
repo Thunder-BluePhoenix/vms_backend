@@ -8,6 +8,9 @@ from frappe.utils.background_jobs import enqueue
 import json
 
 class VendorOnboarding(Document):
+     
+
+    
 	def after_insert(self):
 		exp_doc = frappe.get_doc("Vendor Onboarding Settings") or None
 
@@ -50,6 +53,7 @@ class VendorOnboarding(Document):
 
 	def on_update(self):
           set_vendor_onboarding_status(self,method=None)
+          vendor_company_update(self,method=None)
           on_update_check_fields(self,method=None)
 	
 def on_update_check_fields(self,method=None):
@@ -170,7 +174,7 @@ def validate_mandatory_data(onb_ref):
                 "Bankl": onb_bank.bank_code,
                 "Bankn": onb_pmd.account_number,
                 "Bkref": onb_bank.bank_name,
-                "Banka": onb_bank.ifsc_code,
+                "Banka": onb_pmd.ifsc_code,
                 "Xezer": "",
                 "Refno": onb.ref_no,
                 "Vedno": "",
@@ -382,3 +386,41 @@ def set_vendor_onboarding_status(doc, method=None):
             "error": str(e)
         }
          
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def vendor_company_update(doc, method=None):
+    vm = frappe.get_doc("Vendor Master", doc.ref_no)
+    
+    company_found = False
+
+    for com in vm.multiple_company_data:
+        if com.company_name == doc.company_name:
+            # Update existing entry
+            com.purchase_organization = doc.purchase_organization
+            com.account_group = doc.account_group
+            com.purchase_group = doc.purchase_group
+            com.terms_of_payment = doc.terms_of_payment
+            com.order_currency = doc.order_currency
+            com.incoterm = doc.incoterms
+            com.reconciliation_account = doc.reconciliation_account
+            company_found = True
+            break
+
+    if not company_found:
+        # Append new entry to the child table
+        vm.append("multiple_company_data", {
+            "company_name": doc.company_name,
+            "purchase_organization": doc.purchase_organization,
+            "account_group": doc.account_group,
+            "purchase_group": doc.purchase_group,
+            "terms_of_payment": doc.terms_of_payment,
+            "order_currency": doc.order_currency,
+            "incoterm": doc.incoterms,
+            "reconciliation_account": doc.reconciliation_account
+        })
+
+    vm.save()
+    frappe.db.commit()

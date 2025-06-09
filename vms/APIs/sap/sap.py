@@ -92,8 +92,8 @@ def erp_to_sap_vendor_data(onb_ref):
             "Bankl": onb_bank.bank_code,
             "Bankn": onb_pmd.account_number,
             "Bkref": onb_bank.bank_name,
-            "Banka": onb_bank.ifsc_code,
-            # "koinh": name_of_account_holder,
+            "Banka": onb_pmd.ifsc_code ,
+            # "koinh": onb_pmd.name_of_account_holder, #name_of_account_holder,
             "Xezer": "",
             "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
             "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
@@ -243,19 +243,19 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
 
         cvc.save()
 
-        found = False
-        for mcd in ref_vm.multiple_company_data:
-            if mcd.sap_client_code == sap_code:
-                mcd.company_vendor_code = cvc.name
-                found = True
-                break
+        # found = False
+        # for mcd in ref_vm.multiple_company_data:
+        #     if mcd.sap_client_code == sap_code:
+        #         mcd.company_vendor_code = cvc.name
+        #         found = True
+        #         break
 
-        if not found:
-            ref_vm.append("multiple_company_data", {
-                "company_vendor_code": cvc.name,
-                "gst_no": gst,
-                "state": state
-            })
+        # if not found:
+        #     ref_vm.append("multiple_company_data", {
+        #         "company_vendor_code": cvc.name,
+        #         "gst_no": gst,
+        #         "state": state
+        #     })
         ref_vm.db_update()
         sap_log = frappe.new_doc("VMS SAP Logs")
         sap_log.vendor_onboarding_link = onb_name
