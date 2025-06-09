@@ -43,6 +43,7 @@ def erp_to_sap_vendor_data(onb_ref):
         com_vcd = frappe.get_doc("Company Master", vcd.company_name)
         com_code = com_vcd.company_code
         sap_client_code = com_vcd.sap_client_code
+        vcd_state = frappe.get_doc("State Master", vcd.state)
 
         
 
@@ -65,7 +66,7 @@ def erp_to_sap_vendor_data(onb_ref):
             "City1": vcd.city,
             "Country": country_code,
             "J1kftind": "",
-            "Region": vcd.state,
+            "Region": vcd_state.state_code,
             "TelNumber": "",
             "MobNumber": onb_vm.mobile_number,
             "SmtpAddr": onb_vm.office_email_primary,
