@@ -21,7 +21,7 @@ def get_reconcilation_list(data):
 
         return {
             "status": "success",
-            "message": f"{len(rc_account)} Bank found.",
+            "message": f"{len(rc_account)} Reconciliation Account found.",
             "data": rc_account
         }
 
