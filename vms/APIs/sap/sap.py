@@ -205,10 +205,9 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         ref_vm = frappe.get_doc("Vendor Master", name)
         
         cvc = None
-        try:
-            cvc = frappe.get_doc("Company Vendor Code", {"sap_client_code": sap_code, "vendor_ref_no": ref_vm.name})
-        except frappe.DoesNotExistError:
-            cvc = None
+        cvc_name = frappe.db.exists("Company Vendor Code", {"sap_client_code": sap_code, "vendor_ref_no": ref_vm.name})
+        cvc = frappe.get_doc("Company Vendor Code", cvc_name) if cvc_name else None
+
 
 
         if cvc == None:
