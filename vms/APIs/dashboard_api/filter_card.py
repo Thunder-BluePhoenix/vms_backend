@@ -566,7 +566,7 @@ def rejected_vendor_details(usr):
             }
         
         fields=[
-            "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status", "moidified",
+            "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status", "modified",
             "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
             "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
             "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
