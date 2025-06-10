@@ -202,8 +202,8 @@ def build_user_response(user, api_credentials):
 
     if "Vendor" in user_roles:
         vendor_master = frappe.get_doc("Vendor Master", {"office_email_primary": user_doc.name})
-        data = collect_vendor_code_data(vendor_master, method=None)
-        return data
+        response = collect_vendor_code_data(vendor_master, method=None)
+        return response
 
 
     user_name = user_doc.full_name or frappe.db.get_value("User", user, "full_name")
