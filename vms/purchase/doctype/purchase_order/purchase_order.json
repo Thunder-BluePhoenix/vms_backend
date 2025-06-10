@@ -96,10 +96,13 @@
   "po_items",
   "tab_2_tab",
   "status",
-  "tentative_date",
+  "reason_for_rejection",
   "column_break_brva",
   "approved_by",
-  "approved_by_name"
+  "approved_by_name",
+  "tentative_date",
+  "rejected_by",
+  "rejected_by_name"
  ],
  "fields": [
   {
@@ -593,12 +596,29 @@
    "fieldname": "approved_by_name",
    "fieldtype": "Data",
    "label": "Approved By Name"
+  },
+  {
+   "fieldname": "reason_for_rejection",
+   "fieldtype": "Small Text",
+   "label": "Reason for Rejection"
+  },
+  {
+   "fieldname": "rejected_by",
+   "fieldtype": "Link",
+   "label": "Rejected By",
+   "options": "User"
+  },
+  {
+   "fetch_from": "rejected_by.full_name",
+   "fieldname": "rejected_by_name",
+   "fieldtype": "Data",
+   "label": "Rejected By Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-10 14:45:56.469474",
+ "modified": "2025-06-10 16:07:57.754692",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
