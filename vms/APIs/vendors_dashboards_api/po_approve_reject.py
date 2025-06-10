@@ -18,6 +18,8 @@ def po_approve(data):
     frappe.db.commit()
 
 
+
+
 @frappe.whitelist()
 def po_reject(data):
     po_name = data.get("po_name")
