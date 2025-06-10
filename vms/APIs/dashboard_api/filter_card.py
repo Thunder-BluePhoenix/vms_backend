@@ -124,19 +124,28 @@ def vendor_data_for_accounts(usr, user_roles):
                 "vendor_count": 0
             }
 
-        vendor_onboarding = frappe.get_all(
-            "Vendor Onboarding",
-            filters={"company_name": ["in", company_list]},
-            pluck="ref_no"
-        )
+        # vendor_onboarding = frappe.get_all(
+        #     "Vendor Onboarding",
+        #     filters={"company_name": ["in", company_list]},
+        #     pluck="ref_no"
+        # )
+
+        values = {"company_list": company_list}
+        total_vendor_count = frappe.db.sql("""
+            SELECT COUNT(*) FROM (
+                SELECT ref_no FROM `tabVendor Onboarding`
+                WHERE company_name IN %(company_list)s
+                GROUP BY ref_no
+            ) AS grouped
+        """, values)[0][0]
 
         start_date = get_first_day(today())
         end_date = get_last_day(today())
 
-        total_vendor_count = frappe.db.count(
-            "Vendor Master",
-            filters={"name": ["in", vendor_onboarding]}
-        )
+        # total_vendor_count = frappe.db.count(
+        #     "Vendor Master",
+        #     filters={"name": ["in", vendor_onboarding]}
+        # )
 
         approved_vendor_count = frappe.db.count(
             "Vendor Onboarding",
@@ -224,19 +233,19 @@ def vendor_data_for_purchase(usr, user_roles):
                 "message": "No users found in the same team.",
                 "vendor_count": 0
             }
+        
+        # vendor_names = frappe.get_all(
+        #     "Vendor Master",
+        #     filters={"registered_by": ["in", user_ids]},
+        #     pluck="name"
+        # )
 
-        vendor_names = frappe.get_all(
-            "Vendor Master",
-            filters={"registered_by": ["in", user_ids]},
-            pluck="name"
-        )
-
-        if not vendor_names:
-            return {
-                "status": "error",
-                "message": "No vendor records found for this team.",
-                "vendor_onboarding": []
-            }
+        # if not vendor_names:
+        #     return {
+        #         "status": "error",
+        #         "message": "No vendor records found for this team.",
+        #         "vendor_onboarding": []
+        #     }
 
         # Dates for current month
         start_date = get_first_day(today())
@@ -247,6 +256,15 @@ def vendor_data_for_purchase(usr, user_roles):
         #     "Vendor Onboarding",
         #     filters={"ref_no": ["in", vendor_names]}
         # )
+
+        values = {"user_ids": user_ids}
+        total_vendor_count = frappe.db.sql("""
+            SELECT COUNT(*) FROM (
+                SELECT ref_no FROM `tabVendor Onboarding`
+                WHERE registered_by IN %(user_ids)s
+                GROUP BY ref_no
+            ) AS grouped
+        """, values)[0][0]
 
         approved_vendor_count = frappe.db.count(
             "Vendor Onboarding",
@@ -277,10 +295,10 @@ def vendor_data_for_purchase(usr, user_roles):
         )
 
         # Count of Vendor Master records created by users from the same team
-        total_vendor_count = frappe.db.count(
-            "Vendor Master",
-            filters={"registered_by": ["in", user_ids]}
-        )
+        # total_vendor_count = frappe.db.count(
+        #     "Vendor Master",
+        #     filters={"registered_by": ["in", user_ids]}
+        # )
 
         # pending_vendor_count = frappe.db.count(
         #     "Vendor Master",

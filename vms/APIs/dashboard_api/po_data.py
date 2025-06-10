@@ -4,7 +4,7 @@ import json
 
 @frappe.whitelist(allow_guest = True)
 def get_po():
-    all_po = frappe.get_all("Purchase Order", fields ="*")
+    all_po = frappe.get_all("Purchase Order", fields ="*", order_by = "modified desc")
     return all_po
 
 
