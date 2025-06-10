@@ -335,20 +335,19 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
             }
 
         values = {}
+        filters = []
+
         if "Accounts Team" in user_roles:
             employee = frappe.get_doc("Employee", {"user_id": usr})
             company_list = [row.company_name for row in employee.company]
-
             if not company_list:
                 return {
                     "status": "error",
                     "message": "No company records found in Employee.",
                     "vendor_onboarding": []
                 }
-
-            where_clause = "company_name IN %(company_list)s"
+            filters.append("company_name IN %(company_list)s")
             values["company_list"] = company_list
-
         else:
             team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
             if not team:
@@ -357,7 +356,6 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
                     "message": "No Employee record found for the user.",
                     "vendor_onboarding": []
                 }
-
             user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
             if not user_ids:
                 return {
@@ -365,18 +363,24 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
                     "message": "No users found in the same team.",
                     "vendor_onboarding": []
                 }
-
-            where_clause = "registered_by IN %(user_ids)s"
+            filters.append("registered_by IN %(user_ids)s")
             values["user_ids"] = user_ids
 
-        # Pagination
+        if refno:
+            filters.append("ref_no = %(refno)s")
+            values["refno"] = refno
+
+        if company:
+            filters.append("company = %(company)s")
+            values["company"] = company
+
+        where_clause = " AND ".join(filters)
+
         page_no = int(page_no) if page_no else 1
         page_length = int(page_length) if page_length else 5
         offset = (page_no - 1) * page_length
-        values["limit"] = page_length
-        values["offset"] = offset
+        values.update({"limit": page_length, "offset": offset})
 
-        # Count Query
         total_count = frappe.db.sql(f"""
             SELECT COUNT(*)
             FROM (
@@ -387,7 +391,6 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
             ) AS temp
         """, values)[0][0]
 
-        # Main Query
         onboarding_docs = frappe.db.sql(f"""
             SELECT
                 vo.name, vo.ref_no, vo.company_name, vo.company, vo.vendor_name, vo.onboarding_form_status,
@@ -397,12 +400,11 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
                 vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
                 vo.creation, vo.modified
             FROM `tabVendor Onboarding` vo
-            INNER JOIN (
-                SELECT ref_no, MAX(creation) AS max_creation
-                FROM `tabVendor Onboarding`
-                WHERE {where_clause}
-                GROUP BY ref_no
-            ) latest ON vo.ref_no = latest.ref_no AND vo.creation = latest.max_creation
+            WHERE vo.creation = (
+                SELECT MAX(vo2.creation)
+                FROM `tabVendor Onboarding` vo2
+                WHERE vo2.ref_no = vo.ref_no AND {where_clause}
+            )
             ORDER BY vo.modified DESC
             LIMIT %(limit)s OFFSET %(offset)s
         """, values, as_dict=True)
