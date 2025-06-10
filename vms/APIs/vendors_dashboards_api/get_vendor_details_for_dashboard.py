@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 
 # get vendor details for dashboard
 
@@ -56,6 +57,14 @@ def get_vendor_details_for_dashboard(user):
             "message": "Failed to fetch vendor dashboard data.",
             "error": str(e)
         }
+
+
+
+@frappe.whitelist()
+def get_po_from_vendor_code(vendor_code):
+    all_po = frappe.get_all("Purchase Order",filters={"vendor_code": vendor_code}, fields ="*", order_by = "modified desc")
+    return all_po
+
 
 
 # @frappe.whitelist(allow_guest=False)
