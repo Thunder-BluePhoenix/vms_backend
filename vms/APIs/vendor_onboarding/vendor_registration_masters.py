@@ -8,7 +8,7 @@ def vendor_registration_dropdown_masters():
         vendor_type = frappe.db.sql("SELECT name  FROM `tabVendor Type Master`", as_dict=True)
         vendor_title = frappe.db.sql("SELECT name FROM `tabVendor Title`", as_dict=True)
         country_master = frappe.db.sql("SELECT name, country_name, mobile_code FROM `tabCountry Master`", as_dict=True)
-        company_master = frappe.db.sql("SELECT name, company_name FROM `tabCompany Master`", as_dict=True)
+        company_master = frappe.db.sql("SELECT name, company_name, company_code, description FROM `tabCompany Master`", as_dict=True)
         currency_master = frappe.db.sql("SELECT name, currency_name FROM `tabCurrency Master`", as_dict=True)
         incoterm_master = frappe.db.sql("SELECT name, incoterm_name FROM `tabIncoterm Master`", as_dict=True)
 

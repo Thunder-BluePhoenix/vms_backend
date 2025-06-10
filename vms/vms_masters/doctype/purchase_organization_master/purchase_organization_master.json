@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{purchase_organization_name}-{purchase_organization_code}",
+ "autoname": "format:{purchase_organization_code}",
  "creation": "2025-05-04 15:09:17.408144",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -37,7 +37,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:20:28.152518",
+ "modified": "2025-06-10 13:01:58.403421",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Purchase Organization Master",
