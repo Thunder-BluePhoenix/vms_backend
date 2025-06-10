@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:po_number",
+ "autoname": "format:{po_number}",
  "creation": "2025-05-23 11:27:15.755967",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -58,7 +58,6 @@
   "quote_vol_per_unit",
   "total_order_pricing",
   "rfq_date",
-  "status",
   "po_number",
   "dl_no",
   "gstin_no",
@@ -94,7 +93,13 @@
   "shipping_pincode",
   "instructions",
   "section_break_mqft",
-  "po_items"
+  "po_items",
+  "tab_2_tab",
+  "status",
+  "tentative_date",
+  "column_break_brva",
+  "approved_by",
+  "approved_by_name"
  ],
  "fields": [
   {
@@ -562,16 +567,42 @@
    "fieldname": "vendors_tentative_delivery_date",
    "fieldtype": "Date",
    "label": "Vendor's Tentative Delivery Date"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "More INFO"
+  },
+  {
+   "fieldname": "tentative_date",
+   "fieldtype": "Date",
+   "label": "Tentative Date"
+  },
+  {
+   "fieldname": "column_break_brva",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved BY",
+   "options": "User"
+  },
+  {
+   "fetch_from": "approved_by.full_name",
+   "fieldname": "approved_by_name",
+   "fieldtype": "Data",
+   "label": "Approved By Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-27 12:23:37.728588",
+ "modified": "2025-06-10 14:45:56.469474",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -595,6 +626,19 @@
    "read": 1,
    "report": 1,
    "role": "Guest",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Vendor",
+   "select": 1,
    "share": 1,
    "write": 1
   }
