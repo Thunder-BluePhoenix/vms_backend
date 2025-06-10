@@ -12,8 +12,10 @@ from frappe.utils.jinja import render_template
 class PurchaseOrder(Document):
 	def validate(self):
 		for item in self.po_items:
-			qty = float(item.quantity)
-			rate = float(item.rate)
+			it_qty = item.quantity or "0"
+			it_rate = item.rate or "0"
+			qty = float(it_qty)
+			rate = float(it_rate)
 			item.price = float(qty*rate)
 
 
