@@ -201,8 +201,14 @@ def build_user_response(user, api_credentials):
     user_roles = frappe.get_roles(user_doc.name)
 
     if "Vendor" in user_roles:
+       
         vendor_master = frappe.get_doc("Vendor Master", {"office_email_primary": user_doc.name})
-        response = collect_vendor_code_data(vendor_master, method=None)
+        vendor_code = collect_vendor_code_data(vendor_master, method=None)
+        response = {
+                    'vendor_codes': vendor_code,
+                    'designation': 'Vendor'
+                    }
+
         return response
 
 
@@ -395,8 +401,5 @@ def collect_vendor_code_data(vendor_doc, method=None):
         
         print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@22",all_vendor_data)	
 
-        ven_desg = {
-            'designation': 'Vendor'
-        }     	
-        all_vendor_data.append(ven_desg)
+        
         return all_vendor_data
