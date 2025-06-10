@@ -20,6 +20,94 @@ def generate_api_keys(user):
         "api_secret": api_secret
     }
 
+# @frappe.whitelist(allow_guest=True)
+# def login(data):
+#     try:
+#         if not data or not isinstance(data, dict):
+#             frappe.throw(_("Invalid request format"))
+
+#         usr = data.get("usr")
+#         pwd = data.get("pwd")
+
+#         if not usr or not pwd:
+#             frappe.throw(_("Username and password are required"))
+
+#         # Authenticate user
+#         login_manager = frappe.auth.LoginManager()
+#         login_manager.authenticate(user=usr, pwd=pwd)
+#         login_manager.post_login()
+
+#         api_credentials = generate_api_keys(frappe.session.user)
+
+#         # Build user response
+#         user_response = build_user_response(frappe.session.user, api_credentials)
+
+#         # --- Set Cookies in Response ---
+#         frappe.local.response["type"] = "json"
+#         frappe.local.response["message"] = {"success": True, "message": _("Authentication successful")}
+
+#         # Set cookies - you can customize secure and httpOnly flags as needed
+#         frappe.local.response["cookies"] = {
+#             "sid": {
+#                 "value": frappe.session.sid,
+#                 "httponly": True,
+#                 "secure": 1,  # set to 1 if using HTTPS
+#                 "path": "/",
+#                 "samesite": "Lax"
+#             },
+#             "api_key": {
+#                 "value": api_credentials.get("api_key"),
+#                 "httponly": False,
+#                 "secure": 1,
+#                 "path": "/",
+#                 "samesite": "Lax"
+#             },
+#             "api_secret": {
+#                 "value": api_credentials.get("api_secret"),
+#                 "httponly": False,
+#                 "secure": 1,
+#                 "path": "/",
+#                 "samesite": "Lax"
+#             }
+#         }
+
+#         return  user_response# No need to explicitly return the response body
+                
+
+#     except frappe.exceptions.AuthenticationError:
+#         frappe.local.response["message"] = {
+#             "success": False,
+#             "message": _("Invalid username or password")
+#         }
+#         frappe.local.response.http_status_code = 401
+#         return
+
+#     except Exception as e:
+#         frappe.logger().error(f"Login error: {str(e)}")
+#         frappe.local.response["message"] = {
+#             "success": False,
+#             "message": _("An error occurred during authentication")
+#         }
+#         frappe.local.response.http_status_code = 500
+#         return
+
+
+
+def clear_auth_cookies():
+    """Helper function to clear authentication cookies"""
+    cookie_names = ["sid", "api_key", "api_secret"]
+    clear_cookies = {}
+    
+    for cookie_name in cookie_names:
+        clear_cookies[cookie_name] = {
+            "value": "",
+            "expires": "Thu, 01 Jan 1970 00:00:00 GMT",  # Set to past date to clear
+            "path": "/",
+            "httponly": True if cookie_name == "sid" else False
+        }
+    
+    frappe.local.response["cookies"] = clear_cookies
+
 @frappe.whitelist(allow_guest=True)
 def login(data):
     try:
@@ -32,6 +120,9 @@ def login(data):
         if not usr or not pwd:
             frappe.throw(_("Username and password are required"))
 
+        # Clear existing cookies first
+        clear_auth_cookies()
+
         # Authenticate user
         login_manager = frappe.auth.LoginManager()
         login_manager.authenticate(user=usr, pwd=pwd)
@@ -42,11 +133,11 @@ def login(data):
         # Build user response
         user_response = build_user_response(frappe.session.user, api_credentials)
 
-        # --- Set Cookies in Response ---
+        # --- Set new cookies in response ---
         frappe.local.response["type"] = "json"
         frappe.local.response["message"] = {"success": True, "message": _("Authentication successful")}
 
-        # Set cookies - you can customize secure and httpOnly flags as needed
+        # Set new cookies with fresh values
         frappe.local.response["cookies"] = {
             "sid": {
                 "value": frappe.session.sid,
@@ -71,8 +162,7 @@ def login(data):
             }
         }
 
-        return  user_response# No need to explicitly return the response body
-                
+        return user_response
 
     except frappe.exceptions.AuthenticationError:
         frappe.local.response["message"] = {
