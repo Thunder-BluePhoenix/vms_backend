@@ -424,3 +424,71 @@ def vendor_company_update(doc, method=None):
 
     vm.save()
     frappe.db.commit()
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def send_registration_email_link(doc, method=None):
+    try:
+        
+
+        
+
+        # Proceed only if email hasn't been sent
+        if not doc.sent_registration_email_link:
+            vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+
+            recipient_email = doc.registered_by
+            if not recipient_email:
+                return {
+                    "status": "error",
+                    "message": "No recipient email found for the purchase team."
+                }
+
+            conf = frappe.conf
+            http_server = conf.get("frontend_http")
+            
+           
+
+            frappe.sendmail(
+                recipients=[recipient_email],
+                subject="Welcome to VMS",
+                message=f"""
+                    <p>Hello {vendor_master.vendor_name},</p>
+                    <p>Click on the link below to complete your registration:</p>
+                    <p style="margin: 15px 0px;">
+                        <a href="{registration_link}" rel="nofollow" class="btn btn-primary">Complete Registration</a>
+                    </p>
+                    <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
+                    <br>
+                    <p>You can also copy-paste the following link into your browser:<br>
+                    <a href="{registration_link}">{registration_link}</a></p>
+                """,
+                delayed=False
+            )
+
+            doc.sent_registration_email_link = 1
+            doc.save(ignore_permissions=True)
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": "Registration email sent successfully."
+            }
+
+        else:
+            return {
+                "status": "info",
+                "message": "Registration email has already been sent."
+            }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Onboarding Registration Email Error")
+        return {
+            "status": "error",
+            "message": "Failed to send registration email.",
+            "error": str(e)
+        }
