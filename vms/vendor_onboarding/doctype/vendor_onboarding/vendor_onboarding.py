@@ -453,64 +453,150 @@ def check_vnonb_send_mails(doc, method=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def send_registration_email_link(doc, method=None):
+def send_mail_purchase_team(doc, method=None):
     try:
-        
-
-        
-
-        # Proceed only if email hasn't been sent
-        if not doc.sent_registration_email_link:
+        if doc:
             vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
 
-            recipient_email = doc.registered_by
-            if not recipient_email:
-                return {
-                    "status": "error",
-                    "message": "No recipient email found for the purchase team."
-                }
+            purchase_team_id = doc.registered_by
 
-            conf = frappe.conf
-            http_server = conf.get("frontend_http")
+            # conf = frappe.conf
+            # http_server = conf.get("frontend_http")
             
-           
-
             frappe.sendmail(
-                recipients=[recipient_email],
-                subject="Welcome to VMS",
+                recipients=[purchase_team_id],
+                subject="Vendor has completed the onboarding form",
                 message=f"""
-                    <p>Hello {vendor_master.vendor_name},</p>
-                    <p>Click on the link below to complete your registration:</p>
-                    <p style="margin: 15px 0px;">
-                        <a href="{registration_link}" rel="nofollow" class="btn btn-primary">Complete Registration</a>
-                    </p>
+                    <p>Hello,</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
+                    <p>Please review the details and take necessary actions.</p>
                     <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
-                    <br>
-                    <p>You can also copy-paste the following link into your browser:<br>
-                    <a href="{registration_link}">{registration_link}</a></p>
                 """,
-                delayed=False
+                now=True,
             )
 
-            doc.sent_registration_email_link = 1
-            doc.save(ignore_permissions=True)
-            frappe.db.commit()
+            doc.mail_sent_to_purchase_team = 1
 
             return {
                 "status": "success",
-                "message": "Registration email sent successfully."
-            }
-
-        else:
-            return {
-                "status": "info",
-                "message": "Registration email has already been sent."
+                "message": "email sent successfully."
             }
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Onboarding Registration Email Error")
+        frappe.log_error(frappe.get_traceback(), "Email Error")
         return {
             "status": "error",
-            "message": "Failed to send registration email.",
+            "message": "Failed to send email.",
             "error": str(e)
         }
+        
+
+@frappe.whitelist(allow_guest=True)
+def send_mail_purchase_head(doc, method=None):
+    try:
+        if doc:
+            vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+
+            # Get team of the registered_by employee
+            team = frappe.db.get_value("Employee", {"user_id": doc.registered_by}, "team")
+
+            if not team:
+                return {
+                    "status": "error",
+                    "message": "Team not found for the registered_by user."
+                }
+
+            # Get user_ids of employees with designation 'Purchase Head' in the same team
+            purchase_heads = frappe.get_all(
+                "Employee",
+                filters={"team": team, "designation": "Purchase Head"},
+                fields=["user_id"]
+            )
+
+            recipient_emails = [emp.user_id for emp in purchase_heads if emp.user_id]
+
+            if not recipient_emails:
+                return {
+                    "status": "error",
+                    "message": "No Purchase Head found in the same team."
+                }
+
+            # Send email
+            frappe.sendmail(
+                recipients=recipient_emails,
+                subject="Vendor has completed the onboarding form",
+                message=f"""
+                    <p>Hello,</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
+                    <p>Please review the details and take necessary actions.</p>
+                    <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
+                """,
+                now=True,
+            )
+
+            doc.mail_sent_to_purchase_team = 1
+
+            return {
+                "status": "success",
+                "message": "Email sent successfully."
+            }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Email Error")
+        return {
+            "status": "error",
+            "message": "Failed to send email.",
+            "error": str(e)
+        }
+
+
+# @frappe.whitelist(allow_guest=True)
+# def send_mail_purchase_head(doc, method=None):
+#     try:
+#         if doc:
+#             vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+
+#             comapny = doc.company_name  (from vendor onboarding)
+
+#             then match with all employee records
+
+#             company_list = [row.company_name for row in employee.company]
+
+#             if doc.company_name:
+#                 account_team_id = frappe.get_all("Employee", "filters": {"company": doc.company_name, "designation": ""}, fields=["user_id"])
+            
+#             get all emplopyeee belong to  that company
+
+#             if not recipient_emails:
+#                 return {
+#                     "status": "error",
+#                     "message": "No Purchase Head found in the same team."
+#                 }
+
+#             # Send email
+#             frappe.sendmail(
+#                 recipients=recipient_emails,
+#                 subject="Vendor has completed the onboarding form",
+#                 message=f"""
+#                     <p>Hello,</p>
+#                     <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
+#                     <p>Please review the details and take necessary actions.</p>
+#                     <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
+#                 """,
+#                 now=True,
+#             )
+
+#             doc.mail_sent_to_purchase_team = 1
+
+#             return {
+#                 "status": "success",
+#                 "message": "Email sent successfully."
+#             }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Email Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to send email.",
+#             "error": str(e)
+#         }
