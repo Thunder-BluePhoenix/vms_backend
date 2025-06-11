@@ -2,7 +2,7 @@ import frappe
 from frappe import _
 
 # get vendor details for dashboard based on user log in
-# Not in Use
+# Not in Use ------------------------------------------
 @frappe.whitelist(allow_guest=False)
 def get_vendor_details_for_dashboard(user):
     try:
