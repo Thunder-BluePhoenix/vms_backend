@@ -434,11 +434,14 @@ def vendor_company_update(doc, method=None):
 def check_vnonb_send_mails(doc, method=None):
     if doc.mandatory_data_filled == 1 and doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 0:
         if doc.purchase_team_undertaking == 0 and doc.mail_sent_to_purchase_team == 0 :
-            print("send mail to PT")
+            send_mail_purchase_team(doc, method=None)
+            # print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_mail_purchase_team")
         elif doc.purchase_team_undertaking == 1 and doc.mail_sent_to_purchase_team == 1 and doc.purchase_head_undertaking == 0 and doc.mail_sent_to_purchase_head == 0:
-            print("send mail to PH")
+            send_mail_purchase_head(doc, method=None)
+            # print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_mail_purchase_head")
         elif doc.purchase_team_undertaking == 1 and doc.mail_sent_to_purchase_team == 1 and doc.purchase_head_undertaking == 1 and doc.mail_sent_to_purchase_head == 1 and doc.accounts_team_undertaking == 0 and doc.mail_sent_to_account_team == 0:
-            print("send mail to AT")
+            send_mail_account_team(doc, method=None)
+            # print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_mail_account_team")
 
         else:
              pass
@@ -550,53 +553,76 @@ def send_mail_purchase_head(doc, method=None):
         }
 
 
-# @frappe.whitelist(allow_guest=True)
-# def send_mail_purchase_head(doc, method=None):
-#     try:
-#         if doc:
-#             vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
-
-#             comapny = doc.company_name  (from vendor onboarding)
-
-#             then match with all employee records
-
-#             company_list = [row.company_name for row in employee.company]
-
-#             if doc.company_name:
-#                 account_team_id = frappe.get_all("Employee", "filters": {"company": doc.company_name, "designation": ""}, fields=["user_id"])
+@frappe.whitelist(allow_guest=True)
+def send_mail_account_team(doc, method=None):
+    try:
+        if doc:
+            vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
             
-#             get all emplopyeee belong to  that company
+            recipient_emails = []
+            
+            # Get company from doc (simple field)
+            company_name = doc.company
+            
+            if company_name:
+                # Get all employees where designation is "Accounts Team" 
+                # and company child table contains the matching company
+                employees = frappe.get_all(
+                    "Employee", 
+                    filters={
+                        "designation": "Accounts Team"
+                    }, 
+                    fields=["name", "user_id"]
+                )
+                
+                # Filter employees who have the matching company in their company child table
+                for employee in employees:
+                    if employee.user_id:
+                        # Get the employee document to check company child table
+                        emp_doc = frappe.get_doc("Employee", employee.name)
+                        
+                        # Check if the company exists in employee's company child table
+                        if hasattr(emp_doc, 'company') and emp_doc.company:
+                            for company_row in emp_doc.company:
+                                if company_row.company_name == company_name:
+                                    if employee.user_id not in recipient_emails:
+                                        recipient_emails.append(employee.user_id)
+                                    break  # Found match, no need to check other companies
+            
+            # Check if we found any recipients
+            if not recipient_emails:
+                return {
+                    "status": "error",
+                    "message": "No employees found with designation 'Accounts Team' in the specified company."
+                }
 
-#             if not recipient_emails:
-#                 return {
-#                     "status": "error",
-#                     "message": "No Purchase Head found in the same team."
-#                 }
+            # Send email to all recipients
+            frappe.sendmail(
+                recipients=recipient_emails,
+                subject="Vendor has completed the onboarding form",
+                message=f"""
+                    <p>Hello,</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
+                    <p>Please review the details and take necessary actions.</p>
+                    <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
+                """,
+                now=True,
+            )
 
-#             # Send email
-#             frappe.sendmail(
-#                 recipients=recipient_emails,
-#                 subject="Vendor has completed the onboarding form",
-#                 message=f"""
-#                     <p>Hello,</p>
-#                     <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
-#                     <p>Please review the details and take necessary actions.</p>
-#                     <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
-#                 """,
-#                 now=True,
-#             )
+            # Mark as mail sent
+            doc.mail_sent_to_purchase_team = 1
 
-#             doc.mail_sent_to_purchase_team = 1
+            return {
+                "status": "success",
+                "message": f"Email sent successfully to {len(recipient_emails)} recipients.",
+                "recipients": recipient_emails
+            }
 
-#             return {
-#                 "status": "success",
-#                 "message": "Email sent successfully."
-#             }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Email Error")
+        return {
+            "status": "error",
+            "message": "Failed to send email.",
+            "error": str(e)
+        }
 
-#     except Exception as e:
-#         frappe.log_error(frappe.get_traceback(), "Email Error")
-#         return {
-#             "status": "error",
-#             "message": "Failed to send email.",
-#             "error": str(e)
-#         }
