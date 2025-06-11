@@ -432,7 +432,7 @@ def vendor_company_update(doc, method=None):
 
 @frappe.whitelist()
 def check_vnonb_send_mails(doc, method=None):
-    if doc.mandatory_data_filled == 1 and doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 0:
+    if doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 0:   #doc.mandatory_data_filled == 1 and 
         if doc.purchase_team_undertaking == 0 and doc.mail_sent_to_purchase_team == 0 :
             send_mail_purchase_team(doc, method=None)
             # print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_mail_purchase_team")
