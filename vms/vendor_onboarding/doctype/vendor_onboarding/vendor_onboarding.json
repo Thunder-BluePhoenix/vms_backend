@@ -36,6 +36,9 @@
   "purchase_team_undertaking",
   "purchase_head_undertaking",
   "accounts_team_undertaking",
+  "mail_sent_to_purchase_team",
+  "mail_sent_to_purchase_head",
+  "mail_sent_to_account_team",
   "tables_section",
   "vendor_types",
   "number_of_employee",
@@ -432,12 +435,30 @@
    "fieldname": "registered_by",
    "fieldtype": "Data",
    "label": "Registered By"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_purchase_team",
+   "fieldtype": "Check",
+   "label": "Mail Sent to Purchase Team"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_purchase_head",
+   "fieldtype": "Check",
+   "label": "Mail Sent to Purchase Head"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_account_team",
+   "fieldtype": "Check",
+   "label": "Mail Sent to Account Team"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-04 14:02:01.971154",
+ "modified": "2025-06-11 16:29:26.586290",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
