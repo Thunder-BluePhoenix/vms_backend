@@ -537,7 +537,7 @@ def send_mail_purchase_head(doc, method=None):
                 now=True,
             )
 
-            doc.mail_sent_to_purchase_team = 1
+            doc.mail_sent_to_purchase_head = 1
 
             return {
                 "status": "success",
@@ -610,7 +610,7 @@ def send_mail_account_team(doc, method=None):
             )
 
             # Mark as mail sent
-            doc.mail_sent_to_purchase_team = 1
+            doc.mail_sent_to_account_team = 1
 
             return {
                 "status": "success",
