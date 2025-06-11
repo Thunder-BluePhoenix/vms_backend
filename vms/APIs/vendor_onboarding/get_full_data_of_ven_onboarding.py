@@ -33,6 +33,13 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         ]
 
         company_details = {field: doc.get(field) for field in company_fields}
+        
+        #---------------Company Master Details----------------
+        company_name_description = {}
+        if doc.company_name:
+            company_name_description = frappe.get_value( "Company Master", doc.company_name, "description")
+
+        company_details["company_name_description"] = company_name_description
 
         # --- Fetch vendor types from Vendor Master ---
         vendor_type_list = []
@@ -417,6 +424,14 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             }
         purchasing_details.append(pur_data)
 
+        # Return the check box from vendor onboarding doctype 
+        validation_check = {}
+
+        check_box_fields = ["mandatory_data_filled", "form_fully_submitted_by_vendor", "purchase_team_undertaking",
+             "purchase_head_undertaking", "accounts_team_undertaking"]
+        
+        validation_check = {field: vonb.get(field) for field in check_box_fields}
+
 
         return {
             "status": "success",
@@ -432,7 +447,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "testing_details_tab": testing_detail,
             "reputed_partners_details_tab": reputed_partners,
             "certificate_details_tab": certificate_details,
-            "purchasing_details": purchasing_details
+            "purchasing_details": purchasing_details,
+            "validation_check": validation_check
         }
 
     except Exception as e:
