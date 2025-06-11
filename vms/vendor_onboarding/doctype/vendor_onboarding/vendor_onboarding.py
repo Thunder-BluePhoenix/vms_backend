@@ -54,8 +54,9 @@ class VendorOnboarding(Document):
 	def on_update(self):
           set_vendor_onboarding_status(self,method=None)
           vendor_company_update(self,method=None)
-          on_update_check_fields(self,method=None)
           check_vnonb_send_mails(self, method=None)
+          on_update_check_fields(self,method=None)
+        #   check_vnonb_send_mails(self, method=None)
 	
 def on_update_check_fields(self,method=None):
     """
@@ -436,10 +437,10 @@ def check_vnonb_send_mails(doc, method=None):
         if doc.purchase_team_undertaking == 0 and doc.mail_sent_to_purchase_team == 0 :
             send_mail_purchase_team(doc, method=None)
             # print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_mail_purchase_team")
-        elif doc.purchase_team_undertaking == 1 and doc.mail_sent_to_purchase_team == 1 and doc.purchase_head_undertaking == 0 and doc.mail_sent_to_purchase_head == 0:
+        elif doc.purchase_team_undertaking == 1 and doc.purchase_head_undertaking == 0 and doc.mail_sent_to_purchase_head == 0:
             send_mail_purchase_head(doc, method=None)
             # print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_mail_purchase_head")
-        elif doc.purchase_team_undertaking == 1 and doc.mail_sent_to_purchase_team == 1 and doc.purchase_head_undertaking == 1 and doc.mail_sent_to_purchase_head == 1 and doc.accounts_team_undertaking == 0 and doc.mail_sent_to_account_team == 0:
+        elif doc.purchase_head_undertaking == 1 and doc.accounts_team_undertaking == 0 and doc.mail_sent_to_account_team == 0:
             send_mail_account_team(doc, method=None)
             # print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_mail_account_team")
 
@@ -463,22 +464,39 @@ def send_mail_purchase_team(doc, method=None):
 
             purchase_team_id = doc.registered_by
 
-            # conf = frappe.conf
-            # http_server = conf.get("frontend_http")
+            conf = frappe.conf
+            http_server = conf.get("frontend_http")
             
             frappe.sendmail(
                 recipients=[purchase_team_id],
                 subject="Vendor has completed the onboarding form",
                 message=f"""
-                    <p>Hello,</p>
+                    <p>Dear Purchase Team,</p>
                     <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
                     <p>Please review the details and take necessary actions.</p>
+                    
+                    <p>
+                        <a href="{http_server}" style="
+                            background-color: #28a745;
+                            color: white;
+                            padding: 10px 20px;
+                            text-decoration: none;
+                            border-radius: 5px;
+                            display: inline-block;
+                            font-weight: bold;
+                        ">
+                            Review Onboarding
+                        </a>
+                    </p>
+                    
                     <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
                 """,
                 now=True,
             )
 
-            doc.mail_sent_to_purchase_team = 1
+            # doc.mail_sent_to_purchase_team = 1
+            # frappe.db.commit()
+            frappe.db.set_value("Vendor Onboarding", doc.name, "mail_sent_to_purchase_team", 1)
 
             return {
                 "status": "success",
@@ -523,21 +541,40 @@ def send_mail_purchase_head(doc, method=None):
                     "status": "error",
                     "message": "No Purchase Head found in the same team."
                 }
+            conf = frappe.conf
+            http_server = conf.get("frontend_http")
 
             # Send email
             frappe.sendmail(
                 recipients=recipient_emails,
                 subject="Vendor has completed the onboarding form",
                 message=f"""
-                    <p>Hello,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
+                    <p>Dear Purchase Head,</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The purchase team allready approved the process.</p>
                     <p>Please review the details and take necessary actions.</p>
+                    <p>
+                        <a href="{http_server}" style="
+                            background-color: #28a745;
+                            color: white;
+                            padding: 10px 20px;
+                            text-decoration: none;
+                            border-radius: 5px;
+                            display: inline-block;
+                            font-weight: bold;
+                        ">
+                            Review Onboarding
+                        </a>
+                    </p>
+                    
                     <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
                 """,
                 now=True,
             )
 
-            doc.mail_sent_to_purchase_head = 1
+            # doc.mail_sent_to_purchase_head = 1
+            # frappe.db.commit()
+            frappe.db.set_value("Vendor Onboarding", doc.name, "mail_sent_to_purchase_head", 1)
+
 
             return {
                 "status": "success",
@@ -562,7 +599,7 @@ def send_mail_account_team(doc, method=None):
             recipient_emails = []
             
             # Get company from doc (simple field)
-            company_name = doc.company
+            company_name = doc.company_name
             
             if company_name:
                 # Get all employees where designation is "Accounts Team" 
@@ -578,16 +615,29 @@ def send_mail_account_team(doc, method=None):
                 # Filter employees who have the matching company in their company child table
                 for employee in employees:
                     if employee.user_id:
+                        # print("employee user_id:", employee.user_id)
                         # Get the employee document to check company child table
                         emp_doc = frappe.get_doc("Employee", employee.name)
+                        # print("emp_doc.company:", emp_doc.company)
                         
                         # Check if the company exists in employee's company child table
                         if hasattr(emp_doc, 'company') and emp_doc.company:
                             for company_row in emp_doc.company:
-                                if company_row.company_name == company_name:
-                                    if employee.user_id not in recipient_emails:
-                                        recipient_emails.append(employee.user_id)
-                                    break  # Found match, no need to check other companies
+                                try:
+                                    # print("company_row:", company_row)
+                                    # print("company_row.company_name:", company_row.company_name)
+                                    # print("comparing with doc.company:", company_name)
+                                    
+                                    if company_row.company_name == company_name:
+                                        if employee.user_id not in recipient_emails:
+                                            recipient_emails.append(employee.user_id)
+                                            # print("Added to recipients:", employee.user_id)
+                                        break  # Found match, no need to check other companies
+                                except Exception as row_error:
+                                    # print("Error processing company row:", str(row_error))
+                                    # print("Company row type:", type(company_row))
+                                    # print("Company row dict:", company_row.__dict__ if hasattr(company_row, '__dict__') else 'No __dict__')
+                                    continue
             
             # Check if we found any recipients
             if not recipient_emails:
@@ -595,22 +645,38 @@ def send_mail_account_team(doc, method=None):
                     "status": "error",
                     "message": "No employees found with designation 'Accounts Team' in the specified company."
                 }
+            conf = frappe.conf
+            http_server = conf.get("frontend_http")
 
             # Send email to all recipients
             frappe.sendmail(
                 recipients=recipient_emails,
                 subject="Vendor has completed the onboarding form",
                 message=f"""
-                    <p>Hello,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
+                    <p>Dear Accounts Team,</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The purchase Head allready approved the process.</p>
                     <p>Please review the details and take necessary actions.</p>
+                    <p>
+                        <a href="{http_server}" style="
+                            background-color: #28a745;
+                            color: white;
+                            padding: 10px 20px;
+                            text-decoration: none;
+                            border-radius: 5px;
+                            display: inline-block;
+                            font-weight: bold;
+                        ">
+                            Review Onboarding
+                        </a>
+                    </p>
                     <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
                 """,
                 now=True,
             )
 
             # Mark as mail sent
-            doc.mail_sent_to_account_team = 1
+            # doc.mail_sent_to_purchase_team = 1
+            frappe.db.set_value("Vendor Onboarding", doc.name, "mail_sent_to_account_team", 1)
 
             return {
                 "status": "success",
@@ -625,4 +691,3 @@ def send_mail_account_team(doc, method=None):
             "message": "Failed to send email.",
             "error": str(e)
         }
-
