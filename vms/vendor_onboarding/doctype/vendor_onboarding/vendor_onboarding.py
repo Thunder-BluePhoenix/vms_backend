@@ -55,6 +55,7 @@ class VendorOnboarding(Document):
           set_vendor_onboarding_status(self,method=None)
           vendor_company_update(self,method=None)
           on_update_check_fields(self,method=None)
+          check_vnonb_send_mails(self, method=None)
 	
 def on_update_check_fields(self,method=None):
     """
@@ -66,7 +67,7 @@ def on_update_check_fields(self,method=None):
 
     if result["success"]:
         self.mandatory_data_filled = 1
-        frappe.db.commit()
+        # frappe.db.commit()
         return f"✅ Validation passed for {len(result['data'])} company records"
     else:
         return f"❌ Validation failed: {result['message']}"
@@ -424,6 +425,27 @@ def vendor_company_update(doc, method=None):
 
     vm.save()
     frappe.db.commit()
+
+
+
+
+
+@frappe.whitelist()
+def check_vnonb_send_mails(doc, method=None):
+    if doc.mandatory_data_filled == 1 and doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 0:
+        if doc.purchase_team_undertaking == 0 and doc.mail_sent_to_purchase_team == 0 :
+            print("send mail to PT")
+        elif doc.purchase_team_undertaking == 1 and doc.mail_sent_to_purchase_team == 1 and doc.purchase_head_undertaking == 0 and doc.mail_sent_to_purchase_head == 0:
+            print("send mail to PH")
+        elif doc.purchase_team_undertaking == 1 and doc.mail_sent_to_purchase_team == 1 and doc.purchase_head_undertaking == 1 and doc.mail_sent_to_purchase_head == 1 and doc.accounts_team_undertaking == 0 and doc.mail_sent_to_account_team == 0:
+            print("send mail to AT")
+
+        else:
+             pass
+        
+    else:
+        pass
+
 
 
 
