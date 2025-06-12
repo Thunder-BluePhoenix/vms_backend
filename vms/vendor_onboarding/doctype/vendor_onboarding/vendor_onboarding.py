@@ -547,10 +547,11 @@ def send_mail_purchase_head(doc, method=None):
             # Send email
             frappe.sendmail(
                 recipients=recipient_emails,
-                subject="Vendor has completed the onboarding form",
+                subject="Vendor Approved by Purchase Team",
+                cc=doc.registered_by, 
                 message=f"""
                     <p>Dear Purchase Head,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The purchase team allready approved the process.</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The purchase team already approved the process.</p>
                     <p>Please review the details and take necessary actions.</p>
                     <p>
                         <a href="{http_server}" style="
@@ -651,10 +652,11 @@ def send_mail_account_team(doc, method=None):
             # Send email to all recipients
             frappe.sendmail(
                 recipients=recipient_emails,
-                subject="Vendor has completed the onboarding form",
+                subject="Vendor Approved by Purchase Head",
+                cc=doc.registered_by,
                 message=f"""
                     <p>Dear Accounts Team,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The purchase Head allready approved the process.</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The purchase Head already approved the process.</p>
                     <p>Please review the details and take necessary actions.</p>
                     <p>
                         <a href="{http_server}" style="
