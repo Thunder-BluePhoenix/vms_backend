@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-12 16:00:24.459478",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "purchase_group",
+  "purchase_requisition_name",
+  "plant",
+  "account_category",
+  "gl_account",
+  "company_code_area",
+  "valuation_area",
+  "requisitioner",
+  "purchase_requisition_form_table"
+ ],
+ "fields": [
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Link",
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "plant",
+   "fieldtype": "Link",
+   "label": "Plant",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "account_category",
+   "fieldtype": "Data",
+   "label": "Account Category"
+  },
+  {
+   "fieldname": "purchase_requisition_name",
+   "fieldtype": "Data",
+   "label": "Purchase Requisition Name"
+  },
+  {
+   "fieldname": "gl_account",
+   "fieldtype": "Data",
+   "label": "GL Account"
+  },
+  {
+   "fieldname": "company_code_area",
+   "fieldtype": "Data",
+   "label": "Company Code Area"
+  },
+  {
+   "fieldname": "valuation_area",
+   "fieldtype": "Data",
+   "label": "Valuation Area"
+  },
+  {
+   "fieldname": "requisitioner",
+   "fieldtype": "Data",
+   "label": "Requisitioner"
+  },
+  {
+   "fieldname": "purchase_requisition_form_table",
+   "fieldtype": "Table",
+   "label": "Purchase Requisition Form Table",
+   "options": "Purchase Requisition Form Table"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-12 16:51:51.291657",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Purchase Requisition Form",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

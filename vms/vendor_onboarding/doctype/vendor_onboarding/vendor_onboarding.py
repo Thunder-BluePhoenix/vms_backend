@@ -56,6 +56,7 @@ class VendorOnboarding(Document):
           vendor_company_update(self,method=None)
           check_vnonb_send_mails(self, method=None)
           on_update_check_fields(self,method=None)
+          update_ven_onb_record_table(self, method=None)
         #   check_vnonb_send_mails(self, method=None)
 	
 def on_update_check_fields(self,method=None):
@@ -691,5 +692,50 @@ def send_mail_account_team(doc, method=None):
         return {
             "status": "error",
             "message": "Failed to send email.",
+            "error": str(e)
+        }
+
+
+# update the vendor onboarding record table with the latest status and data in the table (present in vendor master)
+@frappe.whitelist(allow_guest=True)
+def update_ven_onb_record_table(doc, method=None):
+    try:
+        vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+
+        found = False
+
+        for row in vendor_master.vendor_onb_records:
+            if row.vendor_onboarding_no == doc.name:
+                row.onboarding_form_status = doc.onboarding_form_status
+                row.registered_by = doc.registered_by
+                row.purchase_team_approval = doc.purchase_t_approval
+                row.purchase_head_approval = doc.purchase_h_approval
+                row.accounts_team_approval = doc.accounts_t_approval
+                found = True
+                break
+
+        if not found:
+            vendor_master.append("vendor_onb_records", {
+                "vendor_onboarding_no": doc.name,
+                "onboarding_form_status": doc.onboarding_form_status,
+                "registered_by": doc.registered_by,
+                "purchase_team_approval": doc.purchase_t_approval,
+                "purchase_head_approval": doc.purchase_h_approval,
+                "accounts_team_approval": doc.accounts_t_approval
+            })
+
+        vendor_master.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": "Vendor Onboarding Record table updated successfully."
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Update Vendor Onboarding Record Error")
+        return {
+            "status": "error",
+            "message": "Failed to update Vendor Onboarding Record table.",
             "error": str(e)
         }

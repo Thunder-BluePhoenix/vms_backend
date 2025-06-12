@@ -261,3 +261,119 @@ def get_po_count_from_vendor_code(vendor_code=None):
             "message": _("An error occurred while fetching purchase order count."),
             "error": str(e)
         }  
+    
+
+# filter the data of po based on paraemeters
+@frappe.whitelist(allow_guest=False)
+def get_po_from_vendor_code_second(vendor_code=None, page_no=None, page_length=None, company=None, po_no=None, status=None, user=None):
+    try:
+        page_no = int(page_no or 1)
+        page_length = int(page_length or 5)
+
+        result = filter_po_data(
+            vendor_code=vendor_code,
+            page_no=page_no,
+            page_length=page_length,
+            company=company,
+            po_no=po_no,
+            status=status,
+            user=user or frappe.session.user
+        )
+
+        if result.get("status") != "success":
+            return result
+
+        return {
+            "status": "success",
+            "message": "Purchase Orders fetched successfully.",
+            "purchase_orders": result.get("data"),
+            "total_count": result.get("total_count"),
+            "page_no": result.get("page_no"),
+            "page_length": result.get("page_length")
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_po_from_vendor_code API Error")
+        return {
+            "status": "error",
+            "message": "An error occurred while fetching purchase orders.",
+            "error": str(e)
+        }
+    
+
+@frappe.whitelist(allow_guest=False)
+def filter_po_data(vendor_code=None, page_no=None, page_length=None, company=None, po_no=None, status=None, user=None):
+    try:
+        filters = {}
+        if po_no:
+            filters["name"] = po_no
+        if status:
+            filters["status"] = status
+        if company:
+            filters["company"] = company
+
+        if vendor_code:
+            filters["vendor_code"] = vendor_code
+        else:
+            user_doc = frappe.get_doc("User", user)
+            if "Vendor" not in frappe.get_roles(user_doc.name):
+                return {"status": "error", "message": "User does not have the Vendor role."}
+
+            vendor_master = frappe.get_doc("Vendor Master", {"office_email_primary": user_doc.name})
+            if not vendor_master or not vendor_master.multiple_company_data:
+                return {
+                    "status": "success",
+                    "message": "No multiple_company_data found in vendor document.",
+                    "data": [],
+                    "total_count": 0,
+                    "page_no": page_no,
+                    "page_length": page_length
+                }
+
+            all_vendor_codes = []
+            for row in vendor_master.multiple_company_data:
+                if row.company_vendor_code:
+                    company_vendor_code_doc = frappe.get_doc("Company Vendor Code", row.company_vendor_code)
+                    all_vendor_codes += [
+                        vc.vendor_code for vc in company_vendor_code_doc.vendor_code if vc.vendor_code
+                    ]
+
+            if not all_vendor_codes:
+                return {
+                    "status": "success",
+                    "message": "No vendor codes found for this vendor.",
+                    "data": [],
+                    "total_count": 0,
+                    "page_no": page_no,
+                    "page_length": page_length
+                }
+
+            filters["vendor_code"] = ["in", all_vendor_codes]
+
+        total_count = frappe.db.count("Purchase Order", filters=filters)
+        offset = (page_no - 1) * page_length
+
+        po_data = frappe.get_all(
+            "Purchase Order",
+            filters=filters,
+            fields="*",
+            order_by="modified desc",
+            start=offset,
+            page_length=page_length
+        )
+
+        return {
+            "status": "success",
+            "data": po_data,
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "filter_po_data Error")
+        return {
+            "status": "error",
+            "message": "An error occurred during filtering.",
+            "error": str(e)
+        }
