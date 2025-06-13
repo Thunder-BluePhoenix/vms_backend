@@ -42,7 +42,9 @@
   "status",
   "onboarding_form_status",
   "onboarding_ref_no",
-  "rejection_comment"
+  "rejection_comment",
+  "vendor_onboarding_records_section",
+  "vendor_onb_records"
  ],
  "fields": [
   {
@@ -244,12 +246,23 @@
    "fieldname": "user_create",
    "fieldtype": "Check",
    "label": "User Create"
+  },
+  {
+   "fieldname": "vendor_onboarding_records_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Onboarding Records"
+  },
+  {
+   "fieldname": "vendor_onb_records",
+   "fieldtype": "Table",
+   "label": "Vendor Onboarding Records",
+   "options": "Vendor Onboarding Records"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-05 18:46:18.195253",
+ "modified": "2025-06-12 13:58:57.424004",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

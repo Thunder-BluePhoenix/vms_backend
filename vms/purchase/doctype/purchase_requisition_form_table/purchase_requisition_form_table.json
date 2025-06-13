@@ -1,0 +1,108 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-12 16:33:27.219245",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "purchase_requisition_item",
+  "purchase_requisition_date",
+  "material_code",
+  "short_text",
+  "quantity",
+  "column_break_gwro",
+  "delivery_date",
+  "store_location",
+  "material_group",
+  "unit",
+  "asset_no",
+  "profit_ctr"
+ ],
+ "fields": [
+  {
+   "fieldname": "purchase_requisition_item",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Purchase Requisition Item"
+  },
+  {
+   "fieldname": "purchase_requisition_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Purchase Requisition Date"
+  },
+  {
+   "fieldname": "material_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Material Code",
+   "options": "Material Master"
+  },
+  {
+   "fieldname": "short_text",
+   "fieldtype": "Small Text",
+   "label": "Short Text"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Delivery Date"
+  },
+  {
+   "fieldname": "store_location",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Store Location"
+  },
+  {
+   "fieldname": "material_group",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material Group"
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Unit"
+  },
+  {
+   "fieldname": "asset_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Asset No"
+  },
+  {
+   "fieldname": "profit_ctr",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Profit CTR"
+  },
+  {
+   "fieldname": "column_break_gwro",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-06-12 16:52:21.609986",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Purchase Requisition Form Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
