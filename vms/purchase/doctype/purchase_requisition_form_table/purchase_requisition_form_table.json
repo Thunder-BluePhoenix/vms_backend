@@ -16,6 +16,7 @@
   "store_location",
   "material_group",
   "unit",
+  "item_category",
   "asset_no",
   "profit_ctr"
  ],
@@ -64,15 +65,17 @@
   },
   {
    "fieldname": "material_group",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Material Group"
+   "label": "Material Group",
+   "options": "Material Group Master"
   },
   {
    "fieldname": "unit",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Unit"
+   "label": "Unit",
+   "options": "UOM Master"
   },
   {
    "fieldname": "asset_no",
@@ -82,20 +85,27 @@
   },
   {
    "fieldname": "profit_ctr",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Profit CTR"
+   "label": "Profit Center",
+   "options": "Profit Center"
   },
   {
    "fieldname": "column_break_gwro",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "item_category",
+   "fieldtype": "Link",
+   "label": "Item Category",
+   "options": "Item Category Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-12 16:52:21.609986",
+ "modified": "2025-06-13 14:38:49.926237",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form Table",

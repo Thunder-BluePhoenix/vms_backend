@@ -1,18 +1,24 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-06-12 16:00:24.459478",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series",
+  "purchase_requisition_type",
+  "sap_pr_code",
   "purchase_group",
   "purchase_requisition_name",
   "plant",
+  "column_break_wrlo",
   "account_category",
   "gl_account",
   "company_code_area",
   "valuation_area",
   "requisitioner",
+  "section_break_hrwl",
   "purchase_requisition_form_table"
  ],
  "fields": [
@@ -30,8 +36,9 @@
   },
   {
    "fieldname": "account_category",
-   "fieldtype": "Data",
-   "label": "Account Category"
+   "fieldtype": "Link",
+   "label": "Account Category",
+   "options": "Account Category Master"
   },
   {
    "fieldname": "purchase_requisition_name",
@@ -40,8 +47,9 @@
   },
   {
    "fieldname": "gl_account",
-   "fieldtype": "Data",
-   "label": "GL Account"
+   "fieldtype": "Link",
+   "label": "GL Account",
+   "options": "GL Account"
   },
   {
    "fieldname": "company_code_area",
@@ -55,23 +63,50 @@
   },
   {
    "fieldname": "requisitioner",
-   "fieldtype": "Data",
-   "label": "Requisitioner"
+   "fieldtype": "Link",
+   "label": "Requisitioner",
+   "options": "User"
   },
   {
    "fieldname": "purchase_requisition_form_table",
    "fieldtype": "Table",
    "label": "Purchase Requisition Form Table",
    "options": "Purchase Requisition Form Table"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "PRF-.YYYY.-.MM.-#####"
+  },
+  {
+   "fieldname": "sap_pr_code",
+   "fieldtype": "Data",
+   "label": "SAP PR Code"
+  },
+  {
+   "fieldname": "column_break_wrlo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_hrwl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "purchase_requisition_type",
+   "fieldtype": "Link",
+   "label": "Purchase Requisition Type",
+   "options": "Purchase Requisition Type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-12 16:51:51.291657",
+ "modified": "2025-06-13 14:34:19.339990",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
