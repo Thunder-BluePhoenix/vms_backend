@@ -310,7 +310,7 @@ def filter_po_data(vendor_code=None, page_no=None, page_length=None, company=Non
         if status:
             filters["status"] = status
         if company:
-            filters["company"] = company
+            filters["company_code"] = company
 
         if vendor_code:
             filters["vendor_code"] = vendor_code
