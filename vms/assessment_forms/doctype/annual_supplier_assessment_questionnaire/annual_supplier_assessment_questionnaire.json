@@ -1,12 +1,14 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-06-02 11:21:56.734752",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "general_disclosures_tab",
   "company_information_section",
+  "naming_series",
   "name_of_the_company",
   "location",
   "column_break_warf",
@@ -650,12 +652,18 @@
   {
    "fieldname": "column_break_tjmk",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "ASAQ-.YYYY.-"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-04 10:52:39.581745",
+ "modified": "2025-06-14 10:26:19.991697",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Annual Supplier Assessment Questionnaire",

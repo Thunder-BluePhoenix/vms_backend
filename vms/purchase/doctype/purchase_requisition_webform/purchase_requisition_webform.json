@@ -1,0 +1,89 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-13 16:58:33.538651",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "purchase_requisition_type",
+  "plant",
+  "company_code_area",
+  "column_break_ynnz",
+  "company",
+  "requisitioner",
+  "section_break_prrh",
+  "purchase_requisition_form_table"
+ ],
+ "fields": [
+  {
+   "fieldname": "purchase_requisition_type",
+   "fieldtype": "Link",
+   "label": "Purchase Requisition Type",
+   "options": "Purchase Requisition Type"
+  },
+  {
+   "fieldname": "plant",
+   "fieldtype": "Link",
+   "label": "Plant",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "company_code_area",
+   "fieldtype": "Link",
+   "label": "Company Code Area",
+   "options": "Company Code Area"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "column_break_ynnz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "requisitioner",
+   "fieldtype": "Link",
+   "label": "Requisitioner",
+   "options": "User"
+  },
+  {
+   "fieldname": "section_break_prrh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "purchase_requisition_form_table",
+   "fieldtype": "Table",
+   "label": "Purchase Requisition Form Table",
+   "options": "Purchase Requisition Webform Table"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-13 17:29:27.004918",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Purchase Requisition Webform",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

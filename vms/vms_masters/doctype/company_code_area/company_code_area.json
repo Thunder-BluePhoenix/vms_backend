@@ -1,0 +1,60 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:company_area_code",
+ "creation": "2025-06-13 17:03:32.585213",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_area_code",
+  "company_area_name",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_area_code",
+   "fieldtype": "Data",
+   "label": "Company Area Code",
+   "unique": 1
+  },
+  {
+   "fieldname": "company_area_name",
+   "fieldtype": "Data",
+   "label": "Company Area Name"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-13 17:51:16.531100",
+ "modified_by": "Administrator",
+ "module": "VMS Masters",
+ "name": "Company Code Area",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "company_area_name"
+}
