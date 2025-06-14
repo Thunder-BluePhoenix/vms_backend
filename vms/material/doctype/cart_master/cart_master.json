@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-14 11:51:08.801605",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cart_details_section",
+  "assest_code",
+  "product_name",
+  "column_break_golw",
+  "product_quantity",
+  "user_specifications"
+ ],
+ "fields": [
+  {
+   "fieldname": "cart_details_section",
+   "fieldtype": "Section Break",
+   "label": "Cart Details"
+  },
+  {
+   "fieldname": "assest_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Assest Code"
+  },
+  {
+   "fieldname": "product_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Product Name",
+   "options": "VMS Product Master"
+  },
+  {
+   "fieldname": "column_break_golw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "product_quantity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Product Quantity"
+  },
+  {
+   "fieldname": "user_specifications",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "User Specifications"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-06-14 14:32:38.865494",
+ "modified_by": "Administrator",
+ "module": "Material",
+ "name": "Cart Master",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

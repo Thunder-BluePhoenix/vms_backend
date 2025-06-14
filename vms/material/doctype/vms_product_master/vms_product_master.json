@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{PROD}-{#####}",
+ "creation": "2025-06-14 12:02:42.320108",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "product_details_section",
+  "product_name",
+  "product_image",
+  "category_type",
+  "product_price",
+  "lead_time",
+  "column_break_vwcl",
+  "specifications",
+  "uom",
+  "company",
+  "vendor"
+ ],
+ "fields": [
+  {
+   "fieldname": "product_details_section",
+   "fieldtype": "Section Break",
+   "label": "Product Details"
+  },
+  {
+   "fieldname": "product_name",
+   "fieldtype": "Data",
+   "label": "Product Name"
+  },
+  {
+   "fieldname": "product_image",
+   "fieldtype": "Attach Image",
+   "label": "Product Image"
+  },
+  {
+   "fieldname": "category_type",
+   "fieldtype": "Link",
+   "label": "Category Type",
+   "options": "Category Master"
+  },
+  {
+   "fieldname": "product_price",
+   "fieldtype": "Data",
+   "label": "Product Price"
+  },
+  {
+   "fieldname": "lead_time",
+   "fieldtype": "Data",
+   "label": "Lead Time"
+  },
+  {
+   "fieldname": "column_break_vwcl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "specifications",
+   "fieldtype": "Small Text",
+   "label": "Specifications"
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Data",
+   "label": "Vendor"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-14 12:52:59.741775",
+ "modified_by": "Administrator",
+ "module": "Material",
+ "name": "VMS Product Master",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "product_name",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "product_price"
+}
