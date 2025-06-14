@@ -8,15 +8,16 @@
  "field_order": [
   "product_details_section",
   "product_name",
-  "product_image",
   "category_type",
   "product_price",
   "lead_time",
+  "vendor",
   "column_break_vwcl",
   "specifications",
   "uom",
   "company",
-  "vendor"
+  "section_break_kdgp",
+  "multiple_product_image"
  ],
  "fields": [
   {
@@ -28,11 +29,6 @@
    "fieldname": "product_name",
    "fieldtype": "Data",
    "label": "Product Name"
-  },
-  {
-   "fieldname": "product_image",
-   "fieldtype": "Attach Image",
-   "label": "Product Image"
   },
   {
    "fieldname": "category_type",
@@ -75,12 +71,22 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "section_break_kdgp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "multiple_product_image",
+   "fieldtype": "Table",
+   "label": "Multiple Product Image",
+   "options": "VMS Product Image"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-14 12:52:59.741775",
+ "modified": "2025-06-14 14:39:57.187720",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "VMS Product Master",
