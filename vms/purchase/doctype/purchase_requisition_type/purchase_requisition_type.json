@@ -6,7 +6,9 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "purchase_requisition_type_code",
   "purchase_requisition_type_name",
+  "company",
   "description"
  ],
  "fields": [
@@ -20,12 +22,24 @@
    "fieldname": "description",
    "fieldtype": "Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "purchase_requisition_type_code",
+   "fieldtype": "Data",
+   "label": "Purchase Requisition Type Code",
+   "unique": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 14:49:58.516054",
+ "modified": "2025-06-14 11:24:11.243964",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Type",

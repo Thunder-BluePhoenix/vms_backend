@@ -16,6 +16,7 @@
   "account_category",
   "gl_account",
   "company_code_area",
+  "company",
   "valuation_area",
   "requisitioner",
   "section_break_hrwl",
@@ -53,8 +54,9 @@
   },
   {
    "fieldname": "company_code_area",
-   "fieldtype": "Data",
-   "label": "Company Code Area"
+   "fieldtype": "Link",
+   "label": "Company Code Area",
+   "options": "Company Code Area"
   },
   {
    "fieldname": "valuation_area",
@@ -97,12 +99,18 @@
    "fieldtype": "Link",
    "label": "Purchase Requisition Type",
    "options": "Purchase Requisition Type"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 15:55:31.733549",
+ "modified": "2025-06-13 17:09:34.938536",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form",
