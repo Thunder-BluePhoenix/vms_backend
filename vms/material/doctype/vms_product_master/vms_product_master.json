@@ -9,6 +9,7 @@
   "product_details_section",
   "product_name",
   "category_type",
+  "subhead",
   "product_price",
   "lead_time",
   "vendor",
@@ -81,12 +82,17 @@
    "fieldtype": "Table",
    "label": "Multiple Product Image",
    "options": "VMS Product Image"
+  },
+  {
+   "fieldname": "subhead",
+   "fieldtype": "Data",
+   "label": "Subhead"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-14 14:39:57.187720",
+ "modified": "2025-06-14 16:11:29.114112",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "VMS Product Master",
