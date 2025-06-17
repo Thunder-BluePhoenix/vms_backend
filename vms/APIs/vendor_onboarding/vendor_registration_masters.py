@@ -11,6 +11,7 @@ def vendor_registration_dropdown_masters():
         company_master = frappe.db.sql("SELECT name, company_name, company_code, description FROM `tabCompany Master`", as_dict=True)
         currency_master = frappe.db.sql("SELECT name, currency_name FROM `tabCurrency Master`", as_dict=True)
         incoterm_master = frappe.db.sql("SELECT name, incoterm_name FROM `tabIncoterm Master`", as_dict=True)
+        reconciliation_account = frappe.db.sql("SELECT name, reconcil_account_code, reconcil_account, reconcil_description FROM `tabReconciliation Account`", as_dict=True)
 
         return {
             "status": "success",
@@ -21,7 +22,8 @@ def vendor_registration_dropdown_masters():
                 "country_master": country_master,
                 "company_master": company_master,
                 "currency_master": currency_master,
-                "incoterm_master": incoterm_master
+                "incoterm_master": incoterm_master,
+                "reconciliation_account": reconciliation_account
             }
         }
 
