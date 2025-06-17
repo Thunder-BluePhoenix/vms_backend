@@ -134,7 +134,7 @@ def vendor_registration(data):
 
         for field in [
             "qms_required","company_name", "purchase_organization", "account_group",
-            "purchase_group", "terms_of_payment", "order_currency", "incoterms"
+            "purchase_group", "terms_of_payment", "order_currency", "incoterms", "reconciliation_account"
         ]:
             if field in data:
                 vendor_onboarding.set(field, data[field])

@@ -249,3 +249,80 @@ def update_pur_req_table(data):
             "message": "Failed to update Purchase Requisition Webform table.",
             "error": str(e)
         }
+
+# update whole purchase requisition webform data
+@frappe.whitelist(allow_guest=True)
+def update_purchase_requisition_data(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        doc_name = data.get("name")
+        if not doc_name:
+            return {
+                "status": "error",
+                "message": "Document name (Purchase Requisition Webform) is required."
+            }
+
+        doc = frappe.get_doc("Purchase Requisition Webform", doc_name)
+        if not doc:
+            return {
+                "status": "error",
+                "message": "Purchase Requisition Webform not found."
+            }
+
+        # Update only the fields provided in the data
+        main_fields = [
+            "purchase_requisition_type", "plant", "company_code_area", "company", "requisitioner"
+        ]
+        for field in main_fields:
+            if field in data:
+                doc.set(field, data.get(field))
+
+        # Update only the provided child table row (if row_id is present)
+        
+        # rows_data = data.get("child_rows")  # List of dicts with 'row_id' and fields
+        # if rows_data:
+        #     for row_data in rows_data:
+        #         row_id = row_data.get("row_id")
+        #         if not row_id:
+        #             continue
+        #         for row in doc.purchase_requisition_form_table:
+        #             if row.name == row_id:
+        #                 for key in row.meta.get("fields"):
+        #                     fieldname = key.fieldname
+        #                     if fieldname and fieldname in row_data:
+        #                         row.set(fieldname, row_data[fieldname])
+        #                 break
+        
+        # Aletrnative way to update the fields in child table
+
+        rows_data = data.get("child_rows")  # List of dicts with 'row_id' and fields
+        if rows_data:
+            for row_data in rows_data:
+                row_id = row_data.get("row_id")
+                if not row_id:
+                    continue
+                for row in doc.purchase_requisition_form_table:
+                    if row.name == row_id:
+                        for key, value in row_data.items():
+                            if key != "row_id":
+                                row.set(key, value)
+                        break
+
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": "Purchase Requisition Webform updated successfully.",
+            "name": doc.name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Update Purchase Requisition Webform Data API Error")
+        return {
+            "status": "error",
+            "message": "Failed to update Purchase Requisition Webform.",
+            "error": str(e)
+        }
