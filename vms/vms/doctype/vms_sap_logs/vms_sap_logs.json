@@ -8,6 +8,7 @@
  "field_order": [
   "naming_series",
   "vendor_onboarding_link",
+  "purchase_requisition_link",
   "erp_to_sap_data",
   "sap_response"
  ],
@@ -22,7 +23,8 @@
    "fieldname": "vendor_onboarding_link",
    "fieldtype": "Link",
    "label": "Vendor Onboarding Link",
-   "options": "Vendor Onboarding"
+   "options": "Vendor Onboarding",
+   "read_only": 1
   },
   {
    "fieldname": "erp_to_sap_data",
@@ -33,12 +35,19 @@
    "fieldname": "sap_response",
    "fieldtype": "JSON",
    "label": "SAP Respnse"
+  },
+  {
+   "fieldname": "purchase_requisition_link",
+   "fieldtype": "Link",
+   "label": "Purchase Requisition Link",
+   "options": "Purchase Requisition Form",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-09 13:00:12.338042",
+ "modified": "2025-06-17 12:07:42.197187",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "VMS SAP Logs",

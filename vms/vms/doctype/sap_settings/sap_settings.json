@@ -5,13 +5,18 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "vendor_onboarding_sap_section",
-  "url",
+  "sap_authorization_section",
   "column_break_szoq",
   "authorization_type",
   "authorization_key",
+  "column_break_fnpp",
   "auth_user_name",
-  "auth_user_pass"
+  "auth_user_pass",
+  "vendor_onboarding_sap_section",
+  "url",
+  "purchase_requisition_sap_section",
+  "column_break_qmkf",
+  "sap_pr_url"
  ],
  "fields": [
   {
@@ -53,13 +58,37 @@
    "fieldname": "auth_user_pass",
    "fieldtype": "Data",
    "label": "Auth User Pass"
+  },
+  {
+   "fieldname": "sap_authorization_section",
+   "fieldtype": "Section Break",
+   "label": "SAP Authorization"
+  },
+  {
+   "fieldname": "column_break_fnpp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "purchase_requisition_sap_section",
+   "fieldtype": "Section Break",
+   "label": "Purchase Requisition SAP"
+  },
+  {
+   "description": "Sending data to sap and fetch vendor code. eg: http://10.10.103.133:8000//sap/opu/odata/sap/ZMM_ME51N_PR7_SRV/HdrSet?sap-client=",
+   "fieldname": "sap_pr_url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "fieldname": "column_break_qmkf",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-19 17:45:40.005102",
+ "modified": "2025-06-14 14:27:01.227010",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "SAP Settings",
