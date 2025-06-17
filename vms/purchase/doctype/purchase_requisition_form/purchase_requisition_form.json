@@ -12,11 +12,13 @@
   "purchase_group",
   "purchase_requisition_name",
   "plant",
+  "sent_to_sap",
   "column_break_wrlo",
   "account_category",
   "gl_account",
   "company_code_area",
   "company",
+  "sap_client_code",
   "valuation_area",
   "requisitioner",
   "section_break_hrwl",
@@ -105,12 +107,24 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company Master"
+  },
+  {
+   "fetch_from": "company.sap_client_code",
+   "fieldname": "sap_client_code",
+   "fieldtype": "Data",
+   "label": "SAP Client Code "
+  },
+  {
+   "default": "0",
+   "fieldname": "sent_to_sap",
+   "fieldtype": "Check",
+   "label": "Sent to SAP"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 17:09:34.938536",
+ "modified": "2025-06-17 12:41:16.778689",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form",
