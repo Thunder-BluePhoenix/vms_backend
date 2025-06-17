@@ -10,6 +10,7 @@
   "vendor_information_section",
   "naming_series",
   "organization_name",
+  "vendor_onboarding",
   "ref_no",
   "vendor_name1",
   "date1",
@@ -230,7 +231,6 @@
    "label": "1a.Others certificates"
   },
   {
-   "default": "-Select-",
    "fieldname": "quality_control_system",
    "fieldtype": "Small Text",
    "label": "1.Quality Control System is derived to comply",
@@ -734,7 +734,7 @@
   {
    "fieldname": "date1",
    "fieldtype": "Date",
-   "label": "Date1"
+   "label": "Date"
   },
   {
    "fieldname": "name_of_parent_company",
@@ -874,12 +874,18 @@
    "fieldname": "naming_series",
    "fieldtype": "Data",
    "label": "Naming Series"
+  },
+  {
+   "fieldname": "vendor_onboarding",
+   "fieldtype": "Link",
+   "label": "Vendor Onboarding",
+   "options": "Vendor Onboarding"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-02 11:14:39.462064",
+ "modified": "2025-06-16 12:56:33.402670",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",

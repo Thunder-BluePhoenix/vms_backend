@@ -1,0 +1,167 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-16 12:08:19.721233",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "governance_tab",
+  "company_information_section",
+  "annual_supplier_assessment_questionnaire",
+  "name_of_the_company",
+  "column_break_esac",
+  "location",
+  "name_of_product",
+  "governance_section",
+  "have_formal_governance_structure",
+  "esg_policies_coverage",
+  "esg_risk_integration",
+  "company_publish_sustainability_report",
+  "esg_rating_participated",
+  "esg_rating_score",
+  "column_break_ccqm",
+  "esg_incentive_for_employee",
+  "csat_survey_conducted",
+  "csat_score",
+  "instance_of_loss_customer_data",
+  "no_of_loss_data_incidents"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_information_section",
+   "fieldtype": "Section Break",
+   "label": "Company Information"
+  },
+  {
+   "fetch_from": "annual_supplier_assessment_questionnaire.name_of_the_company",
+   "fieldname": "name_of_the_company",
+   "fieldtype": "Data",
+   "label": "Name of the company"
+  },
+  {
+   "fetch_from": "annual_supplier_assessment_questionnaire.location",
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location (Full Address):"
+  },
+  {
+   "fetch_from": "annual_supplier_assessment_questionnaire.name_of_product",
+   "fieldname": "name_of_product",
+   "fieldtype": "Data",
+   "label": "Name of the product/products/services supplied/provided to Meril"
+  },
+  {
+   "fieldname": "governance_tab",
+   "fieldtype": "Tab Break",
+   "label": "Governance"
+  },
+  {
+   "fieldname": "have_formal_governance_structure",
+   "fieldtype": "Select",
+   "label": "Does the company have a formal governance structure in place to oversee ESG matters, including Board, ESG lead, and safety/POSH committees?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "esg_policies_coverage",
+   "fieldtype": "Select",
+   "label": "Does the company have policies covering key ESG areas like environment, safety, labor, diversity, ethics, human rights, and compliance?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "esg_risk_integration",
+   "fieldtype": "Select",
+   "label": "Are ESG risks integrated into the company's risk register?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "company_publish_sustainability_report",
+   "fieldtype": "Select",
+   "label": "Does your company annually publish a Sustainability report/ESG Report/Integrated report?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "esg_rating_participated",
+   "fieldtype": "Select",
+   "label": "Have you participated in ESG/Sustainability ratings like DJSI, CDP, MSCI, Ecovadis, etc.?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "esg_rating_score",
+   "fieldtype": "Data",
+   "label": "If Yes, provide the scoring/rating achieved."
+  },
+  {
+   "fieldname": "esg_incentive_for_employee",
+   "fieldtype": "Select",
+   "label": "Does the company provide incentives to employees on achieving ESG targets?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "csat_survey_conducted",
+   "fieldtype": "Select",
+   "label": "Do you conduct customer satisfaction survey (CSAT)?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "csat_score",
+   "fieldtype": "Data",
+   "label": "If yes, provide the CSAT score."
+  },
+  {
+   "fieldname": "instance_of_loss_customer_data",
+   "fieldtype": "Select",
+   "label": "Was there any instances involving loss / breach of data of customers?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "no_of_loss_data_incidents",
+   "fieldtype": "Data",
+   "label": "If Yes, provide the number of such incidents."
+  },
+  {
+   "fieldname": "column_break_ccqm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "governance_section",
+   "fieldtype": "Section Break",
+   "label": "Governance"
+  },
+  {
+   "fieldname": "column_break_esac",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "annual_supplier_assessment_questionnaire",
+   "fieldtype": "Link",
+   "label": "Annual Supplier Assessment Questionnaire",
+   "options": "Annual Supplier Assessment Questionnaire"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-16 14:59:09.086253",
+ "modified_by": "Administrator",
+ "module": "Assessment Forms",
+ "name": "Governance Annual Supplier Assessment Questionnaire",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

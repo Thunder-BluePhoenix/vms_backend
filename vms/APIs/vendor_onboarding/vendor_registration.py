@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from urllib.parse import urlencode
 import json
 
 # will be used for vendor master updation
@@ -268,48 +269,66 @@ def send_registration_email_link(vendor_onboarding, refno):
                 "message": "Missing 'vendor_onboarding' parameter."
             }
 
-        # get Vendor Onboarding document
         onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
 
-        # Proceed only if email hasn't been sent
+        # Construct registration link
+        http_server = frappe.conf.get("frontend_http")
+        registration_link = (
+            f"{http_server}/vendor-details-form"
+            f"?tabtype=Company%20Detail"
+            f"&refno={refno}"
+            f"&vendor_onboarding={vendor_onboarding}"
+        )
+
+        # Construct QMS form link if required
+        qms_section = ""
+        if onboarding_doc.qms_required == "Yes":
+            query_params = urlencode({
+                "vendor_onboarding": onboarding_doc.name,
+                "ref_no": onboarding_doc.ref_no
+            })
+            webform_link = f"{frappe.utils.get_url()}/qms-webform/new?{query_params}"
+            qms_section = f"""
+                <p>As part of your registration, please also complete the QMS Form at the link below:</p>
+                <p style="margin: 15px 0px;">
+                    <a href="{webform_link}" rel="nofollow" class="btn btn-secondary">Fill QMS Form</a>
+                </p>
+                <p>You may also copy and paste this link into your browser:<br>
+                <a href="{webform_link}">{webform_link}</a></p>
+            """
+
+        # Send registration email only once
         if not onboarding_doc.sent_registration_email_link:
             vendor_master = frappe.get_doc("Vendor Master", refno)
-
             recipient_email = vendor_master.office_email_primary or vendor_master.office_email_secondary
+
             if not recipient_email:
                 return {
                     "status": "error",
                     "message": "No recipient email found for the vendor."
                 }
 
-            conf = frappe.conf
-            http_server = conf.get("frontend_http")
-            
-            registration_link = (
-                f"{http_server}/vendor-details-form"
-                f"?tabtype=Company%20Detail"
-                f"&refno={refno}"
-                f"&vendor_onboarding={vendor_onboarding}"
-            )
-
             frappe.sendmail(
                 recipients=[recipient_email],
-                subject="Welcome to VMS",
+                subject="Welcome to VMS - Complete Your Registration",
                 message=f"""
-                    <p>Hello {vendor_master.vendor_name},</p>
-                    <p>Click on the link below to complete your registration:</p>
+                    <p>Dear {vendor_master.vendor_name},</p>
+                    <p>Your Vendor Onboardng process has Initiated.To complete your registration, please click the link below:</p>
                     <p style="margin: 15px 0px;">
                         <a href="{registration_link}" rel="nofollow" class="btn btn-primary">Complete Registration</a>
                     </p>
-                    <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
-                    <br>
-                    <p>You can also copy-paste the following link into your browser:<br>
+                    <p>You may also copy and paste this link into your browser:<br>
                     <a href="{registration_link}">{registration_link}</a></p>
+
+                    {qms_section}
+
+                    <p>Best regards,<br>VMS Team</p>
                 """,
                 delayed=False
             )
 
             onboarding_doc.sent_registration_email_link = 1
+            onboarding_doc.sent_qms_form_link =1
             onboarding_doc.save(ignore_permissions=True)
             frappe.db.commit()
 
@@ -331,3 +350,4 @@ def send_registration_email_link(vendor_onboarding, refno):
             "message": "Failed to send registration email.",
             "error": str(e)
         }
+    

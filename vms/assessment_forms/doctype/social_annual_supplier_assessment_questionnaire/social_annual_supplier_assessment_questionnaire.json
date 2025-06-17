@@ -1,0 +1,304 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-16 12:27:18.530248",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_information_section",
+  "annual_supplier_assessment_questionnaire",
+  "name_of_the_company",
+  "column_break_hcxw",
+  "location",
+  "name_of_product",
+  "labor_rights_and_working_conditions_section",
+  "have_prohibition_policy_of_child_labor",
+  "age_verification_before_hiring",
+  "ensure_modern_slavery_labor_policy",
+  "have_non_discrimination_policy",
+  "has_setup_safety_report_incidents",
+  "pending_legal_cases_workplace_harassment",
+  "details_of_pending_legal_cases",
+  "column_break_apaq",
+  "comply_minimum_wage_law_regulation",
+  "legal_working_hours",
+  "work_hrs_track_by_company",
+  "has_diversity_inclusion_policy",
+  "have_target_to_promote_diversity",
+  "details_of_targets",
+  "grievance_mechanism_section",
+  "have_grievance_mechanism",
+  "employee_well_being_section",
+  "any_emp_well_being_initiative",
+  "details_of_initiatives",
+  "health_and_safety_section",
+  "has_develop_health_safety_policy",
+  "have_healthy_safety_management",
+  "conduct_hira_activity",
+  "certify_ohs_system",
+  "emp_trained_health_safety",
+  "mention_behavior_base_safety",
+  "column_break_wspw",
+  "track_health_safety_indicators",
+  "provide_any_healthcare_services",
+  "details_of_healthcare_services",
+  "employee_satisfaction_section",
+  "conduct_esat",
+  "column_break_pnnm",
+  "esat_score"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_information_section",
+   "fieldtype": "Section Break",
+   "label": "Company Information"
+  },
+  {
+   "fetch_from": "annual_supplier_assessment_questionnaire.name_of_the_company",
+   "fieldname": "name_of_the_company",
+   "fieldtype": "Data",
+   "label": "Name of the company"
+  },
+  {
+   "fetch_from": "annual_supplier_assessment_questionnaire.location",
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location (Full Address):"
+  },
+  {
+   "fetch_from": "annual_supplier_assessment_questionnaire.name_of_product",
+   "fieldname": "name_of_product",
+   "fieldtype": "Data",
+   "label": "Name of the product/products/services supplied/provided to Meril"
+  },
+  {
+   "fieldname": "labor_rights_and_working_conditions_section",
+   "fieldtype": "Section Break",
+   "label": "Labor Rights and Working Conditions"
+  },
+  {
+   "fieldname": "have_prohibition_policy_of_child_labor",
+   "fieldtype": "Select",
+   "label": "Does the company have a policy on prohibition of child labor and forced labor?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "age_verification_before_hiring",
+   "fieldtype": "Select",
+   "label": "Does the company collect and verify proof of age documents for all potential employees and workers before hiring?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "ensure_modern_slavery_labor_policy",
+   "fieldtype": "Select",
+   "label": "Does the company ensure no forced, bonded, prison labor, human trafficking, or modern slavery in operations and supply chain?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "have_non_discrimination_policy",
+   "fieldtype": "Select",
+   "label": "Does the company have a non-discrimination policy communicated to all employees and workers?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "pending_legal_cases_workplace_harassment",
+   "fieldtype": "Select",
+   "label": "Are there any legal cases pending regarding workplace harassment?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "details_of_pending_legal_cases",
+   "fieldtype": "Small Text",
+   "label": "If yes, provide details."
+  },
+  {
+   "fieldname": "comply_minimum_wage_law_regulation",
+   "fieldtype": "Select",
+   "label": "Does your company comply with all applicable minimum wage laws and regulations in the countries where you operate?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "has_setup_safety_report_incidents",
+   "fieldtype": "Select",
+   "label": "Has the company set up a procedure for employees/workers to safely report workplace discrimination incidents?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "legal_working_hours",
+   "fieldtype": "Select",
+   "label": "Are working hours within the legal limit (9 hours pr day, 48 hours per week)?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "work_hrs_track_by_company",
+   "fieldtype": "Select",
+   "label": "Are working hours and attendance tracked by the company and authenticated by employees and workers?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "has_diversity_inclusion_policy",
+   "fieldtype": "Select",
+   "label": "Whether the company has a Diversity and inclusion policy covering anti-discrimination and anti-harassment, equal opportunity, etc?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "have_target_to_promote_diversity",
+   "fieldtype": "Select",
+   "label": "Do you have initiatives and targets in place to promote diversity and inclusion?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "details_of_targets",
+   "fieldtype": "Small Text",
+   "label": "If Yes, provide the details."
+  },
+  {
+   "fieldname": "grievance_mechanism_section",
+   "fieldtype": "Section Break",
+   "label": "Grievance Mechanism"
+  },
+  {
+   "fieldname": "have_grievance_mechanism",
+   "fieldtype": "Select",
+   "label": "Is there a grievance mechanism accessible to internal/external stakeholders in a language they understand?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "employee_well_being_section",
+   "fieldtype": "Section Break",
+   "label": "Employee Well Being"
+  },
+  {
+   "fieldname": "any_emp_well_being_initiative",
+   "fieldtype": "Select",
+   "label": "Are there employee well-being initiatives in place?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "details_of_initiatives",
+   "fieldtype": "Small Text",
+   "label": "If Yes, provide the details of the initiatives."
+  },
+  {
+   "fieldname": "health_and_safety_section",
+   "fieldtype": "Section Break",
+   "label": "Health and Safety"
+  },
+  {
+   "fieldname": "has_develop_health_safety_policy",
+   "fieldtype": "Select",
+   "label": "Has the company developed health and safety policy and has displayed it at a conspicuous location?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "have_healthy_safety_management",
+   "fieldtype": "Select",
+   "label": "Do you have an Occupational Healthy & Safety management (OHS) system?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "conduct_hira_activity",
+   "fieldtype": "Select",
+   "label": "Does the company conduct hazard identification and risk assessment (HIRA) for every activity and for any change in conditions?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "certify_ohs_system",
+   "fieldtype": "Select",
+   "label": "Is your OHS system certified to ISO 14001 or OHSAS 18001?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "emp_trained_health_safety",
+   "fieldtype": "Select",
+   "label": "Are employees regularly trained on health & safety?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "mention_behavior_base_safety",
+   "fieldtype": "Small Text",
+   "label": "Also, please mention if behavior-based safety training is provided."
+  },
+  {
+   "fieldname": "track_health_safety_indicators",
+   "fieldtype": "Select",
+   "label": "Does the company track health and safety indicators like fatalities, lost time injuries, first aid cases, near misses, and maintain records?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "column_break_wspw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "provide_any_healthcare_services",
+   "fieldtype": "Select",
+   "label": "Does the company provide healthcare services to the employees and workers like Annual Health checkup?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "details_of_healthcare_services",
+   "fieldtype": "Small Text",
+   "label": "If Yes, provide the details."
+  },
+  {
+   "fieldname": "employee_satisfaction_section",
+   "fieldtype": "Section Break",
+   "label": "Employee Satisfaction"
+  },
+  {
+   "fieldname": "conduct_esat",
+   "fieldtype": "Select",
+   "label": "Do you conduct employee satisfaction survey (ESAT)?",
+   "options": "\nYes\nNo\nNA"
+  },
+  {
+   "fieldname": "column_break_pnnm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "esat_score",
+   "fieldtype": "Data",
+   "label": "If yes, provide the ESAT score."
+  },
+  {
+   "fieldname": "column_break_apaq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_hcxw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "annual_supplier_assessment_questionnaire",
+   "fieldtype": "Link",
+   "label": "Annual Supplier Assessment Questionnaire",
+   "options": "Annual Supplier Assessment Questionnaire"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-16 15:53:09.188151",
+ "modified_by": "Administrator",
+ "module": "Assessment Forms",
+ "name": "Social Annual Supplier Assessment Questionnaire",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
