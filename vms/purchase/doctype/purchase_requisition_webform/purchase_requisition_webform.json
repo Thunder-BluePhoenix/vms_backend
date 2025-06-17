@@ -1,10 +1,12 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-06-13 16:58:33.538651",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series",
   "purchase_requisition_form_link",
   "purchase_requisition_type",
   "plant",
@@ -65,15 +67,22 @@
    "fieldtype": "Link",
    "label": "Purchase Requisition Form Link",
    "options": "Purchase Requisition Form"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "PRW-.YYYY.-.MM.-"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-16 13:09:45.451309",
+ "modified": "2025-06-17 11:02:03.298805",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {

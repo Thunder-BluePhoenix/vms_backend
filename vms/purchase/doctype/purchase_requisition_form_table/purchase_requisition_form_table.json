@@ -30,6 +30,7 @@
   "cost_center",
   "plant",
   "requisitioner",
+  "requisitioner_name",
   "requisition_date"
  ],
  "fields": [
@@ -184,13 +185,19 @@
    "fieldtype": "Link",
    "label": "Account Assignment Category",
    "options": "Account Assignment Category"
+  },
+  {
+   "fetch_from": "requisitioner.full_name",
+   "fieldname": "requisitioner_name",
+   "fieldtype": "Data",
+   "label": "Requisitioner Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-16 14:26:34.894665",
+ "modified": "2025-06-17 11:34:04.477342",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form Table",

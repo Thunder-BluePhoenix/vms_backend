@@ -2,6 +2,49 @@ import frappe
 import json
 
 @frappe.whitelist(allow_guest=True)
+def purchase_requsition_masters():
+    try:
+        purchase_requisition_type = frappe.db.sql("""SELECT name, purchase_requisition_type_code, purchase_requisition_type_name, description FROM `tabPurchase Requisition Type`""",  as_dict=True)
+        plant = frappe.db.sql("""SELECT name, plant_code, plant_name, description FROM `tabPlant Master`""", as_dict=True)
+        company_code_area = frappe.db.sql("""SELECT name, company_area_code, company_area_name, description FROM `tabCompany Code Area`""", as_dict=True)
+        company = frappe.db.sql("""SELECT name, company_code, company_name, description FROM `tabCompany Master`""", as_dict=True)
+        item_category_master = frappe.db.sql("""SELECT name, item_code, item_name, description FROM `tabItem Category Master`""", as_dict=True)
+        material_group_master = frappe.db.sql("""SELECT name, material_group_name, material_group_description FROM `tabMaterial Group Master`""", as_dict=True)
+        uom_master = frappe.db.sql("""SELECT name, uom_code, uom, description FROM `tabUOM Master`""", as_dict=True)
+        cost_center  = frappe.db.sql("""SELECT name, cost_center_code, cost_center_name, description FROM `tabCost Center`""", as_dict=True)
+        profit_center = frappe.db.sql("""SELECT name, profit_center_code, profit_center_name, description FROM `tabProfit Center`""", as_dict=True)
+        gl_account_number = frappe.db.sql("""SELECT name, gl_account_code, gl_account_name, description FROM `tabGL Account`""", as_dict=True)
+        material_code = frappe.db.sql("""SELECT name, material_code, material_name, description FROM `tabMaterial Master`""", as_dict=True)
+        account_assignment_category = frappe.db.sql("""SELECT name, account_assignment_category_code, account_assignment_category_name, description FROM `tabAccount Assignment Category`""", as_dict=True)
+        purchase_group = frappe.db.sql("""SELECT name, purchase_group_code, purchase_group_name, description FROM `tabPurchase Group Master`""", as_dict=True)
+        account_category = frappe.db.sql("""SELECT name, account_category_code, account_category_name, description FROM `tabAccount Category Master`""", as_dict=True)
+
+        return {
+            "purchase_requisition_type": purchase_requisition_type,
+            "plant": plant,
+            "company_code_area": company_code_area,
+            "company": company,
+            "item_category_master": item_category_master,
+            "material_group_master": material_group_master,
+            "uom_master": uom_master,
+            "cost_center": cost_center,
+            "profit_center": profit_center,
+            "gl_account_number": gl_account_number,
+            "material_code": material_code,
+            "account_assignment_category": account_assignment_category,
+            "purchase_group": purchase_group,
+            "account_category": account_category
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Purchase Requisition Masters API Error")
+        return {
+            "status": "error",
+            "message": "Failed to retrieve Purchase Requisition masters.",
+            "error": str(e)
+        }
+
+
+@frappe.whitelist(allow_guest=True)
 def create_purchase_requisition(data):
     try:
         if isinstance(data, str):
