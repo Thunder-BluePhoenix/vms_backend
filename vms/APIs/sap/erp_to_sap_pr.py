@@ -50,15 +50,17 @@ def erp_to_sap_pr(doc_name, method=None):
                 }
 
         data_list["ItemSet"].append(data)
-        # print("json data", data)
+        print("json data", data)
 
-    # print("data_list", data_list)
+        print("data_list", data_list)
 
-    # data_list = ["ItemSet"]
+
+
+        # data_list = ["ItemSet"]
 
     sap_settings = frappe.get_doc("SAP Settings")
     erp_to_sap_pr_url = sap_settings.sap_pr_url
-    url = f"{erp_to_sap_pr_url}"
+    url = f"{erp_to_sap_pr_url}{sap_client_code}"
     header_auth_type = sap_settings.authorization_type
     header_auth_key = sap_settings.authorization_key
     user = sap_settings.auth_user_name
@@ -73,7 +75,7 @@ def erp_to_sap_pr(doc_name, method=None):
     
     auth = HTTPBasicAuth(user, password)
     response = requests.get(url, headers=headers, auth=auth)
-    # print("resssssssssssssssssssssssssss",response.text)
+    print("resssssssssssssssssssssssssss",response.text)
 
     if response.status_code == 200:
         
@@ -82,13 +84,13 @@ def erp_to_sap_pr(doc_name, method=None):
         key2 = response.cookies.get('sap-usercontext')
         
         # Sending details to SAP
-        send_detail(csrf_token, data_list, key1, key2, doc_name, sap_client_code)
+        send_detail(csrf_token, data, key1, key2, doc_name, sap_client_code)
         
         return data
     else:
-        # frappe.log_error(f"Failed to fetch CSRF token from SAP: {response.status_code if response else 'No response'}")
+        frappe.log_error(f"Failed to fetch CSRF token from SAP: {response.status_code if response else 'No response'}")
         return None
-   
+    
 
 def safe_get(obj, list_name, index, attr, default=""):
     try:
@@ -106,7 +108,7 @@ def send_detail(csrf_token, data_list, key1, key2, name, sap_code):
 
     sap_settings = frappe.get_doc("SAP Settings")
     erp_to_sap_pr_url = sap_settings.sap_pr_url
-    url = f"{erp_to_sap_pr_url}"
+    url = f"{erp_to_sap_pr_url}{sap_code}"
     header_auth_type = sap_settings.authorization_type
     header_auth_key = sap_settings.authorization_key
     user = sap_settings.auth_user_name
@@ -173,7 +175,7 @@ def send_detail(csrf_token, data_list, key1, key2, name, sap_code):
 
 
 def onupdate_pr(doc, method = None):
-    if doc.sent_to_sap is not 1:
+    if not doc.sent_to_sap:
         erp_to_sap_pr(doc.name, method=None)
         print("on update run")
 
