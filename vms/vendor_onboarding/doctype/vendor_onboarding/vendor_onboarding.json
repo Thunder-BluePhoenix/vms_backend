@@ -12,6 +12,7 @@
   "vendor_name",
   "registered_by",
   "qms_required",
+  "qms_form_link",
   "column_break_wagn",
   "mandatory_data_filled",
   "onboarding_form_status",
@@ -28,6 +29,7 @@
   "column_break_mkfw",
   "form_fully_submitted_by_vendor",
   "sent_registration_email_link",
+  "sent_qms_form_link",
   "rejected",
   "data_sent_to_sap",
   "expired",
@@ -88,7 +90,6 @@
    "options": "Vendor Master"
   },
   {
-   "fetch_from": "ref_no.qa_required",
    "fieldname": "qms_required",
    "fieldtype": "Select",
    "label": "QMS Required?",
@@ -453,12 +454,24 @@
    "fieldname": "mail_sent_to_account_team",
    "fieldtype": "Check",
    "label": "Mail Sent to Account Team"
+  },
+  {
+   "default": "0",
+   "fieldname": "sent_qms_form_link",
+   "fieldtype": "Check",
+   "label": "Sent QMS Form Link"
+  },
+  {
+   "fieldname": "qms_form_link",
+   "fieldtype": "Link",
+   "label": "QMS Form Link",
+   "options": "Supplier QMS Assessment Form"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-11 16:29:26.586290",
+ "modified": "2025-06-16 09:14:45.396067",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

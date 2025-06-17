@@ -94,116 +94,115 @@ def send_purchase_requisition_data(pur_req):
         }
 
 # update purchase requisition webform doctype
-# @frappe.whitelist(allow_guest=True)
-# def update_pur_req_doc(data):
-#     try:
-#         if isinstance(data, str):
-#             data = json.loads(data)
-        
-#         doc = frappe.get_doc("Purchase Requisition Webform", data.get("name"))
-#         if not doc:
-#             return {
-#                 "status": "error",
-#                 "message": "Purchase Requisition Webform not found."
-#             }
+@frappe.whitelist(allow_guest=True)
+def update_pur_req_doc(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
 
-#         # Update main document fields
-#         doc.update({
-#             "purchase_requisition_type": data.get("purchase_requisition_type"),
-#             "plant": data.get("plant"),
-#             "company_code_area": data.get("company_code_area"),
-#             "company": data.get("company"),
-#             "requisitioner": data.get("requisitioner"),
-#         })
-      
-#         return {
-#             "status": "success",
-#             "message": "Purchase Requisition Webform updated successfully.",
-#             "name": doc.name
-#         }
+        doc_name = data.get("name")
+        if not doc_name:
+            return {
+                "status": "error",
+                "message": "Document name (Purchase Requisition Webform) is required."
+            }
 
-#     except Exception as e:
-#         frappe.log_error(frappe.get_traceback(), "Update Purchase Requisition Webform API Error")
-#         return {
-#             "status": "error",
-#             "message": "Failed to update Purchase Requisition Webform.",
-#             "error": str(e)
-#         }
+        doc = frappe.get_doc("Purchase Requisition Webform", doc_name)
+        if not doc:
+            return {
+                "status": "error",
+                "message": "Purchase Requisition Webform not found."
+            }
+
+        # Update only provided fields
+        for field in ["purchase_requisition_type", "plant", "company_code_area", "company", "requisitioner"]:
+            if field in data:
+                doc.set(field, data.get(field))
+
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": "Purchase Requisition Webform updated successfully.",
+            "name": doc.name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Update Purchase Requisition Webform API Error")
+        return {
+            "status": "error",
+            "message": "Failed to update Purchase Requisition Webform.",
+            "error": str(e)
+        }
 
 
-# #update purchase requisition webform table
-# @frappe.whitelist(allow_guest=True)
-# def update_pur_req_table(data):
-#     try:
-#         if isinstance(data, str):
-#             data = json.loads(data)
-        
-#         doc = frappe.get_doc("Purchase Requisition Webform", data.get("name"))
-#         if not doc:
-#             return {
-#                 "status": "error",
-#                 "message": "Purchase Requisition Webform not found."
-#             }
-#         if data.get(row_id):
+#update purchase requisition webform table
+@frappe.whitelist(allow_guest=True)
+def update_pur_req_table(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
 
-#         for row in doc.purchase_requisition_form_table:
-#             if row.get("row_id") == data.get("row_id"):
-#                 row.update({
-#                     "item_number_of_purchase_requisition": data.get("item_number_of_purchase_requisition"),
-#                     "purchase_requisition_date": data.get("purchase_requisition_date"),
-#                     "delivery_date": data.get("delivery_date"),
-#                     "store_location": data.get("store_location"),
-#                     "item_category": data.get("item_category"),
-#                     "material_group": data.get("material_group"),
-#                     "uom": data.get("uom"),
-#                     "cost_center": data.get("cost_center"),
-#                     "main_asset_no": data.get("main_asset_no"),
-#                     "asset_subnumber": data.get("asset_subnumber"),
-#                     "profit_ctr": data.get("profit_ctr"),
-#                     "short_text": data.get("short_text"),
-#                     "quantity": data.get("quantity"),
-#                     "price_of_purchase_requisition": data.get("price_of_purchase_requisition"),
-#                     "gl_account_number": data.get("gl_account_number"),
-#                     "material_code": data.get("material_code"),
-#                     "account_assignment_category": data.get("account_assignment_category"),
-#                     "purchase_group": data.get("purchase_group")
-#                 })
-#                 break
-#             # If no matching row found, append a new row
-#             doc.append("purchase_requisition_form_table", {
-#                 "item_number_of_purchase_requisition": row.get("item_number_of_purchase_requisition"),
-#                 "purchase_requisition_date": row.get("purchase_requisition_date"),
-#                 "delivery_date": row.get("delivery_date"),
-#                 "store_location": row.get("store_location"),
-#                 "item_category": row.get("item_category"),
-#                 "material_group": row.get("material_group"),
-#                 "uom": row.get("uom"),
-#                 "cost_center": row.get("cost_center"),
-#                 "main_asset_no": row.get("main_asset_no"),
-#                 "asset_subnumber": row.get("asset_subnumber"),
-#                 "profit_ctr": row.get("profit_ctr"),
-#                 "short_text": row.get("short_text"),
-#                 "quantity": row.get("quantity"),
-#                 "price_of_purchase_requisition": row.get("price_of_purchase_requisition"),
-#                 "gl_account_number": row.get("gl_account_number"),
-#                 "material_code": row.get("material_code"),
-#                 "account_assignment_category": row.get("account_assignment_category"),
-#                 "purchase_group": row.get("purchase_group")
-#             })
+        doc = frappe.get_doc("Purchase Requisition Webform", data.get("name"))
+        if not doc:
+            return {
+                "status": "error",
+                "message": "Purchase Requisition Webform not found."
+            }
 
-#         doc.save(ignore_permissions=True)
-#         frappe.db.commit()
+        row_id = data.get("row_id")
+        if not row_id:
+            return {
+                "status": "error",
+                "message": "row_id is required to update a specific child row."
+            }
 
-#         return {
-#             "status": "success",
-#             "message": "Purchase Requisition Webform updated successfully.",
-#             "name": doc.name
-#         }
+        found = False
+        for row in doc.purchase_requisition_form_table:
+            if row.name == row_id:
+                row.update({
+                    "item_number_of_purchase_requisition": data.get("item_number_of_purchase_requisition"),
+                    "purchase_requisition_date": data.get("purchase_requisition_date"),
+                    "delivery_date": data.get("delivery_date"),
+                    "store_location": data.get("store_location"),
+                    "item_category": data.get("item_category"),
+                    "material_group": data.get("material_group"),
+                    "uom": data.get("uom"),
+                    "cost_center": data.get("cost_center"),
+                    "main_asset_no": data.get("main_asset_no"),
+                    "asset_subnumber": data.get("asset_subnumber"),
+                    "profit_ctr": data.get("profit_ctr"),
+                    "short_text": data.get("short_text"),
+                    "quantity": data.get("quantity"),
+                    "price_of_purchase_requisition": data.get("price_of_purchase_requisition"),
+                    "gl_account_number": data.get("gl_account_number"),
+                    "material_code": data.get("material_code"),
+                    "account_assignment_category": data.get("account_assignment_category"),
+                    "purchase_group": data.get("purchase_group")
+                })
+                found = True
+                break
 
-#     except Exception as e:
-#         frappe.log_error(frappe.get_traceback(), "Update Purchase Requisition Webform Table API Error")
-#         return {
-#             "status": "error",
-#             "message": "Failed to update Purchase Requisition Webform table.",
-#             "error": str(e)
-#         }
+        if not found:
+            return {
+                "status": "error",
+                "message": f"Row with row_id {row_id} not found in child table."
+            }
+
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": "Child table row updated successfully.",
+            "name": doc.name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Update Purchase Requisition Webform Table API Error")
+        return {
+            "status": "error",
+            "message": "Failed to update Purchase Requisition Webform table.",
+            "error": str(e)
+        }

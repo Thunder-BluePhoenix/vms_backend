@@ -6,6 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "purchase_requisition_item",
   "item_number_of_purchase_requisition",
   "purchase_requisition_date",
   "delivery_date",
@@ -147,13 +148,19 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Price of Purchase Requisition"
+  },
+  {
+   "fieldname": "purchase_requisition_item",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Purchase Requisition Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-13 17:28:31.984973",
+ "modified": "2025-06-16 14:05:18.613384",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform Table",

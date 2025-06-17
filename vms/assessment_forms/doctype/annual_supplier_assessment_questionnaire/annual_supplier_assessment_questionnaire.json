@@ -10,8 +10,8 @@
   "company_information_section",
   "naming_series",
   "name_of_the_company",
-  "location",
   "column_break_warf",
+  "location",
   "name_of_product",
   "general_disclosure_section",
   "valid_consent_from_pollution_control",
@@ -19,6 +19,11 @@
   "column_break_tjmk",
   "recycle_plastic_package_material",
   "plans_for_recycle_materials",
+  "link_documents",
+  "governance_doctype",
+  "environment_doctype",
+  "column_break_siig",
+  "social_doctype",
   "governance_tab",
   "have_formal_governance_structure",
   "esg_policies_coverage",
@@ -150,8 +155,9 @@
   },
   {
    "fieldname": "valid_consent_from_pollution_control",
-   "fieldtype": "Data",
-   "label": "Does the company hold valid Consent to Operate (CTO) from the Pollution Control Board?"
+   "fieldtype": "Select",
+   "label": "Does the company hold valid Consent to Operate (CTO) from the Pollution Control Board?",
+   "options": "\nYes\nNo\nNA"
   },
   {
    "fieldname": "expiry_date_of_consent",
@@ -160,13 +166,15 @@
   },
   {
    "fieldname": "recycle_plastic_package_material",
-   "fieldtype": "Data",
-   "label": "Do you use recycled plastic/paper in the packaging materials?"
+   "fieldtype": "Select",
+   "label": "Do you use recycled plastic/paper in the packaging materials?",
+   "options": "\nYes\nNo\nNA"
   },
   {
    "fieldname": "plans_for_recycle_materials",
-   "fieldtype": "Data",
-   "label": "Do you have plans/strategy in place to increase the use of recycled materials in the packaging materials?"
+   "fieldtype": "Select",
+   "label": "Do you have plans/strategy in place to increase the use of recycled materials in the packaging materials?",
+   "options": "\nYes\nNo\nNA"
   },
   {
    "fieldname": "governance_tab",
@@ -658,15 +666,43 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "ASAQ-.YYYY.-"
+  },
+  {
+   "fieldname": "link_documents",
+   "fieldtype": "Section Break",
+   "label": "Governance, Environment & Social Documents"
+  },
+  {
+   "fieldname": "governance_doctype",
+   "fieldtype": "Link",
+   "label": "Governance Doctype",
+   "options": "Governance Annual Supplier Assessment Questionnaire"
+  },
+  {
+   "fieldname": "environment_doctype",
+   "fieldtype": "Link",
+   "label": "Environment Doctype",
+   "options": "Environment Annual Supplier Assessment Questionnaire"
+  },
+  {
+   "fieldname": "social_doctype",
+   "fieldtype": "Link",
+   "label": "Social Doctype",
+   "options": "Social Annual Supplier Assessment Questionnaire"
+  },
+  {
+   "fieldname": "column_break_siig",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-14 10:26:19.991697",
+ "modified": "2025-06-16 15:54:25.932989",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Annual Supplier Assessment Questionnaire",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
