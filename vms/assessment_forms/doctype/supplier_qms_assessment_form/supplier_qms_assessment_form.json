@@ -11,6 +11,7 @@
   "naming_series",
   "organization_name",
   "vendor_onboarding",
+  "company",
   "ref_no",
   "vendor_name1",
   "date1",
@@ -201,6 +202,7 @@
    "label": "Conclusion"
   },
   {
+   "fetch_from": "vendor_onboarding.ref_no",
    "fieldname": "ref_no",
    "fieldtype": "Link",
    "label": "Ref No",
@@ -752,6 +754,7 @@
    "label": "Vendor Signature"
   },
   {
+   "fetch_from": "ref_no.vendor_name",
    "fieldname": "vendor_name1",
    "fieldtype": "Data",
    "label": "Vendor Name"
@@ -880,12 +883,18 @@
    "fieldtype": "Link",
    "label": "Vendor Onboarding",
    "options": "Vendor Onboarding"
+  },
+  {
+   "fetch_from": "vendor_onboarding.company_name",
+   "fieldname": "company",
+   "fieldtype": "Data",
+   "label": "Company"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-16 12:56:33.402670",
+ "modified": "2025-06-18 11:00:20.222655",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
