@@ -289,6 +289,15 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 "name": "",
                 "file_name": ""
             }
+        if payment_doc.country:
+            payment_details["address"] = {
+                "country": payment_doc.country
+            }
+        else:
+            payment_details["address"] = {
+                "country": ""
+            }
+
 
         #----------contact details tab-----------------
 
