@@ -18,6 +18,7 @@
   "created_by",
   "purchase_requisition_type",
   "purchase_group",
+  "purchase_group_code",
   "column_break_gwro",
   "delivery_date",
   "store_location",
@@ -191,13 +192,19 @@
    "fieldname": "requisitioner_name",
    "fieldtype": "Data",
    "label": "Requisitioner Name"
+  },
+  {
+   "fetch_from": "purchase_group.purchase_group_code",
+   "fieldname": "purchase_group_code",
+   "fieldtype": "Data",
+   "label": "Purchase group Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-17 11:34:04.477342",
+ "modified": "2025-06-18 12:20:33.785733",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form Table",
