@@ -65,20 +65,27 @@ def get_purchase_team_details(company_name=None):
 # http://127.0.0.1:8003/api/method/vms.APIs.vendor_onboarding.vendor_field_details.get_purchase_team_details?company_name=Meril Healthcare Private Limited
 
 @frappe.whitelist(allow_guest=True)
-def account_group_details(purchase_organization=None):
+def account_group_details(purchase_organization=None, vendor_types = None):
     if not purchase_organization:
         return {
             "status": "error",
             "message": "Please provide a purchase organization."
         }
+    
+    all_account_groups = []
 
-    account_group_master = frappe.get_all(
-        "Account Group Master", 
-        filters={"purchase_organization": purchase_organization},
-        fields=["name", "account_group_name", "account_group_description"]
-    )
+    for vendor_type in vendor_types:
+        account_groups = frappe.get_all(
+            "Account Group Master", 
+            filters={
+                "purchase_organization": purchase_organization, 
+                "vendor_type": vendor_type
+            },
+            fields=["name", "account_group_name", "account_group_description"]
+        )
+        all_account_groups.extend(account_groups)
 
-    return account_group_master
+    return all_account_groups
 
 
 
