@@ -3,6 +3,7 @@ from frappe import _
 import json
 import requests
 from requests.auth import HTTPBasicAuth
+from datetime import datetime
 
 
 
@@ -11,6 +12,26 @@ def erp_to_sap_pr(doc_name, method=None):
     print("SEND data to sap run")
     doc = frappe.get_doc("Purchase Requisition Form", doc_name)
     sap_client_code = doc.sap_client_code
+    now = datetime.now()
+    year_month_prefix = f"P{now.strftime('%y')}{now.strftime('%m')}"  # e.g. PRF2506
+
+    # Get max existing count for this prefix
+    # Filter by prf_name_for_sap starting with year_month_prefix
+    existing_max = frappe.db.sql(
+        """
+        SELECT MAX(CAST(SUBSTRING(prf_name_for_sap, 8) AS UNSIGNED))
+        FROM `tabPurchase Requisition Form`
+        WHERE prf_name_for_sap LIKE %s
+        """,
+        (year_month_prefix + "%",),
+        as_list=True
+    )
+
+    max_count = existing_max[0][0] or 0
+    new_count = max_count + 1
+
+    # Format new prf_name_for_sap with zero-padded count (6 digits)
+    name_for_sap = f"{year_month_prefix}{str(new_count).zfill(5)}"
 
     
 
@@ -35,10 +56,12 @@ def erp_to_sap_pr(doc_name, method=None):
                 "Lgort" : item.store_location or "",
                 "Afnam" : item.requisitioner_name or "",
                 "Bsart" : item.purchase_requisition_type or "",
-                "Ekgrp" : item.purchase_group or "",
+                "Ekgrp" : item.purchase_group_code or "",
                 "Ernam" : item.created_by or "",
-                "Erdat" : item.requisition_date or "",
-                "Badat" : item.delivery_date or "",
+                "Erdat": item.requisition_date.strftime("%Y%m%d") if item.requisition_date else "",
+                "Badat": item.delivery_date.strftime("%Y%m%d") if item.delivery_date else "",
+
+
                 "Anln1" : item.main_asset_no or "",
                 "Anln2" : item.asset_subnumber or "",
                 "Knttp" : item.account_assignment_category or "",
@@ -46,7 +69,7 @@ def erp_to_sap_pr(doc_name, method=None):
                 "Sakto" : item.gl_account_number or "",
                 "Kostl" : item.cost_center or "",
                 "Preis" : item.price_in_purchase_requisition or "",
-                "Zvmsprno": doc.name
+                "Zvmsprno": doc.prf_name_for_sap or name_for_sap
                 }
 
         data_list["ItemSet"].append(data)
@@ -67,7 +90,7 @@ def erp_to_sap_pr(doc_name, method=None):
     password = sap_settings.auth_user_pass
 
     headers = {
-        'X-CSRF-TOKEN': 'Fetch',
+        'x-csrf-token': 'fetch',
         'Authorization': f"{header_auth_type} {header_auth_key}",
         'Content-Type': 'application/json'
     }
@@ -84,7 +107,7 @@ def erp_to_sap_pr(doc_name, method=None):
         key2 = response.cookies.get('sap-usercontext')
         
         # Sending details to SAP
-        send_detail(csrf_token, data, key1, key2, doc_name, sap_client_code)
+        send_detail(csrf_token, data_list, key1, key2, doc, sap_client_code)
         
         return data
     else:
@@ -104,7 +127,7 @@ def safe_get(obj, list_name, index, attr, default=""):
 
 
 @frappe.whitelist(allow_guest=True)
-def send_detail(csrf_token, data_list, key1, key2, name, sap_code):
+def send_detail(csrf_token, data_list, key1, key2, doc, sap_code):
 
     sap_settings = frappe.get_doc("SAP Settings")
     erp_to_sap_pr_url = sap_settings.sap_pr_url
@@ -126,21 +149,25 @@ def send_detail(csrf_token, data_list, key1, key2, name, sap_code):
     print("*************")
     
     try:
-        response = requests.post(url, headers=headers, auth=auth ,json=data_list)
+        response = requests.post(url, headers=headers, auth=auth, json=data_list)
         pr_sap_code = response.json()
-        # pr_code = pr_sap_code['d']['Vedno']
+        pr_code = pr_sap_code['d']['Banfn']
         # print("response", response.json())
         
         
 
 
-        pr_doc = frappe.get_doc("Purchase Requisition Form", name)
-        pr_doc.sent_to_sap = 1
+        # pr_doc = frappe.get_doc("Purchase Requisition Form", name)
+        doc.sent_to_sap = 1
+        doc.sap_pr_code = pr_code
+        doc.db_update()
+        print(doc)
+
         
         
         
         sap_log = frappe.new_doc("VMS SAP Logs")
-        sap_log.purchase_requisition_link = name
+        sap_log.purchase_requisition_link = doc.name
         sap_log.erp_to_sap_data = data_list
         sap_log.sap_response = response.text
 
@@ -154,7 +181,7 @@ def send_detail(csrf_token, data_list, key1, key2, name, sap_code):
     except ValueError:
         print("************************** Response is here *********************", response.json())
         sap_log = frappe.new_doc("VMS SAP Logs")
-        sap_log.purchase_requisition_link = name
+        sap_log.purchase_requisition_link = doc.name
         sap_log.erp_to_sap_data = data_list
         sap_log.sap_response = response.text
 

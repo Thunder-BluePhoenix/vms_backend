@@ -13,6 +13,7 @@
   "purchase_requisition_name",
   "plant",
   "sent_to_sap",
+  "prf_name_for_sap",
   "column_break_wrlo",
   "account_category",
   "gl_account",
@@ -81,7 +82,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Naming Series",
-   "options": "PRF-.YYYY.-.MM.-"
+   "options": "PRF.YY..MM."
   },
   {
    "fieldname": "sap_pr_code",
@@ -119,12 +120,18 @@
    "fieldname": "sent_to_sap",
    "fieldtype": "Check",
    "label": "Sent to SAP"
+  },
+  {
+   "fieldname": "prf_name_for_sap",
+   "fieldtype": "Data",
+   "label": "PRF Name for SAP",
+   "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 12:41:16.778689",
+ "modified": "2025-06-18 12:34:59.504217",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form",
