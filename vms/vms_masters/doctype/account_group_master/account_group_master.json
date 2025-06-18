@@ -9,7 +9,8 @@
   "account_group_code",
   "account_group_name",
   "account_group_description",
-  "purchase_organization"
+  "purchase_organization",
+  "vendor_type"
  ],
  "fields": [
   {
@@ -32,12 +33,18 @@
    "fieldtype": "Link",
    "label": "Purchase Organization",
    "options": "Purchase Organization Master"
+  },
+  {
+   "fieldname": "vendor_type",
+   "fieldtype": "Link",
+   "label": "Vendor Type",
+   "options": "Vendor Type Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:22:09.584089",
+ "modified": "2025-06-18 14:32:30.799069",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Account Group Master",

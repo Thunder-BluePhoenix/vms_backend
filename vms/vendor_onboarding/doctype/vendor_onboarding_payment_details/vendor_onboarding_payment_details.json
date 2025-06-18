@@ -10,6 +10,7 @@
   "ref_no",
   "column_break_kkrt",
   "vendor_onboarding",
+  "country",
   "indian_bank_details_section",
   "bank_name",
   "ifsc_code",
@@ -182,12 +183,18 @@
    "fieldname": "ift",
    "fieldtype": "Check",
    "label": "IFT"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-18 11:24:07.384727",
+ "modified": "2025-06-18 14:24:56.417400",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Payment Details",
