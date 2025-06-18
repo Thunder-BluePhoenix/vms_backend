@@ -182,8 +182,18 @@ def vendor_registration(data):
             doc.save()
             frappe.db.commit()
             return doc.name
+        
+        def create_related_doc_pd(doctype):
+            doc = frappe.new_doc(doctype)
+            doc.vendor_onboarding = vendor_onboarding.name
+            doc.ref_no = vendor_master.name
+            doc.country = data.get("country")
+            doc.save()
+            frappe.db.commit()
+            return doc.name
 
-        payment_detail = create_related_doc("Vendor Onboarding Payment Details")
+
+        payment_detail = create_related_doc_pd("Vendor Onboarding Payment Details")
         document_details = create_related_doc("Legal Documents")
         certificate_details = create_related_doc("Vendor Onboarding Certificates")
         manufacturing_details = create_related_doc("Vendor Onboarding Manufacturing Details")
