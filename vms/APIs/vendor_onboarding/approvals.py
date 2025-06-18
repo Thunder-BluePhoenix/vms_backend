@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils.file_manager import save_file
 import json
 
 
@@ -80,6 +81,15 @@ def purchase_team_check(data):
             message = _("Onboarding rejected by Purchase Team.")
         else:
             frappe.throw(_("Invalid request: either approve or reject must be set."))
+
+        if onb_doc.payment_detail:
+            payment_detail = frappe.get_doc("Vendor Onboarding Payment Details", onb_doc.payment_detail)
+
+            if "bank_proof_by_purchase_team" in frappe.request.files:
+                file = frappe.request.files["bank_proof_by_purchase_team"]
+                saved = save_file(file.filename, file.stream.read(), payment_detail.doctype, payment_detail.name, is_private=1)
+                payment_detail.bank_proof_by_purchase_team = saved.file_url
+                payment_detail.save(ignore_permissions=True)
 
         onb_doc.save(ignore_permissions=True)
         frappe.db.commit()

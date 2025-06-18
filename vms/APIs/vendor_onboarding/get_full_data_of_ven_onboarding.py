@@ -257,10 +257,11 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         payment_fields = [
             "bank_name", "ifsc_code", "account_number", "name_of_account_holder",
-            "type_of_account", "currency", "rtgs", "neft"
+            "type_of_account", "currency", "rtgs", "neft", "ift"
         ]
         payment_details = {field: payment_doc.get(field) for field in payment_fields}
 
+        # bank proof and bank proof by purchase team
         if payment_doc.bank_proof:
             file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof})
             payment_details["bank_proof"] = {
@@ -275,6 +276,19 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 "file_name": ""
             }
 
+        if payment_doc.bank_proof_by_purchase_team:
+            file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof_by_purchase_team})
+            payment_details["bank_proof_by_purchase_team"] = {
+                "url": frappe.utils.get_url(file_doc.file_url),
+                "name": file_doc.name,
+                "file_name": file_doc.file_name
+            }
+        else:
+            payment_details["bank_proof_by_purchase_team"] = {
+                "url": "",
+                "name": "",
+                "file_name": ""
+            }
 
         #----------contact details tab-----------------
 
