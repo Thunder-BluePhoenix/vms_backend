@@ -26,6 +26,8 @@
   "rtgs",
   "column_break_yyye",
   "neft",
+  "column_break_umls",
+  "ift",
   "bank_details_in_table_section",
   "banker_details",
   "international_bank_details",
@@ -170,12 +172,22 @@
    "fieldname": "bank_proof_by_purchase_team",
    "fieldtype": "Attach",
    "label": "Bank Proof by Purchase Team"
+  },
+  {
+   "fieldname": "column_break_umls",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "ift",
+   "fieldtype": "Check",
+   "label": "IFT"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-18 11:13:13.975160",
+ "modified": "2025-06-18 11:24:07.384727",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Payment Details",
