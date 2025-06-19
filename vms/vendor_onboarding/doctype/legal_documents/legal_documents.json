@@ -44,7 +44,10 @@
   "column_break_kjhb",
   "trc_certificate",
   "pe_certificate_section",
-  "pe_certificate"
+  "pe_certificate",
+  "more_info_tab",
+  "registered_for_multi_companies",
+  "unique_multi_comp_id"
  ],
  "fields": [
   {
@@ -242,12 +245,28 @@
    "fieldtype": "Link",
    "label": "Ref No.",
    "options": "Vendor Master"
+  },
+  {
+   "fieldname": "more_info_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "default": "0",
+   "fieldname": "registered_for_multi_companies",
+   "fieldtype": "Check",
+   "label": "Registered for Multi Companies"
+  },
+  {
+   "fieldname": "unique_multi_comp_id",
+   "fieldtype": "Data",
+   "label": "Unique ID"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-07 15:14:41.566331",
+ "modified": "2025-06-19 20:24:04.633308",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Legal Documents",

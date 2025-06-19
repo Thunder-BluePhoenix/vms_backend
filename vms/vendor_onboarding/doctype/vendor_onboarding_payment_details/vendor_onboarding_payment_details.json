@@ -33,7 +33,10 @@
   "banker_details",
   "international_bank_details",
   "add_intermediate_bank_details",
-  "intermediate_bank_details"
+  "intermediate_bank_details",
+  "tab_2_tab",
+  "registered_for_multi_companies",
+  "unique_multi_comp_id"
  ],
  "fields": [
   {
@@ -189,12 +192,28 @@
    "fieldtype": "Link",
    "label": "Country",
    "options": "Country Master"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "default": "0",
+   "fieldname": "registered_for_multi_companies",
+   "fieldtype": "Check",
+   "label": "Registered for Multi Companies"
+  },
+  {
+   "fieldname": "unique_multi_comp_id",
+   "fieldtype": "Data",
+   "label": "Unique ID"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-18 14:24:56.417400",
+ "modified": "2025-06-19 20:24:25.566616",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Payment Details",

@@ -3,6 +3,12 @@ from frappe import _
 from frappe.model.document import Document
 from urllib.parse import urlencode
 import json
+from datetime import datetime
+
+
+
+
+
 
 # will be used for vendor master updation
 @frappe.whitelist(allow_guest=True)
@@ -54,9 +60,273 @@ def create_vendor_master(data):
             "error": str(e)
         }
 
-# check for existing vendor email and create vendor master, vendor onboarding & related link documents
+
 @frappe.whitelist(allow_guest=True)
 def vendor_registration(data):
+    multi_companies = data.get("for_multiple_company")
+    if multi_companies != 1:
+        vendor_registration_single(data)
+
+    else:
+        vendor_registration_multi(data)
+
+
+
+@frappe.whitelist(allow_guest=True)
+def vendor_registration_multi(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        vendor_master = None
+
+        # Check if vendor with the given email already exists
+        if data.get("office_email_primary"):
+            exists = frappe.get_all(
+                "Vendor Master",
+                filters={"office_email_primary": data["office_email_primary"]},
+                fields=["name"],
+                limit=1
+            )
+
+            if exists:
+                vendor_master = frappe.get_doc("Vendor Master", exists[0]["name"])
+            else:
+                vendor_master = frappe.new_doc("Vendor Master")
+        else:
+            vendor_master = frappe.new_doc("Vendor Master")
+
+        # vendor master fields
+        for field in [
+            "vendor_title", "vendor_name", "office_email_primary", "search_term",
+            "country", "mobile_number", "registered_date", "qa_required"
+        ]:
+            if field in data:
+                vendor_master.set(field, data[field])
+
+        vendor_master.payee_in_document = 1
+        vendor_master.gr_based_inv_ver = 1
+        vendor_master.service_based_inv_ver = 1
+        vendor_master.check_double_invoice = 1
+        vendor_master.created_from_registration = 1
+
+        # Update child tables
+        if "multiple_company_data" in data:
+            for row in data["multiple_company_data"]:
+                is_duplicate = False
+                for existing in vendor_master.multiple_company_data:
+                    if (
+                        (existing.company_name or "").lower().strip() == (row.get("company_name") or "").lower().strip() and
+                        (existing.purchase_organization or "").lower().strip() == (row.get("purchase_organization") or "").lower().strip() and
+                        (existing.account_group or "").lower().strip() == (row.get("account_group") or "").lower().strip() and
+                        (existing.purchase_group or "").lower().strip() == (row.get("purchase_group") or "").lower().strip()
+                    ):
+                        is_duplicate = True
+                        break
+
+                if not is_duplicate:
+                    vendor_master.append("multiple_company_data", row)
+
+
+        if "vendor_types" in data:
+            for row in data["vendor_types"]:
+                is_duplicate = False
+                for existing in vendor_master.vendor_types:
+                    if (existing.vendor_type or "").lower().strip() == (row.get("vendor_type") or "").lower().strip():
+                        is_duplicate = True
+                        break
+
+                if not is_duplicate:
+                    vendor_master.append("vendor_types", row)
+
+        usr = frappe.session.user
+        vendor_master.registered_by = usr
+
+        vendor_master.save(ignore_permissions=True)
+        frappe.db.commit()
+
+
+
+        now = datetime.now()
+        year_month_prefix = f"MCD{now.strftime('%y')}{now.strftime('%m')}"  
+
+        existing_max = frappe.db.sql(
+            """
+            SELECT MAX(CAST(SUBSTRING(unique_multi_comp_id, 8) AS UNSIGNED))
+            FROM `Vendor Onboarding`
+            WHERE unique_multi_comp_id LIKE %s
+            """,
+            (year_month_prefix + "%",),
+            as_list=True
+        )
+
+        max_count = existing_max[0][0] or 0
+        new_count = max_count + 1
+
+
+        unique_multi_comp_id = f"{year_month_prefix}{str(new_count).zfill(5)}"
+
+        
+            
+        # Create Vendor Onboarding
+        vendor_onboarding_docs = []
+        payment_detail_docs = []
+        document_details_docs = []
+        certificate_details_docs = []
+        manufacturing_details_docs = []
+        company_details_docs = []
+        
+        multi_companies = data.get("company_name")
+
+        for comp in multi_companies:
+
+
+            vendor_onboarding = frappe.new_doc("Vendor Onboarding")
+            vendor_onboarding.ref_no = vendor_master.name
+            vendor_onboarding.registered_for_multi_companies = 1
+            vendor_onboarding.unique_multi_comp_id = unique_multi_comp_id
+
+            for field in [
+                "qms_required", "purchase_organization", "account_group",
+                "purchase_group", "terms_of_payment", "order_currency", "incoterms", "reconciliation_account"
+            ]:
+                if field in data:
+                    vendor_onboarding.set(field, data[field])
+
+            vendor_onboarding.payee_in_document = 1
+            vendor_onboarding.gr_based_inv_ver = 1
+            vendor_onboarding.service_based_inv_ver = 1
+            vendor_onboarding.check_double_invoice = 1
+            vendor_onboarding.company_name = comp
+
+            for company in multi_companies:
+                vendor_onboarding.append("multiple_company", {
+                    "company_name": company
+                    })
+
+            # if "multiple_company" in data:
+            #     for row in data["multiple_company"]:
+            #         vendor_onboarding.append("multiple_company", row)
+
+            if "vendor_types" in data:
+                for row in data["vendor_types"]:
+                    is_duplicate = False
+                    for existing in vendor_master.vendor_types:
+                        if (existing.vendor_type or "").lower().strip() == (row.get("vendor_type") or "").lower().strip():
+                            is_duplicate = True
+                            break
+
+                    if not is_duplicate:
+                        vendor_master.append("vendor_types", row)
+
+            vendor_onboarding.registered_by = usr
+
+            vendor_onboarding.save()
+            frappe.db.commit()
+            vendor_onboarding_docs.append(vendor_onboarding.name)
+
+            # Create and link additional onboarding documents
+            def create_related_doc(doctype):
+                doc = frappe.new_doc(doctype)
+                doc.vendor_onboarding = vendor_onboarding.name
+                doc.ref_no = vendor_master.name
+                doc.registered_for_multi_companies = 1
+                doc.unique_multi_comp_id = unique_multi_comp_id
+                doc.save()
+                frappe.db.commit()
+                return doc.name
+            
+            def create_related_doc_company(doctype):
+                doc = frappe.new_doc(doctype)
+                doc.vendor_onboarding = vendor_onboarding.name
+                doc.ref_no = vendor_master.name
+                doc.office_email_primary = vendor_master.office_email_primary
+                doc.telephone_number = vendor_master.mobile_number
+                doc.registered_for_multi_companies = 1
+                doc.unique_multi_comp_id = unique_multi_comp_id
+                doc.save()
+                frappe.db.commit()
+                return doc.name
+            
+            def create_related_doc_pd(doctype):
+                doc = frappe.new_doc(doctype)
+                doc.vendor_onboarding = vendor_onboarding.name
+                doc.ref_no = vendor_master.name
+                doc.country = data.get("country")
+                doc.registered_for_multi_companies = 1
+                doc.unique_multi_comp_id = unique_multi_comp_id
+                doc.save()
+                frappe.db.commit()
+                return doc.name
+
+
+            payment_detail = create_related_doc_pd("Vendor Onboarding Payment Details")
+            payment_detail_docs.append(payment_detail)
+            document_details = create_related_doc("Legal Documents")
+            document_details_docs.append(document_details)
+            certificate_details = create_related_doc("Vendor Onboarding Certificates")
+            certificate_details_docs.append(certificate_details)
+            manufacturing_details = create_related_doc("Vendor Onboarding Manufacturing Details")
+            manufacturing_details_docs.append(manufacturing_details)
+            company_details = create_related_doc_company("Vendor Onboarding Company Details")
+            company_details_docs.append(company_details)
+
+            if company_details:
+                vendor_onb_company = frappe.get_doc("Vendor Onboarding Company Details", company_details)
+
+                for field in ["vendor_title", "vendor_name",]:
+                    if field in data:
+                        vendor_onb_company.set(field, data[field])
+                vendor_onb_company.company_name = comp
+
+                vendor_onb_company.save()
+
+            # Add vendor_company_details in child table
+            vendor_onboarding.append("vendor_company_details", {
+                "vendor_company_details": company_details 
+            })
+
+            # Update vendor onboarding with doc names
+            vendor_onboarding.payment_detail = payment_detail
+            vendor_onboarding.document_details = document_details
+            vendor_onboarding.certificate_details = certificate_details
+            vendor_onboarding.manufacturing_details = manufacturing_details
+            
+            vendor_onboarding.save()
+            # send_registration_email_link(vendor_onboarding.name, vendor_master.name)
+            frappe.db.commit()
+        
+
+        send_registration_email_link(vendor_onboarding_docs[0], vendor_master.name)
+        return {
+            "status": "success",
+            "vendor_master": vendor_master.name,
+            "vendor_onboarding": vendor_onboarding_docs,
+            "payment_detail": payment_detail_docs,
+            "document_details": document_details_docs,
+            "certificate_details": certificate_details_docs,
+            "manufacturing_details": manufacturing_details_docs,
+            "company_details": company_details_docs
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendor Registration Full Flow Error")
+        return {
+            "status": "error",
+            "message": "Vendor registration failed",
+            "error": str(e)
+        }
+
+
+
+
+
+
+
+
+# check for existing vendor email and create vendor master, vendor onboarding & related link documents
+@frappe.whitelist(allow_guest=True)
+def vendor_registration_single(data):
     try:
         if isinstance(data, str):
             data = json.loads(data)

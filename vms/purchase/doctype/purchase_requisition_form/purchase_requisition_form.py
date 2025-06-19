@@ -14,13 +14,13 @@ class PurchaseRequisitionForm(Document):
 	# Get current date or use doc date (you can also use doc.transaction_date or any other date field)
 		if doc.prf_name_for_sap == None or doc.prf_name_for_sap == "":
 			now = datetime.now()
-			year_month_prefix = f"P{now.strftime('%y')}{now.strftime('%m')}"  # e.g. PRF2506
+			year_month_prefix = f"P{now.strftime('%y')}{now.strftime('%m')}"  
 
 			# Get max existing count for this prefix
 			# Filter by prf_name_for_sap starting with year_month_prefix
 			existing_max = frappe.db.sql(
 				"""
-				SELECT MAX(CAST(SUBSTRING(prf_name_for_sap, 8) AS UNSIGNED))
+				SELECT MAX(CAST(SUBSTRING(prf_name_for_sap, 6) AS UNSIGNED))
 				FROM `tabPurchase Requisition Form`
 				WHERE prf_name_for_sap LIKE %s
 				""",

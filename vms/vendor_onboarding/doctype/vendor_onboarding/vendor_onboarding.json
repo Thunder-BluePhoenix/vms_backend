@@ -75,7 +75,12 @@
   "enterprise",
   "reconciliation_account",
   "qa_team_remarks",
-  "incoterms"
+  "incoterms",
+  "tab_7_tab",
+  "registered_for_multi_companies",
+  "unique_multi_comp_id",
+  "column_break_jyil",
+  "multiple_company"
  ],
  "fields": [
   {
@@ -466,12 +471,40 @@
    "fieldtype": "Link",
    "label": "QMS Form Link",
    "options": "Supplier QMS Assessment Form"
+  },
+  {
+   "fieldname": "tab_7_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "default": "0",
+   "fieldname": "registered_for_multi_companies",
+   "fieldtype": "Check",
+   "label": "Registered For Multi Companies"
+  },
+  {
+   "fieldname": "column_break_jyil",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.registered_for_multi_companies === 1",
+   "fieldname": "multiple_company",
+   "fieldtype": "Table",
+   "label": "Multiple Company",
+   "options": "Register For Multiple Companies"
+  },
+  {
+   "fieldname": "unique_multi_comp_id",
+   "fieldtype": "Data",
+   "label": "Unique Multi Comp ID",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-16 09:14:45.396067",
+ "modified": "2025-06-19 17:40:04.295580",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
