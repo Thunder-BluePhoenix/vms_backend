@@ -9,6 +9,8 @@
   "purchase_organization_code",
   "purchase_organization_name",
   "company",
+  "org_type",
+  "section_break_peyy",
   "description"
  ],
  "fields": [
@@ -32,12 +34,22 @@
    "fieldname": "description",
    "fieldtype": "Long Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "org_type",
+   "fieldtype": "Select",
+   "label": "Org Type",
+   "options": "\nDomestic\nInternational"
+  },
+  {
+   "fieldname": "section_break_peyy",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-10 13:01:58.403421",
+ "modified": "2025-06-19 14:28:46.811396",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Purchase Organization Master",
