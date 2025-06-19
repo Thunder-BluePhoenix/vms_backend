@@ -65,7 +65,9 @@ def get_purchase_team_details(company_name=None):
 # http://127.0.0.1:8003/api/method/vms.APIs.vendor_onboarding.vendor_field_details.get_purchase_team_details?company_name=Meril Healthcare Private Limited
 
 @frappe.whitelist(allow_guest=True)
-def account_group_details(purchase_organization=None, vendor_types = None):
+def account_group_details(data):
+    purchase_organization = data.get("purchase_organization")
+    vendor_types = data.get("vendor_types")
     if not purchase_organization:
         return {
             "status": "error",
