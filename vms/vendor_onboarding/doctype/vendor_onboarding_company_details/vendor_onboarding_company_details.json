@@ -54,7 +54,10 @@
   "multiple_locations",
   "multiple_location_table",
   "address_proof_section",
-  "address_proofattachment"
+  "address_proofattachment",
+  "tab_2_tab",
+  "registered_for_multi_companies",
+  "unique_multi_comp_id"
  ],
  "fields": [
   {
@@ -320,12 +323,28 @@
    "fieldname": "company_pan_number",
    "fieldtype": "Data",
    "label": "Company Pan Number"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "default": "0",
+   "fieldname": "registered_for_multi_companies",
+   "fieldtype": "Check",
+   "label": "Registered for Multi Companies"
+  },
+  {
+   "fieldname": "unique_multi_comp_id",
+   "fieldtype": "Data",
+   "label": "Unique ID"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-07 14:59:21.454594",
+ "modified": "2025-06-19 20:22:56.162117",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",
