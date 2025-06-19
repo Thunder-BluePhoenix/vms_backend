@@ -78,7 +78,7 @@ def account_group_details(data):
     pur_doc = frappe.get_doc("Purchase Organization Master", purchase_organization)
     org_type = pur_doc.org_type
     
-    all_account_group = []
+    # all_account_group = []
     all_account_groups = []
 
     for vendor_type in vendor_types:
@@ -90,15 +90,15 @@ def account_group_details(data):
             },
             fields=["name", "account_group_name", "account_group_description"]
         )
-        all_account_group.extend(account_groups)
+        all_account_groups.extend(account_groups)
 
    
-    all_account_groups.append(all_account_group)
+    # all_account_groups.append(all_account_group)
     org_data = {"org_type":org_type}
-    all_account_groups.append(org_data)
+    # all_account_groups.append(org_data)
 
 
-    return all_account_groups
+    return all_account_groups, org_data
 
 
 
