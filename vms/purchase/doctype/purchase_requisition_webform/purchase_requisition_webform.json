@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "cart_details_id",
   "purchase_requisition_form_link",
   "purchase_requisition_type",
   "plant",
@@ -73,12 +74,18 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "PRW-.YYYY.-.MM.-"
+  },
+  {
+   "fieldname": "cart_details_id",
+   "fieldtype": "Link",
+   "label": "Cart Details ID",
+   "options": "Cart Details"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 11:02:03.298805",
+ "modified": "2025-06-19 16:47:57.834177",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",

@@ -46,6 +46,29 @@ def filter_product_name(category_type=None):
         }
 
 
+# filter subhead email
+@frappe.whitelist(allow_guest=True)
+def filter_subhead_email():
+    try:
+        result = frappe.get_all(
+            "Employee",
+            filters={"subhead":1},
+            fields=["name", "full_name", "user_id"]
+        )
+        return {
+            "status": "success",
+            "data": result
+        }
+
+    except Exception as e:      
+        frappe.log_error(frappe.get_traceback(), "Error filtering subhead email")
+        return {
+            "status": "error",
+            "message": "Failed to filter subhead emails.",
+            "error": str(e)
+        }
+
+
 # send cart details/ purchase inquiry
 @frappe.whitelist(allow_guest=True)
 def create_purchase_inquiry(data):
@@ -92,3 +115,5 @@ def create_purchase_inquiry(data):
             "message": "Failed to create Cart Details.",
             "error": str(e)
         }
+    
+

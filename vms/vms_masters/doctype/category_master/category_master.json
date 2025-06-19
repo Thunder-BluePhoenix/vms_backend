@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "category_name",
-  "category_email"
+  "purchase_team_user"
  ],
  "fields": [
   {
@@ -17,15 +17,16 @@
    "unique": 1
   },
   {
-   "fieldname": "category_email",
-   "fieldtype": "Data",
-   "label": "Category Email"
+   "fieldname": "purchase_team_user",
+   "fieldtype": "Link",
+   "label": "Purchase Team",
+   "options": "User"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:28:04.790183",
+ "modified": "2025-06-19 11:39:46.165237",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Category Master",
