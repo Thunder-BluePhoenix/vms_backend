@@ -26,7 +26,7 @@ def get_purchase_team_details(company_name=None):
         purchase_organizations = frappe.get_all(
             "Purchase Organization Master",
             filters={"company": company},
-            fields=["name", "purchase_organization_name", "description"]
+            fields=["name", "purchase_organization_name", "description", "org_type"]
         )
 
         # Fetch Purchase Groups
