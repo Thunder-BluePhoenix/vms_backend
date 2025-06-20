@@ -31,6 +31,17 @@ def update_vendor_onboarding_document_details(data):
             }
 
         doc = frappe.get_doc("Legal Documents", doc_name)
+        linked_docs = []
+        multi_comp = False
+        if doc.registered_for_multi_companies == 1:
+            # multi_comp = True
+            uqid = doc.unique_multi_comp_id
+            all_docs = frappe.get_all("Legal Documents", filters = {"unique_multi_comp_id":uqid}, fields=["name"])
+            if len(all_docs)>1:
+                multi_comp = True
+            linked_docs.append(all_docs)
+
+
 
         # Update fields
         fields_to_update = [
@@ -42,43 +53,108 @@ def update_vendor_onboarding_document_details(data):
 
         for field in fields_to_update:
             if field in data and data[field] is not None:
-                doc.set(field, data[field])
+                if multi_comp == True:
+                    for lk_doc in linked_docs:
+                        lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                        lg_doc.set(field, data[field])
+                        lg_doc.save(ignore_permissions=True)
+                    frappe.db.commit()
+
+                else:
+
+                    doc.set(field, data[field])
 
         # Upload and attach files
         if 'msme_proof' in frappe.request.files:
             file = frappe.request.files['msme_proof']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.msme_proof = saved.file_url
+            if multi_comp == True:
+                    for lk_doc in linked_docs:
+                        lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                        lg_doc.msme_proof = saved.file_url
+                        lg_doc.save(ignore_permissions=True)
+                    frappe.db.commit()
+
+            else:
+                doc.msme_proof = saved.file_url
 
         if 'pan_proof' in frappe.request.files:
             file = frappe.request.files['pan_proof']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.pan_proof = saved.file_url
+            if multi_comp == True:
+                    for lk_doc in linked_docs:
+                        lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                        lg_doc.pan_proof = saved.file_url
+                        lg_doc.save(ignore_permissions=True)
+                    frappe.db.commit()
+
+            else:
+                doc.pan_proof = saved.file_url
 
         if 'entity_proof' in frappe.request.files:
             file = frappe.request.files['entity_proof']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.entity_proof = saved.file_url
+            if multi_comp == True:
+                    for lk_doc in linked_docs:
+                        lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                        lg_doc.entity_proof = saved.file_url
+                        lg_doc.save(ignore_permissions=True)
+                    frappe.db.commit()
+
+            else:
+                doc.entity_proof = saved.file_url
             
         if 'iec_proof' in frappe.request.files:
             file = frappe.request.files['iec_proof']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.iec_proof = saved.file_url
+            if multi_comp == True:
+                    for lk_doc in linked_docs:
+                        lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                        lg_doc.iec_proof = saved.file_url
+                        lg_doc.save(ignore_permissions=True)
+                    frappe.db.commit()
+
+            else:
+                doc.iec_proof = saved.file_url
         
         if 'form_10f_proof' in frappe.request.files:
             file = frappe.request.files['form_10f_proof']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.form_10f_proof = saved.file_url
+            if multi_comp == True:
+                    for lk_doc in linked_docs:
+                        lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                        lg_doc.form_10f_proof = saved.file_url
+                        lg_doc.save(ignore_permissions=True)
+                    frappe.db.commit()
+
+            else:
+                doc.form_10f_proof = saved.file_url
         
         if 'trc_certificate' in frappe.request.files:
             file = frappe.request.files['trc_certificate']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.trc_certificate = saved.file_url
+            if multi_comp == True:
+                    for lk_doc in linked_docs:
+                        lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                        lg_doc.trc_certificate = saved.file_url
+                        lg_doc.save(ignore_permissions=True)
+                    frappe.db.commit()
+
+            else:
+                doc.trc_certificate = saved.file_url
         
         if 'pe_certificate' in frappe.request.files:
             file = frappe.request.files['pe_certificate']
             saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.pe_certificate = saved.file_url
+            if multi_comp == True:
+                    for lk_doc in linked_docs:
+                        lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                        lg_doc.pe_certificate = saved.file_url
+                        lg_doc.save(ignore_permissions=True)
+                    frappe.db.commit()
+
+            else:
+                doc.pe_certificate = saved.file_url
 
         # doc.set("gst_table", [])
 
@@ -97,33 +173,84 @@ def update_vendor_onboarding_document_details(data):
             for row in data["gst_table"]:
                 if not row.get("name"):
                     # Append new row if no name provided (new row from frontend)
-                    gst_row = doc.append("gst_table", {})
+                    if multi_comp == True:
+                        file_key = f"gst_document"
+                        if file_key in frappe.request.files:
+                            file = frappe.request.files[file_key]
+                            saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                        for lk_doc in linked_docs:
+                            lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                            gst_row = lg_doc.append("gst_table", {})
+                            
+                            # Update fields for the new row in each linked document
+                            fields = ["gst_state", "gst_number", "gst_registration_date", "gst_ven_type"]
+                            for field in fields:
+                                if field in row:
+                                    gst_row.set(field, row[field])
+                            
+                            # Attach file if present for each linked document
+                            
+                            gst_row.gst_document = saved.file_url
+                            lg_doc.save(ignore_permissions=True)
+                        frappe.db.commit()
+                    else:
+                        gst_row = doc.append("gst_table", {})
                 else:
                     # Update existing row if name is present
-                    # gst_row = None
-                    for existing_row in doc.gst_table:
-                        if existing_row.name == row.get("name"):
-                            gst_row = existing_row
-                            break
+                    if multi_comp == True:
+                        file_key = f"gst_document"
+                        if file_key in frappe.request.files:
+                            file = frappe.request.files[file_key]
+                            saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                        for lk_doc in linked_docs:
+                            lg_doc = frappe.get_doc("Legal Documents", lk_doc.name)
+                            gst_row = None
+                            
+                            # Find existing row in linked document
+                            for existing_row in lg_doc.gst_table:
+                                if existing_row.name == row.get("name"):
+                                    gst_row = existing_row
+                                    break
+                            
+                            if not gst_row:
+                                # If row name provided but not matched, skip or log error
+                                continue
+                            
+                            # Update only fields that are present and changed
+                            fields = ["gst_state", "gst_number", "gst_registration_date", "gst_ven_type"]
+                            for field in fields:
+                                if field in row and getattr(gst_row, field, None) != row[field]:
+                                    gst_row.set(field, row[field])
+                            
+                            # Attach file if present for each linked document
+                            
+                            gst_row.gst_document = saved.file_url
+                            lg_doc.save(ignore_permissions=True)
+                        frappe.db.commit()
+                    else:
+                        gst_row = None
+                        for existing_row in doc.gst_table:
+                            if existing_row.name == row.get("name"):
+                                gst_row = existing_row
+                                break
 
-                    if not gst_row:
-                        # If row name provided but not matched, skip or log error
-                        continue  
+                        if not gst_row:
+                            # If row name provided but not matched, skip or log error
+                            continue
 
-                # Update only fields that are present and changed
-                fields = ["gst_state", "gst_number", "gst_registration_date", "gst_ven_type"]
-                for field in fields:
-                    if field in row and getattr(gst_row, field, None) != row[field]:
-                        gst_row.set(field, row[field])
+                # Update fields for single document case (when multi_comp is False)
+                if multi_comp != True:
+                    fields = ["gst_state", "gst_number", "gst_registration_date", "gst_ven_type"]
+                    for field in fields:
+                        if field in row and getattr(gst_row, field, None) != row[field]:
+                            gst_row.set(field, row[field])
 
-                # Attach file if present
-                file_key = f"gst_document"
-                if file_key in frappe.request.files:
-                    file = frappe.request.files[file_key]
-                    saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-                    gst_row.gst_document = saved.file_url
-
-                # index += 1
+                    # Attach file if present for single document
+                    file_key = f"gst_document"
+                    if file_key in frappe.request.files:
+                        file = frappe.request.files[file_key]
+                        saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                        gst_row.gst_document = saved.file_url
 
         doc.save(ignore_permissions=True)
         frappe.db.commit()
