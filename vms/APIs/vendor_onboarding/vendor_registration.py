@@ -609,6 +609,8 @@ def send_registration_email_link(vendor_onboarding, refno):
 
             onboarding_doc.sent_registration_email_link = 1
             onboarding_doc.sent_qms_form_link =1
+            if onboarding_doc.registered_for_multi_companies == 1:
+                onboarding_doc.head_target = 1
             onboarding_doc.save(ignore_permissions=True)
             frappe.db.commit()
 

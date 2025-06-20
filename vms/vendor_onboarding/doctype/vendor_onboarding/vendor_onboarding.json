@@ -79,6 +79,7 @@
   "tab_7_tab",
   "registered_for_multi_companies",
   "unique_multi_comp_id",
+  "head_target",
   "column_break_jyil",
   "multiple_company"
  ],
@@ -499,12 +500,18 @@
    "fieldtype": "Data",
    "label": "Unique Multi Comp ID",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "head_target",
+   "fieldtype": "Check",
+   "label": "Head Target"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 17:40:04.295580",
+ "modified": "2025-06-20 01:28:58.495973",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

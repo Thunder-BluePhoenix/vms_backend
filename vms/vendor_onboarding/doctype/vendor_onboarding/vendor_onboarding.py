@@ -739,3 +739,76 @@ def update_ven_onb_record_table(doc, method=None):
             "message": "Failed to update Vendor Onboarding Record table.",
             "error": str(e)
         }
+    
+
+
+def update_van_core_docs(doc, method=None):
+    if doc.head_target == 1 and doc.registered_for_multi_companies == 1:
+        core_docs = frappe.get_all("Vendor Onboarding", filters = {"unique_multi_comp_id":doc.unique_multi_comp_id, "head_target": 0}, fields=["name"])
+        if len(core_docs)<1:
+            return
+        
+        for core_doc in core_docs:
+            vn_onb = frappe.get_doc("Vendor Onboarding", core_doc)
+            vn_onb.qms_form_link = doc.qms_form_link
+            vn_onb.form_fully_submitted_by_vendor = doc.form_fully_submitted_by_vendor
+            vn_onb.enterprise = doc.enterprise
+            vn_onb.number_of_employee = []
+            vn_onb.machinery_detail = []
+            vn_onb.testing_detail = []
+            vn_onb.reputed_partners = []
+            vn_onb.contact_details = []
+
+
+            for noe in doc.number_of_employee:
+                vn_onb.append("number_of_employee", {
+                    "production": noe.production,
+                    "qaqc": noe.qaqc,
+                    "logistics": noe.logistics,
+                    "marketing": noe.marketing,
+                    "r_d": noe.r_d,
+                    "hse": noe.hse,
+                    "other": noe.other
+                    })
+                
+            
+            for md in doc.machinery_detail:
+                vn_onb.append("machinery_detail", {
+                    "equipment_name": md.equipment_name,
+                    "equipment_qty": md.equipment_qty,
+                    "capacity": md.capacity,
+                    "remarks": md.remarks
+                    })
+                
+            for td in doc.testing_detail:
+                vn_onb.append("testing_detail", {
+                    "equipment_name": td.equipment_name,
+                    "equipment_qty": td.equipment_qty,
+                    "capacity": td.capacity,
+                    "remarks": td.remarks
+                    })
+                
+                
+            for rp in doc.reputed_partners:
+                vn_onb.append("number_of_employee", {
+                    "company_name": rp.company_name,
+                    "test": rp.test,
+                    "supplied_qtyyear": rp.supplied_qtyyear,
+                    "remark": rp.remark
+                    })
+                
+                
+            for cd in doc.contact_details:
+                vn_onb.append("contact_details", {
+                    "first_name": cd.first_name,
+                    "last_name": cd.last_name,
+                    "designation": cd.designation,
+                    "email": cd.email,
+                    "contact_number": cd.contact_number,
+                    "department_name": cd.department_name
+                    })
+                
+            vn_onb.save()
+                
+                
+            
