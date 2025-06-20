@@ -18,8 +18,23 @@
   "new_transfer_email",
   "transfer_reason",
   "transfer_status",
+  "category_type",
   "product_details_section",
   "cart_product",
+  "approval_status_section",
+  "hod_approval_status",
+  "hod_approval_remarks",
+  "purchase_team_approval_status",
+  "purchase_team_approval_remarks",
+  "column_break_arbr",
+  "rejected_by",
+  "reason_for_rejection",
+  "rejected",
+  "hod_approved",
+  "purchase_team_approved",
+  "mail_sent_to_hod",
+  "mail_sent_to_purchase_team",
+  "ack_mail_to_user",
   "status_workflow_section",
   "enquirer_status",
   "rejection_reason",
@@ -67,8 +82,9 @@
   },
   {
    "fieldname": "sub_head_email",
-   "fieldtype": "Data",
-   "label": "Sub-Head Email"
+   "fieldtype": "Link",
+   "label": "Sub-Head Email",
+   "options": "Employee"
   },
   {
    "fieldname": "transfer_reason",
@@ -144,12 +160,93 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "CART-.YY.-.MM.-.DD.-"
+  },
+  {
+   "fieldname": "category_type",
+   "fieldtype": "Link",
+   "label": "Category Type",
+   "options": "Category Master"
+  },
+  {
+   "fieldname": "approval_status_section",
+   "fieldtype": "Section Break",
+   "label": "Approval Status"
+  },
+  {
+   "fieldname": "hod_approval_status",
+   "fieldtype": "Data",
+   "label": "HOD Approval Status"
+  },
+  {
+   "fieldname": "hod_approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "HOD Approval Remarks"
+  },
+  {
+   "fieldname": "purchase_team_approval_status",
+   "fieldtype": "Data",
+   "label": "Purchase Team Approval Status"
+  },
+  {
+   "fieldname": "purchase_team_approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "Purchase Team Approval Remarks"
+  },
+  {
+   "fieldname": "column_break_arbr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rejected_by",
+   "fieldtype": "Data",
+   "label": "Rejected By"
+  },
+  {
+   "fieldname": "reason_for_rejection",
+   "fieldtype": "Small Text",
+   "label": "Reason for Rejection"
+  },
+  {
+   "default": "0",
+   "fieldname": "rejected",
+   "fieldtype": "Check",
+   "label": "Rejected"
+  },
+  {
+   "default": "0",
+   "fieldname": "hod_approved",
+   "fieldtype": "Check",
+   "label": "HOD Approved"
+  },
+  {
+   "default": "0",
+   "fieldname": "purchase_team_approved",
+   "fieldtype": "Check",
+   "label": "Purchase Team Approved"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_hod",
+   "fieldtype": "Check",
+   "label": "Mail Sent to HOD"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_purchase_team",
+   "fieldtype": "Check",
+   "label": "Mail Sent to Purchase Team"
+  },
+  {
+   "default": "0",
+   "fieldname": "ack_mail_to_user",
+   "fieldtype": "Check",
+   "label": "Acknowledgement Mail to User "
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 10:35:17.524984",
+ "modified": "2025-06-19 15:02:47.548620",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",

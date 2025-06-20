@@ -421,13 +421,13 @@ def vendor_registration_single(data):
         if "vendor_types" in data:
             for row in data["vendor_types"]:
                 is_duplicate = False
-                for existing in vendor_master.vendor_types:
+                for existing in vendor_onboarding.vendor_types:
                     if (existing.vendor_type or "").lower().strip() == (row.get("vendor_type") or "").lower().strip():
                         is_duplicate = True
                         break
 
                 if not is_duplicate:
-                    vendor_master.append("vendor_types", row)
+                    vendor_onboarding.append("vendor_types", row)
 
         vendor_onboarding.registered_by = usr
 

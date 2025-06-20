@@ -35,6 +35,7 @@
   "branch",
   "district",
   "team",
+  "subhead",
   "contact_details",
   "cell_number",
   "column_break_deuq",
@@ -260,12 +261,18 @@
    "fieldtype": "Link",
    "label": "Meril Designation",
    "options": "Meril Designation Master"
+  },
+  {
+   "default": "0",
+   "fieldname": "subhead",
+   "fieldtype": "Check",
+   "label": "Sub-Head"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-04 14:08:24.144827",
+ "modified": "2025-06-19 12:51:36.604119",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",
