@@ -30,32 +30,67 @@ def update_vendor_onboarding_payment_details(data):
             }
 
         doc = frappe.get_doc("Vendor Onboarding Payment Details", doc_name)
+        if doc.registered_for_multi_companies == 0:
 
         # Update fields
-        fields_to_update = [
+            fields_to_update = [
+                "bank_name", "ifsc_code", "account_number", "name_of_account_holder",
+                "type_of_account", "currency", "rtgs", "neft"
+            ]
+
+            for field in fields_to_update:
+                if field in data and data[field] is not None:
+                    doc.set(field, data[field])
+
+            # attach field
+            if 'bank_proof' in frappe.request.files:
+                file = frappe.request.files['bank_proof']
+                saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                doc.bank_proof = saved.file_url
+
+            doc.save(ignore_permissions=True)
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": "Vendor Onboarding Payment Details updated successfully.",
+                "docname": doc.name,
+                "bank_proof": doc.bank_proof if hasattr(doc, "bank_proof") else None
+            }
+        else:
+            uniq = doc.unique_multi_comp_id
+            linked_docs = frappe.get_all("Vendor Onboarding Payment Details", 
+                filters={"unique_multi_comp_id": uniq, "registered_for_multi_companies": 1},
+                fields=["name"]
+            ) 
+            fields_to_update = [
             "bank_name", "ifsc_code", "account_number", "name_of_account_holder",
             "type_of_account", "currency", "rtgs", "neft"
-        ]
+            ]
+            if 'bank_proof' in frappe.request.files:
+                file = frappe.request.files['bank_proof']
+                saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
 
-        for field in fields_to_update:
-            if field in data and data[field] is not None:
-                doc.set(field, data[field])
+            for pd_doc in linked_docs:
+                pd = frappe.get_doc("Vendor Onboarding Payment Details", pd_doc["name"])
 
-        # attach field
-        if 'bank_proof' in frappe.request.files:
-            file = frappe.request.files['bank_proof']
-            saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-            doc.bank_proof = saved.file_url
+                for field in fields_to_update:
+                    if field in data and data[field] is not None:
+                        pd.set(field, data[field])
 
-        doc.save(ignore_permissions=True)
-        frappe.db.commit()
+                # attach field
+                
+                pd.bank_proof = saved.file_url
 
-        return {
-            "status": "success",
-            "message": "Vendor Onboarding Payment Details updated successfully.",
-            "docname": doc.name,
-            "bank_proof": doc.bank_proof if hasattr(doc, "bank_proof") else None
-        }
+                pd.save(ignore_permissions=True)
+                frappe.db.commit()
+
+                return {
+                    "status": "success",
+                    "message": "Vendor Onboarding Payment Details updated successfully.",
+                    "docname": doc.name,
+                    "bank_proof": doc.bank_proof if hasattr(doc, "bank_proof") else None
+                }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Payment Update Error")
