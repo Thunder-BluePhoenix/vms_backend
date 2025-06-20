@@ -176,9 +176,9 @@ def vendor_registration_multi(data):
         manufacturing_details_docs = []
         company_details_docs = []
         
-        multi_companies = data.get("company_name")
+        multi_companies = data.get("purchasing_details")
 
-        for comp in multi_companies:
+        for mc in multi_companies:
 
 
             vendor_onboarding = frappe.new_doc("Vendor Onboarding")
@@ -187,8 +187,7 @@ def vendor_registration_multi(data):
             vendor_onboarding.unique_multi_comp_id = unique_multi_comp_id
 
             for field in [
-                "qms_required", "purchase_organization", "account_group",
-                "purchase_group", "terms_of_payment", "order_currency", "incoterms", "reconciliation_account"
+                "qms_required", "incoterms"
             ]:
                 if field in data:
                     vendor_onboarding.set(field, data[field])
@@ -197,7 +196,14 @@ def vendor_registration_multi(data):
             vendor_onboarding.gr_based_inv_ver = 1
             vendor_onboarding.service_based_inv_ver = 1
             vendor_onboarding.check_double_invoice = 1
-            vendor_onboarding.company_name = comp
+            vendor_onboarding.company_name = mc.company_name
+            vendor_onboarding.purchase_organization = mc.purchase_organization
+            vendor_onboarding.account_group = mc.account_group
+            vendor_onboarding.purchase_group = mc.purchase_group
+            vendor_onboarding.terms_of_payment = mc.terms_of_payment
+            vendor_onboarding.order_currency = mc.order_currency
+            vendor_onboarding.reconciliation_account = mc.reconciliation_account
+
 
             for company in multi_companies:
                 vendor_onboarding.append("multiple_company", {
@@ -277,7 +283,7 @@ def vendor_registration_multi(data):
                 for field in ["vendor_title", "vendor_name",]:
                     if field in data:
                         vendor_onb_company.set(field, data[field])
-                vendor_onb_company.company_name = comp
+                vendor_onb_company.company_name = mc.company_name
 
                 vendor_onb_company.save()
 
