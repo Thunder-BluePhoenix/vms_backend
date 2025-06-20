@@ -875,11 +875,11 @@ def vendor_registration_multi(data):
                 for company in multi_companies:
                     if isinstance(company, dict) and company.get("company_name"):
                         vendor_onboarding.append("multiple_company", {
-                            "company_name": company.get("company_name")
+                            "company": company.get("company_name")
                         })
                     elif hasattr(company, 'company_name'):
                         vendor_onboarding.append("multiple_company", {
-                            "company_name": company.company_name
+                            "company": company.company_name
                         })
 
                 # Add vendor types (avoiding duplicates)

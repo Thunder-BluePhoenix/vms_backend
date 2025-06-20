@@ -57,6 +57,7 @@ class VendorOnboarding(Document):
           check_vnonb_send_mails(self, method=None)
           on_update_check_fields(self,method=None)
           update_ven_onb_record_table(self, method=None)
+          update_van_core_docs(self, method=None)
         #   check_vnonb_send_mails(self, method=None)
 	
 def on_update_check_fields(self,method=None):
