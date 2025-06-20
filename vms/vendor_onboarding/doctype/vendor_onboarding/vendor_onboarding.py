@@ -753,6 +753,10 @@ def update_van_core_docs(doc, method=None):
             vn_onb = frappe.get_doc("Vendor Onboarding", core_doc)
             vn_onb.qms_form_link = doc.qms_form_link
             vn_onb.form_fully_submitted_by_vendor = doc.form_fully_submitted_by_vendor
+            vn_onb.qms_form_filled = doc.qms_form_filled
+            vn_onb.sent_registration_email_link = doc.sent_registration_email_link
+            vn_onb.sent_qms_form_link = doc.sent_qms_form_link
+            
             vn_onb.enterprise = doc.enterprise
             vn_onb.number_of_employee = []
             vn_onb.machinery_detail = []

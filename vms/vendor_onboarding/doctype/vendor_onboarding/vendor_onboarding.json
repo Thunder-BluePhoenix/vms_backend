@@ -10,11 +10,11 @@
   "vendor_details_section",
   "ref_no",
   "vendor_name",
-  "registered_by",
   "qms_required",
   "qms_form_link",
   "column_break_wagn",
   "mandatory_data_filled",
+  "registered_by",
   "onboarding_form_status",
   "rejection_comment",
   "company_details_section",
@@ -30,6 +30,7 @@
   "form_fully_submitted_by_vendor",
   "sent_registration_email_link",
   "sent_qms_form_link",
+  "qms_form_filled",
   "rejected",
   "data_sent_to_sap",
   "expired",
@@ -468,12 +469,6 @@
    "label": "Sent QMS Form Link"
   },
   {
-   "fieldname": "qms_form_link",
-   "fieldtype": "Link",
-   "label": "QMS Form Link",
-   "options": "Supplier QMS Assessment Form"
-  },
-  {
    "fieldname": "tab_7_tab",
    "fieldtype": "Tab Break",
    "label": "More Info"
@@ -506,12 +501,23 @@
    "fieldname": "head_target",
    "fieldtype": "Check",
    "label": "Head Target"
+  },
+  {
+   "default": "0",
+   "fieldname": "qms_form_filled",
+   "fieldtype": "Check",
+   "label": "QMS Form Filled"
+  },
+  {
+   "fieldname": "qms_form_link",
+   "fieldtype": "Data",
+   "label": "QMS Form"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-20 01:28:58.495973",
+ "modified": "2025-06-20 17:37:24.903246",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:QMS-Assess/{ref_no}",
+ "autoname": "format:QMS-{#####}/{ref_no}",
  "creation": "2025-06-02 10:44:01.019120",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,6 +9,7 @@
   "vendor_information_tab",
   "vendor_information_section",
   "naming_series",
+  "unique_name",
   "organization_name",
   "vendor_onboarding",
   "company",
@@ -875,8 +876,9 @@
   },
   {
    "fieldname": "naming_series",
-   "fieldtype": "Data",
-   "label": "Naming Series"
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "QMS-.YY.-.MM.-"
   },
   {
    "fieldname": "vendor_onboarding",
@@ -889,12 +891,19 @@
    "fieldname": "company",
    "fieldtype": "Data",
    "label": "Company"
+  },
+  {
+   "fieldname": "unique_name",
+   "fieldtype": "Data",
+   "label": "Unique Name",
+   "read_only": 1,
+   "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-18 11:00:20.222655",
+ "modified": "2025-06-20 17:35:34.822127",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
@@ -912,12 +921,35 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guest",
+   "share": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",
+ "search_fields": "unique_name",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "naming_series"
+ "title_field": "unique_name"
 }
