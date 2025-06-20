@@ -305,6 +305,13 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         contact_details = [row.as_dict() for row in ven_onb_doc.contact_details]
 
 
+        multi_company_name = []
+        if ven_onb_doc.registered_for_multi_companies == 1:
+
+            multi_company = [row.as_dict() for row in ven_onb_doc.multiple_company]
+            multi_company_name.extend(multi_company)
+
+
         #------------Manufacturing details tab------------------
 
         manuf_docname = frappe.db.get_value("Vendor Onboarding Manufacturing Details", {
@@ -471,7 +478,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "reputed_partners_details_tab": reputed_partners,
             "certificate_details_tab": certificate_details,
             "purchasing_details": purchasing_details,
-            "validation_check": validation_check
+            "validation_check": validation_check,
+            "multi_company_data": multi_company_name
         }
 
     except Exception as e:
