@@ -80,7 +80,8 @@ def create_purchase_inquiry(data):
             "doctype": "Cart Details",
             "user": data.get("user"),
             "cart_use": data.get("cart_use"),
-            "cart_date": data.get("cart_date")
+            "cart_date": data.get("cart_date"),
+            "category_type": data.get("category_type")
         }
 
         doc = frappe.new_doc("Cart Details")
@@ -90,7 +91,7 @@ def create_purchase_inquiry(data):
         for row in table_data:
             doc.append("cart_product", {
                 "assest_code": row.get("assest_code"),
-                "category_type": row.get("category_type"),
+                # "category_type": row.get("category_type"),
                 "product_name": row.get("product_name"),
                 "product_price": row.get("product_price"),
                 "uom": row.get("uom"),
