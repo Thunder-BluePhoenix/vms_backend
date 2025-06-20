@@ -30,27 +30,63 @@ def update_vendor_onboarding_company_details(data):
                 "message": "Record not found."
             }
 
-        doc = frappe.get_doc("Vendor Onboarding Company Details", doc_name)
+        main_doc = frappe.get_doc("Vendor Onboarding Company Details", doc_name)
 
-        updatable_fields = [
-            "vendor_title","vendor_name", "company_name", "type_of_business", "website", "office_email_primary",
-            "office_email_secondary", "telephone_number", "whatsapp_number", "cin_date",
-            "nature_of_company", "size_of_company", "registered_office_number", "established_year",
-            "nature_of_business", "corporate_identification_number"
-        ]
+        if main_doc.registered_for_multi_companies == 0:
+            updatable_fields = [
+                "vendor_title", "vendor_name", "company_name", "type_of_business", "website", "office_email_primary",
+                "office_email_secondary", "telephone_number", "whatsapp_number", "cin_date",
+                "nature_of_company", "size_of_company", "registered_office_number", "established_year",
+                "nature_of_business", "corporate_identification_number"
+            ]
 
-        for field in updatable_fields:
-            if field in data:
-                doc.set(field, data[field])
+            for field in updatable_fields:
+                if field in data:
+                    main_doc.set(field, data[field])
 
-        doc.save()
-        frappe.db.commit()
+            main_doc.save()
+            frappe.db.commit()
 
-        return {
-            "status": "success",
-            "message": "Vendor Onboarding Company Details updated successfully.",
-            "name": doc.name
-        }
+            return {
+                "status": "success",
+                "message": "Vendor Onboarding Company Details updated successfully.",
+                "name": main_doc.name
+            }
+
+        else:
+            unique_multi_comp_id = main_doc.unique_multi_comp_id
+
+            company_docs = frappe.get_all("Vendor Onboarding Company Details", 
+                filters={"unique_multi_comp_id": unique_multi_comp_id, "registered_for_multi_companies": 1},
+                fields=["name"]
+            ) 
+
+            updated_docs = []
+
+            for entry in company_docs:
+                linked_doc = frappe.get_doc("Vendor Onboarding Company Details", entry["name"])
+
+                updatable_fields = [
+                    "vendor_title", "vendor_name", "type_of_business", "website", "office_email_primary",
+                    "office_email_secondary", "telephone_number", "whatsapp_number", "cin_date",
+                    "nature_of_company", "size_of_company", "registered_office_number", "established_year",
+                    "nature_of_business", "corporate_identification_number"
+                ]
+
+                for field in updatable_fields:
+                    if field in data:
+                        linked_doc.set(field, data[field])
+
+                linked_doc.save()
+                updated_docs.append(linked_doc.name)
+
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": "Vendor Onboarding Company Details updated successfully.",
+                "docname": updated_docs
+            }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Company Update Error")
@@ -59,6 +95,8 @@ def update_vendor_onboarding_company_details(data):
             "message": "Update failed.",
             "error": str(e)
         }
+
+
 
 # update vendor onboarding company address
 @frappe.whitelist(allow_guest=True)
