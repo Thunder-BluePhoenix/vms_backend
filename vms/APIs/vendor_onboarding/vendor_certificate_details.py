@@ -26,97 +26,138 @@ def vendor_certificate_name_masters():
 
 @frappe.whitelist(allow_guest=True)
 def update_vendor_onboarding_certificate_details(data):
-    try:
-        if isinstance(data, str):
-            data = json.loads(data)
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
 
-        ref_no = data.get("ref_no")
-        vendor_onboarding = data.get("vendor_onboarding")
+		ref_no = data.get("ref_no")
+		vendor_onboarding = data.get("vendor_onboarding")
 
-        if not ref_no or not vendor_onboarding:
-            return {
-                "status": "error",
-                "message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
-            }
+		if not ref_no or not vendor_onboarding:
+			return {
+				"status": "error",
+				"message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
+			}
 
-        doc_name = frappe.db.get_value(
-            "Vendor Onboarding Certificates",
-            {"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
-            "name"
-        )
+		doc_name = frappe.db.get_value(
+			"Vendor Onboarding Certificates",
+			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+			"name"
+		)
 
-        if not doc_name:
-            return {
-                "status": "error",
-                "message": "Vendor Onboarding Certificates Record not found."
-            }
+		if not doc_name:
+			return {
+				"status": "error",
+				"message": "Vendor Onboarding Certificates Record not found."
+			}
 
-        doc = frappe.get_doc("Vendor Onboarding Certificates", doc_name)
+		main_doc = frappe.get_doc("Vendor Onboarding Certificates", doc_name)
 
-        # update child table
-        if "certificates" not in data:
-            return {
-                "status": "error",
-                "message": "Missing child table fields: 'certificates'."
-            }
+		if not data.get("certificates"):
+			return {
+				"status": "error",
+				"message": "Missing child table fields: 'certificates'."
+			}
 
-        # doc.set("certificates", [])   
+		# Upload file only once
+		uploaded_file_url = ""
+		if "certificate_attach" in frappe.request.files:
+			file = frappe.request.files["certificate_attach"]
+			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=1)
+			uploaded_file_url = saved.file_url
 
-        # index = 0
-        for row in data["certificates"]:
-            certificate_code = str(row.get("certificate_code", "")).strip()
-            certificate_name = str(row.get("certificate_name", "")).strip()
-            other_certificate_name = str(row.get("other_certificate_name", "")).strip()
-            valid_till = str(row.get("valid_till", "")).strip()
+		# If multi-company, update all related docs
+		if main_doc.registered_for_multi_companies == 1:
+			unique_multi_comp_id = main_doc.unique_multi_comp_id
 
-        #     new_row = doc.append("certificates", {
-        #         "certificate_code": str(row.get("certificate_code", "")).strip(),
-        #         "certificate_name": str(row.get("certificate_name", "")).strip(),
-        #         "other_certificate_name": str(row.get("other_certificate_name", "")).strip(),
-        #         "valid_till": str(row.get("valid_till", "")).strip()
-        #     })
+			linked_docs = frappe.get_all(
+				"Vendor Onboarding Certificates",
+				filters={
+					"registered_for_multi_companies": 1,
+					"unique_multi_comp_id": unique_multi_comp_id
+				},
+				fields=["name"]
+			)
 
-            # Check for duplicate
-            is_duplicate = any(
-                (c.certificate_code or "").strip() == certificate_code
-                for c in doc.certificates
-            )
+			for entry in linked_docs:
+				doc = frappe.get_doc("Vendor Onboarding Certificates", entry.name)
+
+				for row in data["certificates"]:
+					certificate_code = (row.get("certificate_code") or "").strip()
+					certificate_name = (row.get("certificate_name") or "").strip()
+					other_certificate_name = (row.get("other_certificate_name") or "").strip()
+					valid_till = (row.get("valid_till") or "").strip()
+
+					is_duplicate = any(
+						(c.certificate_code or "").strip() == certificate_code
+						for c in doc.certificates
+					)
+
+					if not is_duplicate:
+						new_row = doc.append("certificates", {
+							"certificate_code": certificate_code,
+							"certificate_name": certificate_name,
+							"other_certificate_name": other_certificate_name,
+							"valid_till": valid_till
+						})
+
+						# Set file URL explicitly if available
+						if uploaded_file_url:
+							new_row.certificate_attach = uploaded_file_url
+
+				doc.save(ignore_permissions=True)
+				frappe.db.commit()
+
+			return {
+				"status": "success",
+				"message": "Vendor Onboarding Certificates updated successfully for all linked records."
+			}
+
+		else:
+			# Single doc update
+			for row in data["certificates"]:
+				certificate_code = (row.get("certificate_code") or "").strip()
+				certificate_name = (row.get("certificate_name") or "").strip()
+				other_certificate_name = (row.get("other_certificate_name") or "").strip()
+				valid_till = (row.get("valid_till") or "").strip()
+
+				is_duplicate = any(
+					(c.certificate_code or "").strip() == certificate_code
+					for c in main_doc.certificates
+				)
+
+				if not is_duplicate:
+					new_row = main_doc.append("certificates", {
+						"certificate_code": certificate_code,
+						"certificate_name": certificate_name,
+						"other_certificate_name": other_certificate_name,
+						"valid_till": valid_till
+					})
+
+					# Set file URL explicitly if available
+					if uploaded_file_url:
+						new_row.certificate_attach = uploaded_file_url
+
+			main_doc.save(ignore_permissions=True)
+			frappe.db.commit()
+
+			return {
+				"status": "success",
+				"message": "Vendor Onboarding Certificates updated successfully.",
+				"docname": main_doc.name
+			}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Certificates Update Error")
+		return {
+			"status": "error",
+			"message": "Failed to update Vendor Onboarding Certificates.",
+			"error": str(e)
+		}
 
 
-            if not is_duplicate:
-                new_row = doc.append("certificates", {
-                    "certificate_code": certificate_code,
-                    "certificate_name": certificate_name,
-                    "other_certificate_name": other_certificate_name,
-                    "valid_till": valid_till
-                })
 
-                # Upload file if present
-                file_key = "certificate_attach"
-                if file_key in frappe.request.files:
-                    file = frappe.request.files[file_key]
-                    saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-                    new_row.certificate_attach = saved.file_url
-
-            # index += 1
-
-        doc.save(ignore_permissions=True)
-        frappe.db.commit()
-
-        return {
-            "status": "success",
-            "message": "Vendor Onboarding Certificates updated successfully.",
-            "docname": doc.name
-        }
-
-    except Exception as e:
-        frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Certificates Update Error")
-        return {
-            "status": "error",
-            "message": "Failed to update Vendor Onboarding Certificates.",
-            "error": str(e)
-        }
 
 
 # to delete the row of vendor onboarding certificates
