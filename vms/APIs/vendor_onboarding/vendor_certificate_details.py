@@ -110,7 +110,8 @@ def update_vendor_onboarding_certificate_details(data):
 
 			return {
 				"status": "success",
-				"message": "Vendor Onboarding Certificates updated successfully for all linked records."
+				"message": "Vendor Onboarding Certificates updated successfully for all linked records.",
+				"docnames": [doc.name for doc in linked_docs]
 			}
 
 		else:
