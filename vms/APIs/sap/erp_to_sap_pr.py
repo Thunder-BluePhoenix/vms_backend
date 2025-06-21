@@ -109,7 +109,7 @@ def erp_to_sap_pr(doc_name, method=None):
         # Sending details to SAP
         send_detail(csrf_token, data_list, key1, key2, doc, sap_client_code)
         
-        return data
+        return data_list
     else:
         frappe.log_error(f"Failed to fetch CSRF token from SAP: {response.status_code if response else 'No response'}")
         return None
