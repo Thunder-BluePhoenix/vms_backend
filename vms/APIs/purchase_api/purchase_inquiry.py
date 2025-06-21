@@ -118,3 +118,32 @@ def create_purchase_inquiry(data):
         }
     
 
+# get full data of cart details
+@frappe.whitelist(allow_guest=True)
+def get_full_data_pur_inquiry(pur_inq):
+    try:
+        if pur_inq:
+            doc = frappe.get_doc("Cart Details", pur_inq)
+            if doc:
+                data = doc.as_dict()
+            
+                data["cart_product"] = [
+                    row.as_dict() for row in doc.cart_product
+                ]
+                
+                return {
+                    "status": "success", 
+                    "data": data
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": "Cart Details not found."
+                }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Send Cart Details Data API Error")
+        return {
+            "status": "error",
+            "message": "Failed to retrieve Cart Details data.",
+            "error": str(e)
+        }

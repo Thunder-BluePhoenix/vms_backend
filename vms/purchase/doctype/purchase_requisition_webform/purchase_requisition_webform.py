@@ -7,6 +7,8 @@ from frappe.model.document import Document
 
 class PurchaseRequisitionWebform(Document):
 	def on_update(self):
+		send_pur_req_email(self, method=None)
+
 		field_map = [
 			"purchase_requisition_type",
 			"plant",
@@ -68,3 +70,150 @@ class PurchaseRequisitionWebform(Document):
 					new_row.set(target_field, item.get(src_field))
 
 			pur_req_form.save()
+
+
+def send_pur_req_email(doc, method=None):
+	if doc.requisitioner and not doc.rejected:
+		if not doc.hod_approved and not doc.mail_sent_to_hod:
+			send_mail_hod_pt(doc, method=None)
+			print("send_mail_hod @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+		elif doc.hod_approved and not doc.purchase_head_approved and not doc.mail_sent_to_purchase_head:
+			send_mail_purchase_head(doc, method=None)
+			print("send_mail_purchase @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+		elif doc.purchase_head_approved and not doc.ack_mail_to_user:
+			send_mail_user(doc, method=None)
+			print("send_mail_user @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+		else:
+			pass
+	else:
+		pass
+
+
+def send_mail_hod_pt(doc, method=None):
+	try:
+		employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
+		hod = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "reports_to")
+		pur_team = frappe.get_all("Employee", filters={"designation": "Purchase Team"}, fields=["user_id"])
+		if hod:
+			hod_email = frappe.get_value("Employee", hod, "user_id")
+			hod_name = frappe.get_value("Employee", hod, "full_name")
+			if hod_email:
+				subject = f"New Purchase Requisition Raised by {employee_name}"
+				message = f"""
+					<p>Dear {hod_name},</p>		
+					<p>A new <b>Purchase Requisition</b> has been raised by <b>{employee_name}</b>. Please review the details and take necessary actions.</p>
+					<p>Thank you!</p>
+				"""
+
+				# Combine HOD and Purchase Team emails
+				recipient_emails = [hod_email] + [p["user_id"] for p in pur_team if p.get("user_id")]
+				recipient_emails = list(set(recipient_emails))
+
+				frappe.sendmail(
+					recipients=recipient_emails,
+					cc=["rishi.hingad@merillife.com"],
+					subject=subject,
+					message=message
+				)
+				# doc.mail_sent_to_hod = 1
+				frappe.db.set_value("Purchase Requisition Webform", doc.name, "mail_sent_to_hod", 1)
+				frappe.db.set_value("Purchase Requisition Webform", doc.name, "mail_sent_to_purchase_team", 1)
+				
+				return {
+					"status": "success",
+					"message": "Email sent to HOD and Purchase Team successfully."
+				}
+		
+		return {
+			"status": "error",
+			"message": "HOD email or user email not found.",
+			"error": "No email address associated with the HOD."
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Error sending email to HOD")
+		return {
+			"status": "error",
+			"message": "Failed to send email to HOD.",
+			"error": str(e)
+		}
+
+
+
+def send_mail_purchase_head(doc, method=None):
+	try:
+		employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
+		pur_head = frappe.get_all("Employee", filters={"designation": "Purchase Head"}, fields=["user_id"])
+		if pur_head:
+			subject = f"Purchase Requisition has been Approved by HOD which is Raised by {employee_name}"
+			message = f"""
+				<p>Dear Purchase Head,</p>		
+				<p>A new <b>Purchase Requisition</b> has been raised by <b>{employee_name}</b>. Please review the details and take necessary actions.</p>
+				<p>Thank you!</p>
+			"""
+			
+			# Combine HOD and Purchase Team emails
+			recipient_emails = [p["user_id"] for p in pur_head if p.get("user_id")]
+			recipient_emails = list(set(recipient_emails))
+
+			frappe.sendmail(
+				recipients=recipient_emails,
+				cc=["rishi.hingad@merillife.com"],
+				subject=subject,
+				message=message
+			)
+			# doc.mail_sent_to_hod = 1
+			frappe.db.set_value("Purchase Requisition Webform", doc.name, "mail_sent_to_purchase_head", 1)
+			
+			return {
+				"status": "success",
+				"message": "Email sent to HOD and Purchase Team successfully."
+			}
+		
+		return {
+			"status": "error",
+			"message": "HOD email or user email not found.",
+			"error": "No email address associated with the HOD."
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Error sending email to HOD")
+		return {
+			"status": "error",
+			"message": "Failed to send email to HOD.",
+			"error": str(e)
+		}
+	
+
+def send_mail_user(doc, method=None):
+	try:
+		employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
+		hod = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "reports_to")
+		hod_email = frappe.get_value("Employee", hod, "user_id")
+		subject = f"Purchase Requisition has been Approved by Purchase Head"
+		message = f"""
+			<p>Dear {employee_name},</p>		
+			<p>Your <b>Purchase Requisition</b> has been Approved by <b>Purchase Head</b>. Please review the details and take necessary actions.</p>
+			<p>Thank you!</p>
+		"""
+		frappe.sendmail(
+			recipients=[doc.requisitioner, hod_email],
+			cc=["rishi.hingad@merillife.com"],
+			subject=subject,
+			message=message
+		)
+		# doc.mail_sent_to_hod = 1
+		frappe.db.set_value("Purchase Requisition Webform", doc.name, "ack_mail_to_user", 1)
+		
+		return {
+			"status": "success",
+			"message": "Email sent to HOD and Purchase Team successfully."
+		}
+		
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Error sending email to HOD")
+		return {
+			"status": "error",
+			"message": "Failed to send email to HOD.",
+			"error": str(e)
+		}
