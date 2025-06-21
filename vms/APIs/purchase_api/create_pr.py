@@ -57,7 +57,8 @@ def create_purchase_requisition(data):
             "company_code_area": data.get("company_code_area"),
             "company": data.get("company"),
             "requisitioner": data.get("requisitioner"),
-            "purchase_group": data.get("purchase_group")
+            "purchase_group": data.get("purchase_group"),
+            "cart_details_id": data.get("cart_details_id")
         }
 
         # Create new document
