@@ -370,8 +370,36 @@ def get_pr_w():
 
 
 
-@frappe.whitelist(allow_guest = True)
+
+@frappe.whitelist(allow_guest=True)
 def get_pr_w_details(pr_w_name):
-    # po_name = data.get("po_name")
-    pr_w = frappe.get_doc("Purchase Requisition Webform", pr_w_name)
-    return pr_w.as_dict()
+    try:
+        pr_w = frappe.get_doc("Purchase Requisition Webform", pr_w_name)
+        user = frappe.session.user
+
+        employee = frappe.get_doc("Employee", {"user_id": user})
+        pr_owner_emp = frappe.get_doc("Employee", {"user_id": pr_w.requisitioner})
+
+        # Check if current employee is HOD of requisitioner
+        hod = 1 if pr_owner_emp.reports_to == employee.name else 0
+
+        # Check if current employee is purchase head of the purchase group
+        pr_grp = frappe.get_doc("Category Master", pr_w.purchase_group)
+        purchase_head = 0
+        if employee.team == pr_grp.team and employee.designation == "Purchase Head":
+            purchase_head = 1
+
+        # Prepare response
+        prw_dict = pr_w.as_dict()
+        prw_dict.update({
+            "hod": hod,
+            "purchase_head": purchase_head
+        })
+
+        return prw_dict
+
+    except frappe.DoesNotExistError as e:
+        frappe.throw(_("Document not found: {0}").format(str(e)))
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "get_pr_w_details Error")
+        frappe.throw(_("An unexpected error occurred while fetching Purchase Requisition details."))
