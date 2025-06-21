@@ -16,7 +16,25 @@
   "company",
   "requisitioner",
   "section_break_prrh",
-  "purchase_requisition_form_table"
+  "purchase_requisition_form_table",
+  "approval_status_section",
+  "hod_approval_status",
+  "hod_approval_remarks",
+  "purchase_team_status",
+  "purchase_team_approval_remarks",
+  "purchase_head_status",
+  "purchase_head_approval_remarks",
+  "column_break_axrc",
+  "rejected_by",
+  "reason_for_rejection",
+  "rejected",
+  "hod_approved",
+  "purchase_team_approved",
+  "purchase_head_approved",
+  "mail_sent_to_hod",
+  "mail_sent_to_purchase_team",
+  "mail_sent_to_purchase_head",
+  "ack_mail_to_user"
  ],
  "fields": [
   {
@@ -80,12 +98,112 @@
    "fieldtype": "Link",
    "label": "Cart Details ID",
    "options": "Cart Details"
+  },
+  {
+   "fieldname": "approval_status_section",
+   "fieldtype": "Section Break",
+   "label": "Approval Status"
+  },
+  {
+   "fieldname": "hod_approval_status",
+   "fieldtype": "Data",
+   "label": "HOD Approval Status"
+  },
+  {
+   "fieldname": "hod_approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "HOD Approval Remarks"
+  },
+  {
+   "fieldname": "purchase_team_status",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Purchase Team Status"
+  },
+  {
+   "fieldname": "purchase_team_approval_remarks",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Purchase Team Approval Remarks"
+  },
+  {
+   "fieldname": "purchase_head_status",
+   "fieldtype": "Data",
+   "label": "Purchase Head Status"
+  },
+  {
+   "fieldname": "purchase_head_approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "Purchase Head Approval Remarks"
+  },
+  {
+   "fieldname": "column_break_axrc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rejected_by",
+   "fieldtype": "Data",
+   "label": "Rejected By"
+  },
+  {
+   "fieldname": "reason_for_rejection",
+   "fieldtype": "Small Text",
+   "label": "Reason for Rejection"
+  },
+  {
+   "default": "0",
+   "fieldname": "rejected",
+   "fieldtype": "Check",
+   "label": "Rejected"
+  },
+  {
+   "default": "0",
+   "fieldname": "hod_approved",
+   "fieldtype": "Check",
+   "label": "HOD Approved"
+  },
+  {
+   "default": "0",
+   "fieldname": "purchase_team_approved",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Purchase Team Approved"
+  },
+  {
+   "default": "0",
+   "fieldname": "purchase_head_approved",
+   "fieldtype": "Check",
+   "label": "Purchase Head Approved"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_hod",
+   "fieldtype": "Check",
+   "label": "Mail Sent to HOD"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_purchase_team",
+   "fieldtype": "Check",
+   "label": "Mail Sent to Purchase Team"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_purchase_head",
+   "fieldtype": "Check",
+   "label": "Mail Sent to Purchase Head"
+  },
+  {
+   "default": "0",
+   "fieldname": "ack_mail_to_user",
+   "fieldtype": "Check",
+   "label": "Acknowledgement Mail to  User"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 16:47:57.834177",
+ "modified": "2025-06-21 06:34:37.841254",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",
