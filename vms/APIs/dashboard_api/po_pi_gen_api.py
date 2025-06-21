@@ -384,7 +384,7 @@ def get_pr_w_details(pr_w_name):
         hod = 1 if pr_owner_emp.reports_to == employee.name else 0
 
         # Check if current employee is purchase head of the purchase group
-        pr_grp = frappe.get_doc("Category Master", pr_w.purchase_group)
+        pr_grp = frappe.get_doc("Purchase Group Master", pr_w.purchase_group)
         purchase_head = 0
         if employee.team == pr_grp.team and employee.designation == "Purchase Head":
             purchase_head = 1
