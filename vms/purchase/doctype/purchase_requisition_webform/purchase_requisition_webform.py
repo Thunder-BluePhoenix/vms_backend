@@ -143,7 +143,17 @@ def send_mail_hod_pt(doc, method=None):
 def send_mail_purchase_head(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
-		pur_head = frappe.get_all("Employee", filters={"designation": "Purchase Head"}, fields=["user_id"])
+		# pur_head = frappe.get_all("Employee", filters={"designation": "Purchase Head"}, fields=["user_id"])
+		pur_grp_team = frappe.db.get_value("Purchase Group Master", doc.purchase_group, "team")
+		pur_head = frappe.get_all(
+			"Employee",
+			filters={
+				"team": pur_grp_team,
+				"designation": "Purchase Head"
+			},
+			fields=["user_id"]
+		)
+
 		if pur_head:
 			subject = f"Purchase Requisition has been Approved by HOD which is Raised by {employee_name}"
 			message = f"""

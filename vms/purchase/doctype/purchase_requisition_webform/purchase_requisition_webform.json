@@ -15,6 +15,7 @@
   "company_code_area",
   "company",
   "requisitioner",
+  "purchase_group",
   "section_break_prrh",
   "purchase_requisition_form_table",
   "approval_status_section",
@@ -198,12 +199,18 @@
    "fieldname": "ack_mail_to_user",
    "fieldtype": "Check",
    "label": "Acknowledgement Mail to  User"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Link",
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-21 06:34:37.841254",
+ "modified": "2025-06-21 11:20:46.604128",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",
