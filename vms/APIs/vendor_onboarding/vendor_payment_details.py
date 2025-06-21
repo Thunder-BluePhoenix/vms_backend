@@ -35,7 +35,7 @@ def update_vendor_onboarding_payment_details(data):
         # Update fields
             fields_to_update = [
                 "bank_name", "ifsc_code", "account_number", "name_of_account_holder",
-                "type_of_account", "currency", "rtgs", "neft"
+                "type_of_account", "currency", "rtgs", "neft", "ift"
             ]
 
             for field in fields_to_update:
@@ -47,6 +47,52 @@ def update_vendor_onboarding_payment_details(data):
                 file = frappe.request.files['bank_proof']
                 saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
                 doc.bank_proof = saved.file_url
+
+            if 'bank_proof_for_beneficiary_bank' in frappe.request.files:
+                file = frappe.request.files['bank_proof_for_beneficiary_bank']
+                saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                bank_proof_for_beneficiary_bank = saved.file_url
+
+            if 'bank_proof_for_intermediate_bank' in frappe.request.files:
+                file = frappe.request.files['bank_proof_for_intermediate_bank']
+                saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                bank_proof_for_intermediate_bank = saved.file_url
+
+            if "international_bank_details" in data or isinstance(data["international_bank_details"], list):
+                for row in data["international_bank_details"]:
+                    doc.set("international_bank_details", [])
+                    new_row = doc.append("international_bank_details", {
+                        "meril_company_name": row.get("meril_company_name"),
+                        "beneficiary_name": row.get("beneficiary_name"),
+                        "beneficiary_swift_code": row.get("beneficiary_swift_code"),
+                        "beneficiary_iban_no": row.get("beneficiary_iban_no"),
+                        "beneficiary_aba_no": row.get("beneficiary_aba_no"),
+                        "beneficiary_bank_address": row.get("beneficiary_bank_address"),
+                        "beneficiary_bank_name": row.get("beneficiary_bank_name"),
+                        "beneficiary_account_no": row.get("beneficiary_account_no"),
+                        "beneficiary_ach_no": row.get("beneficiary_ach_no"),
+                        "beneficiary_routing_no": row.get("beneficiary_routing_no"),
+                        "beneficiary_currency": row.get("beneficiary_currency")
+                    })
+                    if bank_proof_for_beneficiary_bank:
+                        new_row.bank_proof_for_beneficiary_bank = bank_proof_for_beneficiary_bank
+
+            if "intermediate_bank_details" in data or isinstance(data["intermediate_bank_details"], list):
+                for row in data["intermediate_bank_details"]:
+                    doc.set("intermediate_bank_details", [])
+                    new_row = doc.append("intermediate_bank_details", {
+                        "intermediate_bank_name": row.get("intermediate_bank_name"),
+                        "intermediate_swift_code": row.get("intermediate_swift_code"),
+                        "intermediate_iban_no": row.get("intermediate_iban_no"),
+                        "intermediate_aba_no": row.get("intermediate_aba_no"),
+                        "intermediate_bank_address": row.get("intermediate_bank_address"),
+                        "intermediate_account_no": row.get("intermediate_account_no"),
+                        "intermediate_ach_no": row.get("intermediate_ach_no"),
+                        "intermediate_routing_no": row.get("intermediate_routing_no"),
+                        "intermediate_currency": row.get("intermediate_currency")
+                    })
+                    if bank_proof_for_intermediate_bank:
+                        new_row.bank_proof_for_intermediate_bank = bank_proof_for_intermediate_bank
 
             doc.save(ignore_permissions=True)
             frappe.db.commit()
@@ -65,11 +111,21 @@ def update_vendor_onboarding_payment_details(data):
             ) 
             fields_to_update = [
             "bank_name", "ifsc_code", "account_number", "name_of_account_holder",
-            "type_of_account", "currency", "rtgs", "neft"
+            "type_of_account", "currency", "rtgs", "neft", "ift"
             ]
             if 'bank_proof' in frappe.request.files:
                 file = frappe.request.files['bank_proof']
                 saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+
+            if 'bank_proof_for_beneficiary_bank' in frappe.request.files:
+                file = frappe.request.files['bank_proof_for_beneficiary_bank']
+                saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                bank_proof_for_beneficiary_bank = saved.file_url
+
+            if 'bank_proof_for_intermediate_bank' in frappe.request.files:
+                file = frappe.request.files['bank_proof_for_intermediate_bank']
+                saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+                bank_proof_for_intermediate_bank = saved.file_url
 
             for pd_doc in linked_docs:
                 pd = frappe.get_doc("Vendor Onboarding Payment Details", pd_doc["name"])
@@ -82,15 +138,51 @@ def update_vendor_onboarding_payment_details(data):
                 
                 pd.bank_proof = saved.file_url
 
-                pd.save(ignore_permissions=True)
-                frappe.db.commit()
+                if "international_bank_details" in data or isinstance(data["international_bank_details"], list):
+                    for row in data["international_bank_details"]:
+                        pd.set("international_bank_details", [])
+                        new_row = pd.append("international_bank_details", {
+                            "meril_company_name": row.get("meril_company_name"),
+                            "beneficiary_name": row.get("beneficiary_name"),
+                            "beneficiary_swift_code": row.get("beneficiary_swift_code"),
+                            "beneficiary_iban_no": row.get("beneficiary_iban_no"),
+                            "beneficiary_aba_no": row.get("beneficiary_aba_no"),
+                            "beneficiary_bank_address": row.get("beneficiary_bank_address"),
+                            "beneficiary_bank_name": row.get("beneficiary_bank_name"),
+                            "beneficiary_account_no": row.get("beneficiary_account_no"),
+                            "beneficiary_ach_no": row.get("beneficiary_ach_no"),
+                            "beneficiary_routing_no": row.get("beneficiary_routing_no"),
+                            "beneficiary_currency": row.get("beneficiary_currency")
+                        })
+                        if bank_proof_for_beneficiary_bank:
+                            new_row.bank_proof_for_beneficiary_bank = bank_proof_for_beneficiary_bank
 
-                return {
-                    "status": "success",
-                    "message": "Vendor Onboarding Payment Details updated successfully.",
-                    "docname": doc.name,
-                    "bank_proof": doc.bank_proof if hasattr(doc, "bank_proof") else None
-                }
+                if "intermediate_bank_details" in data or isinstance(data["intermediate_bank_details"], list):
+                    for row in data["intermediate_bank_details"]:
+                        pd.set("intermediate_bank_details", [])
+                        new_row = pd.append("intermediate_bank_details", {
+                            "intermediate_bank_name": row.get("intermediate_bank_name"),
+                            "intermediate_swift_code": row.get("intermediate_swift_code"),
+                            "intermediate_iban_no": row.get("intermediate_iban_no"),
+                            "intermediate_aba_no": row.get("intermediate_aba_no"),
+                            "intermediate_bank_address": row.get("intermediate_bank_address"),
+                            "intermediate_account_no": row.get("intermediate_account_no"),
+                            "intermediate_ach_no": row.get("intermediate_ach_no"),
+                            "intermediate_routing_no": row.get("intermediate_routing_no"),
+                            "intermediate_currency": row.get("intermediate_currency")
+                        })
+                        if bank_proof_for_intermediate_bank:
+                            new_row.bank_proof_for_intermediate_bank = bank_proof_for_intermediate_bank
+
+                pd.save(ignore_permissions=True)
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": "Vendor Onboarding Payment Details updated successfully.",
+                "docname": [pd.name for pd in linked_docs],
+                "bank_proof": doc.bank_proof if hasattr(doc, "bank_proof") else None
+            }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Payment Update Error")
