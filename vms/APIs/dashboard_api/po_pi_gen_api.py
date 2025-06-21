@@ -319,11 +319,48 @@ def get_pi():
 
 
 
-@frappe.whitelist(allow_guest = True)
+@frappe.whitelist(allow_guest=True)
 def get_pi_details(pi_name):
-    # po_name = data.get("po_name")
-    pi = frappe.get_doc("Cart Details", pi_name)
-    return pi.as_dict()
+    try:
+        # Fetch the PI (Cart Details) document
+        pi = frappe.get_doc("Cart Details", pi_name)
+        user = frappe.session.user
+
+        # Get employee linked to the current user
+        employee = frappe.get_doc("Employee", {"user_id": user})
+
+        # Get cart owner employee
+        cart_owner_emp = frappe.get_doc("Employee", {"user_id": pi.user})
+        hod = 0
+        if cart_owner_emp.reports_to == employee.name:
+            hod = 1
+
+        # Get category type and purchase team user
+        cat_type = frappe.get_doc("Category Master", pi.category_type)
+        purchase_team = 0
+        if cat_type.purchase_team_user:
+            try:
+                cart_team_emp = frappe.get_doc("Employee", {"user_id": cat_type.purchase_team_user})
+                if cart_team_emp.name == employee.name:
+                    purchase_team = 1
+            except frappe.DoesNotExistError:
+                pass  # Skip if purchase team user does not map to Employee
+
+        # Return all necessary info
+        pi_dict = pi.as_dict()
+        pi_dict.update({
+            "hod": hod,
+            "purchase_team": purchase_team
+        })
+
+        return pi_dict
+
+    except frappe.DoesNotExistError as e:
+        frappe.throw(_("Document not found: {0}").format(str(e)))
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_pi_details Error")
+        frappe.throw(_("An unexpected error occurred while fetching PI details."))
+
 
 
 @frappe.whitelist(allow_guest = True)
