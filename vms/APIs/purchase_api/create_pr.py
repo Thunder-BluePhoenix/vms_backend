@@ -57,6 +57,7 @@ def create_purchase_requisition(data):
             "company_code_area": data.get("company_code_area"),
             "company": data.get("company"),
             "requisitioner": data.get("requisitioner"),
+            "purchase_group": data.get("purchase_group")
         }
 
         # Create new document
@@ -84,7 +85,7 @@ def create_purchase_requisition(data):
                 "gl_account_number": row.get("gl_account_number"),
                 "material_code": row.get("material_code"),
                 "account_assignment_category": row.get("account_assignment_category"),
-                "purchase_group": row.get("purchase_group")
+                # "purchase_group": row.get("purchase_group")
             })
 
         doc.insert(ignore_permissions=True)
@@ -222,7 +223,7 @@ def update_pur_req_table(data):
                     "gl_account_number": data.get("gl_account_number"),
                     "material_code": data.get("material_code"),
                     "account_assignment_category": data.get("account_assignment_category"),
-                    "purchase_group": data.get("purchase_group")
+                    # "purchase_group": data.get("purchase_group")
                 })
                 found = True
                 break
