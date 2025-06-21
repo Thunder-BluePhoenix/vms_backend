@@ -306,6 +306,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
 
         multi_company_name = []
+        registered_for_multi_companies =  ven_onb_doc.registered_for_multi_companies
         if ven_onb_doc.registered_for_multi_companies == 1:
 
             multi_company = [row.as_dict() for row in ven_onb_doc.multiple_company]
@@ -479,6 +480,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "certificate_details_tab": certificate_details,
             "purchasing_details": purchasing_details,
             "validation_check": validation_check,
+            "is_multi_company":registered_for_multi_companies,
             "multi_company_data": multi_company_name
         }
 
