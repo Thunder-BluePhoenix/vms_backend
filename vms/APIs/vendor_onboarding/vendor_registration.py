@@ -596,10 +596,15 @@ def send_registration_email_link(vendor_onboarding, refno):
 
             frappe.sendmail(
                 recipients=[recipient_email],
-                subject="Welcome to VMS - Complete Your Registration",
+                subject=f"""New Vendor Appointment for {onboarding_doc.company_name}-{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
                 message=f"""
-                    <p>Dear {vendor_master.vendor_name},</p>
-                    <p>Your Vendor Onboardng process has Initiated.To complete your registration, please click the link below:</p>
+                    <p>Dear Sir/Madam,</p>
+                    <p>Greetings for the Day!</p>
+                    <p>You have been added by {frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")} to Onboard as a Vendor/Supplier for {onboarding_doc.company_name}.</p>
+                    <p> Founded in 2006, Meril Life Sciences Pvt. Ltd. is a global medtech company based in India, dedicated to designing and manufacturing innovative, 
+                    patient-centric medical devices. We focus on advancing healthcare through cutting-edge R&D, quality manufacturing, and clinical excellence 
+                    to help people live longer, healthier lives. We are a family of 3000+ Vendors/Sub – Vendors across India. </p>
+                    <p>Please click here to fill details!</p>
                     <p style="margin: 15px 0px;">
                         <a href="{registration_link}" rel="nofollow" class="btn btn-primary">Complete Registration</a>
                     </p>
@@ -608,7 +613,7 @@ def send_registration_email_link(vendor_onboarding, refno):
 
                     {qms_section}
 
-                    <p>Best regards,<br>VMS Team</p>
+                    <p>Thanking you,<br>VMS Team</p>
                 """,
                 delayed=False
             )

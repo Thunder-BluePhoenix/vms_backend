@@ -1,14 +1,24 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:cost_center_code",
  "creation": "2025-06-13 13:02:23.327532",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "company_code",
   "cost_center_code",
   "cost_center_name",
-  "description"
+  "description",
+  "short_text",
+  "column_break_wgdq",
+  "valid_from",
+  "valid_to",
+  "category",
+  "person",
+  "profit_center",
+  "department"
  ],
  "fields": [
   {
@@ -26,12 +36,60 @@
    "fieldname": "description",
    "fieldtype": "Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "company_code",
+   "fieldtype": "Link",
+   "label": "Company Code",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "short_text",
+   "fieldtype": "Small Text",
+   "label": "Short Text"
+  },
+  {
+   "fieldname": "column_break_wgdq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Valid From"
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "label": "Valid To"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "label": "Category",
+   "options": "Cost Center Category Master"
+  },
+  {
+   "fieldname": "person",
+   "fieldtype": "Data",
+   "label": "Person"
+  },
+  {
+   "fieldname": "profit_center",
+   "fieldtype": "Link",
+   "label": "Profit Center",
+   "options": "Profit Center"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 14:41:56.750871",
+ "modified": "2025-06-23 14:11:39.835831",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Cost Center",

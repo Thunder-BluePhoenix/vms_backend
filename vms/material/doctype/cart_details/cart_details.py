@@ -73,7 +73,7 @@ def send_mail_hod(doc, method=None):
 					{table_html}
 					<p>Thank you!</p>
 				"""
-				frappe.sendmail(recipients=[hod_email], cc=["rishi.hingad@merillife.com"], subject=subject, message=message)
+				frappe.sendmail(recipients=[hod_email], subject=subject, message=message)
 
 				# doc.mail_sent_to_hod = 1
 				frappe.db.set_value("Cart Details", doc.name, "mail_sent_to_hod", 1)
@@ -143,7 +143,7 @@ def send_mail_purchase(doc, method=None):
 					{table_html}
 					<p>Thank you!</p>
 				"""
-				frappe.sendmail(recipients=[purchase_team_email], cc=["rishi.hingad@merillife.com"], subject=subject, message=message)
+				frappe.sendmail(recipients=[purchase_team_email], subject=subject, message=message)
 
 				# doc.mail_sent_to_purchase_team = 1
 				frappe.db.set_value("Cart Details", doc.name, "mail_sent_to_purchase_team", 1)
@@ -211,7 +211,7 @@ def send_mail_user(doc, method=None):
 			{table_html}
 			<p>Thank you!</p>
 		"""
-		frappe.sendmail(recipients=[doc.user], cc=["rishi.hingad@merillife.com", hod_email], subject=subject, message=message)
+		frappe.sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message)
 
 		# doc.ack_mail_to_user = 1
 		frappe.db.set_value("Cart Details", doc.name, "ack_mail_to_user", 1)

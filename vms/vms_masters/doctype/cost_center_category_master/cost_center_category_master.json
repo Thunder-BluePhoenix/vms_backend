@@ -2,54 +2,40 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:gl_account_code",
- "creation": "2025-06-13 12:58:20.912051",
+ "autoname": "field:cost_center_category_code",
+ "creation": "2025-06-23 14:08:13.951494",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "gl_account_code",
-  "gl_account_name",
-  "company",
-  "account_group",
+  "cost_center_category_code",
+  "cost_center_category_name",
   "description"
  ],
  "fields": [
   {
-   "fieldname": "gl_account_code",
+   "fieldname": "cost_center_category_code",
    "fieldtype": "Data",
-   "label": "G/L Account Code",
+   "label": "Cost Center Category Code",
    "unique": 1
   },
   {
-   "fieldname": "gl_account_name",
+   "fieldname": "cost_center_category_name",
    "fieldtype": "Data",
-   "label": "G/L Account Long Text"
-  },
-  {
-   "fieldname": "company",
-   "fieldtype": "Link",
-   "label": "Company Code",
-   "options": "Company Master"
+   "label": "Cost Center Category Name"
   },
   {
    "fieldname": "description",
    "fieldtype": "Long Text",
    "label": "Description"
-  },
-  {
-   "fieldname": "account_group",
-   "fieldtype": "Link",
-   "label": "Account Group",
-   "options": "Account Group Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 14:11:49.386167",
+ "modified": "2025-06-23 14:32:33.794126",
  "modified_by": "Administrator",
- "module": "Purchase",
- "name": "GL Account",
+ "module": "VMS Masters",
+ "name": "Cost Center Category Master",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
@@ -71,5 +57,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "gl_account_name"
+ "title_field": "cost_center_category_name"
 }
