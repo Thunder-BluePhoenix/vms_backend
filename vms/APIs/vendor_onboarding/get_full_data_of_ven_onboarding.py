@@ -289,6 +289,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 "name": "",
                 "file_name": ""
             }
+
         if payment_doc.country:
             payment_details["address"] = {
                 "country": payment_doc.country
@@ -297,6 +298,55 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             payment_details["address"] = {
                 "country": ""
             }
+
+        # international bank details and intermediate bank details
+        international_bank_details = []
+
+        for row in payment_doc.international_bank_details:
+            bank_row = row.as_dict()
+            
+            if row.bank_proof_for_beneficiary_bank:
+                file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_beneficiary_bank})
+                bank_row["bank_proof_for_beneficiary_bank"] = {
+                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                }
+            else:
+                bank_row["bank_proof_for_beneficiary_bank"] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
+            
+            international_bank_details.append(bank_row)
+
+        payment_details["international_bank_details"] = international_bank_details
+
+
+        intermediate_bank_details = []
+
+        for row in payment_doc.intermediate_bank_details:
+            bank_row = row.as_dict()
+            
+            if row.bank_proof_for_intermediate_bank:
+                file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_intermediate_bank})
+                bank_row["bank_proof_for_intermediate_bank"] = {
+                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                }
+            else:
+                bank_row["bank_proof_for_intermediate_bank"] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
+            
+            intermediate_bank_details.append(bank_row)
+
+        payment_details["intermediate_bank_details"] = intermediate_bank_details
+
 
 
         #----------contact details tab-----------------
