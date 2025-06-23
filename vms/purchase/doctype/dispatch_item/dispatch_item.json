@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-23 15:28:37.037151",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "purchase_number",
+  "column_break_ocsa",
+  "vendor_code",
+  "section_break_vdbp",
+  "courier_number",
+  "courier_name",
+  "status",
+  "invoice_amount",
+  "packing_list_attachment",
+  "e_way_bill_attachment",
+  "column_break_rtsd",
+  "docket_number",
+  "dispatch_date",
+  "invoice_number",
+  "invoice_date",
+  "invoice_attachment",
+  "commercial_attachment",
+  "test_certificates_attachment",
+  "section_break_tmxv",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "purchase_number",
+   "fieldtype": "Table MultiSelect",
+   "label": "Purchase Number",
+   "options": "Dispatch Purchase No Group"
+  },
+  {
+   "fieldname": "section_break_vdbp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "courier_number",
+   "fieldtype": "Data",
+   "label": "Courier Number"
+  },
+  {
+   "fieldname": "courier_name",
+   "fieldtype": "Data",
+   "label": "Courier Name"
+  },
+  {
+   "fieldname": "column_break_rtsd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "docket_number",
+   "fieldtype": "Data",
+   "label": "Docket Number"
+  },
+  {
+   "fieldname": "section_break_tmxv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Dispatch Order Items"
+  },
+  {
+   "fieldname": "dispatch_date",
+   "fieldtype": "Date",
+   "label": "Dispatch Date"
+  },
+  {
+   "fieldname": "invoice_number",
+   "fieldtype": "Data",
+   "label": "Invoice Number"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "invoice_amount",
+   "fieldtype": "Data",
+   "label": "Invoice Amount"
+  },
+  {
+   "fieldname": "packing_list_attachment",
+   "fieldtype": "Attach Image",
+   "label": "Packing List Attachment"
+  },
+  {
+   "fieldname": "invoice_attachment",
+   "fieldtype": "Attach",
+   "label": "Invoice Attachment"
+  },
+  {
+   "fieldname": "commercial_attachment",
+   "fieldtype": "Attach",
+   "label": "Commercial Invoice Attachment"
+  },
+  {
+   "fieldname": "e_way_bill_attachment",
+   "fieldtype": "Attach",
+   "label": "E-way Bill Attachment"
+  },
+  {
+   "fieldname": "test_certificates_attachment",
+   "fieldtype": "Attach",
+   "label": "Test Certificates Attachment"
+  },
+  {
+   "fieldname": "column_break_ocsa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vendor_code",
+   "fieldtype": "Data",
+   "label": "Vendor Code"
+  },
+  {
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Invoice Date"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-23 15:28:37.037151",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Dispatch Item",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
