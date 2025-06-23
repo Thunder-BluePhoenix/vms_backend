@@ -111,7 +111,6 @@ def send_mail_hod_pt(doc, method=None):
 
 				frappe.sendmail(
 					recipients=recipient_emails,
-					cc=["rishi.hingad@merillife.com"],
 					subject=subject,
 					message=message
 				)
@@ -168,7 +167,6 @@ def send_mail_purchase_head(doc, method=None):
 
 			frappe.sendmail(
 				recipients=recipient_emails,
-				cc=["rishi.hingad@merillife.com"],
 				subject=subject,
 				message=message
 			)
@@ -208,7 +206,6 @@ def send_mail_user(doc, method=None):
 		"""
 		frappe.sendmail(
 			recipients=[doc.requisitioner, hod_email],
-			cc=["rishi.hingad@merillife.com"],
 			subject=subject,
 			message=message
 		)
