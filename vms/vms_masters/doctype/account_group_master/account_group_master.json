@@ -36,15 +36,15 @@
   },
   {
    "fieldname": "vendor_type",
-   "fieldtype": "Link",
+   "fieldtype": "Table",
    "label": "Vendor Type",
-   "options": "Vendor Type Master"
+   "options": "Vendor Type for Account"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-18 14:32:30.799069",
+ "modified": "2025-06-23 14:31:40.755243",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Account Group Master",

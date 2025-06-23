@@ -80,18 +80,53 @@ def account_group_details(data):
     
     
     # all_account_group = []
-    all_account_groups = []
+    # all_account_groups = []
 
-    for vendor_type in vendor_types:
-        account_groups = frappe.get_all(
-            "Account Group Master", 
-            filters={
-                "purchase_organization": purchase_organization, 
-                "vendor_type": vendor_type
-            },
-            fields=["name", "account_group_name", "account_group_description"]
+    # for vendor_type in vendor_types:
+    #     account_groups = frappe.get_all(
+    #         "Account Group Master", 
+    #         filters={
+    #             "purchase_organization": purchase_organization, 
+    #             "vendor_type": vendor_type
+    #         },
+    #         fields=["name", "account_group_name", "account_group_description"]
+    #     )
+    #     all_account_groups.extend(account_groups)
+    all_account_groups = set()
+
+    # Get all Account Group Master records that match the purchase_organization
+    account_groups = frappe.get_all(
+        "Account Group Master",
+        filters={"purchase_organization": purchase_organization},
+        fields=["name", "account_group_name", "account_group_description"]
+    )
+
+    for group in account_groups:
+        # Fetch child table entries for vendor_type (e.g., "Vendor Type Child")
+        vendor_type_children = frappe.get_all(
+            "Vendor Type Child",  # replace with actual child table doctype name
+            filters={"parent": group.name, "vendor_type_ac": ["in", vendor_types]},
+            fields=["vendor_type_ac"]
         )
-        all_account_groups.extend(account_groups)
+
+        if vendor_type_children:
+            # Add as tuple to make it hashable for set
+            all_account_groups.add((
+                group.name,
+                group.account_group_name,
+                group.account_group_description
+            ))
+
+    # Optional: Convert set to list of dicts if needed
+    all_account_groups_list = [
+        {
+            "name": name,
+            "account_group_name": agn,
+            "account_group_description": agd
+        }
+        for name, agn, agd in all_account_groups
+    ]
+
 
    
     # all_account_groups.append(all_account_group)
