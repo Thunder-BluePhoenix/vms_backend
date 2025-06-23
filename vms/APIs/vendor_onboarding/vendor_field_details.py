@@ -104,7 +104,7 @@ def account_group_details(data):
     for group in account_groups:
         # Fetch child table entries for vendor_type (e.g., "Vendor Type Child")
         vendor_type_children = frappe.get_all(
-            "Vendor Type Child",  # replace with actual child table doctype name
+            "Vendor Type for Account",  # replace with actual child table doctype name
             filters={"parent": group.name, "vendor_type_ac": ["in", vendor_types]},
             fields=["vendor_type_ac"]
         )
@@ -134,7 +134,7 @@ def account_group_details(data):
     # all_account_groups.extend(org_type)
 
 
-    return {"all_account_groups":all_account_groups,
+    return {"all_account_groups":all_account_groups_list,
             "org_type":org_type}
 
 
