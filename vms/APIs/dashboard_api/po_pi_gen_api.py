@@ -17,11 +17,15 @@ def dashboard_card(usr):
         user_roles = frappe.get_roles(usr)
 
         if not any(role in allowed_roles for role in user_roles):
-            return {
-                "status": "error",
-                "message": "User does not have the required role.",
-                "vendor_master": []
-            }
+            return normal_data_for_employee(usr)
+
+
+
+            # return {
+            #     "status": "error",
+            #     "message": "User does not have the required role.",
+            #     "vendor_master": []
+            # }
 
         if "Accounts Team" in user_roles:
             return vendor_data_for_accounts(usr, user_roles)
@@ -34,6 +38,28 @@ def dashboard_card(usr):
             "status": "error",
             "message": "Unexpected error occurred in dashboard_card.",
             "error": str(e)
+        }
+
+
+
+def normal_data_for_employee(usr):
+    cart_count = frappe.db.count("Cart Details")
+    pr_count = frappe.db.count("Purchase Requisition Webform")
+
+    user_cart_count = frappe.db.count("Cart Details",
+                                filters= {"user":usr })
+    
+    user_pr_count = frappe.db.count("Purchase Requisition Webform",
+                                filters= {"requisitioner":usr })
+    
+    return {
+            "status": "success",
+            "message": "dashboard counts fetched successfully.",
+            
+            "cart_count":user_cart_count,
+            "pr_count":user_pr_count,
+            "all_carts":cart_count,
+            "all_pr_count":pr_count
         }
 
 
