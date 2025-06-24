@@ -305,10 +305,10 @@ def vendor_data_for_purchase(usr, user_roles):
             "rejected_vendor_count": rejected_vendor_count,
             "expired_vendor_count": expired_vendor_count,
             "current_month_vendor": current_month_vendor,
-            "cart_count":user_cart_count,
-            "pr_count":user_pr_count,
-            "all_carts":cart_count,
-            "all_pr_count":pr_count
+            "cart_count":cart_count,
+            "pr_count":pr_count,
+            "all_carts":user_cart_count,
+            "all_pr_count":user_pr_count
         }
 
     except Exception as e:
