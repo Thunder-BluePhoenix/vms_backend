@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:uom",
+ "autoname": "format:{uom}",
  "creation": "2025-05-23 12:17:08.761366",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -32,11 +32,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-14 14:58:59.399705",
+ "modified": "2025-06-24 12:08:45.011645",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "UOM Master",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -63,6 +63,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "search_fields": "uom",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
