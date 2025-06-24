@@ -112,7 +112,8 @@ def send_mail_hod_pt(doc, method=None):
 				frappe.sendmail(
 					recipients=recipient_emails,
 					subject=subject,
-					message=message
+					message=message,
+					now=True
 				)
 				# doc.mail_sent_to_hod = 1
 				frappe.db.set_value("Purchase Requisition Webform", doc.name, "mail_sent_to_hod", 1)
@@ -168,7 +169,8 @@ def send_mail_purchase_head(doc, method=None):
 			frappe.sendmail(
 				recipients=recipient_emails,
 				subject=subject,
-				message=message
+				message=message,
+				now=True
 			)
 			# doc.mail_sent_to_hod = 1
 			frappe.db.set_value("Purchase Requisition Webform", doc.name, "mail_sent_to_purchase_head", 1)
@@ -207,7 +209,8 @@ def send_mail_user(doc, method=None):
 		frappe.sendmail(
 			recipients=[doc.requisitioner, hod_email],
 			subject=subject,
-			message=message
+			message=message,
+			now=True
 		)
 		# doc.mail_sent_to_hod = 1
 		frappe.db.set_value("Purchase Requisition Webform", doc.name, "ack_mail_to_user", 1)

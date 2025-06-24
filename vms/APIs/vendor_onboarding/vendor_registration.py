@@ -557,6 +557,23 @@ def send_registration_email_link(vendor_onboarding, refno):
 
         onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
 
+        if onboarding_doc.registered_for_multi_companies == 1:
+            mul_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id,
+                    "registered_for_multi_companies": 1
+                },
+                fields=["company_name"]
+            )
+            mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name")]
+            company_names = ", ".join([
+                frappe.db.get_value("Company Master", name, "company_name")
+                for name in mul_company_names if frappe.db.exists("Company Master", name)
+            ])
+        else:
+            company_names = frappe.db.get_value("Company Master", onboarding_doc.company_name, "company_name")
+
         # Construct registration link
         http_server = frappe.conf.get("frontend_http")
         registration_link = (
@@ -596,11 +613,11 @@ def send_registration_email_link(vendor_onboarding, refno):
 
             frappe.sendmail(
                 recipients=[recipient_email],
-                subject=f"""New Vendor Appointment for {onboarding_doc.company_name}-{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
+                subject=f"""New Vendor Appointment for Meril Group -{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
                 message=f"""
                     <p>Dear Sir/Madam,</p>
                     <p>Greetings for the Day!</p>
-                    <p>You have been added by {frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")} to Onboard as a Vendor/Supplier for {onboarding_doc.company_name}.</p>
+                    <p>You have been added by {frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")} to Onboard as a Vendor/Supplier for {company_names}.</p>
                     <p> Founded in 2006, Meril Life Sciences Pvt. Ltd. is a global medtech company based in India, dedicated to designing and manufacturing innovative, 
                     patient-centric medical devices. We focus on advancing healthcare through cutting-edge R&D, quality manufacturing, and clinical excellence 
                     to help people live longer, healthier lives. We are a family of 3000+ Vendors/Sub – Vendors across India. </p>

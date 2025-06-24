@@ -452,7 +452,6 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         
         #----------------Certificate Details ------------------------------
 
-                #------------------Certificate Details ------------------------------
         certificate_docname = frappe.db.get_value("Vendor Onboarding Certificates", {
             "vendor_onboarding": vendor_onboarding, "ref_no": ref_no
         }, "name")
@@ -488,6 +487,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         else:
             certificate_details = []
 
+        #------------------purchasing Details ------------------------------
+        
         purchasing_details = []
 
         if vendor_onboarding:
