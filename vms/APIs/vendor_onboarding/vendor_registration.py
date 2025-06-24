@@ -27,7 +27,7 @@ def create_vendor_master(data):
             "payee_in_document", "gr_based_inv_ver", "service_based_inv_ver",
             "check_double_invoice", "order_currency", "incoterms",
             "purchase_group", "country", "mobile_number", "registered_date",
-            "incoterms2", "qa_required", "registered_by", "purchase_team_approval",
+            "incoterms2", "qms_required", "registered_by", "purchase_team_approval",
             "purchase_team_second", "purchase_head_approval", "purchase_head_second_approval",
             "qa_team_approval", "qa_head_approval", "accounts_team_approval",
             "accounts_team_second_approval", "status", "onboarding_form_status",
@@ -99,7 +99,7 @@ def vendor_registration(data):
 #         # vendor master fields
 #         for field in [
 #             "vendor_title", "vendor_name", "office_email_primary", "search_term",
-#             "country", "mobile_number", "registered_date", "qa_required"
+#             "country", "mobile_number", "registered_date", "qms_required"
 #         ]:
 #             if field in data:
 #                 vendor_master.set(field, data[field])
@@ -358,7 +358,7 @@ def vendor_registration_single(data):
         # vendor master fields
         for field in [
             "vendor_title", "vendor_name", "office_email_primary", "search_term",
-            "country", "mobile_number", "registered_date", "qa_required"
+            "country", "mobile_number", "registered_date", "qms_required"
         ]:
             if field in data:
                 vendor_master.set(field, data[field])
@@ -755,7 +755,7 @@ def vendor_registration_multi(data):
         # Set vendor master fields with validation
         vendor_fields = [
             "vendor_title", "vendor_name", "office_email_primary", "search_term",
-            "country", "mobile_number", "registered_date", "qa_required"
+            "country", "mobile_number", "registered_date", "qms_required"
         ]
         
         for field in vendor_fields:
