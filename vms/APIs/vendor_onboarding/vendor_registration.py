@@ -883,7 +883,7 @@ def vendor_registration_multi(data):
                 
                 # Set company-specific fields with validation
                 company_fields = [
-                    "company_name", "purchase_organization", "account_group", "incoterms"
+                    "company_name", "purchase_organization", "account_group", "incoterms",
                     "purchase_group", "terms_of_payment", "order_currency", "reconciliation_account"
                 ]
                 
