@@ -597,7 +597,7 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
         # Base filters
         conditions = []
         values = {}
-
+        employee = frappe.get_doc("Employee", {"user_id": usr})
         if "Accounts Team" in user_roles:
             employee = frappe.get_doc("Employee", {"user_id": usr})
             company_list = [row.company_name for row in employee.company]
