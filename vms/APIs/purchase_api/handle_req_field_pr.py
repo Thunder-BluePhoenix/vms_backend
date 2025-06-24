@@ -28,7 +28,7 @@ def filter_req_fields(company, pur_type, acct_cate):
         company = frappe.get_value("Company Master", {"name": company}, "sap_client_code")
         if company == "900" and pur_type == "SB" and (acct_cate == "K" or acct_cate == "A"):
             return {
-                "status": "success",
+                # "status": "success",
                 "item_category" : "Compulsory must D",
                 "short_text": "Compulsory",
                 "plant": "Compulsory",
@@ -37,21 +37,21 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "uom": "Non Compulsory",
                 "gl_account_number": "Compulsory",
                 "cost_center": "Compulsory",
-                "requisitioner": "Compulsory",
+                "requisitioner": "Compulsory"
             } 
         elif company == "900" and pur_type == "NB" and acct_cate == "A":
             return {
-                "status": "success",
+                # "status": "success",
                 "material_code": "Compulsory",
                 "plant": "Compulsory",
                 "quantity": "Compulsory",
                 "main_asset_no": "Compulsory",
                 "purchase_group": "Non Compulsory",
-                "requisitioner": "Compulsory",
+                "requisitioner": "Compulsory"
             }
         elif company == "800" and pur_type == "SB" and acct_cate == "K":
             return {
-                "status": "success",
+                # "status": "success",
                 "item_category" : "Compulsory must D",
                 "short_text": "Compulsory",
                 "plant": "Compulsory",
@@ -60,21 +60,21 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "uom": "Non Compulsory",
                 "gl_account_number": "Compulsory",
                 "cost_center": "Compulsory",
-                "requisitioner": "Compulsory",
+                "requisitioner": "Compulsory"
             } 
         elif company == "800" and pur_type == "NB" and acct_cate == "A":
             return {
-                "status": "success",
+                # "status": "success",
                 "material_code": "Compulsory",
                 "plant": "Compulsory",
                 "quantity": "Compulsory",
                 "main_asset_no": "Compulsory",
                 "purchase_group": "Non Compulsory",
-                "requisitioner": "Compulsory",
+                "requisitioner": "Compulsory"
             }
         elif company == "700" and pur_type == "SB" and (acct_cate == "K" or acct_cate == "A"):
             return {
-                "status": "success",
+                # "status": "success",
                 "item_category" : "Compulsory must D",
                 "short_text": "Compulsory",
                 "plant": "Compulsory",
@@ -83,7 +83,104 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "uom": "Non Compulsory",
                 "gl_account_number": "Compulsory",
                 "cost_center": "Compulsory",
+                "requisitioner": "Compulsory"
+            }
+        elif company == "700" and pur_type == "NB":
+            return {
+                # "status": "success",
+                "material_code": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "purchase_group": "Non Compulsory",
                 "requisitioner": "Compulsory",
+            }
+        elif company == "700" and pur_type == "NB" and acct_cate == "A":
+            return {
+                # "status": "success",
+                "material_code": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "main_asset_no": "Compulsory",
+                "purchase_group": "Non Compulsory",
+                "requisitioner": "Compulsory"
+            }
+        elif company == "300" and pur_type == "NB":
+            return{
+                "material_code": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "requisitioner": "Compulsory"
+            }
+        elif company == "300" and pur_type == "NB" and acct_cate == "A":
+            return{
+                "material_code": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "main_asset_no": "Compulsory",
+                "purchase_group": "Non Compulsory",
+                "requisitioner": "Compulsory"
+            }
+        elif company == "300" and pur_type == "SB" and acct_cate == "K":
+            return{
+                "item_category" : "Compulsory must D",
+                "short_text": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "material_group": "Non Compulsory",
+                "uom": "Non Compulsory",
+                "gl_account_number": "Compulsory",
+                "cost_center": "Compulsory",
+                "requisitioner": "Compulsory"
+        }
+        elif company == "200" and pur_type == "NB":    
+            return{
+                "material_code": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "requisitioner": "Compulsory",
+                "purchase_group": "Non Compulsory"
+            }
+        elif company == "200" and pur_type == "NB" and acct_cate == "A":
+            return{
+                "material_code": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "main_asset_no": "Compulsory",
+                "purchase_group": "Compulsory",
+                "requisitioner": "Compulsory"
+            }
+        elif company == "200" and pur_type == "SB" and (acct_cate == "K" or acct_cate == "A"):
+            return {
+                "item_category" : "Compulsory must D",
+                "short_text": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "material_group": "Non Compulsory",
+                "uom": "Non Compulsory",
+                "gl_account_number": "Compulsory",
+                "cost_center": "Compulsory",
+                "requisitioner": "Compulsory"
+            }
+        elif company == "100" and pur_type == "NB" and acct_cate == "A":
+            return{
+                "material_code": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "main_asset_no": "Compulsory",
+                "purchase_group": "Compulsory",
+                "requisitioner": "Compulsory"
+            }
+        elif company == "100" and pur_type == "SB" and (acct_cate == "K" or acct_cate == "A"):
+            return {
+                "item_category" : "Compulsory must D",
+                "short_text": "Compulsory",
+                "plant": "Compulsory",
+                "quantity": "Compulsory",
+                "material_group": "Non Compulsory",
+                "uom": "Non Compulsory",
+                "gl_account_number": "Compulsory",
+                "cost_center": "Compulsory",
+                "requisitioner": "Compulsory"
             }
         else:
             return {
