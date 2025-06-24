@@ -50,13 +50,13 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         #         vendor_type_list.append(row.vendor_type)
 
         # company_details["vendor_types"] = vendor_type_list
-        vendor_type_list = []
-        # if frappe.db.exists("Vendor Master", ref_no):
-        vendor_onb_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
-        for row in vendor_onb_doc.vendor_types:
-            vendor_type_list.append(row.vendor_type)
+        # vendor_type_list = []
+        # # if frappe.db.exists("Vendor Master", ref_no):
+        # vendor_onb_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+        # for row in vendor_onb_doc.vendor_types:
+        #     vendor_type_list.append(row.vendor_type)
 
-        company_details["vendor_types"] = vendor_type_list
+        # company_details["vendor_types"] = vendor_type_list
 
         # --- Company Address Tab ---
 
@@ -361,6 +361,12 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         ven_onb_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
         contact_details = [row.as_dict() for row in ven_onb_doc.contact_details]
+        vendor_type_list = []
+        
+        for row in ven_onb_doc.vendor_types:
+            vendor_type_list.append(row.vendor_type)
+
+        company_details["vendor_types"] = vendor_type_list
 
 
         multi_company_name = []
