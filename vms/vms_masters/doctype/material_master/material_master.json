@@ -9,6 +9,7 @@
   "material_code",
   "material_name",
   "material_category",
+  "company",
   "description"
  ],
  "fields": [
@@ -33,12 +34,18 @@
    "fieldname": "description",
    "fieldtype": "Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 12:12:01.835320",
+ "modified": "2025-06-24 20:12:15.411512",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Material Master",
