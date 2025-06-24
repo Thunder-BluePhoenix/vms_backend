@@ -224,9 +224,15 @@ def vendor_data_for_purchase(usr, user_roles):
         )
         cart_count = frappe.db.count("Cart Details")
         pr_count = frappe.db.count("Purchase Requisition Webform")
+
+        user_cart_count = frappe.db.count("Cart Details",
+                                    filters= {"user":usr })
+        
+        user_pr_count = frappe.db.count("Cart Details",
+                                    filters= {"requisitioner":usr })
         # cart_count = len(all_cart)
 
-        # Count of Vendor Master records created by users from the same team
+        # Count of Vendor Master records created by users from the same team.requisitioner
         # total_vendor_count = frappe.db.count(
         #     "Vendor Master",
         #     filters={"registered_by": ["in", user_ids]}
@@ -273,8 +279,10 @@ def vendor_data_for_purchase(usr, user_roles):
             "rejected_vendor_count": rejected_vendor_count,
             "expired_vendor_count": expired_vendor_count,
             "current_month_vendor": current_month_vendor,
-            "cart_count":cart_count,
-            "pr_count":pr_count
+            "cart_count":user_cart_count,
+            "pr_count":user_pr_count,
+            "all_carts":cart_count,
+            "all_pr_count":pr_count
         }
 
     except Exception as e:
