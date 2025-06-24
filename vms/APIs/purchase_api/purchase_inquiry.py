@@ -24,12 +24,12 @@ def filter_product_name(category_type=None):
             result = frappe.get_all(
                 "VMS Product Master",
                 filters={"category_type": category_type},
-                fields=["name", "product_name"]
+                fields=["name", "product_name", "product_price", "lead_time"]
             )
         else:
             result = frappe.get_all(
                 "VMS Product Master",
-                fields=["name", "product_name"]
+                fields=["name", "product_name", "product_price", "lead_time"]
             )
 
         return {
