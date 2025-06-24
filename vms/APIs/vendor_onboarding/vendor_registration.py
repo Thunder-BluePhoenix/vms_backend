@@ -883,7 +883,7 @@ def vendor_registration_multi(data):
                 
                 # Set company-specific fields with validation
                 company_fields = [
-                    "company_name", "purchase_organization", "account_group", "incoterms",
+                    "company_name", "purchase_organization", "account_group",
                     "purchase_group", "terms_of_payment", "order_currency", "reconciliation_account"
                 ]
                 
@@ -895,6 +895,7 @@ def vendor_registration_multi(data):
 
                 # Add multiple company data
                 for company in multi_companies:
+                    vendor_onboarding.incoterms = company.get("incoterms")
                     if isinstance(company, dict) and company.get("company_name"):
                         vendor_onboarding.append("multiple_company", {
                             "company": company.get("company_name")
