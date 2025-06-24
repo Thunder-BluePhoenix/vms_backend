@@ -51,6 +51,8 @@ def get_qms_details_without_label(vendor_onboarding):
 
         # Get the linked QMS Assessment Form document
         qms_doc = frappe.get_doc("Supplier QMS Assessment Form", {"unique_name":vn_onb.qms_form_link})
+        vn_comp = frappe.get_doc("Company Master", vn_onb.company_name)
+        comp_code = vn_comp.company_code
 
         # Get meta for field labels
         # meta = frappe.get_meta("Supplier QMS Assessment Form")
@@ -69,7 +71,8 @@ def get_qms_details_without_label(vendor_onboarding):
 
         return {
             "qms_details": qms_doc.as_dict(),
-            "qms_doc_name": qms_doc.name
+            "qms_doc_name": qms_doc.name,
+            "onboarding_company_code": comp_code
         }
 
     except frappe.DoesNotExistError as e:
