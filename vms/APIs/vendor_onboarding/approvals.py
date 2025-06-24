@@ -70,7 +70,6 @@ def purchase_team_check(data):
             onb_doc.purchase_t_approval = user
             onb_doc.purchase_team_undertaking = 1
             onb_doc.purchase_team_approval_remarks = comments
-            
             message = _("Onboarding approved by Purchase Team.")
         elif is_rejected:
             if not rejection_reason:
@@ -79,7 +78,6 @@ def purchase_team_check(data):
             onb_doc.rejected_by = user
             onb_doc.purchase_t_approval = user
             onb_doc.reason_for_rejection = rejection_reason
-            onb_doc.onboarding_form_status = "Rejected"
             message = _("Onboarding rejected by Purchase Team.")
         else:
             frappe.throw(_("Invalid request: either approve or reject must be set."))
@@ -166,7 +164,6 @@ def accounts_team_check(data):
             onb_doc.rejected_by = user
             onb_doc.accounts_t_approval = user
             onb_doc.reason_for_rejection = rejection_reason
-            onb_doc.onboarding_form_status = "Rejected"
             message = _("Onboarding rejected by Accounts Team.")
         else:
             frappe.throw(_("Invalid request: either approve or reject must be set."))
@@ -242,7 +239,6 @@ def purchase_head_check(data):
             onb_doc.rejected_by = user
             onb_doc.purchase_h_approval = user
             onb_doc.reason_for_rejection = rejection_reason
-            onb_doc.onboarding_form_status = "Rejected"
             message = _("Onboarding rejected by Purchase Head.")
         else:
             frappe.throw(_("Invalid request: either approve or reject must be set."))
