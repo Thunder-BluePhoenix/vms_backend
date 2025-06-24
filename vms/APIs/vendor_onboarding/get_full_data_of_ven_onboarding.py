@@ -1,4 +1,5 @@
 import frappe
+from rappe import _
 
 @frappe.whitelist(allow_guest=True)
 def get_vendor_onboarding_details(vendor_onboarding, ref_no):
@@ -42,11 +43,18 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         company_details["company_name_description"] = company_name_description
 
         # --- Fetch vendor types from Vendor Master ---
+        # vendor_type_list = []
+        # if frappe.db.exists("Vendor Master", ref_no):
+        #     vendor_doc = frappe.get_doc("Vendor Master", ref_no)
+        #     for row in vendor_doc.vendor_types:
+        #         vendor_type_list.append(row.vendor_type)
+
+        # company_details["vendor_types"] = vendor_type_list
         vendor_type_list = []
-        if frappe.db.exists("Vendor Master", ref_no):
-            vendor_doc = frappe.get_doc("Vendor Master", ref_no)
-            for row in vendor_doc.vendor_types:
-                vendor_type_list.append(row.vendor_type)
+        # if frappe.db.exists("Vendor Master", ref_no):
+        vendor_onb_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+        for row in vendor_onb_doc.vendor_types:
+            vendor_type_list.append(row.vendor_type)
 
         company_details["vendor_types"] = vendor_type_list
 
@@ -485,8 +493,9 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "account_group" : vonb.account_group or None,
             "reconciliation_account" : vonb.reconciliation_account or None,
             "qa_team_remarks" : vonb.qa_team_remarks or None,
-            "purchase_team_remarks" : vonb.purchase_team_remarks or None,
-            "purchase_head_remarks" : vonb.purchase_head_remarks or None,
+            "purchase_team_remarks" : vonb.purchase_team_approval_remarks or None,
+            "purchase_head_remarks" : vonb.purchase_head_approval_remarks or None,
+            "account_team_remarks": vonb.accounts_team_approval_remarks or None,
             "incoterms" : vonb.incoterms or None,
             }
         else :
