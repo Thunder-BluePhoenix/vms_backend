@@ -871,7 +871,7 @@ def vendor_registration_multi(data):
                 vendor_onboarding.registered_by = frappe.session.user
 
                 # Set optional fields
-                for field in ["qms_required", "incoterms"]:
+                for field in ["qms_required"]:
                     if field in data and data[field] is not None:
                         vendor_onboarding.set(field, data[field])
 
@@ -883,7 +883,7 @@ def vendor_registration_multi(data):
                 
                 # Set company-specific fields with validation
                 company_fields = [
-                    "company_name", "purchase_organization", "account_group", 
+                    "company_name", "purchase_organization", "account_group", "incoterms"
                     "purchase_group", "terms_of_payment", "order_currency", "reconciliation_account"
                 ]
                 
