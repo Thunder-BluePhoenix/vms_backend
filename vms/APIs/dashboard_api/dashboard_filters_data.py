@@ -646,11 +646,11 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
 
         if employee.designation == "Accounts Team":
             conditions.append("vo.purchase_head_undertaking =%(eligible)s")
-            values["eligible"] = True
+           
 
         if employee.designation == "Purchase Head":
-            conditions.append("vo.accounts_team_undertaking =%(eligible)s")
-            values["eligible"] = True
+            conditions.append("vo.purchase_team_undertaking =%(eligible)s")
+           
 
         filter_clause = " AND ".join(conditions)
 
