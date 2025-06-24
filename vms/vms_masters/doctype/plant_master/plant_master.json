@@ -8,6 +8,7 @@
  "field_order": [
   "plant_code",
   "plant_name",
+  "company",
   "description"
  ],
  "fields": [
@@ -26,12 +27,18 @@
    "fieldname": "description",
    "fieldtype": "Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:30:37.216682",
+ "modified": "2025-06-24 20:07:39.039584",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Plant Master",
