@@ -228,7 +228,7 @@ def vendor_data_for_purchase(usr, user_roles):
         user_cart_count = frappe.db.count("Cart Details",
                                     filters= {"user":usr })
         
-        user_pr_count = frappe.db.count("Cart Details",
+        user_pr_count = frappe.db.count("Purchase Requisition Webform",
                                     filters= {"requisitioner":usr })
         # cart_count = len(all_cart)
 
