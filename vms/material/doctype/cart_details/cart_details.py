@@ -28,14 +28,15 @@ def send_purchase_inquiry_email(doc, method=None):
 
 def send_mail_hod(doc, method=None):
 	try:
+		http_server = frappe.conf.get("frontend_http")
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
 		if hod:
 			hod_email = frappe.get_value("Employee", hod, "user_id")
 			hod_name = frappe.get_value("Employee", hod, "full_name")
 			if hod_email:
-				approve_url = f"{frappe.utils.get_url()}/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check?cart_id={doc.name}&user={doc.user}&action=approve"
-				reject_url = f"{frappe.utils.get_url()}/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check?cart_id={doc.name}&user={doc.user}&action=reject"
+				approve_url = f"{http_server}/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check?cart_id={doc.name}&user={doc.user}&action=approve"
+				reject_url = f"{http_server}/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check?cart_id={doc.name}&user={doc.user}&action=reject"
 				
 				table_html = """
 					<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
