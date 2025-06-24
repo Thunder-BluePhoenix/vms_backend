@@ -8,6 +8,7 @@ from frappe.utils.background_jobs import enqueue
 import json
 
 class VendorOnboarding(Document):
+    
      
 
     
@@ -51,6 +52,9 @@ class VendorOnboarding(Document):
 		frappe.db.commit()
 
 
+    
+
+
 	def on_update(self):
           
           vendor_company_update(self,method=None)
@@ -58,7 +62,7 @@ class VendorOnboarding(Document):
           on_update_check_fields(self,method=None)
           update_ven_onb_record_table(self, method=None)
           update_van_core_docs(self, method=None)
-          set_vendor_onboarding_status(self,method=None)
+        #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
 	
 def on_update_check_fields(self,method=None):
@@ -369,18 +373,23 @@ def validate_mandatory_data(onb_ref):
 @frappe.whitelist(allow_guest=True)
 def set_vendor_onboarding_status(doc, method=None):
     try:
-        if doc.rejected:
-            doc.onboarding_form_status = "Rejected"
-        elif doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking:
+        if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking:
             doc.onboarding_form_status = "Approved"
+            doc.rejected = False
+        
+        elif doc.rejected:
+            doc.onboarding_form_status = "Rejected"
+        else:
+            doc.onboarding_form_status = "Pending"
+
 
         # doc.save(ignore_permissions=True)
-        frappe.db.commit()
+        # frappe.db.commit()
 
         return {
             "status": "success",
             "message": f"Status updated to '{doc.onboarding_form_status}' successfully.",
-            "doc_status": doc.onboarding_form_status
+            # "doc_status": doc.onboarding_form_status
         }
 
     except Exception as e:
