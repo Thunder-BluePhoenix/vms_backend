@@ -1,5 +1,5 @@
 import frappe
-from rappe import _
+from frappe import _
 
 @frappe.whitelist(allow_guest=True)
 def get_vendor_onboarding_details(vendor_onboarding, ref_no):
@@ -200,13 +200,13 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         legal_fields = [
             "company_pan_number", "name_on_company_pan", "enterprise_registration_number",
-            "msme_registered", "msme_enterprise_type", "udyam_number", "name_on_udyam_certificate"
+            "msme_registered", "msme_enterprise_type", "udyam_number", "name_on_udyam_certificate", "iec", "trc_certificate_no"
         ]
 
         document_details = {field: legal_doc.get(field) for field in legal_fields}
 
         # Attach fields
-        for field in ["pan_proof", "entity_proof", "msme_proof"]:
+        for field in ["pan_proof", "entity_proof", "msme_proof", "iec_proof", "form_10f_proof", "trc_certificate", "pe_certificate"]:
             file_url = legal_doc.get(field)
             if file_url:
                 file_doc = frappe.get_doc("File", {"file_url": file_url})
@@ -246,6 +246,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             gst_table.append(gst_row)
 
         document_details["gst_table"] = gst_table
+
+
 
 
         #---------------- Payment details Tab-----------------------------
