@@ -795,7 +795,7 @@ def update_van_core_docs(doc, method=None):
                 
                 
             for rp in doc.reputed_partners:
-                vn_onb.append("number_of_employee", {
+                vn_onb.append("reputed_partners", {
                     "company_name": rp.company_name,
                     "test": rp.test,
                     "supplied_qtyyear": rp.supplied_qtyyear,
