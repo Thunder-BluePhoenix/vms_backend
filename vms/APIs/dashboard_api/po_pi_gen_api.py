@@ -110,7 +110,8 @@ def vendor_data_for_accounts(usr, user_roles):
             "Vendor Onboarding",
             filters={
                 "onboarding_form_status": "Pending",
-                "company_name": ["in", company_list]
+                "company_name": ["in", company_list],
+                "purchase_head_undertaking": 1
             }
         )
 
@@ -226,10 +227,22 @@ def vendor_data_for_purchase(usr, user_roles):
             filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Approved"}
         )
 
-        pending_vendor_count = frappe.db.count(
-            "Vendor Onboarding",
-            filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending"}
-        )
+
+
+        pending_vendor_count = []
+        if "Purchase Head" in user_roles:
+            
+            pending_vendor_count = frappe.db.count(
+                "Vendor Onboarding",
+                filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending", "purchase_team_undertaking": 1}
+            )
+        else:
+            pending_vendor_count = frappe.db.count(
+                "Vendor Onboarding",
+                filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending"}
+            )
+
+
 
         rejected_vendor_count = frappe.db.count(
             "Vendor Onboarding",
@@ -248,7 +261,15 @@ def vendor_data_for_purchase(usr, user_roles):
                 "creation": ["between", [start_date, end_date]]
             }
         )
-        cart_count = frappe.db.count("Cart Details")
+        # cart_count = frappe.db.count("Cart Details")
+        cart_query = """
+            SELECT COUNT(*)
+            FROM `tabCart Details` cd
+            JOIN `tabCart Category` cc ON cd.cart_category = cc.name
+            WHERE cc.purchase_team_user = %s
+        """
+
+        cart_count = frappe.db.sql(cart_query, (usr,))[0][0]
         pr_count = frappe.db.count("Purchase Requisition Webform")
 
         user_cart_count = frappe.db.count("Cart Details",
@@ -336,20 +357,58 @@ def vendor_data_for_purchase(usr, user_roles):
 
 
 
-
-
-
-
-
-
-
-
-
-
-@frappe.whitelist(allow_guest = True)
-def get_pi():
-    all_pi = frappe.get_all("Cart Details", fields ="*", order_by = "modified desc")
+@frappe.whitelist(allow_guest=True)
+def get_pi_for_pt(purchase_team_user=None):
+   
+    
+    
+    purchase_team_user = frappe.session.user
+    cart_categories = frappe.get_all("Cart Category",
+                                     filters={"purchase_team_user": purchase_team_user},
+                                     fields=["name"])
+    cart_category_names = [c.name for c in cart_categories]
+    
+    if not cart_category_names:
+        return []
+    
+    all_pi = frappe.get_all("Cart Details",
+                           filters={"cart_category": ("in", cart_category_names)},
+                           order_by="modified desc",
+                           fields="*")
+    
     return all_pi
+
+
+
+
+
+
+
+
+@frappe.whitelist()
+def get_pi():
+    try:
+        usr = frappe.session.user
+        if not usr:
+            return {"error": _("User not logged in.")}
+
+        allowed_roles = {"Purchase Team"}
+        user_roles = set(frappe.get_roles(usr))
+
+        if allowed_roles.intersection(user_roles):
+            return get_pi_for_pt(purchase_team_user=usr)
+        else:
+            all_pi = frappe.get_all("Cart Details",
+                                    filters={"user": usr},
+                                    fields="*",
+                                    order_by="modified desc")
+            return all_pi
+
+    except Exception as e:
+        # Log the error and return a message
+        frappe.log_error(message=str(e), title="Error in get_pi API")
+        return {"error": _("Something went wrong. Please try again later.")}
+
 
 
 

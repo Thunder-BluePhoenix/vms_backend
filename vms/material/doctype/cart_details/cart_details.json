@@ -19,6 +19,7 @@
   "transfer_reason",
   "transfer_status",
   "category_type",
+  "dedicated_purchase_team",
   "product_details_section",
   "cart_product",
   "approval_status_section",
@@ -241,12 +242,20 @@
    "fieldname": "ack_mail_to_user",
    "fieldtype": "Check",
    "label": "Acknowledgement Mail to User "
+  },
+  {
+   "fetch_from": "category_type.purchase_team_user",
+   "fieldname": "dedicated_purchase_team",
+   "fieldtype": "Link",
+   "label": "Dedicated Purchase Team",
+   "options": "User",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-21 16:10:24.770828",
+ "modified": "2025-06-25 16:05:01.252671",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
