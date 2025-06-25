@@ -272,10 +272,22 @@ def vendor_data_for_purchase(usr, user_roles):
             filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Approved"}
         )
 
-        pending_vendor_count = frappe.db.count(
-            "Vendor Onboarding",
-            filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending"}
-        )
+
+
+        pending_vendor_count = []
+        if "Purchase Head" in user_roles:
+            
+            pending_vendor_count = frappe.db.count(
+                "Vendor Onboarding",
+                filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending", "purchase_team_undertaking": 1}
+            )
+        else:
+            pending_vendor_count = frappe.db.count(
+                "Vendor Onboarding",
+                filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending"}
+            )
+
+
 
         rejected_vendor_count = frappe.db.count(
             "Vendor Onboarding",
