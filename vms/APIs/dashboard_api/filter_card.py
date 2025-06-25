@@ -160,7 +160,8 @@ def vendor_data_for_accounts(usr, user_roles):
             "Vendor Onboarding",
             filters={
                 "onboarding_form_status": "Pending",
-                "company_name": ["in", company_list]
+                "company_name": ["in", company_list],
+                "purchase_head_undertaking": 1
             }
         )
 
