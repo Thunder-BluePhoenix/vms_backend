@@ -138,7 +138,8 @@ fixtures = [
 # Hook on document methods and events
 
 doc_events = {
-    "Vendor Onboarding":{"on_update": "vms.APIs.sap.sap.update_sap_vonb"},
+    "Vendor Onboarding":{"on_update": "vms.APIs.sap.sap.update_sap_vonb",
+                         "before_save": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_vendor_onboarding_status"},
     "Purchase Requisition Form":{"on_update":"vms.APIs.sap.erp_to_sap_pr.onupdate_pr"}
 }
 # doc_events = {
@@ -148,6 +149,7 @@ doc_events = {
 # 		"on_trash": "method"
 # 	}
 # }
+
 
 # Scheduled Tasks
 # ---------------

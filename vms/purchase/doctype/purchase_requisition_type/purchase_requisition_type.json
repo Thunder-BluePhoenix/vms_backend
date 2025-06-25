@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:purchase_requisition_type_name",
+ "autoname": "field:purchase_requisition_type_code",
  "creation": "2025-06-13 12:30:01.268418",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -39,7 +39,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-14 11:24:11.243964",
+ "modified": "2025-06-24 21:02:06.082437",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Type",

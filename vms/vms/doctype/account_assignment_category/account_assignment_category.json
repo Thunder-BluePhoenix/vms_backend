@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:account_assignment_category_code",
  "creation": "2025-06-13 17:06:29.311454",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,7 +14,8 @@
   {
    "fieldname": "account_assignment_category_code",
    "fieldtype": "Data",
-   "label": "Account Assignment Category Code"
+   "label": "Account Assignment Category Code",
+   "unique": 1
   },
   {
    "fieldname": "account_assignment_category_name",
@@ -29,10 +31,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 17:07:13.596889",
+ "modified": "2025-06-24 20:15:01.592022",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Account Assignment Category",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -49,7 +52,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "account_assignment_category_name"
 }

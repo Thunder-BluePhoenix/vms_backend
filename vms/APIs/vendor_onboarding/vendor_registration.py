@@ -27,7 +27,7 @@ def create_vendor_master(data):
             "payee_in_document", "gr_based_inv_ver", "service_based_inv_ver",
             "check_double_invoice", "order_currency", "incoterms",
             "purchase_group", "country", "mobile_number", "registered_date",
-            "incoterms2", "qa_required", "registered_by", "purchase_team_approval",
+            "incoterms2", "qms_required", "registered_by", "purchase_team_approval",
             "purchase_team_second", "purchase_head_approval", "purchase_head_second_approval",
             "qa_team_approval", "qa_head_approval", "accounts_team_approval",
             "accounts_team_second_approval", "status", "onboarding_form_status",
@@ -99,7 +99,7 @@ def vendor_registration(data):
 #         # vendor master fields
 #         for field in [
 #             "vendor_title", "vendor_name", "office_email_primary", "search_term",
-#             "country", "mobile_number", "registered_date", "qa_required"
+#             "country", "mobile_number", "registered_date", "qms_required"
 #         ]:
 #             if field in data:
 #                 vendor_master.set(field, data[field])
@@ -358,7 +358,7 @@ def vendor_registration_single(data):
         # vendor master fields
         for field in [
             "vendor_title", "vendor_name", "office_email_primary", "search_term",
-            "country", "mobile_number", "registered_date", "qa_required"
+            "country", "mobile_number", "registered_date", "qms_required"
         ]:
             if field in data:
                 vendor_master.set(field, data[field])
@@ -557,6 +557,23 @@ def send_registration_email_link(vendor_onboarding, refno):
 
         onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
 
+        if onboarding_doc.registered_for_multi_companies == 1:
+            mul_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id,
+                    "registered_for_multi_companies": 1
+                },
+                fields=["company_name"]
+            )
+            mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name")]
+            company_names = ", ".join([
+                frappe.db.get_value("Company Master", name, "company_name")
+                for name in mul_company_names if frappe.db.exists("Company Master", name)
+            ])
+        else:
+            company_names = frappe.db.get_value("Company Master", onboarding_doc.company_name, "company_name")
+
         # Construct registration link
         http_server = frappe.conf.get("frontend_http")
         registration_link = (
@@ -596,11 +613,11 @@ def send_registration_email_link(vendor_onboarding, refno):
 
             frappe.sendmail(
                 recipients=[recipient_email],
-                subject=f"""New Vendor Appointment for {onboarding_doc.company_name}-{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
+                subject=f"""New Vendor Appointment for Meril Group -{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
                 message=f"""
                     <p>Dear Sir/Madam,</p>
                     <p>Greetings for the Day!</p>
-                    <p>You have been added by {frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")} to Onboard as a Vendor/Supplier for {onboarding_doc.company_name}.</p>
+                    <p>You have been added by {frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")} to Onboard as a Vendor/Supplier for {company_names}.</p>
                     <p> Founded in 2006, Meril Life Sciences Pvt. Ltd. is a global medtech company based in India, dedicated to designing and manufacturing innovative, 
                     patient-centric medical devices. We focus on advancing healthcare through cutting-edge R&D, quality manufacturing, and clinical excellence 
                     to help people live longer, healthier lives. We are a family of 3000+ Vendors/Sub – Vendors across India. </p>
@@ -738,7 +755,7 @@ def vendor_registration_multi(data):
         # Set vendor master fields with validation
         vendor_fields = [
             "vendor_title", "vendor_name", "office_email_primary", "search_term",
-            "country", "mobile_number", "registered_date", "qa_required"
+            "country", "mobile_number", "registered_date", "qms_required"
         ]
         
         for field in vendor_fields:
@@ -854,7 +871,7 @@ def vendor_registration_multi(data):
                 vendor_onboarding.registered_by = frappe.session.user
 
                 # Set optional fields
-                for field in ["qms_required", "incoterms"]:
+                for field in ["qms_required"]:
                     if field in data and data[field] is not None:
                         vendor_onboarding.set(field, data[field])
 
@@ -866,7 +883,7 @@ def vendor_registration_multi(data):
                 
                 # Set company-specific fields with validation
                 company_fields = [
-                    "company_name", "purchase_organization", "account_group", 
+                    "company_name", "purchase_organization", "account_group",
                     "purchase_group", "terms_of_payment", "order_currency", "reconciliation_account"
                 ]
                 
@@ -878,6 +895,7 @@ def vendor_registration_multi(data):
 
                 # Add multiple company data
                 for company in multi_companies:
+                    vendor_onboarding.incoterms = company.get("incoterms")
                     if isinstance(company, dict) and company.get("company_name"):
                         vendor_onboarding.append("multiple_company", {
                             "company": company.get("company_name")

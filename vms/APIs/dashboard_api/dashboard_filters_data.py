@@ -566,3 +566,144 @@ def current_month_vendor_details(page_no=None, page_length=None, company=None, r
             "vendor_onboarding": []
         }
 
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=False)
+def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None):
+    try:
+        if usr is None:
+            usr = frappe.session.user
+        elif usr != frappe.session.user:
+            return {
+                "status": "error",
+                "message": "User mismatch or unauthorized access.",
+                "code": 404
+            }
+
+        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+        user_roles = frappe.get_roles(usr)
+
+        if not any(role in allowed_roles for role in user_roles):
+            return {
+                "status": "error",
+                "message": "User does not have the required role.",
+                "vendor_onboarding": []
+            }
+
+        # Base filters
+        conditions = []
+        values = {}
+        employee = frappe.get_doc("Employee", {"user_id": usr})
+        if "Accounts Team" in user_roles:
+            employee = frappe.get_doc("Employee", {"user_id": usr})
+            company_list = [row.company_name for row in employee.company]
+
+            if not company_list:
+                return {
+                    "status": "error",
+                    "message": "No company records found in Employee.",
+                    "vendor_onboarding": []
+                }
+
+            conditions.append("vo.company_name IN %(company_list)s")
+            values["company_list"] = company_list
+
+        else:
+            team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+            if not team:
+                return {
+                    "status": "error",
+                    "message": "No Employee record found for the user.",
+                    "vendor_onboarding": []
+                }
+
+            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+            if not user_ids:
+                return {
+                    "status": "error",
+                    "message": "No users found in the same team.",
+                    "vendor_onboarding": []
+                }
+
+            conditions.append("vo.registered_by IN %(user_ids)s")
+            values["user_ids"] = user_ids
+
+        if company:
+            conditions.append("vo.company_name = %(company)s")
+            values["company"] = company
+
+        if refno:
+            conditions.append("vo.ref_no = %(refno)s")
+            values["refno"] = refno
+
+        if status:
+            conditions.append("vo.onboarding_form_status = %(status)s")
+            values["status"] = status
+
+
+        if "Accounts Team" in user_roles:
+            conditions.append("vo.onboarding_form_status = 'Pending'")
+            conditions.append("vo.purchase_head_undertaking = 1")
+
+        elif "Purchase Head" in user_roles:
+            conditions.append("vo.onboarding_form_status = 'Pending'")
+            conditions.append("vo.purchase_team_undertaking = 1")
+
+        elif "Purchase Team" in user_roles:
+            conditions.append("vo.onboarding_form_status = 'Pending'")
+
+        else:
+            conditions.append("vo.onboarding_form_status = 'Pending'")
+
+
+        filter_clause = " AND ".join(conditions)
+
+        # Total count for pagination
+        total_count = frappe.db.sql(f"""
+            SELECT COUNT(*) AS count
+            FROM `tabVendor Onboarding` vo
+            WHERE {filter_clause}
+        """, values)[0][0]
+
+        # Pagination
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        offset = (page_no - 1) * page_length
+        values["limit"] = page_length
+        values["offset"] = offset
+
+        onboarding_docs = frappe.db.sql(f"""
+            SELECT
+                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.modified,
+                vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+                vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
+                vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+                vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver
+            FROM `tabVendor Onboarding` vo
+            WHERE {filter_clause}
+            ORDER BY vo.modified DESC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """, values, as_dict=True)
+
+        return {
+            "status": "success",
+            "message": "Filtered records fetched.",
+            "pending_vendor_onboarding": onboarding_docs,
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Filtering Total Vendor Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to filter vendor onboarding data.",
+            "error": str(e),
+            "vendor_onboarding": []
+        }
+
