@@ -644,13 +644,19 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
             conditions.append("vo.onboarding_form_status = %(status)s")
             values["status"] = status
 
-        if employee.designation == "Accounts Team":
-            conditions.append("vo.purchase_head_undertaking =%(eligible)s")
-            values["eligible"] = True
+        if "Accounts Team" in user_roles:
+            conditions.append("vo.onboarding_form_status = 'Pending'")
+            conditions.append("vo.purchase_head_undertaking = 1")
 
-        if employee.designation == "Purchase Head":
-            conditions.append("vo.accounts_team_undertaking =%(eligible)s")
-            values["eligible"] = True
+        elif "Purchase Head" in user_roles:
+            conditions.append("vo.onboarding_form_status = 'Pending'")
+            conditions.append("vo.purchase_team_undertaking = 1")
+
+        elif "Purchase Team" in user_roles:
+            conditions.append("vo.onboarding_form_status = 'Pending'")
+
+        else:
+            conditions.append("vo.onboarding_form_status = 'Pending'")
 
         filter_clause = " AND ".join(conditions)
 
@@ -684,7 +690,7 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
         return {
             "status": "success",
             "message": "Filtered records fetched.",
-            "total_vendor_onboarding": onboarding_docs,
+            "pending_vendor_onboarding": onboarding_docs,
             "total_count": total_count,
             "page_no": page_no,
             "page_length": page_length
