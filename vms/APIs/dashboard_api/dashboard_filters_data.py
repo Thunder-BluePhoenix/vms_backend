@@ -241,7 +241,7 @@ def pending_vendor_details(page_no=None, page_length=None, company=None, refno=N
         status = "Pending"
 
         # Call reusable filter function
-        result = filtering_total_vendor_details_for_pending(
+        result = filtering_total_vendor_details(
             page_no=page_no,
             page_length=page_length,
             company=company,
@@ -644,6 +644,7 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
             conditions.append("vo.onboarding_form_status = %(status)s")
             values["status"] = status
 
+
         if "Accounts Team" in user_roles:
             conditions.append("vo.onboarding_form_status = 'Pending'")
             conditions.append("vo.purchase_head_undertaking = 1")
@@ -657,6 +658,7 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
 
         else:
             conditions.append("vo.onboarding_form_status = 'Pending'")
+
 
         filter_clause = " AND ".join(conditions)
 

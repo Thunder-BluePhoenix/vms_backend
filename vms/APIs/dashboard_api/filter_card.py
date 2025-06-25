@@ -160,8 +160,7 @@ def vendor_data_for_accounts(usr, user_roles):
             "Vendor Onboarding",
             filters={
                 "onboarding_form_status": "Pending",
-                "company_name": ["in", company_list],
-                "purchase_head_undertaking": 1
+                "company_name": ["in", company_list]
             }
         )
 
@@ -214,7 +213,6 @@ def vendor_data_for_accounts(usr, user_roles):
 
 def vendor_data_for_purchase(usr, user_roles):
     try:
-        employee = frappe.get_doc("Employee", {"user_id": usr})
         team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
         if not team:
             return {
@@ -275,6 +273,7 @@ def vendor_data_for_purchase(usr, user_roles):
         )
 
 
+
         pending_vendor_count = []
         if "Purchase Head" in user_roles:
             
@@ -287,6 +286,7 @@ def vendor_data_for_purchase(usr, user_roles):
                 "Vendor Onboarding",
                 filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending"}
             )
+
 
 
         rejected_vendor_count = frappe.db.count(
