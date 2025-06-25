@@ -138,7 +138,8 @@ def vendor_data_for_accounts(usr, user_roles):
                 "company_name": ["in", company_list]
             }
         )
-        cart_count = frappe.db.count("Cart Details")
+        cart_count = frappe.db.count("Cart Details",
+                                    filters= {"user":usr })
         pr_count = frappe.db.count("Purchase Requisition Webform")
 
         return {
@@ -265,7 +266,7 @@ def vendor_data_for_purchase(usr, user_roles):
         cart_query = """
             SELECT COUNT(*)
             FROM `tabCart Details` cd
-            JOIN `tabCart Category` cc ON cd.cart_category = cc.name
+            JOIN `tabCategory Master` cc ON cd.category_type = cc.name
             WHERE cc.purchase_team_user = %s
         """
 
@@ -363,7 +364,7 @@ def get_pi_for_pt(purchase_team_user=None):
     
     
     purchase_team_user = frappe.session.user
-    cart_categories = frappe.get_all("Cart Category",
+    cart_categories = frappe.get_all("Category Master",
                                      filters={"purchase_team_user": purchase_team_user},
                                      fields=["name"])
     cart_category_names = [c.name for c in cart_categories]
@@ -372,7 +373,7 @@ def get_pi_for_pt(purchase_team_user=None):
         return []
     
     all_pi = frappe.get_all("Cart Details",
-                           filters={"cart_category": ("in", cart_category_names)},
+                           filters={"category_type": ("in", cart_category_names)},
                            order_by="modified desc",
                            fields="*")
     
@@ -385,7 +386,7 @@ def get_pi_for_pt(purchase_team_user=None):
 
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def get_pi():
     try:
         usr = frappe.session.user
