@@ -6,6 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "intermediate_name",
   "intermediate_bank_name",
   "intermediate_swift_code",
   "intermediate_iban_no",
@@ -114,13 +115,18 @@
    "fieldtype": "Link",
    "label": "Intermediate Currency",
    "options": "Currency Master"
+  },
+  {
+   "fieldname": "intermediate_name",
+   "fieldtype": "Data",
+   "label": "Intermediate Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-09 11:08:14.105985",
+ "modified": "2025-06-26 14:11:47.877671",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Intermediate Bank Details",
