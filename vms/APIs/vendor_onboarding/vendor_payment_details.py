@@ -287,6 +287,7 @@ def update_vendor_onboarding_payment_details(data):
 				doc.set("intermediate_bank_details", [])
 				for row in data["intermediate_bank_details"]:
 					new_row = doc.append("intermediate_bank_details", {
+						"intermediate_name": row.get("intermediate_name"),
 						"intermediate_bank_name": row.get("intermediate_bank_name"),
 						"intermediate_swift_code": row.get("intermediate_swift_code"),
 						"intermediate_iban_no": row.get("intermediate_iban_no"),
