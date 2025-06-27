@@ -6,6 +6,9 @@ from frappe.model.document import Document
 from frappe import _
 from datetime import datetime, timedelta, date
 from frappe.utils.jinja import render_template
+from frappe.utils import today, getdate
+from frappe.utils import now_datetime, get_datetime
+import datetime
 
 
 
@@ -17,6 +20,40 @@ class PurchaseOrder(Document):
 			qty = float(it_qty)
 			rate = float(it_rate)
 			item.price = float(qty*rate)
+
+	def on_update(self):
+		if self.approved_from_vendor == 1:
+			notf_sett_doc = frappe.get_doc("Dispatch Notification Setting")
+
+			delivery_date = get_datetime(self.delivery_date)
+			current_date = now_datetime()
+
+
+			total_seconds = (delivery_date - current_date).total_seconds()
+
+			print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", total_seconds)
+			
+			notf_time_sec = float(notf_sett_doc.dispatch_notification)
+
+			# Time after which to trigger the notification
+			exp_t_sec = total_seconds - notf_time_sec
+			exp_t_sec = exp_t_sec if exp_t_sec > 0 else 0 
+
+			exp_d_sec = exp_t_sec + 800
+
+			print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", exp_t_sec ,exp_d_sec)
+
+			frappe.enqueue(
+				method=self.handle_notification,
+				queue='default',
+				timeout=exp_d_sec,
+				now=False,
+				job_name=f'Dispatch Order notification Trigger {self.name}',
+			)
+
+
+# def handle_notification(self):
+# 	pass
 
 
 
