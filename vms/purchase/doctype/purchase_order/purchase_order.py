@@ -54,18 +54,20 @@ class PurchaseOrder(Document):
 
 			# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", exp_t_sec ,exp_d_sec)
 			self.sent_notification_triggered = 1
+			frappe.db.commit()
 
 			frappe.enqueue(
 				method=self.handle_notification,
 				queue='default',
 				timeout=exp_d_sec,
 				now=False,
-				job_name=f'Dispatch Order notification Trigger {self.name}',
+				job_name=f'dispatch_order_notification_trigger_{self.name}',
 			)
-			frappe.db.commit()
+			# frappe.db.commit()
 
 
 	def handle_notification(self):
+		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@:", self.name)
 		notf_sett_doc = frappe.get_doc("Dispatch Notification Setting")
 			
 			
@@ -90,18 +92,70 @@ class PurchaseOrder(Document):
 		
 		else:
 			exp_t_sec = total_seconds - notf_time_sec
-			exp_t_sec = exp_t_sec if exp_t_sec > 0 else 0 
+			# exp_t_sec = exp_t_sec if exp_t_sec > 0 else 0 
 
 			# exp_d_sec = exp_t_sec + 800
 
 		time.sleep(exp_t_sec)
 
 		# function to send mail()
+		send_mail_to_vendor(self)
 
 		self.sent_notification_triggered = 0
 		self.sent_notification_to_vendor = 1
-		self.save()
+		# self.save()
 		frappe.db.commit()
+
+
+def send_mail_to_vendor(doc, method=None):
+	try:
+		vendor_code = frappe.get_doc("Purchase Order", doc.name).vendor_code
+		if not vendor_code:
+			return {"status": "error", "message": "No Vendor Code found In Purchase Order."}
+		
+		vendor_ref_doc = frappe.get_doc("Company Vendor Code", vendor_code).vendor_ref_no
+		if not vendor_ref_doc:
+			return {"status": "error", "message": "No matching Company Vendor Code found for vendor_code."}
+		
+		vendor_master_doc = frappe.get_doc("Vendor Master", vendor_ref_doc)
+
+		vendor_email = vendor_master_doc.office_email_primary or vendor_master_doc.office_email_secondary
+		vendor_name = vendor_master_doc.vendor_name
+		if not vendor_email:
+			return {"status": "error", "message": "No email found for vendor."}
+		
+		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", vendor_email)
+
+		if vendor_email:
+			subject = "Send the notification for dispatch item" + doc.name
+			message = "Send the notification for dispatch item"
+			frappe.sendmail(
+				recipients=vendor_email,
+				subject=subject,
+				message=message
+			)
+
+			return {
+				"status": "success",
+				"message": "Mail Sent Successfully"
+			}
+	
+		else:
+			return {
+				"status": "error",
+				"message": "No email found for vendor."
+			}
+	
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Failed to Send Mail")
+		return {
+			"status": "error",
+			"message": "Failed to Send Mail",
+			"error": str(e)
+		}	
+
+
 
 
 
