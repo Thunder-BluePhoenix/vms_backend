@@ -29,7 +29,7 @@
  "fields": [
   {
    "fieldname": "purchase_number",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "Purchase Number",
    "options": "Dispatch Purchase No Group"
   },
@@ -129,7 +129,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 15:28:37.037151",
+ "modified": "2025-06-27 13:07:12.107474",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Dispatch Item",

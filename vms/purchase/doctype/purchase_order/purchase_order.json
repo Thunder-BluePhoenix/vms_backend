@@ -110,7 +110,9 @@
   "column_break_mxpr",
   "sent_notification_triggered",
   "column_break_ztfg",
-  "dispatched"
+  "dispatched",
+  "section_break_tkov",
+  "dispatch_ids"
  ],
  "fields": [
   {
@@ -664,12 +666,22 @@
    "fieldname": "dispatched",
    "fieldtype": "Check",
    "label": "Dispatched"
+  },
+  {
+   "fieldname": "section_break_tkov",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "dispatch_ids",
+   "fieldtype": "Table",
+   "label": "Dispatch IDs",
+   "options": "Dispatch of PO"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-26 15:44:13.425681",
+ "modified": "2025-06-27 12:53:19.905525",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",

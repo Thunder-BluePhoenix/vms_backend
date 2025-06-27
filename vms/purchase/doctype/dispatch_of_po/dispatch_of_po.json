@@ -1,37 +1,37 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-06-23 15:27:13.887035",
+ "creation": "2025-06-27 12:46:05.809238",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "purchase_number",
-  "date_time"
+  "dispatch_id",
+  "dispatch_datetime"
  ],
  "fields": [
   {
-   "fieldname": "purchase_number",
+   "fieldname": "dispatch_id",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Purchase Number",
-   "options": "Purchase Order"
+   "label": "Dispatch ID",
+   "options": "Dispatch Item"
   },
   {
-   "fieldname": "date_time",
+   "fieldname": "dispatch_datetime",
    "fieldtype": "Datetime",
    "in_list_view": 1,
-   "label": "Date Time"
+   "label": "Dispatch DateTime"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-27 13:07:37.166709",
+ "modified": "2025-06-27 12:52:43.637381",
  "modified_by": "Administrator",
  "module": "Purchase",
- "name": "Dispatch Purchase No Group",
+ "name": "Dispatch of PO",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
