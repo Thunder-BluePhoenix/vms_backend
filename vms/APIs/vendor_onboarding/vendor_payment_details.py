@@ -264,42 +264,78 @@ def update_vendor_onboarding_payment_details(data):
 
 			# International Bank Details
 			if "international_bank_details" in data and isinstance(data["international_bank_details"], list):
-				doc.set("international_bank_details", [])
 				for row in data["international_bank_details"]:
-					new_row = doc.append("international_bank_details", {
-						"meril_company_name": row.get("meril_company_name"),
-						"beneficiary_name": row.get("beneficiary_name"),
-						"beneficiary_swift_code": row.get("beneficiary_swift_code"),
-						"beneficiary_iban_no": row.get("beneficiary_iban_no"),
-						"beneficiary_aba_no": row.get("beneficiary_aba_no"),
-						"beneficiary_bank_address": row.get("beneficiary_bank_address"),
-						"beneficiary_bank_name": row.get("beneficiary_bank_name"),
-						"beneficiary_account_no": row.get("beneficiary_account_no"),
-						"beneficiary_ach_no": row.get("beneficiary_ach_no"),
-						"beneficiary_routing_no": row.get("beneficiary_routing_no"),
-						"beneficiary_currency": row.get("beneficiary_currency")
-					})
+					child_row = None
+					if "name" in row:
+						child_row = next((r for r in doc.international_bank_details if r.name == row["name"]), None)
+
+					if child_row:
+						# Update existing row
+						for key in [
+							"meril_company_name", "beneficiary_name", "beneficiary_swift_code", "beneficiary_iban_no",
+							"beneficiary_aba_no", "beneficiary_bank_address", "beneficiary_bank_name",
+							"beneficiary_account_no", "beneficiary_ach_no", "beneficiary_routing_no",
+							"beneficiary_currency"
+						]:
+							if key in row:
+								child_row.set(key, row[key])
+					else:
+						# Append new row
+						child_row = doc.append("international_bank_details", {
+							"meril_company_name": row.get("meril_company_name"),
+							"beneficiary_name": row.get("beneficiary_name"),
+							"beneficiary_swift_code": row.get("beneficiary_swift_code"),
+							"beneficiary_iban_no": row.get("beneficiary_iban_no"),
+							"beneficiary_aba_no": row.get("beneficiary_aba_no"),
+							"beneficiary_bank_address": row.get("beneficiary_bank_address"),
+							"beneficiary_bank_name": row.get("beneficiary_bank_name"),
+							"beneficiary_account_no": row.get("beneficiary_account_no"),
+							"beneficiary_ach_no": row.get("beneficiary_ach_no"),
+							"beneficiary_routing_no": row.get("beneficiary_routing_no"),
+							"beneficiary_currency": row.get("beneficiary_currency")
+						})
+
+					# Attach file if available
 					if "bank_proof_for_beneficiary_bank" in file_urls:
-						new_row.bank_proof_for_beneficiary_bank = file_urls["bank_proof_for_beneficiary_bank"]
+						child_row.bank_proof_for_beneficiary_bank = file_urls["bank_proof_for_beneficiary_bank"]
+
 
 			# Intermediate Bank Details
+			# Intermediate Bank Details
 			if "intermediate_bank_details" in data and isinstance(data["intermediate_bank_details"], list):
-				doc.set("intermediate_bank_details", [])
 				for row in data["intermediate_bank_details"]:
-					new_row = doc.append("intermediate_bank_details", {
-						"intermediate_name": row.get("intermediate_name"),
-						"intermediate_bank_name": row.get("intermediate_bank_name"),
-						"intermediate_swift_code": row.get("intermediate_swift_code"),
-						"intermediate_iban_no": row.get("intermediate_iban_no"),
-						"intermediate_aba_no": row.get("intermediate_aba_no"),
-						"intermediate_bank_address": row.get("intermediate_bank_address"),
-						"intermediate_account_no": row.get("intermediate_account_no"),
-						"intermediate_ach_no": row.get("intermediate_ach_no"),
-						"intermediate_routing_no": row.get("intermediate_routing_no"),
-						"intermediate_currency": row.get("intermediate_currency")
-					})
+					child_row = None
+					if "name" in row:
+						child_row = next((r for r in doc.intermediate_bank_details if r.name == row["name"]), None)
+
+					if child_row:
+						# Update existing row
+						for key in [
+							"intermediate_name", "intermediate_bank_name", "intermediate_swift_code", "intermediate_iban_no",
+							"intermediate_aba_no", "intermediate_bank_address", "intermediate_account_no",
+							"intermediate_ach_no", "intermediate_routing_no", "intermediate_currency"
+						]:
+							if key in row:
+								child_row.set(key, row[key])
+					else:
+						# Append new row
+						child_row = doc.append("intermediate_bank_details", {
+							"intermediate_name": row.get("intermediate_name"),
+							"intermediate_bank_name": row.get("intermediate_bank_name"),
+							"intermediate_swift_code": row.get("intermediate_swift_code"),
+							"intermediate_iban_no": row.get("intermediate_iban_no"),
+							"intermediate_aba_no": row.get("intermediate_aba_no"),
+							"intermediate_bank_address": row.get("intermediate_bank_address"),
+							"intermediate_account_no": row.get("intermediate_account_no"),
+							"intermediate_ach_no": row.get("intermediate_ach_no"),
+							"intermediate_routing_no": row.get("intermediate_routing_no"),
+							"intermediate_currency": row.get("intermediate_currency")
+						})
+
+					# Attach file if available
 					if "bank_proof_for_intermediate_bank" in file_urls:
-						new_row.bank_proof_for_intermediate_bank = file_urls["bank_proof_for_intermediate_bank"]
+						child_row.bank_proof_for_intermediate_bank = file_urls["bank_proof_for_intermediate_bank"]
+
 
 			doc.save(ignore_permissions=True)
 
