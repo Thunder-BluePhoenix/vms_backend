@@ -266,6 +266,8 @@ def update_vendor_onboarding_payment_details(data):
 			if "international_bank_details" in data and isinstance(data["international_bank_details"], list):
 				doc.set("international_bank_details", [])
 				for row in data["international_bank_details"]:
+					if not row:
+						continue
 					new_row = doc.append("international_bank_details", {
 						"meril_company_name": row.get("meril_company_name"),
 						"beneficiary_name": row.get("beneficiary_name"),
@@ -286,6 +288,8 @@ def update_vendor_onboarding_payment_details(data):
 			if "intermediate_bank_details" in data and isinstance(data["intermediate_bank_details"], list):
 				doc.set("intermediate_bank_details", [])
 				for row in data["intermediate_bank_details"]:
+					if not row:
+						continue
 					new_row = doc.append("intermediate_bank_details", {
 						"intermediate_name": row.get("intermediate_name"),
 						"intermediate_bank_name": row.get("intermediate_bank_name"),
