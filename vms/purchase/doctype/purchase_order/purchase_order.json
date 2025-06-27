@@ -97,12 +97,20 @@
   "tab_2_tab",
   "status",
   "reason_for_rejection",
+  "approved_from_vendor",
   "column_break_brva",
   "approved_by",
   "approved_by_name",
   "tentative_date",
   "rejected_by",
-  "rejected_by_name"
+  "rejected_by_name",
+  "vendor_notification_section",
+  "sent_notification_to_vendor",
+  "po_dispatch_status",
+  "column_break_mxpr",
+  "sent_notification_triggered",
+  "column_break_ztfg",
+  "dispatched"
  ],
  "fields": [
   {
@@ -613,12 +621,55 @@
    "fieldname": "rejected_by_name",
    "fieldtype": "Data",
    "label": "Rejected By Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "approved_from_vendor",
+   "fieldtype": "Check",
+   "label": "Approved from Vendor"
+  },
+  {
+   "fieldname": "vendor_notification_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Notification"
+  },
+  {
+   "default": "0",
+   "fieldname": "sent_notification_to_vendor",
+   "fieldtype": "Check",
+   "label": "Sent Notification to Vendor"
+  },
+  {
+   "fieldname": "po_dispatch_status",
+   "fieldtype": "Select",
+   "label": "PO Dispatch Status",
+   "options": "\nCompleted\nPartial"
+  },
+  {
+   "fieldname": "column_break_mxpr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "sent_notification_triggered",
+   "fieldtype": "Check",
+   "label": "Sent Notification Triggered"
+  },
+  {
+   "fieldname": "column_break_ztfg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "dispatched",
+   "fieldtype": "Check",
+   "label": "Dispatched"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-10 16:07:57.754692",
+ "modified": "2025-06-26 15:44:13.425681",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
