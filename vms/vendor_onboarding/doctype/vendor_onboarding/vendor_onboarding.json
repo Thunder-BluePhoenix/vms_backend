@@ -12,6 +12,7 @@
   "vendor_name",
   "qms_required",
   "qms_form_link",
+  "asa_required",
   "column_break_wagn",
   "mandatory_data_filled",
   "registered_by",
@@ -99,7 +100,7 @@
   {
    "fieldname": "qms_required",
    "fieldtype": "Select",
-   "label": "QMS Required?",
+   "label": "QMS Required",
    "options": "-Select-\nNo\nYes"
   },
   {
@@ -512,12 +513,18 @@
    "fieldname": "qms_form_link",
    "fieldtype": "Data",
    "label": "QMS Form"
+  },
+  {
+   "default": "0",
+   "fieldname": "asa_required",
+   "fieldtype": "Check",
+   "label": "ASA Required"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-20 17:37:24.903246",
+ "modified": "2025-06-30 17:33:26.682861",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

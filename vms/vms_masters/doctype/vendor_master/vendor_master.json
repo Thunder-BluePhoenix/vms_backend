@@ -24,6 +24,7 @@
   "qa_required",
   "created_from_registration",
   "user_create",
+  "asa_required",
   "multiple_company_data_section",
   "multiple_company_data",
   "vendor_type_section",
@@ -257,12 +258,18 @@
    "fieldtype": "Table",
    "label": "Vendor Onboarding Records",
    "options": "Vendor Onboarding Records"
+  },
+  {
+   "default": "0",
+   "fieldname": "asa_required",
+   "fieldtype": "Check",
+   "label": "ASA Required"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-12 13:58:57.424004",
+ "modified": "2025-06-30 17:36:13.712294",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

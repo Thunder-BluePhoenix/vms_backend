@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-30 16:23:11.372656",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "asa_form_period"
+ ],
+ "fields": [
+  {
+   "description": "Vendor Will Fill Annual Supplier Assessment Questionnaire form after this period.",
+   "fieldname": "asa_form_period",
+   "fieldtype": "Duration",
+   "label": "ASA Form Period"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-06-30 17:02:36.702975",
+ "modified_by": "Administrator",
+ "module": "Assessment Forms",
+ "name": "Assessment Form Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
