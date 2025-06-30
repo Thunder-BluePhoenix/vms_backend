@@ -23,6 +23,7 @@ class PurchaseOrder(Document):
 			item.price = float(qty*rate)
 
 	def on_update(self):
+		update_dispatch_qty(self, method=None)
 		if self.approved_from_vendor == 1 and self.sent_notification_triggered == 0 and self.po_dispatch_status != "Completed" and self.sent_notification_to_vendor == 0:
 			notf_sett_doc = frappe.get_doc("Dispatch Notification Setting")
 			
@@ -193,4 +194,97 @@ def get_po_whole(po_name):
 
 	po_doc = frappe.get_doc("Purchase Order", po_name)
 
-	return po_doc.ad_dict()
+	return po_doc.as_dict()
+
+
+
+# update dispatch qty in po
+def update_dispatch_qty(doc, method=None):
+	try:
+		dispatch_totals = {} 
+
+		# Step 1: Get all relevant dispatches for this PO
+		for dispatch_row in doc.dispatch_ids:
+			if dispatch_row.dispatch_id:
+				dispatch_item = frappe.get_doc("Dispatch Item", dispatch_row.dispatch_id)
+
+				for dispatch_item_row in dispatch_item.items:
+					if dispatch_item_row.po_number == doc.name:
+						code = dispatch_item_row.product_code
+						qty = int(dispatch_item_row.dispatch_qty or 0)
+						if code in dispatch_totals:
+							dispatch_totals[code] += qty
+						else:
+							dispatch_totals[code] = qty
+
+		# Step 2: Update PO items based on fresh totals
+		for po_item_row in doc.po_items:
+			code = po_item_row.product_code
+			if code in dispatch_totals:
+				total_dispatch = dispatch_totals[code]
+
+				po_item_row.dispatch_qty = total_dispatch
+				po_item_row.db_set("dispatch_qty", total_dispatch)
+
+				po_item_row.pending_qty = int(po_item_row.quantity or 0) - total_dispatch
+				po_item_row.db_set("pending_qty", po_item_row.pending_qty)
+
+		# Step 3: Update PO status
+		if all((int(row.dispatch_qty or 0) >= int(row.quantity or 0)) for row in doc.po_items):
+			doc.db_set("po_dispatch_status", "Completed")
+		else:
+			doc.db_set("po_dispatch_status", "Partial")
+
+		if doc.email:
+			employee = frappe.db.get_value("Employee", {"user_id": doc.email}, ["name", "full_name"], as_dict=True)
+			if employee:
+				employee_name = employee.full_name
+				table_rows = ""
+				for row in doc.po_items:
+					table_rows += f"""
+						<tr>
+							<td>{row.product_code or ''}</td>
+							<td>{row.product_name or ''}</td>
+							<td>{row.material_code or ''}</td>
+							<td>{row.quantity or ''}</td>
+							<td>{row.rate or ''}</td>
+							<td>{row.pending_qty or ''}</td>
+							<td>{row.dispatch_qty or ''}</td>
+							<td>{row.price or ''}</td>
+							<td>{frappe.format_value(row.po_date or '', {'fieldtype': 'Date'})}</td>
+							<td>{row.delivery_date or ''}</td>
+						</tr>
+					"""
+
+				email_body = f"""
+					<p>Dear {employee_name},</p>
+					<p>The dispatch quantities for the following items in Purchase Order <b>{doc.name}</b> have been updated.</p>
+					<table border="1" cellpadding="5" cellspacing="0">
+						<tr>
+							<th>Product Code</th>
+							<th>Product Name</th>
+							<th>Material Code</th>
+							<th>Quantity</th>
+							<th>Rate</th>
+							<th>Pending Qty</th>
+							<th>Dispatch Qty</th>
+							<th>Net Amount</th>
+							<th>PO Date</th>
+							<th>Delivery Date</th>
+						</tr>
+						{table_rows}
+					</table>
+					<p>Regards,<br>VMS Team</p>
+				"""
+
+				frappe.sendmail(
+					recipients=doc.email,
+					subject=f"Dispatch Quantities Updated for PO {doc.name}",
+					message=email_body,
+					now=True
+				)
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Update Dispatch Qty Error")
+		raise
