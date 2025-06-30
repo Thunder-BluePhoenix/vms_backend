@@ -103,6 +103,7 @@
   {
    "fieldname": "po_number",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "PO Number",
    "options": "Purchase Order"
   }
@@ -111,7 +112,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-27 13:02:08.087740",
+ "modified": "2025-06-30 11:28:17.730586",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Dispatch Order Items",

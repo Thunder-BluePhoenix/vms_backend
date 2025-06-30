@@ -17,6 +17,7 @@
   "invoice_amount",
   "packing_list_attachment",
   "e_way_bill_attachment",
+  "dispatch_form_submitted",
   "column_break_rtsd",
   "docket_number",
   "dispatch_date",
@@ -132,12 +133,18 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "DIS-.YY.-.MM.-"
+  },
+  {
+   "default": "0",
+   "fieldname": "dispatch_form_submitted",
+   "fieldtype": "Check",
+   "label": "Dispatch Form Submitted"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 14:24:29.305832",
+ "modified": "2025-06-30 11:26:35.110592",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Dispatch Item",
