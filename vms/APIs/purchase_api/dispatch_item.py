@@ -128,3 +128,77 @@ def update_dispatch_item(data):
 			"message": "Failed to save Dispatch Item.",
 			"error": str(e)
 		}
+	
+
+@frappe.whitelist(allow_guest=True)
+def submit_dispatch_item(name):
+	try:
+		doc = frappe.get_doc("Dispatch Item", name)
+		if not doc:
+			return {
+				"status": "error",
+				"message": "Dispatch Item not found."
+			}
+		if not doc.dispatch_form_submitted:
+			doc.dispatch_form_submitted = 1
+		else:
+			return {
+				"status": "error",
+				"message": "Dispatch Item already submitted."
+			}
+
+		for row in doc.items:
+			if row.po_number:
+				po = frappe.get_doc("Purchase Order", row.po_number)
+				po.append("dispatch_ids", {
+					"dispatch_id": name,
+					"dispatch_datetime": now_datetime()
+				})
+				po.save(ignore_permissions=True)
+			else:
+				return {
+					"status": "error",
+					"message": "Purchase Order not found for the Dispatch Item."
+				}
+
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": "Dispatch Item submitted successfully."
+		}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Dispatch Item Submit Error")
+		return {
+			"status": "error",
+			"message": "Failed to submit Dispatch Item.",
+			"error": str(e)
+		}
+
+# list of purchase order based on vendor code and status
+@frappe.whitelist(allow_guest=True)
+def list_purchase_order(vendor_code):
+	try:
+		purchase_orders = frappe.get_all(
+			"Purchase Order",
+			filters={
+				"status": ["in", [None, "", "Partial"]],
+				"vendor_code": vendor_code
+			},
+			fields="*"
+		)
+		return {
+			"status": "success",
+			"data": purchase_orders,
+			"purchase_orders": [po["name"] for po in purchase_orders]	
+		}
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "List Purchase Order Error")
+		return {
+			"status": "error",
+			"message": "Failed to fetch purchase orders.",
+			"error": str(e)
+		}
