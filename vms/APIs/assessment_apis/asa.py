@@ -74,3 +74,21 @@ def get_asa_details_without_label(asa):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "get_asa_details Error")
         frappe.throw(_("An unexpected error occurred while fetching ASA details."))
+
+
+@frappe.whitelist(allow_guest=True)
+def get_asa_list():
+    # user = frappe.session.user
+    # # emp = frappe.get_doc("Employee",{"user_id": user})
+    # team = frappe.db.get_value("Employee", {"user_id": user}, "team")
+    # user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+    # conditions = []
+    # values = {}
+
+    # conditions.append("vo.registered_by IN %(user_ids)s")
+    # values["user_ids"] = user_ids
+
+
+    all_asa = frappe.get_all("Annual Supplier Assessment Questionnaire", fields ="*", order_by = "modified desc")
+    return all_asa
+
