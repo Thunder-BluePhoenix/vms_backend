@@ -45,7 +45,9 @@
   "onboarding_ref_no",
   "rejection_comment",
   "vendor_onboarding_records_section",
-  "vendor_onb_records"
+  "vendor_onb_records",
+  "vendor_annual_assessment_form_records_section",
+  "form_records"
  ],
  "fields": [
   {
@@ -264,12 +266,22 @@
    "fieldname": "asa_required",
    "fieldtype": "Check",
    "label": "ASA Required"
+  },
+  {
+   "fieldname": "vendor_annual_assessment_form_records_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Annual Assessment Form Records"
+  },
+  {
+   "fieldname": "form_records",
+   "fieldtype": "Table",
+   "options": "Assessment Form Records"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-30 17:36:13.712294",
+ "modified": "2025-07-01 11:50:58.125176",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

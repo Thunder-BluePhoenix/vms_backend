@@ -154,23 +154,23 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"vms.tasks.all"
-# 	],
-# 	"daily": [
-# 		"vms.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"vms.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"vms.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"vms.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"all": [
+		"vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
+	],
+	# "daily": [
+	#     "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
+	# ],
+	# "hourly": [
+	# 	"vms.tasks.hourly"
+	# ],
+	# "weekly": [
+	# 	"vms.tasks.weekly"
+	# ],
+	# "monthly": [
+	# 	"vms.tasks.monthly"
+	# ],
+}
 
 # Testing
 # -------
