@@ -202,3 +202,60 @@ def list_purchase_order(vendor_code):
 			"message": "Failed to fetch purchase orders.",
 			"error": str(e)
 		}
+	
+
+
+
+
+
+
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_poitem_against_po(data):
+	try:
+		po_names = data.get("po_name")
+		if not po_names:
+			return {
+				"status": "error",
+				"message": "po_name is required"
+			}
+		
+		if isinstance(po_names, str):
+			po_names = [po_names]
+		
+		purchase_order_items = frappe.get_all(
+			"Purchase Order Item",  
+			filters={
+				"parent": ["in", po_names]  
+			},
+			fields="*"  
+		)
+		
+		purchase_orders = frappe.get_all(
+			"Purchase Order",
+			filters={
+				"name": ["in", po_names]
+			},
+			fields="*"
+		)
+		
+		return {
+			"status": "success",
+			"data": purchase_order_items,
+			"purchase_orders": purchase_orders,
+			"po_items_count": len(purchase_order_items)
+		}
+		
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Get PO Items Error")
+		return {
+			"status": "error",
+			"message": "Failed to fetch purchase order items.",
+			"error": str(e)
+		}
+
