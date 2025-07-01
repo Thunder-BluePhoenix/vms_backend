@@ -590,7 +590,8 @@ def send_registration_email_link(vendor_onboarding, refno):
                 "vendor_onboarding": onboarding_doc.name,
                 "ref_no": onboarding_doc.ref_no
             })
-            webform_link = f"{frappe.utils.get_url()}/qms-webform/new?{query_params}"
+            http_backend_server = frappe.conf.get("backend_http")
+            webform_link = f"{http_backend_server}/qms-webform/new?{query_params}"
             qms_section = f"""
                 <p>As part of your registration, please also complete the QMS Form at the link below:</p>
                 <p style="margin: 15px 0px;">
