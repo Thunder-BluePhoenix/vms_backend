@@ -1,5 +1,7 @@
 import frappe
 import json
+from frappe.utils import now_datetime
+
 
 # cart details masters
 @frappe.whitelist(allow_guest=True)
@@ -91,7 +93,6 @@ def create_purchase_inquiry(data):
         for row in table_data:
             doc.append("cart_product", {
                 "assest_code": row.get("assest_code"),
-                # "category_type": row.get("category_type"),
                 "product_name": row.get("product_name"),
                 "product_price": row.get("product_price"),
                 "uom": row.get("uom"),
@@ -147,3 +148,34 @@ def get_full_data_pur_inquiry(pur_inq):
             "message": "Failed to retrieve Cart Details data.",
             "error": str(e)
         }
+    
+
+
+@frappe.whitelist()
+def modified_peq(data):
+    try:
+        doc = frappe.get_doc("Cart Details", data.get("cart_id"))
+        if doc:
+            doc.asked_to_modify = 1
+            doc.append("modification_info", {
+                "fields_to_modify": data.get("fields_to_modify"),
+                "asked_to_modify_datetime": frappe.utils.now_datetime()
+            })
+            doc.save()
+            return {
+                "status": "success",
+                "message": "Modification request recorded."
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Cart Details not found."
+            }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Cart Details Modify API Error")
+        return {
+            "status": "error",
+            "message": "Failed to retrieve Cart Details data.",
+            "error": str(e)
+        }
+

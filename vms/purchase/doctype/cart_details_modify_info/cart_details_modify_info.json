@@ -1,0 +1,60 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-02 16:28:41.317197",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "fields_to_modify",
+  "column_break_anxh",
+  "asked_to_modify_datetime",
+  "modified_datetime",
+  "modified1"
+ ],
+ "fields": [
+  {
+   "fieldname": "fields_to_modify",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Fields to Modify"
+  },
+  {
+   "fieldname": "asked_to_modify_datetime",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Asked To Modify DateTime"
+  },
+  {
+   "fieldname": "modified_datetime",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Modified DateTime"
+  },
+  {
+   "default": "0",
+   "fieldname": "modified1",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Modified"
+  },
+  {
+   "fieldname": "column_break_anxh",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-02 16:33:03.313174",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Cart Details Modify INFO",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

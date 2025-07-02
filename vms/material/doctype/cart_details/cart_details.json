@@ -36,6 +36,7 @@
   "mail_sent_to_hod",
   "mail_sent_to_purchase_team",
   "ack_mail_to_user",
+  "asked_to_modify",
   "status_workflow_section",
   "enquirer_status",
   "rejection_reason",
@@ -43,7 +44,9 @@
   "column_break_outx",
   "representative_head_status",
   "purchase_team_status",
-  "remarks"
+  "remarks",
+  "tab_2_tab",
+  "modification_info"
  ],
  "fields": [
   {
@@ -250,12 +253,29 @@
    "label": "Dedicated Purchase Team",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "asked_to_modify",
+   "fieldtype": "Check",
+   "label": "Asked To Modify"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "fieldname": "modification_info",
+   "fieldtype": "Table",
+   "label": "Modification Info",
+   "options": "Cart Details Modify INFO"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-25 16:05:01.252671",
+ "modified": "2025-07-02 16:33:59.297987",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
