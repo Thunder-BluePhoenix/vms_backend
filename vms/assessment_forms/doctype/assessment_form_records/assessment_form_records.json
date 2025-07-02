@@ -1,0 +1,41 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-01 11:48:30.300285",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "assessment_form",
+  "date_time"
+ ],
+ "fields": [
+  {
+   "fieldname": "assessment_form",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Assessment Form",
+   "options": "Annual Supplier Assessment Questionnaire"
+  },
+  {
+   "fieldname": "date_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Date time"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-01 11:49:50.085062",
+ "modified_by": "Administrator",
+ "module": "Assessment Forms",
+ "name": "Assessment Form Records",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

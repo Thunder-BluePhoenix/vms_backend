@@ -9,6 +9,8 @@
   "general_disclosures_tab",
   "company_information_section",
   "naming_series",
+  "vendor_ref_no",
+  "vendor_name",
   "name_of_the_company",
   "column_break_warf",
   "location",
@@ -693,12 +695,24 @@
   {
    "fieldname": "column_break_siig",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vendor_ref_no",
+   "fieldtype": "Link",
+   "label": "Vendor Ref No",
+   "options": "Vendor Master"
+  },
+  {
+   "fetch_from": "vendor_ref_no.vendor_name",
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "label": "Vendor Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-16 15:54:25.932989",
+ "modified": "2025-07-01 12:19:41.103561",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Annual Supplier Assessment Questionnaire",

@@ -12,56 +12,59 @@ class VendorOnboarding(Document):
      
 
     
-	def after_insert(self):
-		exp_doc = frappe.get_doc("Vendor Onboarding Settings") or None
+    def after_insert(self):
+        exp_doc = frappe.get_doc("Vendor Onboarding Settings") or None
 
-		if exp_doc != None:
-			exp_t_sec = float(exp_doc.vendor_onboarding_form_validity)
-			
-		else:
-			exp_t_sec = 604800
-			
-		# Enqueue a background job to handle vendor onboarding expiration
-		exp_d_sec = exp_t_sec + 800
-		frappe.enqueue(
-			method=self.handle_expiration,
-			queue='default',
-			timeout=exp_d_sec,
-			now=False,
-			job_name=f'vendor_onboarding_time_expiration_{self.name}',
-			# enqueue_after_commit = False
-		)
+        if exp_doc != None:
+            exp_t_sec = float(exp_doc.vendor_onboarding_form_validity)
+            
+        else:
+            exp_t_sec = 604800
+            
+        # Enqueue a background job to handle vendor onboarding expiration
+        exp_d_sec = exp_t_sec + 800
+        frappe.enqueue(
+            method=self.handle_expiration,
+            queue='default',
+            timeout=exp_d_sec,
+            now=False,
+            job_name=f'vendor_onboarding_time_expiration_{self.name}',
+            # enqueue_after_commit = False
+        )
+        
+        sent_asa_form_link(self, method=None)
 
-	def handle_expiration(self):
-		exp_doc = frappe.get_doc("Vendor Onboarding Settings") or None
 
-		if exp_doc != None:
-			exp_t_sec = float(exp_doc.vendor_onboarding_form_validity)
-			
-		else:
-			exp_t_sec = 604800
-		time.sleep(exp_t_sec)
-		if self.form_fully_submitted_by_vendor == 0:
-			self.db_set('expired', 1, update_modified=False)
-			self.db_set('onboarding_form_status', "Expired", update_modified=False)
+    def handle_expiration(self):
+        exp_doc = frappe.get_doc("Vendor Onboarding Settings") or None
 
-		else:
-			pass
+        if exp_doc != None:
+            exp_t_sec = float(exp_doc.vendor_onboarding_form_validity)
+            
+        else:
+            exp_t_sec = 604800
+        time.sleep(exp_t_sec)
+        if self.form_fully_submitted_by_vendor == 0:
+            self.db_set('expired', 1, update_modified=False)
+            self.db_set('onboarding_form_status', "Expired", update_modified=False)
 
-		# exp_d_sec = exp_t_sec + 300
-		frappe.db.commit()
+        else:
+            pass
+
+        # exp_d_sec = exp_t_sec + 300
+        frappe.db.commit()
 
 
     
 
 
-	def on_update(self):
-          
-          vendor_company_update(self,method=None)
-          check_vnonb_send_mails(self, method=None)
-          on_update_check_fields(self,method=None)
-          update_ven_onb_record_table(self, method=None)
-          update_van_core_docs(self, method=None)
+    def on_update(self):
+            
+            vendor_company_update(self,method=None)
+            check_vnonb_send_mails(self, method=None)
+            on_update_check_fields(self,method=None)
+            update_ven_onb_record_table(self, method=None)
+            update_van_core_docs(self, method=None)
         #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
 	
@@ -827,3 +830,39 @@ def update_van_core_docs(doc, method=None):
                 
                 
             
+def sent_asa_form_link(doc, method=None):
+    try:
+        if doc.ref_no:
+            vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+
+            # Only send if ASA is required and not already sent
+            if doc.asa_required and not vendor_master.asa_required:
+                http_server = frappe.conf.get("backend_http")
+                subject = "Fill ASA Form Link"
+                link = f"{http_server}/annual-supplier-assessment-questionnaire/new?vendor_ref_no={vendor_master.name}"
+
+                message = f"""
+                    Hello {vendor_master.vendor_name},<br><br>
+                    Kindly fill the ASA Form for your Vendor Onboarding.<br>
+                    Click the link below:<br>
+                    <a href="{link}">{link}</a><br><br>
+                    Thank You.<br><br>
+                    Regards,<br>
+                    Team VMS
+                """
+
+                recipients = vendor_master.office_email_primary or vendor_master.office_email_secondary
+                if recipients:
+                    frappe.sendmail(
+                        recipients=recipients,
+                        subject=subject,
+                        message=message
+                    )
+
+                vendor_master.asa_required = 1
+                vendor_master.save()
+            else:
+                pass
+
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "Error in sent_asa_form_link")
