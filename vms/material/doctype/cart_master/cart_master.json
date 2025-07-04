@@ -10,6 +10,7 @@
   "assest_code",
   "product_name",
   "product_price",
+  "final_price_by_purchase_team",
   "uom",
   "column_break_golw",
   "lead_time",
@@ -69,13 +70,18 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Lead Time"
+  },
+  {
+   "fieldname": "final_price_by_purchase_team",
+   "fieldtype": "Data",
+   "label": "Final Price by Purchase Team"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-19 12:31:28.059461",
+ "modified": "2025-07-04 12:49:40.131733",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Master",

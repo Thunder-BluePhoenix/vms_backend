@@ -6,11 +6,24 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "company",
+  "plant",
+  "material_type",
   "material_code",
   "material_name",
   "material_category",
-  "company",
-  "description"
+  "description",
+  "base_uom",
+  "material_group",
+  "column_break_ovrh",
+  "mrp_type",
+  "valuation_class",
+  "price_control",
+  "created_by",
+  "valuation_type",
+  "purchasing_group",
+  "price_unit",
+  "currency"
  ],
  "fields": [
   {
@@ -32,7 +45,7 @@
   },
   {
    "fieldname": "description",
-   "fieldtype": "Text",
+   "fieldtype": "Small Text",
    "label": "Description"
   },
   {
@@ -40,12 +53,85 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "plant",
+   "fieldtype": "Link",
+   "label": "Plant",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "material_type",
+   "fieldtype": "Link",
+   "label": "Material Type",
+   "options": "Material Type Master"
+  },
+  {
+   "fieldname": "base_uom",
+   "fieldtype": "Link",
+   "label": "Base UOM",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "mrp_type",
+   "fieldtype": "Link",
+   "label": "MRP Type",
+   "options": "MRP Type Master"
+  },
+  {
+   "fieldname": "column_break_ovrh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valuation_class",
+   "fieldtype": "Link",
+   "label": "Valuation Class",
+   "options": "Valuation Class Master"
+  },
+  {
+   "fieldname": "price_control",
+   "fieldtype": "Link",
+   "label": "Price Control",
+   "options": "Price Control Master"
+  },
+  {
+   "fieldname": "created_by",
+   "fieldtype": "Data",
+   "label": "Created by"
+  },
+  {
+   "fieldname": "valuation_type",
+   "fieldtype": "Data",
+   "label": "Valuation Type"
+  },
+  {
+   "fieldname": "purchasing_group",
+   "fieldtype": "Link",
+   "label": "Purchasing Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "price_unit",
+   "fieldtype": "Data",
+   "label": "Price Unit"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "material_group",
+   "fieldtype": "Link",
+   "label": "Material Group",
+   "options": "Material Group Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-24 20:12:15.411512",
+ "modified": "2025-07-04 12:47:54.669261",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Material Master",

@@ -35,7 +35,9 @@
   "mail_sent_to_hod",
   "mail_sent_to_purchase_team",
   "mail_sent_to_purchase_head",
-  "ack_mail_to_user"
+  "ack_mail_to_user",
+  "purchase_requisition_json_section",
+  "purchase_requisition_json_fields"
  ],
  "fields": [
   {
@@ -205,12 +207,22 @@
    "fieldtype": "Link",
    "label": "Purchase Group",
    "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "purchase_requisition_json_section",
+   "fieldtype": "Section Break",
+   "label": "Purchase Requisition JSON"
+  },
+  {
+   "fieldname": "purchase_requisition_json_fields",
+   "fieldtype": "JSON",
+   "label": "Purchase Requisition JSON Fields"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-21 16:10:58.156316",
+ "modified": "2025-07-04 14:43:18.872707",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",

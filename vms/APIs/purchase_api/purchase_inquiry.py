@@ -297,7 +297,7 @@ def acknowledge_purchase_inquiry(data):
             subject = f"Acknowledgement for the Cart Details Submitted by {employee_name}"
             message = f"""
                 <p>Dear {employee_name},</p>		
-                <p>Your cart details has been approved by HOD</b>.</p>
+                <p>Your cart details has been <b>acknowledged</b>.</p>
                 <p><b>Cart ID:</b> {doc.name}</p>
                 <p><b>Cart Date:</b> {doc.cart_date}</p>
                 <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks} </p>
