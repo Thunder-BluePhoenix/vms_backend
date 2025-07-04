@@ -23,6 +23,9 @@ def send_purchase_inquiry_email(doc, method=None):
 			print("send_mail_user @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		else:
 			pass
+	elif doc.user and doc.rejected:
+		rejection_mail_to_user(doc, method=None)
+		print("send_rejection_mail_user @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	else:
 		pass
 
@@ -86,7 +89,7 @@ def send_mail_hod(doc, method=None):
 					</div>
 					<p>Thank you!</p>
 				"""
-				frappe.sendmail(recipients=[hod_email], subject=subject, message=message, now=True)
+				frappe.sendmail(recipients=[hod_email], cc= doc.user, subject=subject, message=message, now=True)
 
 				# doc.mail_sent_to_hod = 1
 				frappe.db.set_value("Cart Details", doc.name, "mail_sent_to_hod", 1)
@@ -220,6 +223,72 @@ def send_mail_user(doc, method=None):
 			<p>Your cart details has been approved by HOD</b>.</p>
 			<p><b>Cart ID:</b> {doc.name}</p>
 			<p><b>Cart Date:</b> {doc.cart_date}</p>
+			<p><b>Cart Products:</b></p>Your cart details has been approved by HOD0
+			{table_html}
+			<p>Thank you!</p>
+		"""
+		frappe.sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
+
+		# doc.ack_mail_to_user = 1
+		frappe.db.set_value("Cart Details", doc.name, "ack_mail_to_user", 1)
+		
+		return {
+			"status": "success",
+			"message": "Email sent to User successfully."
+		}
+			
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Error sending email to User")
+		return {
+			"status": "error",
+			"message": "Failed to send email to User.",
+			"error": str(e)
+		}
+	
+
+# rejection mail to user
+@frappe.whitelist(allow_guest=True)
+def rejection_mail_to_user(doc, method=None):
+	try:
+		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
+		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+		if hod:
+			hod_email = frappe.get_value("Employee", hod, "user_id")
+
+		table_html = """
+			<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+				<tr>
+					<th>Asset Code</th>
+					<th>Product Name</th>
+					<th>Product Quantity</th>
+					<th>UOM</th>
+					<th>Product Price</th>
+					<th>Lead Time</th>
+					<th>User Specifications</th>
+				</tr>
+		    """
+
+		for row in doc.cart_product:
+			table_html += f"""
+				<tr>
+					<td>{row.assest_code or ''}</td>
+					<td>{frappe.db.get_value("VMS Product Master", row.product_name, "product_name") or ''}</td>
+					<td>{row.product_quantity or ''}</td>
+					<td>{row.uom or ''}</td>
+					<td>{row.product_price or ''}</td>
+					<td>{row.lead_time or ''}</td> 
+					<td>{row.user_specifications or ''}</td>
+				</tr>
+			"""
+
+		table_html += "</table>"
+
+		subject = f"Your Cart Details Rejected by {frappe.db.get_value("Employee", {"user_id": doc.rejected_by}, 'full_name')}"
+		message = f"""
+			<p>Dear {employee_name},</p>		
+			<p>Your cart details has been rejected by {frappe.db.get_value("Employee", {"user_id": doc.rejected_by}, 'full_name')}</b>.</p>
+			<p><b>Cart ID:</b> {doc.name}</p>
+			<p><b>Cart Date:</b> {doc.cart_date}</p>
 			<p><b>Cart Products:</b></p>
 			{table_html}
 			<p>Thank you!</p>
@@ -231,17 +300,20 @@ def send_mail_user(doc, method=None):
 		
 		return {
 			"status": "success",
-			"message": "Email sent to Purchase Team successfully."
+			"message": "Email sent to User successfully."
 		}
 			
 	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "Error sending email to Purchase Team")
+		frappe.log_error(frappe.get_traceback(), "Error sending email to User")
 		return {
 			"status": "error",
-			"message": "Failed to send email to Purchase Team.",
+			"message": "Failed to send email to User.",
 			"error": str(e)
 		}
-	
+
+
+
+
 # hod Approval Flow	
 @frappe.whitelist(allow_guest=True)
 def hod_approval_check():

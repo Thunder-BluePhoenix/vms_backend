@@ -37,9 +37,11 @@
   "mail_sent_to_purchase_team",
   "ack_mail_to_user",
   "asked_to_modify",
+  "purchase_team_acknowledgement",
   "status_workflow_section",
   "enquirer_status",
   "rejection_reason",
+  "acknowledged_date",
   "acknowledged_remarks",
   "column_break_outx",
   "representative_head_status",
@@ -146,7 +148,7 @@
    "fieldname": "purchase_team_status",
    "fieldtype": "Select",
    "label": "Purchase Team Status",
-   "options": "Pending\nRaised Query\nAcknowledged\nRejected"
+   "options": "Pending\nRaised Query\nAcknowledged\nApproved\nRejected"
   },
   {
    "fieldname": "remarks",
@@ -177,6 +179,7 @@
    "label": "Approval Status"
   },
   {
+   "default": "Pending",
    "fieldname": "hod_approval_status",
    "fieldtype": "Data",
    "label": "HOD Approval Status"
@@ -187,6 +190,7 @@
    "label": "HOD Approval Remarks"
   },
   {
+   "default": "Pending",
    "fieldname": "purchase_team_approval_status",
    "fieldtype": "Data",
    "label": "Purchase Team Approval Status"
@@ -270,12 +274,23 @@
    "fieldtype": "Table",
    "label": "Modification Info",
    "options": "Cart Details Modify INFO"
+  },
+  {
+   "fieldname": "acknowledged_date",
+   "fieldtype": "Date",
+   "label": "Acknowledged Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "purchase_team_acknowledgement",
+   "fieldtype": "Check",
+   "label": "Purchase Team Acknowledgement"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-02 16:33:59.297987",
+ "modified": "2025-07-03 13:58:44.146490",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
