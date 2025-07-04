@@ -254,6 +254,7 @@ def rejection_mail_to_user(doc, method=None):
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
 		if hod:
 			hod_email = frappe.get_value("Employee", hod, "user_id")
+			rejected_by = frappe.get_value("Employee", {"user_id": doc.rejected_by}, "full_name")
 
 		table_html = """
 			<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
@@ -283,10 +284,10 @@ def rejection_mail_to_user(doc, method=None):
 
 		table_html += "</table>"
 
-		subject = f"Your Cart Details Rejected by {frappe.db.get_value("Employee", {"user_id": doc.rejected_by}, 'full_name')}"
+		subject = f"Your Cart Details Rejected by {rejected_by}"
 		message = f"""
 			<p>Dear {employee_name},</p>		
-			<p>Your cart details has been rejected by {frappe.db.get_value("Employee", {"user_id": doc.rejected_by}, 'full_name')}</b>.</p>
+			<p>Your cart details has been rejected by {rejected_by}</b>.</p>
 			<p><b>Cart ID:</b> {doc.name}</p>
 			<p><b>Cart Date:</b> {doc.cart_date}</p>
 			<p><b>Cart Products:</b></p>
