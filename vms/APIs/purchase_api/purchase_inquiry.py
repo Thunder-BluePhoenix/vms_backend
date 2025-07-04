@@ -250,13 +250,16 @@ def modified_peq(data):
 @frappe.whitelist(allow_guest=True)
 def acknowledge_purchase_inquiry(data):
     try:
+        if isinstance(data, str):
+            data = json.loads(data)
+
         doc = frappe.get_doc("Cart Details", data.get("cart_id"))
         if doc:
             doc.purchase_team_acknowledgement = 1
-            doc.acknowledged_date = frappe.utils.now_date()
+            doc.acknowledged_date = data.get("acknowledged_date")
             doc.acknowledged_remarks = data.get("acknowledged_remarks")
             doc.purchase_team_status = "Acknowledged"
-            doc.save()
+            doc.save(ignore_permissions=True)
 
             employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
             hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
@@ -291,7 +294,7 @@ def acknowledge_purchase_inquiry(data):
 
             table_html += "</table>"
 
-            subject = f"HOD Approved the Cart Details Submitted by {employee_name}"
+            subject = f"Acknowledgement for the Cart Details Submitted by {employee_name}"
             message = f"""
                 <p>Dear {employee_name},</p>		
                 <p>Your cart details has been approved by HOD</b>.</p>
