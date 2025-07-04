@@ -74,49 +74,81 @@ def filter_subhead_email():
 # send cart details/ purchase inquiry
 @frappe.whitelist(allow_guest=True)
 def create_purchase_inquiry(data):
-    try:
-        if isinstance(data, str):
-            data = json.loads(data)
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
 
-        main_doc_fields = {
-            "doctype": "Cart Details",
-            "user": data.get("user"),
-            "cart_use": data.get("cart_use"),
-            "cart_date": data.get("cart_date"),
-            "category_type": data.get("category_type")
-        }
+		is_update = "name" in data and data["name"]
 
-        doc = frappe.new_doc("Cart Details")
-        doc.update(main_doc_fields)
-    
-        table_data = data.get("cart_product", [])
-        for row in table_data:
-            doc.append("cart_product", {
-                "assest_code": row.get("assest_code"),
-                "product_name": row.get("product_name"),
-                "product_price": row.get("product_price"),
-                "uom": row.get("uom"),
-                "lead_time": row.get("lead_time"),
-                "product_quantity": row.get("product_quantity"),
-                "user_specifications": row.get("user_specifications")
-            })
+		if is_update:
+			doc = frappe.get_doc("Cart Details", data["name"])
+			for row in doc.modification_info:
+				if row.fields_to_modify and not row.modified1:
+					row.modified_datetime = frappe.utils.now_datetime()
+					row.modified1 = 1
+			doc.asked_to_modify = 0
+		else:
+			doc = frappe.new_doc("Cart Details")
 
-        doc.insert(ignore_permissions=True)
-        frappe.db.commit()
+		# Top-level fields
+		top_fields = ["user", "cart_use", "cart_date", "category_type"]
 
-        return {
-            "status": "success",
-            "message": "Cart Details created successfully.",
-            "name": doc.name
-        }
+		for field in top_fields:
+			if field in data:
+				doc.set(field, data[field])
 
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Create Cart Details API Error")
-        return {
-            "status": "error",
-            "message": "Failed to create Cart Details.",
-            "error": str(e)
-        }
+		# Save or insert to ensure doc.name exists before handling child tables
+		if is_update:
+			doc.save(ignore_permissions=True)
+		else:
+			doc.insert(ignore_permissions=True)
+
+		# Child Table: cart_product
+		if "cart_product" in data and isinstance(data["cart_product"], list):
+			for row in data["cart_product"]:
+				if not row:
+					continue
+
+				child_row = None
+				if "name" in row:
+					child_row = next((r for r in doc.cart_product if r.name == row["name"]), None)
+
+				if child_row:
+					for key in [
+						"assest_code", "product_name", "product_price", "uom",
+						"lead_time", "product_quantity", "user_specifications"
+					]:
+						if key in row:
+							child_row.set(key, row[key])
+				else:
+					doc.append("cart_product", {
+						"assest_code": row.get("assest_code"),
+						"product_name": row.get("product_name"),
+						"product_price": row.get("product_price"),
+						"uom": row.get("uom"),
+						"lead_time": row.get("lead_time"),
+						"product_quantity": row.get("product_quantity"),
+						"user_specifications": row.get("user_specifications")
+					})
+
+		# Final save to persist updates
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": "Cart Details saved successfully.",
+			"name": doc.name
+		}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Create/Update Cart Details API Error")
+		return {
+			"status": "error",
+			"message": "Failed to save Cart Details.",
+			"error": str(e)
+		}
     
 
 # get full data of cart details
@@ -151,7 +183,7 @@ def get_full_data_pur_inquiry(pur_inq):
     
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def modified_peq(data):
     try:
         doc = frappe.get_doc("Cart Details", data.get("cart_id"))
@@ -162,6 +194,41 @@ def modified_peq(data):
                 "asked_to_modify_datetime": frappe.utils.now_datetime()
             })
             doc.save()
+
+            employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
+            hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+            hod_email = frappe.get_value("Employee", hod, "user_id")
+
+            table_html = """
+                <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+                    <tr>
+                        <th>Fields to Modify</th>
+                        <th>Asked To Modify DateTime</th>
+                    </tr>
+            """
+
+            for row in doc.modification_info:
+                table_html += f"""
+                    <tr>
+                        <td>{row.fields_to_modify or ''}</td>
+                        <td>{frappe.utils.format_datetime(row.asked_to_modify_datetime) if row.asked_to_modify_datetime else ''}</td>
+                    </tr>
+                """
+
+            table_html += "</table>"
+
+            subject = f"Cart Details Modification Request - {doc.name}"
+            message = f"""
+                <p>Dear {employee_name},</p>
+                <p>A modification request has been submitted for the following <strong>Cart Details</strong>:</p>
+                <p><strong>Cart ID:</strong> {doc.name}<br>
+                <strong>Cart Date:</strong> {doc.cart_date}</p>
+                {table_html}
+                <p>Regards,<br>VMS Team</p>
+            """
+            
+            frappe.sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
+            
             return {
                 "status": "success",
                 "message": "Modification request recorded."
@@ -179,3 +246,76 @@ def modified_peq(data):
             "error": str(e)
         }
 
+
+@frappe.whitelist(allow_guest=True)
+def acknowledge_purchase_inquiry(data):
+    try:
+        doc = frappe.get_doc("Cart Details", data.get("cart_id"))
+        if doc:
+            doc.purchase_team_acknowledgement = 1
+            doc.acknowledged_date = frappe.utils.now_date()
+            doc.acknowledged_remarks = data.get("acknowledged_remarks")
+            doc.purchase_team_status = "Acknowledged"
+            doc.save()
+
+            employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
+            hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+            if hod:
+                hod_email = frappe.get_value("Employee", hod, "user_id")
+
+            table_html = """
+                <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+                    <tr>
+                        <th>Asset Code</th>
+                        <th>Product Name</th>
+                        <th>Product Quantity</th>
+                        <th>UOM</th>
+                        <th>Product Price</th>
+                        <th>Lead Time</th>
+                        <th>User Specifications</th>
+                    </tr>
+                """
+
+            for row in doc.cart_product:
+                table_html += f"""
+                    <tr>
+                        <td>{row.assest_code or ''}</td>
+                        <td>{frappe.db.get_value("VMS Product Master", row.product_name, "product_name") or ''}</td>
+                        <td>{row.product_quantity or ''}</td>
+                        <td>{row.uom or ''}</td>
+                        <td>{row.product_price or ''}</td>
+                        <td>{row.lead_time or ''}</td> 
+                        <td>{row.user_specifications or ''}</td>
+                    </tr>
+                """
+
+            table_html += "</table>"
+
+            subject = f"HOD Approved the Cart Details Submitted by {employee_name}"
+            message = f"""
+                <p>Dear {employee_name},</p>		
+                <p>Your cart details has been approved by HOD</b>.</p>
+                <p><b>Cart ID:</b> {doc.name}</p>
+                <p><b>Cart Date:</b> {doc.cart_date}</p>
+                <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks} </p>
+                
+                {table_html}
+                <p>Thank you!</p>
+            """
+            frappe.sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
+
+            return {
+                "status": "success",
+                "message": "Cart Details acknowledged."
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Cart Details not found."
+            }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Cart Details Acknowledge API Error")
+        return {
+            "status": "error",
+            "message": "Failed to acknowledge Cart Details.",
+        }
