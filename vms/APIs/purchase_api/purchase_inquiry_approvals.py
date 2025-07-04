@@ -74,12 +74,23 @@ def purchase_approval_check(data):
 			cart_details_doc.purchase_team_approval_status = "Approved"
 			cart_details_doc.purchase_team_approval_remarks = comments
 
-			for key, value in data.items():
-				if isinstance(value, dict) and "product_price" in value:
-					child_row = next((row for row in cart_details_doc.cart_product if row.name == key), None)
-					if child_row:
-						child_row.product_price = value["product_price"]
+			# Clear old child rows
+			cart_details_doc.set("cart_product", [])
 
+			for row in data.get("cart_product", []):
+				if not row:
+					continue
+				cart_details_doc.append("cart_product", {
+					"assest_code": row.get("assest_code"),
+					"product_name": row.get("product_name"),
+					"product_quantity": row.get("product_quantity"),
+					"user_specifications": row.get("user_specifications"),
+					"product_price": row.get("product_price"),
+					"uom": row.get("uom"),
+					"lead_time": row.get("lead_time"),
+					"final_price_by_purchase_team": row.get("final_price_by_purchase_team")
+				})
+					
 		elif is_rejected:
 			cart_details_doc.rejected = 1
 			cart_details_doc.rejected_by = user

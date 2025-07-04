@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:material_type_name",
+ "creation": "2025-07-04 12:13:04.391707",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "material_type_details_section",
+  "material_type_name",
+  "material_type",
+  "material_category_type",
+  "description",
+  "column_break_cypw",
+  "company",
+  "storage_location",
+  "plant_code",
+  "valuation_and_profit"
+ ],
+ "fields": [
+  {
+   "fieldname": "material_type_details_section",
+   "fieldtype": "Section Break",
+   "label": "Material Type Details"
+  },
+  {
+   "fieldname": "material_type",
+   "fieldtype": "Data",
+   "label": "Material Type"
+  },
+  {
+   "fieldname": "column_break_cypw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  },
+  {
+   "fieldname": "material_type_name",
+   "fieldtype": "Data",
+   "label": "Material Type Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "material_category_type",
+   "fieldtype": "Link",
+   "label": "Material Category Type",
+   "options": "Material Category Master"
+  },
+  {
+   "fieldname": "storage_location",
+   "fieldtype": "Link",
+   "label": "Storage Location",
+   "options": "Storage Location Master"
+  },
+  {
+   "fieldname": "plant_code",
+   "fieldtype": "Link",
+   "label": "Plant Code",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "valuation_and_profit",
+   "fieldtype": "Table",
+   "label": "Valuation & Profit",
+   "options": "Valuation and Profit"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-04 13:09:26.741705",
+ "modified_by": "Administrator",
+ "module": "Material",
+ "name": "Material Type Master",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
