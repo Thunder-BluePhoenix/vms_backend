@@ -24,6 +24,7 @@ class PurchaseOrder(Document):
 
 	def on_update(self):
 		update_dispatch_qty(self, method=None)
+		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", update_dispatch_qty(self, method=None))
 		if self.approved_from_vendor == 1 and self.sent_notification_triggered == 0 and self.po_dispatch_status != "Completed" and self.sent_notification_to_vendor == 0:
 			notf_sett_doc = frappe.get_doc("Dispatch Notification Setting")
 			
@@ -55,7 +56,7 @@ class PurchaseOrder(Document):
 
 			# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", exp_t_sec ,exp_d_sec)
 			self.sent_notification_triggered = 1
-			frappe.db.commit()
+			# frappe.db.commit()
 
 			frappe.enqueue(
 				method=self.handle_notification,
@@ -201,6 +202,9 @@ def get_po_whole(po_name):
 # update dispatch qty in po
 def update_dispatch_qty(doc, method=None):
 	try:
+
+		if doc.dispatched != 1:
+			return
 		dispatch_totals = {} 
 
 		# Step 1: Get all relevant dispatches for this PO
