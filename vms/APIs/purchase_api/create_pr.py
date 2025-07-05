@@ -44,68 +44,167 @@ def purchase_requsition_masters():
         }
 
 
+# @frappe.whitelist(allow_guest=True)
+# def create_purchase_requisition(data):
+#     try:
+#         if isinstance(data, str):
+#             data = json.loads(data)
+        
+#         main_doc_fields = {
+#             "doctype": "Purchase Requisition Webform",
+#             "purchase_requisition_type": data.get("purchase_requisition_type"),
+#             "plant": data.get("plant"),
+#             "company_code_area": data.get("company_code_area"),
+#             "company": data.get("company"),
+#             "requisitioner": data.get("requisitioner"),
+#             "purchase_group": data.get("purchase_group"),
+#             "cart_details_id": data.get("cart_details_id")
+#         }
+
+#         # Create new document
+#         doc = frappe.new_doc("Purchase Requisition Webform")
+#         doc.update(main_doc_fields)
+
+#         # Add child table rows
+#         table_data = data.get("purchase_requisition_form_table", [])
+#         for row in table_data:
+#             doc.append("purchase_requisition_form_table", {
+#                 "item_number_of_purchase_requisition": row.get("item_number_of_purchase_requisition"),
+#                 "purchase_requisition_date": row.get("purchase_requisition_date"),
+#                 "delivery_date": row.get("delivery_date"),
+#                 "store_location": row.get("store_location"),
+#                 "item_category": row.get("item_category"),
+#                 "material_group": row.get("material_group"),
+#                 "uom": row.get("uom"),
+#                 "cost_center": row.get("cost_center"),
+#                 "main_asset_no": row.get("main_asset_no"),
+#                 "asset_subnumber": row.get("asset_subnumber"),
+#                 "profit_ctr": row.get("profit_ctr"),
+#                 "short_text": row.get("short_text"),
+#                 "quantity": row.get("quantity"),
+#                 "price_of_purchase_requisition": row.get("price_of_purchase_requisition"),
+#                 "gl_account_number": row.get("gl_account_number"),
+#                 "material_code": row.get("material_code"),
+#                 "account_assignment_category": row.get("account_assignment_category"),
+#                 # "purchase_group": row.get("purchase_group")
+#             })
+
+#         doc.insert(ignore_permissions=True)
+#         frappe.db.commit()
+
+#         return {
+#             "status": "success",
+#             "message": "Purchase Requisition Webform created successfully.",
+#             "name": doc.name
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Create Purchase Requisition Webform API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to create Purchase Requisition Webform.",
+#             "error": str(e)
+#         }
+
+
 @frappe.whitelist(allow_guest=True)
 def create_purchase_requisition(data):
-    try:
-        if isinstance(data, str):
-            data = json.loads(data)
-        
-        main_doc_fields = {
-            "doctype": "Purchase Requisition Webform",
-            "purchase_requisition_type": data.get("purchase_requisition_type"),
-            "plant": data.get("plant"),
-            "company_code_area": data.get("company_code_area"),
-            "company": data.get("company"),
-            "requisitioner": data.get("requisitioner"),
-            "purchase_group": data.get("purchase_group"),
-            "cart_details_id": data.get("cart_details_id")
-        }
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
 
-        # Create new document
-        doc = frappe.new_doc("Purchase Requisition Webform")
-        doc.update(main_doc_fields)
+		main_doc_fields = {
+			"doctype": "Purchase Requisition Webform",
+			"purchase_requisition_type": data.get("purchase_requisition_type"),
+			"plant": data.get("plant"),
+			"company_code_area": data.get("company_code_area"),
+			"company": data.get("company"),
+			"requisitioner": data.get("requisitioner"),
+			"purchase_group": data.get("purchase_group"),
+			"cart_details_id": data.get("cart_details_id")
+		}
 
-        # Add child table rows
-        table_data = data.get("purchase_requisition_form_table", [])
-        for row in table_data:
-            doc.append("purchase_requisition_form_table", {
-                "item_number_of_purchase_requisition": row.get("item_number_of_purchase_requisition"),
-                "purchase_requisition_date": row.get("purchase_requisition_date"),
-                "delivery_date": row.get("delivery_date"),
-                "store_location": row.get("store_location"),
-                "item_category": row.get("item_category"),
-                "material_group": row.get("material_group"),
-                "uom": row.get("uom"),
-                "cost_center": row.get("cost_center"),
-                "main_asset_no": row.get("main_asset_no"),
-                "asset_subnumber": row.get("asset_subnumber"),
-                "profit_ctr": row.get("profit_ctr"),
-                "short_text": row.get("short_text"),
-                "quantity": row.get("quantity"),
-                "price_of_purchase_requisition": row.get("price_of_purchase_requisition"),
-                "gl_account_number": row.get("gl_account_number"),
-                "material_code": row.get("material_code"),
-                "account_assignment_category": row.get("account_assignment_category"),
-                # "purchase_group": row.get("purchase_group")
-            })
+		doc = frappe.new_doc("Purchase Requisition Webform")
+		doc.update(main_doc_fields)
 
-        doc.insert(ignore_permissions=True)
-        frappe.db.commit()
+		# Group head rows by item_number_of_purchase_requisition_head
+		head_rows = data.get("purchase_requisition_form_table", [])
+		grouped_data = {}
 
-        return {
-            "status": "success",
-            "message": "Purchase Requisition Webform created successfully.",
-            "name": doc.name
-        }
+		for row in head_rows:
+			item_number = row.get("item_number_of_purchase_requisition_head")
+			if item_number:
+				grouped_data.setdefault(item_number, []).append(row)
 
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Create Purchase Requisition Webform API Error")
-        return {
-            "status": "error",
-            "message": "Failed to create Purchase Requisition Webform.",
-            "error": str(e)
-        }
+		# Iterate through each item_number group
+		for item_number, grouped_rows in grouped_data.items():
+			for head_row in grouped_rows:
+				subhead_rows = head_row.get("subhead_rows", [])
+
+				for sub in subhead_rows:
+					doc.append("purchase_requisition_form_table", {
+						# Head fields
+						"purchase_requisition_item_head": head_row.get("purchase_requisition_item_head"),
+						"item_number_of_purchase_requisition_head": head_row.get("item_number_of_purchase_requisition_head"),
+						"purchase_requisition_date_head": head_row.get("purchase_requisition_date_head"),
+						"delivery_date_head": head_row.get("delivery_date_head"),
+						"store_location_head": head_row.get("store_location_head"),
+						"item_category_head": head_row.get("item_category_head"),
+						"material_group_head": head_row.get("material_group_head"),
+						"uom_head": head_row.get("uom_head"),
+						"cost_center_head": head_row.get("cost_center_head"),
+						"main_asset_no_head": head_row.get("main_asset_no_head"),
+						"asset_subnumber_head": head_row.get("asset_subnumber_head"),
+						"profit_ctr_head": head_row.get("profit_ctr_head"),
+						"short_text_head": head_row.get("short_text_head"),
+						"quantity_head": head_row.get("quantity_head"),
+						"price_of_purchase_requisition_head": head_row.get("price_of_purchase_requisition_head"),
+						"gl_account_number_head": head_row.get("gl_account_number_head"),
+						"material_code_head": head_row.get("material_code_head"),
+						"account_assignment_category_head": head_row.get("account_assignment_category_head"),
+
+						# Subhead fields
+						"purchase_requisition_item_subhead": sub.get("purchase_requisition_item_subhead"),
+						"item_number_of_purchase_requisition_subhead": sub.get("item_number_of_purchase_requisition_subhead"),
+						"purchase_requisition_date_subhead": sub.get("purchase_requisition_date_subhead"),
+						"delivery_date_subhead": sub.get("delivery_date_subhead"),
+						"store_location_subhead": sub.get("store_location_subhead"),
+						"item_category_subhead": sub.get("item_category_subhead"),
+						"material_group_subhead": sub.get("material_group_subhead"),
+						"uom_subhead": sub.get("uom_subhead"),
+						"cost_center_subhead": sub.get("cost_center_subhead"),
+						"main_asset_no_subhead": sub.get("main_asset_no_subhead"),
+						"asset_subnumber_subhead": sub.get("asset_subnumber_subhead"),
+						"profit_ctr_subhead": sub.get("profit_ctr_subhead"),
+						"short_text_subhead": sub.get("short_text_subhead"),
+						"quantity_subhead": sub.get("quantity_subhead"),
+						"price_of_purchase_requisition_subhead": sub.get("price_of_purchase_requisition_subhead"),
+						"gl_account_number_subhead": sub.get("gl_account_number_subhead"),
+						"material_code_subhead": sub.get("material_code_subhead"),
+						"account_assignment_category_subhead": sub.get("account_assignment_category_subhead"),
+						"purchase_group_subhead": sub.get("purchase_group_subhead")
+					})
+
+		doc.insert(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": "Purchase Requisition Webform created successfully.",
+			"name": doc.name
+		}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Create Purchase Requisition Webform API Error")
+		return {
+			"status": "error",
+			"message": "Failed to create Purchase Requisition Webform.",
+			"error": str(e)
+		}
+
     
+
 # apps/vms/vms/APIs/purchase_api/create_pr.py
 
 @frappe.whitelist(allow_guest=True)
