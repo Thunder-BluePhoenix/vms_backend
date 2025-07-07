@@ -511,3 +511,43 @@ def get_plants_and_purchase_group(comp):
 
 
     
+
+# @frappe.whitelist(allow_guest=True)
+# def get_purchase_type():
+#      pt = frappe.get_all(
+#                 "Purchase Requisition Type",
+#                 # filters={"company": comp},
+#                 fields=["name", "purchase_requisition_type_name", "description"]
+#             )
+
+@frappe.whitelist(allow_guest=True)
+def get_purchase_type():
+    """
+    Get all purchase requisition types
+    
+    Returns:
+        dict: Dictionary containing purchase requisition type data
+    """
+    try:
+        # Get Purchase Requisition Type data
+        purchase_types = frappe.get_all(
+            "Purchase Requisition Type",
+            fields=["name", "purchase_requisition_type_name", "description"]
+        )
+        
+        return {
+            "success": True,
+            "data": purchase_types,
+            "count": len(purchase_types),
+            "message": "Purchase requisition types retrieved successfully"
+        }
+        
+    except frappe.PermissionError:
+        frappe.log_error("Permission denied for Purchase Requisition Type")
+        frappe.throw(_("Insufficient permissions to access Purchase Requisition Type data"), frappe.PermissionError)
+    except frappe.DoesNotExistError:
+        frappe.log_error("Purchase Requisition Type doctype not found")
+        frappe.throw(_("Purchase Requisition Type not found in the system"), frappe.DoesNotExistError)
+    except Exception as e:
+        frappe.log_error(f"Error in get_purchase_type: {str(e)}")
+        frappe.throw(_("An unexpected error occurred while fetching purchase requisition types"), frappe.ValidationError)
