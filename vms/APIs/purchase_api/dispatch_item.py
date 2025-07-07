@@ -141,10 +141,51 @@ def full_data_dispatch_item(name):
 			}
 
 		data = doc.as_dict()
-
-		# Convert child tables to lists
 		data["purchase_number"] = [row.as_dict() for row in doc.purchase_number]
-		data["items"] = [row.as_dict() for row in doc.items]
+
+		# Process item child table with attachment formatting
+		data["items"] = []
+		for row in doc.items:
+			row_data = row.as_dict()
+
+			for field in ["coa_document", "msds_document"]:
+				if row.get(field):
+					file_doc = frappe.get_doc("File", {"file_url": row.get(field)})
+					row_data[field] = {
+						"url": frappe.utils.get_url(file_doc.file_url),
+						"name": file_doc.name,
+						"file_name": file_doc.file_name
+					}
+				else:
+					row_data[field] = {
+						"url": "",
+						"name": "",
+						"file_name": ""
+					}
+
+			data["items"].append(row_data)
+
+		# Handle top-level attachments
+		for top_field in [
+			"packing_list_attachment",
+			"invoice_attachment",
+			"commercial_attachment",
+			"e_way_bill_attachment",
+			"test_certificates_attachment"
+		]:
+			if doc.get(top_field):
+				file_doc = frappe.get_doc("File", {"file_url": doc.get(top_field)})
+				data[top_field] = {
+					"url": frappe.utils.get_url(file_doc.file_url),
+					"name": file_doc.name,
+					"file_name": file_doc.file_name
+				}
+			else:
+				data[top_field] = {
+					"url": "",
+					"name": "",
+					"file_name": ""
+				}
 
 		return {
 			"status": "success",
@@ -225,67 +266,8 @@ def submit_dispatch_item(data):
 						"date_time": now_datetime()
 					})
 
-		# Child Table: items
-		if "items" in data and isinstance(data["items"], list):
-			for row in data["items"]:
-				if not row:
-					continue
-
-				child_row = None
-				if "name" in row:
-					child_row = next((r for r in doc.items if r.name == row["name"]), None)
-
-				if child_row:
-					for key in [
-						"po_number", "product_code", "product_name", "description", "quantity",
-						"hsnsac", "uom", "rate", "amount", "dispatch_qty", "pending_qty",
-						"coa_document", "msds_document"
-					]:
-						if key in row:
-							child_row.set(key, row[key])
-				else:
-					child_row = doc.append("items", {
-						"po_number": row.get("po_number"),
-						"product_code": row.get("product_code"),
-						"product_name": row.get("product_name"),
-						"description": row.get("description"),
-						"quantity": row.get("quantity"),
-						"hsnsac": row.get("hsnsac"),
-						"uom": row.get("uom"),
-						"rate": row.get("rate"),
-						"amount": row.get("amount"),
-						"dispatch_qty": row.get("dispatch_qty"),
-						"pending_qty": row.get("pending_qty"),
-						"coa_document": row.get("coa_document"),
-						"msds_document": row.get("msds_document")
-					})
-
-				# File uploads for row
-				for attach_field in ["coa_document", "msds_document"]:
-					file_key = f"{attach_field}"
-					if file_key in frappe.request.files:
-						uploaded_file = frappe.request.files[file_key]
-						saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
-						child_row.set(attach_field, saved.file_url)
-
 		doc.dispatch_form_submitted = 1
 		doc.save(ignore_permissions=True)
-
-		# Link dispatch to Purchase Orders
-		updated_po_set = set()
-
-		for row in doc.items:
-			if row.po_number and row.po_number not in updated_po_set:
-				po = frappe.get_doc("Purchase Order", row.po_number)
-
-				if not any(d.dispatch_id == doc.name for d in po.dispatch_ids):
-					po.append("dispatch_ids", {
-						"dispatch_id": doc.name,
-						"dispatch_datetime": now_datetime()
-					})
-					po.save(ignore_permissions=True)
-
-				updated_po_set.add(row.po_number)
 
 		frappe.db.commit()
 
@@ -302,6 +284,7 @@ def submit_dispatch_item(data):
 			"message": "Failed to submit Dispatch Item.",
 			"error": str(e)
 		}
+
 
 # list of purchase order based on vendor code and status
 @frappe.whitelist(allow_guest=True)
