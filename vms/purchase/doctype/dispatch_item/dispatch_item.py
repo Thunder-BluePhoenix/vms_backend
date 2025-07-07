@@ -6,7 +6,7 @@ from frappe.model.document import Document
 
 
 class DispatchItem(Document):
-	def after_insert(self, method=None):
+	def on_update(self, method=None):
 		try:
 			for row in self.purchase_number:
 				if not row.purchase_number:
@@ -28,7 +28,7 @@ class DispatchItem(Document):
 						"pending_qty": item.pending_qty
 					})
 
-			self.save(ignore_permissions=True)
+			# self.save(ignore_permissions=True)
 
 		except Exception as e:
 			frappe.log_error(frappe.get_traceback(), "DispatchItem after_insert Error")
