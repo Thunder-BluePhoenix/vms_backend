@@ -27,6 +27,10 @@
   "material_code_head",
   "account_assignment_category_head",
   "purchase_group_head",
+  "product_name_head",
+  "product_price_head",
+  "final_price_by_purchase_team_head",
+  "lead_time_head",
   "sub_head_fields_section",
   "purchase_requisition_item_subhead",
   "item_number_of_purchase_requisition_subhead",
@@ -313,13 +317,34 @@
   {
    "fieldname": "column_break_bpcj",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "product_name_head",
+   "fieldtype": "Link",
+   "label": "Product Name",
+   "options": "VMS Product Master"
+  },
+  {
+   "fieldname": "product_price_head",
+   "fieldtype": "Data",
+   "label": "Product Price"
+  },
+  {
+   "fieldname": "final_price_by_purchase_team_head",
+   "fieldtype": "Data",
+   "label": "Final Price by Purchase Team"
+  },
+  {
+   "fieldname": "lead_time_head",
+   "fieldtype": "Data",
+   "label": "Lead Time"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-04 15:22:08.821959",
+ "modified": "2025-07-07 13:03:11.678463",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform Table",
