@@ -20,6 +20,7 @@
   "transfer_status",
   "category_type",
   "dedicated_purchase_team",
+  "company",
   "product_details_section",
   "cart_product",
   "approval_status_section",
@@ -285,12 +286,18 @@
    "fieldname": "purchase_team_acknowledgement",
    "fieldtype": "Check",
    "label": "Purchase Team Acknowledgement"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-03 13:58:44.146490",
+ "modified": "2025-07-07 12:07:05.630553",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
