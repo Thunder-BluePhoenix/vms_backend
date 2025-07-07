@@ -99,10 +99,10 @@ def create_purchase_inquiry(data):
 				doc.set(field, data[field])
 
 		# Save or insert to ensure doc.name exists before handling child tables
-		if is_update:
-			doc.save(ignore_permissions=True)
-		else:
-			doc.insert(ignore_permissions=True)
+		# if is_update:
+		# 	doc.save(ignore_permissions=True)
+		# else:
+		# 	doc.insert(ignore_permissions=True)
 
 		# Child Table: cart_product
 		if "cart_product" in data and isinstance(data["cart_product"], list):
