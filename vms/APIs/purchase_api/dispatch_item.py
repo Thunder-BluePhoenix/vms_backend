@@ -292,7 +292,8 @@ def submit_dispatch_item(data):
 
 		return {
 			"status": "success",
-			"message": "Dispatch Item submitted successfully."
+			"message": "Dispatch Item submitted successfully.",
+			"dis_name":f"{doc.name}"
 		}
 
 	except Exception as e:
