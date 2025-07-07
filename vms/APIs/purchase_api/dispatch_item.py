@@ -226,6 +226,25 @@ def submit_dispatch_item(data):
 			if field in data:
 				doc.set(field, data[field])
 
+
+		if "purchase_number" in data and isinstance(data["purchase_number"], list):
+			for row in data["purchase_number"]:
+				if not row:
+					continue
+				child_row = None
+				if "name" in row:
+					child_row = next((r for r in doc.purchase_number if r.name == row["name"]), None)
+
+				if child_row:
+					child_row.set("purchase_number", row.get("purchase_number"))
+					child_row.set("date_time", now_datetime())
+				else:
+					doc.append("purchase_number", {
+						"purchase_number": row.get("purchase_number"),
+						"date_time": now_datetime()
+					})
+
+
 		# Save or insert the document to generate name (required for attachments)
 		if is_update:
 			doc.save(ignore_permissions=True)
@@ -249,22 +268,22 @@ def submit_dispatch_item(data):
 				doc.set(key, saved.file_url)
 
 		# Child Table: purchase_number
-		if "purchase_number" in data and isinstance(data["purchase_number"], list):
-			for row in data["purchase_number"]:
-				if not row:
-					continue
-				child_row = None
-				if "name" in row:
-					child_row = next((r for r in doc.purchase_number if r.name == row["name"]), None)
+		# if "purchase_number" in data and isinstance(data["purchase_number"], list):
+		# 	for row in data["purchase_number"]:
+		# 		if not row:
+		# 			continue
+		# 		child_row = None
+		# 		if "name" in row:
+		# 			child_row = next((r for r in doc.purchase_number if r.name == row["name"]), None)
 
-				if child_row:
-					child_row.set("purchase_number", row.get("purchase_number"))
-					child_row.set("date_time", now_datetime())
-				else:
-					doc.append("purchase_number", {
-						"purchase_number": row.get("purchase_number"),
-						"date_time": now_datetime()
-					})
+		# 		if child_row:
+		# 			child_row.set("purchase_number", row.get("purchase_number"))
+		# 			child_row.set("date_time", now_datetime())
+		# 		else:
+		# 			doc.append("purchase_number", {
+		# 				"purchase_number": row.get("purchase_number"),
+		# 				"date_time": now_datetime()
+		# 			})
 
 		# doc.dispatch_form_submitted = 1
 		doc.save(ignore_permissions=True)
