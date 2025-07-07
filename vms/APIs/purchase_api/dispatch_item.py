@@ -266,7 +266,7 @@ def submit_dispatch_item(data):
 						"date_time": now_datetime()
 					})
 
-		doc.dispatch_form_submitted = 1
+		# doc.dispatch_form_submitted = 1
 		doc.save(ignore_permissions=True)
 
 		frappe.db.commit()
@@ -282,6 +282,77 @@ def submit_dispatch_item(data):
 		return {
 			"status": "error",
 			"message": "Failed to submit Dispatch Item.",
+			"error": str(e)
+		}
+
+@frappe.whitelist(allow_guest=True)
+def submit_child_dispatch_item(data):
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
+
+		doc = frappe.get_doc("Dispatch Item", data["name"])
+
+		if "items" in data and isinstance(data["items"], list):
+			for row in data["items"]:
+				if not row:
+					continue
+
+				child_row = None
+				if "name" in row:
+					child_row = next((r for r in doc.items if r.name == row["name"]), None)
+
+				if child_row:
+					for key in [
+						"po_number", "product_code", "product_name", "description", "quantity",
+						"hsnsac", "uom", "rate", "amount", "dispatch_qty", "pending_qty",
+						"coa_document", "msds_document"
+					]:
+						if key in row:
+							child_row.set(key, row[key])
+				else:
+					child_row = doc.append("items", {
+						"po_number": row.get("po_number"),
+						"product_code": row.get("product_code"),
+						"product_name": row.get("product_name"),
+						"description": row.get("description"),
+						"quantity": row.get("quantity"),
+						"hsnsac": row.get("hsnsac"),
+						"uom": row.get("uom"),
+						"rate": row.get("rate"),
+						"amount": row.get("amount"),
+						"dispatch_qty": row.get("dispatch_qty"),
+						"pending_qty": row.get("pending_qty"),
+						"coa_document": row.get("coa_document"),
+						"msds_document": row.get("msds_document")
+					})
+
+				# Handle file uploads for each item
+				for attach_field in ["coa_document", "msds_document"]:
+					file_key = f"{attach_field}"
+					if file_key in frappe.request.files:
+						uploaded_file = frappe.request.files[file_key]
+						saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
+						child_row.set(attach_field, saved.file_url)
+		
+		if data.get("submit") == 1:
+			doc.dispatch_form_submitted = 1
+
+		# Final save to persist attachments and child updates
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": "Child items submitted successfully."
+		}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Child Dispatch Item Submit Error")
+		return {
+			"status": "error",
+			"message": "Failed to submit child dispatch items.",
 			"error": str(e)
 		}
 
