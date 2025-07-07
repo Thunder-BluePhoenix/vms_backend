@@ -21,6 +21,9 @@
   "category_type",
   "dedicated_purchase_team",
   "company",
+  "plant",
+  "purchase_group",
+  "purchase_type",
   "product_details_section",
   "cart_product",
   "approval_status_section",
@@ -292,12 +295,30 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "plant",
+   "fieldtype": "Link",
+   "label": "Plant",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Link",
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "purchase_type",
+   "fieldtype": "Link",
+   "label": "Purchase Type",
+   "options": "Purchase Requisition Type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-07 12:07:05.630553",
+ "modified": "2025-07-07 13:00:52.590098",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",

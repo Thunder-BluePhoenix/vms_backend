@@ -91,7 +91,7 @@ def create_purchase_inquiry(data):
 			doc = frappe.new_doc("Cart Details")
 
 		# Top-level fields
-		top_fields = ["user", "cart_use", "cart_date", "category_type", "company"]
+		top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type"]
 
 		for field in top_fields:
 			if field in data:
@@ -427,6 +427,87 @@ def get_company_for_pe_detailed(usr):
         response["errors"].append("An unexpected error occurred")
         return response
     
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_plants_and_purchase_group(comp):
+    """
+    Get plant and purchase group data for a given company
+    
+    Args:
+        comp (str): Company name to filter records
+        
+    Returns:
+        dict: Dictionary containing plant and purchase group data
+    """
+    try:
+        # Validate input parameter
+        if not comp:
+            frappe.throw(_("Company is required"), frappe.ValidationError)
+        
+        # Check if company exists
+        if not frappe.db.exists("Company", comp) and not frappe.db.exists("Company Master", comp):
+            frappe.throw(_("Company '{0}' not found").format(comp), frappe.DoesNotExistError)
+        
+        response = {
+            "success": True,
+            "company": comp,
+            "plants": [],
+            "purchase_groups": [],
+            "errors": []
+        }
+        
+        # Get Plant Master data
+        try:
+            plants = frappe.get_all(
+                "Plant Master",
+                filters={"company": comp},
+                fields=["name", "plant_name", "description"]
+            )
+            response["plants"] = plants
+            
+        except frappe.PermissionError:
+            frappe.log_error(f"Permission denied for Plant Master - Company: {comp}")
+            response["errors"].append("Permission denied for Plant Master")
+        except Exception as e:
+            frappe.log_error(f"Error fetching Plant Master for company {comp}: {str(e)}")
+            response["errors"].append("Error fetching Plant Master data")
+        
+        # Get Purchase Group Master data
+        try:
+            purchase_groups = frappe.get_all(
+                "Purchase Group Master",
+                filters={"company": comp},
+                fields=["name", "purchase_group_code", "team", "purchase_group_name", "description"]
+            )
+            response["purchase_groups"] = purchase_groups
+            
+        except frappe.PermissionError:
+            frappe.log_error(f"Permission denied for Purchase Group Master - Company: {comp}")
+            response["errors"].append("Permission denied for Purchase Group Master")
+        except Exception as e:
+            frappe.log_error(f"Error fetching Purchase Group Master for company {comp}: {str(e)}")
+            response["errors"].append("Error fetching Purchase Group Master data")
+        
+        # Check if any data was retrieved
+        if not response["plants"] and not response["purchase_groups"] and not response["errors"]:
+            response["errors"].append("No plant or purchase group data found for the specified company")
+        
+        return response
+        
+    except frappe.ValidationError:
+        # Re-raise validation errors as they contain user-friendly messages
+        raise
+    except frappe.DoesNotExistError:
+        # Re-raise DoesNotExist errors as they contain user-friendly messages
+        raise
+    except frappe.PermissionError:
+        frappe.throw(_("Insufficient permissions to access the requested data"), frappe.PermissionError)
+    except Exception as e:
+        # Log unexpected errors and return generic message
+        frappe.log_error(f"Unexpected error in get_plants_and_purchase_group: {str(e)}")
+        frappe.throw(_("An unexpected error occurred. Please try again later."), frappe.ValidationError)
 
 
     
