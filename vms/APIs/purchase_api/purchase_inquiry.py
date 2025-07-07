@@ -91,7 +91,7 @@ def create_purchase_inquiry(data):
 			doc = frappe.new_doc("Cart Details")
 
 		# Top-level fields
-		top_fields = ["user", "cart_use", "cart_date", "category_type"]
+		top_fields = ["user", "cart_use", "cart_date", "category_type", "company"]
 
 		for field in top_fields:
 			if field in data:
@@ -322,3 +322,111 @@ def acknowledge_purchase_inquiry(data):
             "status": "error",
             "message": "Failed to acknowledge Cart Details.",
         }
+
+
+
+
+# @frappe.whitelist(allow_guest = True)
+# def get_company_for_pe(usr):
+#     emp = frappe.get_doc("Employee",{"user_id":usr})
+#     comps = []
+#     for com in emp.company:
+#         comps.append(com.company_name)
+#     comps_data = []
+
+#     for comp in comps:
+#         cd = frappe.get_doc("Company Master", comp)
+#         comps_data.append(cd.as_dict())
+
+#     return comps_data
+
+@frappe.whitelist(allow_guest=True)
+def get_company_for_pe_detailed(usr):
+    """
+    Get company data for a given user with detailed error responses
+    
+    Args:
+        usr (str): User ID to fetch employee and company data for
+        
+    Returns:
+        dict: Response with success status, data, and error details
+    """
+    response = {
+        "success": False,
+        "data": [],
+        "errors": [],
+        "warnings": []
+    }
+    
+    try:
+        # Validate input
+        if not usr:
+            response["errors"].append("User ID is required")
+            return response
+        
+        # Check user exists
+        if not frappe.db.exists("User", usr):
+            response["errors"].append(f"User '{usr}' not found")
+            return response
+        
+        # Get employee
+        try:
+            emp = frappe.get_doc("Employee", {"user_id": usr})
+        except frappe.DoesNotExistError:
+            response["errors"].append(f"Employee record not found for user '{usr}'")
+            return response
+        except Exception as e:
+            frappe.log_error(f"Error fetching employee: {str(e)}")
+            response["errors"].append("Error fetching employee data")
+            return response
+        
+        # Check company data
+        if not hasattr(emp, 'company') or not emp.company:
+            response["errors"].append("No company data found for employee")
+            return response
+        
+        # Process companies
+        comps = []
+        for com in emp.company:
+            if hasattr(com, 'company_name') and com.company_name:
+                comps.append(com.company_name)
+        
+        if not comps:
+            response["errors"].append("No valid companies found for employee")
+            return response
+        
+        # Get company details
+        comps_data = []
+        for comp in comps:
+            try:
+                if not frappe.db.exists("Company Master", comp):
+                    response["warnings"].append(f"Company '{comp}' not found in Company Master")
+                    continue
+                
+                cd = frappe.get_doc("Company Master", comp)
+                comps_data.append(cd.as_dict())
+                
+            except frappe.PermissionError:
+                response["warnings"].append(f"Permission denied for company '{comp}'")
+                continue
+            except Exception as e:
+                frappe.log_error(f"Error fetching company {comp}: {str(e)}")
+                response["warnings"].append(f"Error fetching company '{comp}'")
+                continue
+        
+        if comps_data:
+            response["success"] = True
+            response["data"] = comps_data
+        else:
+            response["errors"].append("No company data could be retrieved")
+        
+        return response
+        
+    except Exception as e:
+        frappe.log_error(f"Unexpected error in get_company_for_pe_detailed: {str(e)}")
+        response["errors"].append("An unexpected error occurred")
+        return response
+    
+
+
+    
