@@ -11,6 +11,7 @@ class SupplierQMSAssessmentForm(Document):
 	def on_update(self):
 		set_unique_data(self, method=None)
 		set_qms_form_link(self, method=None)
+		send_mail_qa_team(self, method=None)
 
 
 
@@ -45,3 +46,47 @@ def set_unique_data(doc, method=None):
 		max_count = existing_max[0][0] if existing_max and existing_max[0] and existing_max[0][0] else 0
 		new_count = max_count + 1
 		doc.unique_name = f"{year_month_prefix}{str(new_count).zfill(5)}"
+
+
+def send_mail_qa_team(doc, method=None):
+	try:
+		qa_users = frappe.get_all("Has Role", 
+			filters={"role": "QA Team"},
+			fields=["parent as user"])
+
+		emails = []
+		for u in qa_users:
+			user_email = frappe.db.get_value("User", u.user, "email")
+			if user_email:
+				emails.append(user_email)
+		
+		if not emails:
+			frappe.log_error("No QA users with email found", "send_mail_qa_team")
+			return
+
+		http_server = frappe.conf.get("frontend_http")
+		
+		form_link = f"{http_server}/qms-webform/{doc.name}"
+
+		subject = "Vendor QMS Form Submitted"
+		message = f"""
+		Dear QA Team,<br><br>
+		The vendor has submitted the Supplier QMS Assessment Form.<br>
+		Please review it using the link below:<br><br>
+		<a href="{form_link}">{form_link}</a><br><br>
+		Regards,<br>
+		VMS Team
+		"""
+
+		# Send the email
+		if not doc.mail_sent_to_qa_team:
+			frappe.sendmail(
+				recipients=emails,
+				subject=subject,
+				message=message,
+				now=True
+			)
+			frappe.db.set_value("Supplier QMS Assessment Form", doc.name, "mail_sent_to_qa_team", 1)
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Error in send_mail_qa_team")
