@@ -1,4 +1,5 @@
 import frappe
+import json
 
 # create purchase requisition webform doc based on cart id and append the table
 
@@ -103,6 +104,7 @@ def get_pur_req_table_data(name):
 
 			if head_no not in grouped_data:
 				grouped_data[head_no] = {
+						"row_name": row.name,
 						"head_unique_id": row.head_unique_id,
 						"purchase_requisition_item_head": row.purchase_requisition_item_head,
 						"item_number_of_purchase_requisition_head": row.item_number_of_purchase_requisition_head,
@@ -132,6 +134,7 @@ def get_pur_req_table_data(name):
 				}
 
 			grouped_data[head_no]["subhead_fields"].append({
+				"row_name": row.name,
 				"sub_head_unique_id": row.sub_head_unique_id,
 				"purchase_requisition_item_subhead": row.purchase_requisition_item_subhead,
 				"item_number_of_purchase_requisition_subhead": row.item_number_of_purchase_requisition_subhead,
@@ -168,3 +171,203 @@ def get_pur_req_table_data(name):
 			"message": "Failed to retrieve Purchase Requisition Webform data.",
 			"error": str(e)
 		}
+	
+
+# Update only head part fields
+@frappe.whitelist(allow_guest=True)
+def update_pr_table_head_form(data):
+	import json
+
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
+
+		docname = data.get("name")
+		rows = data.get("rows")
+
+		if not docname or not rows or not isinstance(rows, list):
+			return {
+				"status": "error",
+				"message": "'name' and 'rows' (as a list) are required."
+			}
+
+		doc = frappe.get_doc("Purchase Requisition Webform", docname)
+
+		updated_rows = []
+
+		for update_row in rows:
+			row_name = update_row.get("row_name")
+			if not row_name:
+				continue
+
+			for row in doc.purchase_requisition_form_table:
+				if row.name == row_name:
+					if "purchase_requisition_item_head" in update_row:
+						row.purchase_requisition_item_head = update_row["purchase_requisition_item_head"]
+					if "item_number_of_purchase_requisition_head" in update_row:
+						row.item_number_of_purchase_requisition_head = update_row["item_number_of_purchase_requisition_head"]
+					if "purchase_requisition_date_head" in update_row:
+						row.purchase_requisition_date_head = update_row["purchase_requisition_date_head"]
+					if "delivery_date_head" in update_row:
+						row.delivery_date_head = update_row["delivery_date_head"]
+					if "store_location_head" in update_row:
+						row.store_location_head = update_row["store_location_head"]
+					if "item_category_head" in update_row:
+						row.item_category_head = update_row["item_category_head"]
+					if "material_group_head" in update_row:
+						row.material_group_head = update_row["material_group_head"]
+					if "uom_head" in update_row:
+						row.uom_head = update_row["uom_head"]
+					if "cost_center_head" in update_row:
+						row.cost_center_head = update_row["cost_center_head"]
+					if "main_asset_no_head" in update_row:
+						row.main_asset_no_head = update_row["main_asset_no_head"]
+					if "asset_subnumber_head" in update_row:
+						row.asset_subnumber_head = update_row["asset_subnumber_head"]
+					if "profit_ctr_head" in update_row:
+						row.profit_ctr_head = update_row["profit_ctr_head"]
+					if "short_text_head" in update_row:
+						row.short_text_head = update_row["short_text_head"]
+					if "quantity_head" in update_row:
+						row.quantity_head = update_row["quantity_head"]
+					if "price_of_purchase_requisition_head" in update_row:
+						row.price_of_purchase_requisition_head = update_row["price_of_purchase_requisition_head"]
+					if "gl_account_number_head" in update_row:
+						row.gl_account_number_head = update_row["gl_account_number_head"]
+					if "material_code_head" in update_row:
+						row.material_code_head = update_row["material_code_head"]
+					if "account_assignment_category_head" in update_row:
+						row.account_assignment_category_head = update_row["account_assignment_category_head"]
+					if "purchase_group_head" in update_row:
+						row.purchase_group_head = update_row["purchase_group_head"]
+					if "product_name_head" in update_row:
+						row.product_name_head = update_row["product_name_head"]
+					if "product_price_head" in update_row:
+						row.product_price_head = update_row["product_price_head"]
+					if "final_price_by_purchase_team_head" in update_row:
+						row.final_price_by_purchase_team_head = update_row["final_price_by_purchase_team_head"]
+					if "lead_time_head" in update_row:
+						row.lead_time_head = update_row["lead_time_head"]
+					if "plant" in update_row:
+						row.plant = update_row["plant"]
+
+					updated_rows.append(row_name)
+					break
+
+		if not updated_rows:
+			return {
+				"status": "error",
+				"message": "No matching rows found to update."
+			}
+
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": f"{len(updated_rows)} row(s) updated successfully.",
+			"updated_rows": updated_rows
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Update PR Head Form Error")
+		return {
+			"status": "error",
+			"message": "Failed to update head row data.",
+			"error": str(e)
+		}
+
+
+#update pr table subhead table form
+@frappe.whitelist(allow_guest=True)
+def update_pr_table_subhead_form(data):
+	import json
+
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
+
+		docname = data.get("name")
+		rows = data.get("rows")
+
+		if not docname or not rows or not isinstance(rows, list):
+			return {
+				"status": "error",
+				"message": "'name' and 'rows' (as a list) are required."
+			}
+
+		doc = frappe.get_doc("Purchase Requisition Webform", docname)
+		updated_rows = []
+
+		for update_row in rows:
+			row_name = update_row.get("row_name")
+			if not row_name:
+				continue
+
+			for row in doc.purchase_requisition_form_table:
+				if row.name == row_name:
+					if "purchase_requisition_item_subhead" in update_row:
+						row.purchase_requisition_item_subhead = update_row["purchase_requisition_item_subhead"]
+					if "item_number_of_purchase_requisition_subhead" in update_row:
+						row.item_number_of_purchase_requisition_subhead = update_row["item_number_of_purchase_requisition_subhead"]
+					if "purchase_requisition_date_subhead" in update_row:
+						row.purchase_requisition_date_subhead = update_row["purchase_requisition_date_subhead"]
+					if "delivery_date_subhead" in update_row:
+						row.delivery_date_subhead = update_row["delivery_date_subhead"]
+					if "store_location_subhead" in update_row:
+						row.store_location_subhead = update_row["store_location_subhead"]
+					if "item_category_subhead" in update_row:
+						row.item_category_subhead = update_row["item_category_subhead"]
+					if "material_group_subhead" in update_row:
+						row.material_group_subhead = update_row["material_group_subhead"]
+					if "uom_subhead" in update_row:
+						row.uom_subhead = update_row["uom_subhead"]
+					if "cost_center_subhead" in update_row:
+						row.cost_center_subhead = update_row["cost_center_subhead"]
+					if "main_asset_no_subhead" in update_row:
+						row.main_asset_no_subhead = update_row["main_asset_no_subhead"]
+					if "asset_subnumber_subhead" in update_row:
+						row.asset_subnumber_subhead = update_row["asset_subnumber_subhead"]
+					if "profit_ctr_subhead" in update_row:
+						row.profit_ctr_subhead = update_row["profit_ctr_subhead"]
+					if "short_text_subhead" in update_row:
+						row.short_text_subhead = update_row["short_text_subhead"]
+					if "quantity_subhead" in update_row:
+						row.quantity_subhead = update_row["quantity_subhead"]
+					if "price_of_purchase_requisition_subhead" in update_row:
+						row.price_of_purchase_requisition_subhead = update_row["price_of_purchase_requisition_subhead"]
+					if "gl_account_number_subhead" in update_row:
+						row.gl_account_number_subhead = update_row["gl_account_number_subhead"]
+					if "material_code_subhead" in update_row:
+						row.material_code_subhead = update_row["material_code_subhead"]
+					if "account_assignment_category_subhead" in update_row:
+						row.account_assignment_category_subhead = update_row["account_assignment_category_subhead"]
+					if "purchase_group_subhead" in update_row:
+						row.purchase_group_subhead = update_row["purchase_group_subhead"]
+
+					updated_rows.append(row_name)
+					break
+
+		if not updated_rows:
+			return {
+				"status": "error",
+				"message": "No matching subhead rows found to update."
+			}
+
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": f"{len(updated_rows)} subhead row(s) updated successfully.",
+			"updated_rows": updated_rows
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Update PR Subhead Form Error")
+		return {
+			"status": "error",
+			"message": "Failed to update subhead row data.",
+			"error": str(e)
+		}
+
