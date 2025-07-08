@@ -23,6 +23,7 @@
   "status",
   "vendor_signature",
   "qms_form_status",
+  "mail_sent_to_qa_team",
   "qas_tab",
   "quality_assurance_systems_and_procedures_section",
   "quality_control_system",
@@ -898,12 +899,18 @@
    "label": "Unique Name",
    "read_only": 1,
    "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_qa_team",
+   "fieldtype": "Check",
+   "label": "Mail Sent to QA Team"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-20 17:35:34.822127",
+ "modified": "2025-07-08 17:47:09.076397",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
