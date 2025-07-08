@@ -134,7 +134,7 @@ def update_dispatch_item(data):
 		return {
 			"status": "success",
 			"message": "Dispatch Item saved successfully.",
-			"name": doc.name
+			"dis_name":f"{doc.name}"
 		}
 
 	except Exception as e:
