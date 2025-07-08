@@ -4,139 +4,145 @@ from frappe.utils.file_manager import save_file
 from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
-def update_dispatch_item(data):
+def update_dispatch_item(data=None):
 	try:
-		if isinstance(data, str):
-			data = json.loads(data)
+		# Handle FormData - get all form fields
+		form_data = {}
+		
+		# Get all form fields from frappe.form_dict
+		for key, value in frappe.form_dict.items():
+			if key and value is not None and value != '':
+				form_data[key] = value
+		
+		# If data parameter is passed, merge it
+		if data:
+			if isinstance(data, str):
+				data = json.loads(data)
+			form_data.update(data)
 
-		is_update = "name" in data and data["name"]
+		# Check if this is an update or create operation
+		is_update = "name" in form_data and form_data["name"]
 
 		if is_update:
-			doc = frappe.get_doc("Dispatch Item", data["name"])
+			# Update existing document
+			doc = frappe.get_doc("Dispatch Item", form_data["name"])
 		else:
+			# Create new document
 			doc = frappe.new_doc("Dispatch Item")
 
-		# Top-level fields - only update if key exists in data
-		top_fields = [
-			"naming_series", "courier_number", "courier_name", "docket_number",
-			"dispatch_date", "invoice_number", "invoice_date", "status", "invoice_amount",
-			"vendor_code"
-		]
+		# Get the doctype meta to understand field structure
+		meta = frappe.get_meta("Dispatch Item")
+		
+		# Handle main document fields dynamically
+		for fieldname, value in form_data.items():
+			if fieldname == "name":
+				continue  # Skip name field for updates
+				
+			# Check if this is a main document field
+			if meta.has_field(fieldname):
+				field = meta.get_field(fieldname)
+				
+				# Skip child table fields and attachment fields for now
+				if field.fieldtype not in ["Table", "Attach", "Attach Image"]:
+					doc.set(fieldname, value)
 
-		for field in top_fields:
-			if field in data:  # Only update if field is provided
-				doc.set(field, data[field])
-
-		# Child Table 1: purchase_number - only update if key exists
-		if "purchase_number" in data and isinstance(data["purchase_number"], list):
-			for row in data["purchase_number"]:
-				if not row:
-					continue
-
-				child_row = None
-				if "name" in row:
-					child_row = next((r for r in doc.purchase_number if r.name == row["name"]), None)
-
-				if child_row:
-					# Only update fields that are provided in the row
-					if "purchase_number" in row:
-						child_row.set("purchase_number", row["purchase_number"])
-					# Always update date_time when updating purchase_number
-					if "purchase_number" in row:
-						child_row.set("date_time", now_datetime())
-				else:
-					# Only append new row if purchase_number is provided
-					if "purchase_number" in row:
-						doc.append("purchase_number", {
-							"purchase_number": row["purchase_number"],
-							"date_time": now_datetime()
-						})
-
-		# Child Table 2: items → Dispatch Order Items - only update provided fields
-		if "items" in data and isinstance(data["items"], list):
-			for row in data["items"]:
-				if not row:
-					continue
-
-				child_row = None
-				if "name" in row:
-					child_row = next((r for r in doc.items if r.name == row["name"]), None)
-
-				if child_row:
-					# Only update fields that are provided in the row
-					item_fields = [
-						"po_number", "product_code", "product_name", "description", "quantity",
-						"hsnsac", "uom", "rate", "amount", "dispatch_qty", "pending_qty",
-						"coa_document", "msds_document"
-					]
-					for key in item_fields:
-						if key in row:  # Only update if field is provided
-							child_row.set(key, row[key])
-				else:
-					# For new rows, only set fields that are provided
-					new_row_data = {}
-					item_fields = [
-						"po_number", "product_code", "product_name", "description", "quantity",
-						"hsnsac", "uom", "rate", "amount", "dispatch_qty", "pending_qty",
-						"coa_document", "msds_document"
-					]
-					for key in item_fields:
-						if key in row:  # Only include field if it's provided
-							new_row_data[key] = row.get(key)
+		# Handle child table data
+		child_tables = {}
+		
+		# Parse child table data from form
+		for key, value in form_data.items():
+			# Handle child table format like: items[0][product_code] or purchase_number[1][purchase_number]
+			if '[' in key and ']' in key:
+				# Extract table name, row index, and field name
+				parts = key.split('[')
+				if len(parts) >= 3:
+					table_name = parts[0]
+					row_index = parts[1].replace(']', '')
+					field_name = parts[2].replace(']', '')
 					
-					if new_row_data:  # Only append if there's at least one field provided
-						child_row = doc.append("items", new_row_data)
+					if table_name not in child_tables:
+						child_tables[table_name] = {}
+					
+					if row_index not in child_tables[table_name]:
+						child_tables[table_name][row_index] = {}
+					
+					child_tables[table_name][row_index][field_name] = value
 
-		# Save or insert the document to generate name (required for attachments)
+		# Process child tables
+		for table_name, rows in child_tables.items():
+			if meta.has_field(table_name):
+				field = meta.get_field(table_name)
+				if field.fieldtype == "Table":
+					
+					for row_index, row_data in rows.items():
+						if not row_data:
+							continue
+							
+						child_row = None
+						
+						# For updates, try to find existing row by name
+						if is_update and "name" in row_data:
+							existing_rows = getattr(doc, table_name, [])
+							child_row = next((r for r in existing_rows if r.name == row_data["name"]), None)
+						
+						if child_row:
+							# Update existing child row - only update provided fields
+							for field_name, field_value in row_data.items():
+								if field_name != "name":  # Don't update name field
+									child_row.set(field_name, field_value)
+						else:
+							# Create new child row - only include provided fields
+							new_row_data = {}
+							for field_name, field_value in row_data.items():
+								new_row_data[field_name] = field_value
+							
+							if new_row_data:
+								doc.append(table_name, new_row_data)
+
+		# Save the document first to generate name (required for attachments)
 		if is_update:
 			doc.save(ignore_permissions=True)
 		else:
 			doc.insert(ignore_permissions=True)
 
-		# Attach fields - only process if files are uploaded
-		file_keys = [
-			"packing_list_attachment",
-			"invoice_attachment",
-			"commercial_attachment",
-			"e_way_bill_attachment",
-			"test_certificates_attachment"
-		]
-
-		for key in file_keys:
-			if key in frappe.request.files:
-				file = frappe.request.files[key]
-				saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-				doc.set(key, saved.file_url)
-
-		# Handle child table attachments - only if files are uploaded
-		if "items" in data and isinstance(data["items"], list):
-			for i, row in enumerate(data["items"]):
-				if not row:
-					continue
-				
-				# Find the corresponding child row
-				child_row = None
-				if "name" in row:
-					child_row = next((r for r in doc.items if r.name == row["name"]), None)
-				elif i < len(doc.items):
-					child_row = doc.items[i]
-				
-				if child_row:
-					for attach_field in ["coa_document", "msds_document"]:
-						file_key = f"{attach_field}"
-						if file_key in frappe.request.files:
-							uploaded_file = frappe.request.files[file_key]
+		# Handle file attachments dynamically
+		if frappe.request.files:
+			for file_key, uploaded_file in frappe.request.files.items():
+				if uploaded_file and uploaded_file.filename:
+					
+					# Check if this is a main document attachment field
+					if meta.has_field(file_key):
+						field = meta.get_field(file_key)
+						if field.fieldtype in ["Attach", "Attach Image"]:
 							saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
-							child_row.set(attach_field, saved.file_url)
+							doc.set(file_key, saved.file_url)
+					
+					# Handle child table attachments (format: tablename_rowindex_fieldname)
+					elif '_' in file_key:
+						parts = file_key.split('_')
+						if len(parts) >= 3:
+							table_name = parts[0]
+							row_index = parts[1]
+							field_name = '_'.join(parts[2:])  # Join remaining parts for field name
+							
+							if meta.has_field(table_name):
+								table_field = meta.get_field(table_name)
+								if table_field.fieldtype == "Table":
+									existing_rows = getattr(doc, table_name, [])
+									if row_index.isdigit() and int(row_index) < len(existing_rows):
+										child_row = existing_rows[int(row_index)]
+										saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
+										child_row.set(field_name, saved.file_url)
 
-		# Final save to persist attachments and child updates
+		# Final save to persist all changes including attachments
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
 		return {
 			"status": "success",
-			"message": "Dispatch Item saved successfully.",
-			"name": doc.name
+			"message": f"Dispatch Item {'updated' if is_update else 'created'} successfully.",
+			"dis_name":f"{doc.name}",
+			"operation": "update" if is_update else "create"
 		}
 
 	except Exception as e:
@@ -144,150 +150,7 @@ def update_dispatch_item(data):
 		frappe.log_error(frappe.get_traceback(), "Dispatch Item API Error")
 		return {
 			"status": "error",
-			"message": "Failed to save Dispatch Item.",
-			"error": str(e)
-		}@frappe.whitelist(allow_guest=True)
-def update_dispatch_item(data):
-	try:
-		if isinstance(data, str):
-			data = json.loads(data)
-
-		is_update = "name" in data and data["name"]
-
-		if is_update:
-			doc = frappe.get_doc("Dispatch Item", data["name"])
-		else:
-			doc = frappe.new_doc("Dispatch Item")
-
-		# Top-level fields - only update if key exists in data
-		top_fields = [
-			"naming_series", "courier_number", "courier_name", "docket_number",
-			"dispatch_date", "invoice_number", "invoice_date", "status", "invoice_amount",
-			"vendor_code"
-		]
-
-		for field in top_fields:
-			if field in data:  # Only update if field is provided
-				doc.set(field, data[field])
-
-		# Child Table 1: purchase_number - only update if key exists
-		if "purchase_number" in data and isinstance(data["purchase_number"], list):
-			for row in data["purchase_number"]:
-				if not row:
-					continue
-
-				child_row = None
-				if "name" in row:
-					child_row = next((r for r in doc.purchase_number if r.name == row["name"]), None)
-
-				if child_row:
-					# Only update fields that are provided in the row
-					if "purchase_number" in row:
-						child_row.set("purchase_number", row["purchase_number"])
-					# Always update date_time when updating purchase_number
-					if "purchase_number" in row:
-						child_row.set("date_time", now_datetime())
-				else:
-					# Only append new row if purchase_number is provided
-					if "purchase_number" in row:
-						doc.append("purchase_number", {
-							"purchase_number": row["purchase_number"],
-							"date_time": now_datetime()
-						})
-
-		# Child Table 2: items → Dispatch Order Items - only update provided fields
-		if "items" in data and isinstance(data["items"], list):
-			for row in data["items"]:
-				if not row:
-					continue
-
-				child_row = None
-				if "name" in row:
-					child_row = next((r for r in doc.items if r.name == row["name"]), None)
-
-				if child_row:
-					# Only update fields that are provided in the row
-					item_fields = [
-						"po_number", "product_code", "product_name", "description", "quantity",
-						"hsnsac", "uom", "rate", "amount", "dispatch_qty", "pending_qty",
-						"coa_document", "msds_document"
-					]
-					for key in item_fields:
-						if key in row:  # Only update if field is provided
-							child_row.set(key, row[key])
-				else:
-					# For new rows, only set fields that are provided
-					new_row_data = {}
-					item_fields = [
-						"po_number", "product_code", "product_name", "description", "quantity",
-						"hsnsac", "uom", "rate", "amount", "dispatch_qty", "pending_qty",
-						"coa_document", "msds_document"
-					]
-					for key in item_fields:
-						if key in row:  # Only include field if it's provided
-							new_row_data[key] = row.get(key)
-					
-					if new_row_data:  # Only append if there's at least one field provided
-						child_row = doc.append("items", new_row_data)
-
-		# Save or insert the document to generate name (required for attachments)
-		if is_update:
-			doc.save(ignore_permissions=True)
-		else:
-			doc.insert(ignore_permissions=True)
-
-		# Attach fields - only process if files are uploaded
-		file_keys = [
-			"packing_list_attachment",
-			"invoice_attachment",
-			"commercial_attachment",
-			"e_way_bill_attachment",
-			"test_certificates_attachment"
-		]
-
-		for key in file_keys:
-			if key in frappe.request.files:
-				file = frappe.request.files[key]
-				saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-				doc.set(key, saved.file_url)
-
-		# Handle child table attachments - only if files are uploaded
-		if "items" in data and isinstance(data["items"], list):
-			for i, row in enumerate(data["items"]):
-				if not row:
-					continue
-				
-				# Find the corresponding child row
-				child_row = None
-				if "name" in row:
-					child_row = next((r for r in doc.items if r.name == row["name"]), None)
-				elif i < len(doc.items):
-					child_row = doc.items[i]
-				
-				if child_row:
-					for attach_field in ["coa_document", "msds_document"]:
-						file_key = f"{attach_field}"
-						if file_key in frappe.request.files:
-							uploaded_file = frappe.request.files[file_key]
-							saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
-							child_row.set(attach_field, saved.file_url)
-
-		# Final save to persist attachments and child updates
-		doc.save(ignore_permissions=True)
-		frappe.db.commit()
-
-		return {
-			"status": "success",
-			"message": "Dispatch Item saved successfully.",
-			"dis_name":f"{doc.name}"
-		}
-
-	except Exception as e:
-		frappe.db.rollback()
-		frappe.log_error(frappe.get_traceback(), "Dispatch Item API Error")
-		return {
-			"status": "error",
-			"message": "Failed to save Dispatch Item.",
+			"message": f"Failed to {'update' if 'is_update' in locals() and is_update else 'create'} Dispatch Item.",
 			"error": str(e)
 		}
 
