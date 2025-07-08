@@ -234,7 +234,18 @@ def submit_dispatch_item(data=None):
 		# Get all form fields from frappe.form_dict
 		for key, value in frappe.form_dict.items():
 			if key and value is not None and value != '':
-				form_data[key] = value
+				# Special handling for 'data' field containing JSON
+				if key == "data":
+					try:
+						if isinstance(value, str):
+							json_data = json.loads(value)
+							form_data.update(json_data)
+						else:
+							form_data.update(value)
+					except:
+						form_data[key] = value
+				else:
+					form_data[key] = value
 		
 		# If data parameter is passed, merge it
 		if data:
@@ -270,10 +281,19 @@ def submit_dispatch_item(data=None):
 		# Handle child table data
 		child_tables = {}
 		
-		# Parse child table data from form
+		# Parse child table data from form - handle both array format and bracket notation
 		for key, value in form_data.items():
+			# Handle direct child table arrays (like your JSON structure)
+			if meta.has_field(key):
+				field = meta.get_field(key)
+				if field.fieldtype == "Table" and isinstance(value, list):
+					child_tables[key] = {}
+					for idx, row_data in enumerate(value):
+						if row_data:
+							child_tables[key][str(idx)] = row_data
+			
 			# Handle child table format like: purchase_number[0][purchase_number]
-			if '[' in key and ']' in key:
+			elif '[' in key and ']' in key:
 				# Extract table name, row index, and field name
 				parts = key.split('[')
 				if len(parts) >= 3:
@@ -365,7 +385,7 @@ def submit_dispatch_item(data=None):
 										child_row.set(field_name, saved.file_url)
 
 		# Set dispatch form as submitted
-		# doc.dispatch_form_submitted = 1
+		doc.dispatch_form_submitted = 1
 		doc.save(ignore_permissions=True)
 
 		frappe.db.commit()
