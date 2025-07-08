@@ -59,6 +59,7 @@ def get_full_data_pur_req(name):
 
 				data["purchase_requisition_form_table"] = [
 					row.as_dict() for row in doc.purchase_requisition_form_table
+					if not row.get("is_deleted")
 				]
 
 				return {
@@ -84,6 +85,7 @@ def get_full_data_pur_req(name):
 		}
 
 
+# get pr table data in format
 @frappe.whitelist(allow_guest=True)
 def get_pur_req_table_data(name):
 	try:
@@ -97,7 +99,10 @@ def get_pur_req_table_data(name):
 
 		grouped_data = {}
 		for row in sorted(doc.purchase_requisition_form_table, key=lambda x: x.idx):
-			head_no = str(row.item_number_of_purchase_requisition_head)
+			if row.get("is_deleted") == 1:
+				continue 
+
+			head_no = str(row.item_number_of_purchase_requisition_head or "")
 
 			if not head_no:
 				continue
@@ -161,6 +166,8 @@ def get_pur_req_table_data(name):
 
 		return {
 			"status": "success",
+			"docname": doc.name,
+			"Form Status": doc.form_status,	
 			"data": final_result
 		}
 
@@ -371,3 +378,73 @@ def update_pr_table_subhead_form(data):
 			"error": str(e)
 		}
 
+# delete pr table row
+@frappe.whitelist(allow_guest=True)
+def delete_pr_table_row(name, row_id):
+	try:
+		if not name or not row_id:
+			return {
+				"status": "error",
+				"message": "'name' and 'row_id' are required."
+			}
+
+		doc = frappe.get_doc("Purchase Requisition Webform", name)
+		found = False
+
+		for row in doc.purchase_requisition_form_table:
+			if row.name == row_id:
+				row.is_deleted = 1
+				found = True
+				break
+
+		if not found:
+			return {
+				"status": "error",
+				"message": f"Row with ID '{row_id}' not found in document '{name}'."
+			}
+
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": f"Row '{row_id}' marked as deleted successfully."
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Delete PR Table Row Error")
+		return {
+			"status": "error",
+			"message": "Failed to mark row as deleted.",
+			"error": str(e)
+		}
+
+# submit the pr form
+@frappe.whitelist(allow_guest=True)
+def submit_pr_form(name):
+	try:
+		if not name:
+			return {
+				"status": "error",
+				"message": "'name' is required."
+			}
+		
+		doc = frappe.get_doc("Purchase Requisition Webform", name)
+		doc.form_is_submitted = 1
+		doc.form_status = "Submitted"
+
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": f"Purchase Requisition Webform '{name}' submitted successfully."
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Submit PR Form Error")
+		return {
+			"status": "error",
+			"message": "Failed to submit the Purchase Requisition Webform.",
+			"error": str(e)
+		}
