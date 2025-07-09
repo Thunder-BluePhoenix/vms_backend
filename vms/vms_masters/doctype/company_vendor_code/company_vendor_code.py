@@ -95,7 +95,7 @@ class CompanyVendorCode(Document):
 							# Iterate through vendor_code table in Company Vendor Code doc
 							for vendor_code_row in company_vendor_code_doc.vendor_code:
 								vendor_info = {
-									'company_name': getattr(company_vendor_code_doc, 'company_name', ''),
+									'company_name': getattr(company_vendor_code_doc, 'company_description', ''),
 									'state': getattr(vendor_code_row, 'state', ''),
 									'gst_no': getattr(vendor_code_row, 'gst_no', ''),
 									'vendor_code': getattr(vendor_code_row, 'vendor_code', '')
