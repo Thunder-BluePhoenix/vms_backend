@@ -8,6 +8,7 @@ from frappe import _
 
 class DispatchItem(Document):
 	def on_update(self, method=None):
+		calculate_pending_qty(self, method=None)
 		try:
 			for row in self.purchase_number:
 				if not row.purchase_number:
@@ -38,3 +39,12 @@ class DispatchItem(Document):
 
 		except Exception as e:
 			frappe.log_error(frappe.get_traceback(), "DispatchItem after_insert Error")
+
+
+# calculating Pending Qty 
+def calculate_pending_qty(doc, method=None):
+	try:
+		for row in doc.items:
+			row.pending_qty = int(row.quantity) - int(row.dispatch_qty)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "Pending Qty Calculation Error")
