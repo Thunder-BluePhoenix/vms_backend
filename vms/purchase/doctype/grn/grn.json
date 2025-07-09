@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-07-09 12:55:02.401170",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "grn_details_section",
+  "naming_series",
+  "grn_no",
+  "column_break_wynz",
+  "grn_date",
+  "grn_items_section",
+  "grn_items_table"
+ ],
+ "fields": [
+  {
+   "fieldname": "grn_details_section",
+   "fieldtype": "Section Break",
+   "label": "GRN Details"
+  },
+  {
+   "fieldname": "grn_no",
+   "fieldtype": "Data",
+   "label": "GRN No."
+  },
+  {
+   "fieldname": "grn_items_section",
+   "fieldtype": "Section Break",
+   "label": "GRN Items"
+  },
+  {
+   "fieldname": "grn_items_table",
+   "fieldtype": "Table",
+   "label": "GRN Items Table",
+   "options": "GRN Items"
+  },
+  {
+   "fieldname": "column_break_wynz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "grn_date",
+   "fieldtype": "Date",
+   "label": "GRN Date"
+  },
+  {
+   "bold": 1,
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "GRN-.YYYY.-.MM.-",
+   "print_hide": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-09 14:11:16.887258",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "GRN",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,6 +1,38 @@
 import frappe
 import json
 
+# Get Cart Details based on cart id
+@frappe.whitelist(allow_guest=True)
+def get_cart_details(cart_id):
+	try:
+		if not cart_id:
+			return {
+				"status": "error",
+				"message": "cart_id is required"
+			}
+
+		doc = frappe.get_doc("Cart Details", cart_id)
+
+		return {
+			"status": "success",
+			"data": {
+				"requisitioner": doc.user,
+				"company": doc.company,
+				"plant": doc.plant,
+				"purchase_group": doc.purchase_group,
+				"purchase_type": doc.purchase_type
+			}
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Get Cart Details Error")
+		return {
+			"status": "error",
+			"message": "Failed to fetch cart details",
+			"error": str(e)
+		}
+	
+
 # create purchase requisition webform doc based on cart id and append the table
 
 @frappe.whitelist(allow_guest=True)
@@ -14,6 +46,7 @@ def create_purchase_requisition(cart_id):
 		# Create one purchase requisition document for all items
 		pur_req = frappe.new_doc("Purchase Requisition Webform")
 		pur_req.cart_details_id = cart_id  
+		pur_req.requisitioner = cart_details.user
 		pur_req.company = cart_details.company  
 		pur_req.purchase_group = cart_details.purchase_group  
 		pur_req.purchase_requisition_type = cart_details.purchase_type  
@@ -138,29 +171,30 @@ def get_pur_req_table_data(name):
 						"subhead_fields": []
 				}
 
-			grouped_data[head_no]["subhead_fields"].append({
-				"row_name": row.name,
-				"sub_head_unique_id": row.sub_head_unique_id,
-				"purchase_requisition_item_subhead": row.purchase_requisition_item_subhead,
-				"item_number_of_purchase_requisition_subhead": row.item_number_of_purchase_requisition_subhead,
-				"purchase_requisition_date_subhead": row.purchase_requisition_date_subhead,
-				"delivery_date_subhead": row.delivery_date_subhead,
-				"store_location_subhead": row.store_location_subhead,
-				"item_category_subhead": row.item_category_subhead,
-				"material_group_subhead": row.material_group_subhead,
-				"uom_subhead": row.uom_subhead,
-				"cost_center_subhead": row.cost_center_subhead,
-				"main_asset_no_subhead": row.main_asset_no_subhead,
-				"asset_subnumber_subhead": row.asset_subnumber_subhead,
-				"profit_ctr_subhead": row.profit_ctr_subhead,
-				"short_text_subhead": row.short_text_subhead,
-				"quantity_subhead": row.quantity_subhead,
-				"price_of_purchase_requisition_subhead": row.price_of_purchase_requisition_subhead,
-				"gl_account_number_subhead": row.gl_account_number_subhead,
-				"material_code_subhead": row.material_code_subhead,
-				"account_assignment_category_subhead": row.account_assignment_category_subhead,
-				"purchase_group_subhead": row.purchase_group_subhead
-			})
+			if row.get("is_created"):
+				grouped_data[head_no]["subhead_fields"].append({
+					"row_name": row.name,
+					"sub_head_unique_id": row.sub_head_unique_id,
+					"purchase_requisition_item_subhead": row.purchase_requisition_item_subhead,
+					"item_number_of_purchase_requisition_subhead": row.item_number_of_purchase_requisition_subhead,
+					"purchase_requisition_date_subhead": row.purchase_requisition_date_subhead,
+					"delivery_date_subhead": row.delivery_date_subhead,
+					"store_location_subhead": row.store_location_subhead,
+					"item_category_subhead": row.item_category_subhead,
+					"material_group_subhead": row.material_group_subhead,
+					"uom_subhead": row.uom_subhead,
+					"cost_center_subhead": row.cost_center_subhead,
+					"main_asset_no_subhead": row.main_asset_no_subhead,
+					"asset_subnumber_subhead": row.asset_subnumber_subhead,
+					"profit_ctr_subhead": row.profit_ctr_subhead,
+					"short_text_subhead": row.short_text_subhead,
+					"quantity_subhead": row.quantity_subhead,
+					"price_of_purchase_requisition_subhead": row.price_of_purchase_requisition_subhead,
+					"gl_account_number_subhead": row.gl_account_number_subhead,
+					"material_code_subhead": row.material_code_subhead,
+					"account_assignment_category_subhead": row.account_assignment_category_subhead,
+					"purchase_group_subhead": row.purchase_group_subhead
+				})
 
 		final_result = list(grouped_data.values())
 

@@ -1,0 +1,346 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-09 12:53:04.084349",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "grn_table_items_section",
+  "plant",
+  "grn_item",
+  "movement_type",
+  "pr_item",
+  "pr_requester",
+  "po_no",
+  "po_date",
+  "material_description",
+  "po_delivery_date",
+  "quantity",
+  "uom",
+  "material_receipt_date",
+  "quantity_4",
+  "grn_status",
+  "reason_for_rejection",
+  "po_created_by",
+  "gate_entry_date",
+  "gate_entry",
+  "transporter",
+  "pending_days",
+  "account_doc_no",
+  "ref_invoice_no",
+  "column_break_hfep",
+  "grn_number",
+  "grn_date",
+  "pr_no",
+  "pr_date",
+  "pr_cost_center",
+  "po_item",
+  "material",
+  "batch_no",
+  "vendor_batch_no",
+  "vendor_code",
+  "vendor_name",
+  "invoice_no",
+  "qunatity_2",
+  "quantity_3",
+  "rtv_inv_no",
+  "qc_clearance_date",
+  "grn_submit_to_ac",
+  "gr_covering_note_ref",
+  "remarks",
+  "vehicle_no",
+  "gate_entry_description",
+  "account_doc_year"
+ ],
+ "fields": [
+  {
+   "fieldname": "plant",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Plant"
+  },
+  {
+   "fieldname": "grn_item",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "GRN Item"
+  },
+  {
+   "fieldname": "movement_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Movement Type"
+  },
+  {
+   "fieldname": "pr_item",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PR Item"
+  },
+  {
+   "fieldname": "column_break_hfep",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "grn_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "GRN Number"
+  },
+  {
+   "fieldname": "grn_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "GRN Date"
+  },
+  {
+   "fieldname": "pr_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PR No."
+  },
+  {
+   "fieldname": "pr_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "PR Date"
+  },
+  {
+   "fieldname": "pr_requester",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PR Requester"
+  },
+  {
+   "fieldname": "pr_cost_center",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PR Cost Center"
+  },
+  {
+   "fieldname": "po_no",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "PO No.",
+   "options": "Purchase Order"
+  },
+  {
+   "fieldname": "po_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "PO Date"
+  },
+  {
+   "fieldname": "po_item",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PO Item"
+  },
+  {
+   "fieldname": "material_description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Material Description"
+  },
+  {
+   "fieldname": "material",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Batch No."
+  },
+  {
+   "fieldname": "vendor_batch_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Vendor Batch No."
+  },
+  {
+   "fieldname": "vendor_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Vendor Code"
+  },
+  {
+   "fieldname": "po_delivery_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "PO Delivery Date"
+  },
+  {
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Vendor Name"
+  },
+  {
+   "fieldname": "invoice_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Invoice No."
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "UOM"
+  },
+  {
+   "fieldname": "qunatity_2",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Qunatity 2"
+  },
+  {
+   "fieldname": "material_receipt_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Material Receipt Date"
+  },
+  {
+   "fieldname": "quantity_4",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity 4"
+  },
+  {
+   "fieldname": "quantity_3",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity 3"
+  },
+  {
+   "fieldname": "rtv_inv_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "RTV Inv. No."
+  },
+  {
+   "fieldname": "grn_status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "GRN Status"
+  },
+  {
+   "fieldname": "qc_clearance_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "QC Clearance Date"
+  },
+  {
+   "fieldname": "reason_for_rejection",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Reason for Rejection"
+  },
+  {
+   "fieldname": "grn_submit_to_ac",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "GRN Submit to A/c"
+  },
+  {
+   "fieldname": "gr_covering_note_ref",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "GR Covering Note Ref"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "po_created_by",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PO Created By"
+  },
+  {
+   "fieldname": "gate_entry_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Gate Entry Date"
+  },
+  {
+   "fieldname": "gate_entry",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Gate Entry"
+  },
+  {
+   "fieldname": "vehicle_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Vehicle No."
+  },
+  {
+   "fieldname": "transporter",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Transporter"
+  },
+  {
+   "fieldname": "gate_entry_description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Gate Entry Description"
+  },
+  {
+   "fieldname": "pending_days",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Pending Days"
+  },
+  {
+   "fieldname": "account_doc_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Account Doc. No."
+  },
+  {
+   "fieldname": "account_doc_year",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Account Doc. Year"
+  },
+  {
+   "fieldname": "ref_invoice_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Ref. Invoice No."
+  },
+  {
+   "fieldname": "grn_table_items_section",
+   "fieldtype": "Section Break",
+   "label": "GRN Table Items"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-09 12:53:04.084349",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "GRN Items",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

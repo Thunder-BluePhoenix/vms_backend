@@ -55,7 +55,8 @@
   "material_code_subhead",
   "account_assignment_category_subhead",
   "purchase_group_subhead",
-  "is_deleted"
+  "is_deleted",
+  "is_created"
  ],
  "fields": [
   {
@@ -364,13 +365,19 @@
    "fieldname": "is_deleted",
    "fieldtype": "Check",
    "label": "Is deleted"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_created",
+   "fieldtype": "Check",
+   "label": "Is created"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-08 12:18:03.553128",
+ "modified": "2025-07-09 14:51:19.547186",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform Table",
