@@ -435,10 +435,6 @@ def submit_dispatch_item(data=None):
 		}
 	
 
-
-
-
-	
 @frappe.whitelist(allow_guest=True)
 def submit_child_dispatch_item(data):
 	try:
@@ -447,58 +443,59 @@ def submit_child_dispatch_item(data):
 
 		doc = frappe.get_doc("Dispatch Item", data["name"])
 
-		if "items" in data and isinstance(data["items"], list):
-			for row in data["items"]:
-				if not row:
-					continue
+		row_name = data.get("row_name")
 
-				child_row = None
-				if "name" in row:
-					child_row = next((r for r in doc.items if r.name == row["name"]), None)
+		child_row = None
+		if row_name:
+			child_row = next((r for r in doc.items if r.name == row_name), None)
 
-				if child_row:
-					for key in [
-						"po_number", "product_code", "product_name", "description", "quantity",
-						"hsnsac", "uom", "rate", "amount", "dispatch_qty", "pending_qty",
-						"coa_document", "msds_document"
-					]:
-						if key in row:
-							child_row.set(key, row[key])
-				else:
-					child_row = doc.append("items", {
-						"po_number": row.get("po_number"),
-						"product_code": row.get("product_code"),
-						"product_name": row.get("product_name"),
-						"description": row.get("description"),
-						"quantity": row.get("quantity"),
-						"hsnsac": row.get("hsnsac"),
-						"uom": row.get("uom"),
-						"rate": row.get("rate"),
-						"amount": row.get("amount"),
-						"dispatch_qty": row.get("dispatch_qty"),
-						"pending_qty": row.get("pending_qty"),
-						"coa_document": row.get("coa_document"),
-						"msds_document": row.get("msds_document")
-					})
+		if child_row:
+			# Update existing row
+			for key in [
+				"po_number", "product_code", "product_name", "description", "quantity",
+				"hsnsac", "uom", "rate", "amount", "dispatch_qty", "pending_qty",
+				"coa_document", "msds_document"
+			]:
+				if key in data:
+					child_row.set(key, data[key])
+		else:
+			# Append new row
+			child_row = doc.append("items", {
+				"po_number": data.get("po_number"),
+				"product_code": data.get("product_code"),
+				"product_name": data.get("product_name"),
+				"description": data.get("description"),
+				"quantity": data.get("quantity"),
+				"hsnsac": data.get("hsnsac"),
+				"uom": data.get("uom"),
+				"rate": data.get("rate"),
+				"amount": data.get("amount"),
+				"dispatch_qty": data.get("dispatch_qty"),
+				"pending_qty": data.get("pending_qty"),
+				"coa_document": data.get("coa_document"),
+				"msds_document": data.get("msds_document")
+			})
 
-				# Handle file uploads for each item
-				for attach_field in ["coa_document", "msds_document"]:
-					file_key = f"{attach_field}"
-					if file_key in frappe.request.files:
-						uploaded_file = frappe.request.files[file_key]
-						saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
-						child_row.set(attach_field, saved.file_url)
-		
-		if data.get("submit") == 1:
-			doc.dispatch_form_submitted = 1
+		# Handle file uploads for this row
+		for attach_field in ["coa_document", "msds_document"]:
+			if attach_field in frappe.request.files:
+				uploaded_file = frappe.request.files[attach_field]
+				saved = save_file(
+					uploaded_file.filename,
+					uploaded_file.stream.read(),
+					doc.doctype,
+					doc.name,
+					is_private=1
+				)
+				child_row.set(attach_field, saved.file_url)
 
-		# Final save to persist attachments and child updates
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
 		return {
 			"status": "success",
-			"message": "Child items submitted successfully."
+			"message": "Child row processed successfully.",
+			"row_name": child_row.name
 		}
 
 	except Exception as e:
@@ -506,7 +503,55 @@ def submit_child_dispatch_item(data):
 		frappe.log_error(frappe.get_traceback(), "Child Dispatch Item Submit Error")
 		return {
 			"status": "error",
-			"message": "Failed to submit child dispatch items.",
+			"message": "Failed to process child dispatch item.",
+			"error": str(e)
+		}
+
+
+# submit the dispatch item doc
+@frappe.whitelist(allow_guest=True)
+def submit_dispatch_item(data):
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
+
+		doc = frappe.get_doc("Dispatch Item", data.get("name"))
+
+		if data.get("submit") == 1:
+			doc.dispatch_form_submitted = 1
+
+			for row in doc.purchase_number:
+				if row.purchase_number:
+					pur_team_email = frappe.db.get_value("Purchase Order", row.purchase_number, "email")
+					if pur_team_email:
+						frappe.sendmail(
+							recipients=[pur_team_email],
+							subject="Dispatch Item Submitted",
+							message="""
+								Dear Purchase Team,<br><br>
+								A user has submitted a Dispatch Item.<br>
+								Please review it and take necessary action.<br><br>
+								Regards,<br>
+								VMS Team
+							""",
+							now=True
+						)
+
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": "Dispatch item submitted successfully.",
+			"name": doc.name
+		}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Dispatch Item Submit Error")
+		return {
+			"status": "error",
+			"message": "Failed to process dispatch item.",
 			"error": str(e)
 		}
 

@@ -556,6 +556,7 @@ def send_registration_email_link(vendor_onboarding, refno):
             }
 
         onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+        vendor_master = frappe.get_doc("Vendor Master", onboarding_doc.ref_no)
 
         if onboarding_doc.registered_for_multi_companies == 1:
             mul_docs = frappe.get_all(
@@ -588,7 +589,8 @@ def send_registration_email_link(vendor_onboarding, refno):
         if onboarding_doc.qms_required == "Yes":
             query_params = urlencode({
                 "vendor_onboarding": onboarding_doc.name,
-                "ref_no": onboarding_doc.ref_no
+                "ref_no": onboarding_doc.ref_no,
+                "mobile_number": vendor_master.mobile_number
             })
             http_backend_server = frappe.conf.get("backend_http")
             webform_link = f"{http_backend_server}/qms-webform/new?{query_params}"

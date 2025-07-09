@@ -54,7 +54,8 @@
   "gl_account_number_subhead",
   "material_code_subhead",
   "account_assignment_category_subhead",
-  "purchase_group_subhead"
+  "purchase_group_subhead",
+  "is_deleted"
  ],
  "fields": [
   {
@@ -357,13 +358,19 @@
    "fieldtype": "Link",
    "label": "Plant",
    "options": "Plant Master"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_deleted",
+   "fieldtype": "Check",
+   "label": "Is deleted"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-07 15:50:46.052088",
+ "modified": "2025-07-08 12:18:03.553128",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform Table",
