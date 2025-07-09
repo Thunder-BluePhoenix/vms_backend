@@ -16,7 +16,12 @@ class DispatchItem(Document):
 				po = frappe.get_doc("Purchase Order", row.purchase_number)
 
 				for item in po.po_items:
+					# Skip if item already added
+					if any(existing.row_id == item.name for existing in self.items):
+						continue
+
 					self.append("items", {
+						"row_id": item.name,
 						"po_number": po.name,
 						"product_code": item.product_code,
 						"product_name": item.product_name,
