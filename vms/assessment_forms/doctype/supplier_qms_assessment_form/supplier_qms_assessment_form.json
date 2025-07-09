@@ -732,6 +732,7 @@
   {
    "fieldname": "license_registrations_attach",
    "fieldtype": "Attach",
+   "ignore_user_permissions": 1,
    "label": "3a.License Registrations Attach"
   },
   {
@@ -903,7 +904,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-20 17:35:34.822127",
+ "modified": "2025-07-08 17:35:33.205471",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
