@@ -487,7 +487,7 @@ def approved_vendor_details(usr):
         
         fields=[
             "name", "ref_no", "company_name", "vendor_name", "onboarding_form_status", "modified",
-            "purchase_t_approval", "accounts_t_approval", "purchase_h_approval",
+            "purchase_t_approval", "accounts_t_approval", "purchase_h_approval", "vendor_country", "registered_by",
             "mandatory_data_filled", "purchase_team_undertaking", "accounts_team_undertaking", "purchase_head_undertaking",
             "form_fully_submitted_by_vendor", "sent_registration_email_link", "rejected", "data_sent_to_sap", "expired",
             "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
