@@ -25,6 +25,7 @@
   "short_text_head",
   "line_item_number_head",
   "company_code_area_head",
+  "c_delivery_date_head",
   "column_break_vhsb",
   "quantity_head",
   "price_of_purchase_requisition_head",
@@ -494,13 +495,18 @@
    "fieldname": "company_code_area_head",
    "fieldtype": "Data",
    "label": "Company Code Area"
+  },
+  {
+   "fieldname": "c_delivery_date_head",
+   "fieldtype": "Date",
+   "label": "C Delivery Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-10 15:52:42.991511",
+ "modified": "2025-07-10 16:56:52.098208",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform Table",
