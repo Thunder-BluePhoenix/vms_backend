@@ -366,6 +366,124 @@ def update_pr_table_head_form(data):
 
 # create pr table subhead form
 
+# @frappe.whitelist(allow_guest=True)
+# def create_pr_table_subhead_form(data):
+# 	try:
+# 		if isinstance(data, str):
+# 			data = json.loads(data)
+
+# 		docname = data.get("name")
+# 		rows = data.get("data")
+
+# 		if not docname or not rows or not isinstance(rows, list):
+# 			return {
+# 				"status": "error",
+# 				"message": "'name' and 'data' (as a list) are required."
+# 			}
+
+# 		doc = frappe.get_doc("Purchase Requisition Webform", docname)
+# 		created_rows = []
+# 		updated_rows = []
+
+# 		for head in rows:
+# 			row_name = head.get("row_name")
+# 			head_row = None
+
+# 			if row_name:
+# 				head_row = next((r for r in doc.purchase_requisition_form_table if r.name == row_name), None)
+
+# 			if not head_row:
+# 				continue
+
+# 			subheads = head.get("subhead_fields", [])
+
+# 			for idx, subhead in enumerate(subheads):
+# 				if idx == 0 and head_row and not head_row.is_created:
+# 					# Update existing head row with first subhead
+# 					for field, value in subhead.items():
+# 						if hasattr(head_row, field):
+# 							setattr(head_row, field, value)
+# 					head_row.is_created = 1
+# 					updated_rows.append(head_row.name)
+# 				else:
+# 					# Create new row for remaining subheads
+# 					new_row = doc.append("purchase_requisition_form_table", {
+# 						"row_name": head_row.name,
+# 						"head_unique_id": head_row.head_unique_id,
+# 						"purchase_requisition_item_head": head_row.purchase_requisition_item_head,
+# 						"item_number_of_purchase_requisition_head": head_row.item_number_of_purchase_requisition_head,
+# 						"purchase_requisition_date_head": head_row.purchase_requisition_date_head,
+# 						"purchase_requisition_type": head_row.purchase_requisition_type,
+# 						"delivery_date_head": head_row.delivery_date_head,
+# 						"store_location_head": head_row.store_location_head,
+# 						"item_category_head": head_row.item_category_head,
+# 						"material_group_head": head_row.material_group_head,
+# 						"uom_head": head_row.uom_head,
+# 						"cost_center_head": head_row.cost_center_head,
+# 						"main_asset_no_head": head_row.main_asset_no_head,
+# 						"asset_subnumber_head": head_row.asset_subnumber_head,
+# 						"profit_ctr_head": head_row.profit_ctr_head,
+# 						"short_text_head": head_row.short_text_head,
+# 						"quantity_head": head_row.quantity_head,
+# 						"price_of_purchase_requisition_head": head_row.price_of_purchase_requisition_head,
+# 						"gl_account_number_head": head_row.gl_account_number_head,
+# 						"material_code_head": head_row.material_code_head,
+# 						"account_assignment_category_head": head_row.account_assignment_category_head,
+# 						"purchase_group_head": head_row.purchase_group_head,
+# 						"product_name_head": head_row.product_name_head,
+# 						"product_price_head": head_row.product_price_head,
+# 						"final_price_by_purchase_team_head": head_row.final_price_by_purchase_team_head,
+# 						"lead_time_head": head_row.lead_time_head,
+# 						"plant": head_row.plant,
+
+# 						# subhead fields
+# 						"sub_head_unique_id": subhead.get("sub_head_unique_id"),
+# 						"purchase_requisition_item_subhead": subhead.get("purchase_requisition_item_subhead"),
+# 						"item_number_of_purchase_requisition_subhead": subhead.get("item_number_of_purchase_requisition_subhead"),
+# 						"purchase_requisition_date_subhead": subhead.get("purchase_requisition_date_subhead"),
+# 						"delivery_date_subhead": subhead.get("delivery_date_subhead"),
+# 						"store_location_subhead": subhead.get("store_location_subhead"),
+# 						"item_category_subhead": subhead.get("item_category_subhead"),
+# 						"material_group_subhead": subhead.get("material_group_subhead"),
+# 						"uom_subhead": subhead.get("uom_subhead"),
+# 						"cost_center_subhead": subhead.get("cost_center_subhead"),
+# 						"main_asset_no_subhead": subhead.get("main_asset_no_subhead"),
+# 						"asset_subnumber_subhead": subhead.get("asset_subnumber_subhead"),
+# 						"profit_ctr_subhead": subhead.get("profit_ctr_subhead"),
+# 						"short_text_subhead": subhead.get("short_text_subhead"),
+# 						"quantity_subhead": subhead.get("quantity_subhead"),
+# 						"price_of_purchase_requisition_subhead": subhead.get("price_of_purchase_requisition_subhead"),
+# 						"gl_account_number_subhead": subhead.get("gl_account_number_subhead"),
+# 						"material_code_subhead": subhead.get("material_code_subhead"),
+# 						"account_assignment_category_subhead": subhead.get("account_assignment_category_subhead"),
+# 						"purchase_group_subhead": subhead.get("purchase_group_subhead"),
+# 						"is_created": 1,
+# 						"is_deleted": 0
+# 					})
+# 					created_rows.append(new_row.name)
+
+# 		doc.save(ignore_permissions=True)
+# 		frappe.db.commit()
+
+# 		return {
+# 			"status": "success",
+# 			"message": f"{len(updated_rows)} subhead(s) updated, {len(created_rows)} created.",
+# 			"updated_rows": updated_rows,
+# 			"created_rows": created_rows
+# 		}
+
+# 	except Exception as e:
+# 		frappe.db.rollback()
+# 		frappe.log_error(frappe.get_traceback(), "Create PR Subhead Form Error")
+# 		return {
+# 			"status": "error",
+# 			"message": "Failed to create/update subhead rows.",
+# 			"error": str(e)
+# 		}
+
+
+# create pr table subhead form one by one
+
 @frappe.whitelist(allow_guest=True)
 def create_pr_table_subhead_form(data):
 	try:
@@ -373,103 +491,104 @@ def create_pr_table_subhead_form(data):
 			data = json.loads(data)
 
 		docname = data.get("name")
-		rows = data.get("data")
+		row_name = data.get("row_name")
 
-		if not docname or not rows or not isinstance(rows, list):
+		if not docname or not row_name:
 			return {
 				"status": "error",
-				"message": "'name' and 'data' (as a list) are required."
+				"message": "'name' and 'row_name' are required."
 			}
 
 		doc = frappe.get_doc("Purchase Requisition Webform", docname)
-		created_rows = []
-		updated_rows = []
+		head_row = next((r for r in doc.purchase_requisition_form_table if r.name == row_name), None)
 
-		for head in rows:
-			row_name = head.get("row_name")
-			head_row = None
+		if not head_row:
+			return {
+				"status": "error",
+				"message": f"Row '{row_name}' not found in document '{docname}'."
+			}
 
-			if row_name:
-				head_row = next((r for r in doc.purchase_requisition_form_table if r.name == row_name), None)
+		subhead_fields = [
+			"sub_head_unique_id",
+			"purchase_requisition_item_subhead",
+			"item_number_of_purchase_requisition_subhead",
+			"purchase_requisition_date_subhead",
+			"delivery_date_subhead",
+			"store_location_subhead",
+			"item_category_subhead",
+			"material_group_subhead",
+			"uom_subhead",
+			"cost_center_subhead",
+			"main_asset_no_subhead",
+			"asset_subnumber_subhead",
+			"profit_ctr_subhead",
+			"short_text_subhead",
+			"quantity_subhead",
+			"price_of_purchase_requisition_subhead",
+			"gl_account_number_subhead",
+			"material_code_subhead",
+			"account_assignment_category_subhead",
+			"purchase_group_subhead"
+		]
 
-			if not head_row:
-				continue
+		head_fields = [
+			"head_unique_id",
+			"purchase_requisition_item_head",
+			"item_number_of_purchase_requisition_head",
+			"purchase_requisition_date_head",
+			"purchase_requisition_type",
+			"delivery_date_head",
+			"store_location_head",
+			"item_category_head",
+			"material_group_head",
+			"uom_head",
+			"cost_center_head",
+			"main_asset_no_head",
+			"asset_subnumber_head",
+			"profit_ctr_head",
+			"short_text_head",
+			"quantity_head",
+			"price_of_purchase_requisition_head",
+			"gl_account_number_head",
+			"material_code_head",
+			"account_assignment_category_head",
+			"purchase_group_head",
+			"product_name_head",
+			"product_price_head",
+			"final_price_by_purchase_team_head",
+			"lead_time_head",
+			"plant"
+		]
 
-			subheads = head.get("subhead_fields", [])
-
-			for idx, subhead in enumerate(subheads):
-				if idx == 0 and head_row and not head_row.is_created:
-					# Update existing head row with first subhead
-					for field, value in subhead.items():
-						if hasattr(head_row, field):
-							setattr(head_row, field, value)
-					head_row.is_created = 1
-					updated_rows.append(head_row.name)
-				else:
-					# Create new row for remaining subheads
-					new_row = doc.append("purchase_requisition_form_table", {
-						"row_name": head_row.name,
-						"head_unique_id": head_row.head_unique_id,
-						"purchase_requisition_item_head": head_row.purchase_requisition_item_head,
-						"item_number_of_purchase_requisition_head": head_row.item_number_of_purchase_requisition_head,
-						"purchase_requisition_date_head": head_row.purchase_requisition_date_head,
-						"purchase_requisition_type": head_row.purchase_requisition_type,
-						"delivery_date_head": head_row.delivery_date_head,
-						"store_location_head": head_row.store_location_head,
-						"item_category_head": head_row.item_category_head,
-						"material_group_head": head_row.material_group_head,
-						"uom_head": head_row.uom_head,
-						"cost_center_head": head_row.cost_center_head,
-						"main_asset_no_head": head_row.main_asset_no_head,
-						"asset_subnumber_head": head_row.asset_subnumber_head,
-						"profit_ctr_head": head_row.profit_ctr_head,
-						"short_text_head": head_row.short_text_head,
-						"quantity_head": head_row.quantity_head,
-						"price_of_purchase_requisition_head": head_row.price_of_purchase_requisition_head,
-						"gl_account_number_head": head_row.gl_account_number_head,
-						"material_code_head": head_row.material_code_head,
-						"account_assignment_category_head": head_row.account_assignment_category_head,
-						"purchase_group_head": head_row.purchase_group_head,
-						"product_name_head": head_row.product_name_head,
-						"product_price_head": head_row.product_price_head,
-						"final_price_by_purchase_team_head": head_row.final_price_by_purchase_team_head,
-						"lead_time_head": head_row.lead_time_head,
-						"plant": head_row.plant,
-
-						# subhead fields
-						"sub_head_unique_id": subhead.get("sub_head_unique_id"),
-						"purchase_requisition_item_subhead": subhead.get("purchase_requisition_item_subhead"),
-						"item_number_of_purchase_requisition_subhead": subhead.get("item_number_of_purchase_requisition_subhead"),
-						"purchase_requisition_date_subhead": subhead.get("purchase_requisition_date_subhead"),
-						"delivery_date_subhead": subhead.get("delivery_date_subhead"),
-						"store_location_subhead": subhead.get("store_location_subhead"),
-						"item_category_subhead": subhead.get("item_category_subhead"),
-						"material_group_subhead": subhead.get("material_group_subhead"),
-						"uom_subhead": subhead.get("uom_subhead"),
-						"cost_center_subhead": subhead.get("cost_center_subhead"),
-						"main_asset_no_subhead": subhead.get("main_asset_no_subhead"),
-						"asset_subnumber_subhead": subhead.get("asset_subnumber_subhead"),
-						"profit_ctr_subhead": subhead.get("profit_ctr_subhead"),
-						"short_text_subhead": subhead.get("short_text_subhead"),
-						"quantity_subhead": subhead.get("quantity_subhead"),
-						"price_of_purchase_requisition_subhead": subhead.get("price_of_purchase_requisition_subhead"),
-						"gl_account_number_subhead": subhead.get("gl_account_number_subhead"),
-						"material_code_subhead": subhead.get("material_code_subhead"),
-						"account_assignment_category_subhead": subhead.get("account_assignment_category_subhead"),
-						"purchase_group_subhead": subhead.get("purchase_group_subhead"),
-						"is_created": 1,
-						"is_deleted": 0
-					})
-					created_rows.append(new_row.name)
+		if not head_row.is_created:
+			for field in subhead_fields:
+				value = data.get(field)
+				if value not in [None, ""]:
+					setattr(head_row, field, value)
+			head_row.is_created = 1
+			updated_row = head_row.name
+			created_row = None
+		else:
+			new_row = doc.append("purchase_requisition_form_table", {})
+			for field in head_fields:
+				new_row.set(field, head_row.get(field))
+			for field in subhead_fields:
+				value = data.get(field)
+				if value not in [None, ""]:
+					new_row.set(field, value)
+			new_row.is_created = 1
+			new_row.is_deleted = 0
+			created_row = new_row.name
+			updated_row = None
 
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
 		return {
 			"status": "success",
-			"message": f"{len(updated_rows)} subhead(s) updated, {len(created_rows)} created.",
-			"updated_rows": updated_rows,
-			"created_rows": created_rows
+			"message": "Subhead row processed successfully.",
+			"updated_row": updated_row,
+			"created_row": created_row
 		}
 
 	except Exception as e:
@@ -477,7 +596,7 @@ def create_pr_table_subhead_form(data):
 		frappe.log_error(frappe.get_traceback(), "Create PR Subhead Form Error")
 		return {
 			"status": "error",
-			"message": "Failed to create/update subhead rows.",
+			"message": "Failed to create/update subhead row.",
 			"error": str(e)
 		}
 
