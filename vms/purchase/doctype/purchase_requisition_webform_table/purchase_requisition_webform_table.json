@@ -8,6 +8,7 @@
  "field_order": [
   "head_fields_section",
   "head_unique_id",
+  "status_head",
   "purchase_requisition_item_head",
   "item_number_of_purchase_requisition_head",
   "purchase_requisition_date_head",
@@ -21,8 +22,10 @@
   "main_asset_no_head",
   "asset_subnumber_head",
   "profit_ctr_head",
-  "column_break_vhsb",
   "short_text_head",
+  "line_item_number_head",
+  "company_code_area_head",
+  "column_break_vhsb",
   "quantity_head",
   "price_of_purchase_requisition_head",
   "gl_account_number_head",
@@ -33,7 +36,17 @@
   "product_price_head",
   "final_price_by_purchase_team_head",
   "lead_time_head",
-  "plant",
+  "plant_head",
+  "requisitioner_name_head",
+  "tracking_id_head",
+  "desired_vendor_head",
+  "valuation_area_head",
+  "fixed_value_head",
+  "spit_head",
+  "purchase_organisation_head",
+  "agreement_head",
+  "item_of_head",
+  "mpn_number_head",
   "sub_head_fields_section",
   "sub_head_unique_id",
   "purchase_requisition_item_subhead",
@@ -48,14 +61,20 @@
   "main_asset_no_subhead",
   "asset_subnumber_subhead",
   "profit_ctr_subhead",
-  "column_break_bpcj",
   "short_text_subhead",
+  "column_break_bpcj",
   "quantity_subhead",
   "price_of_purchase_requisition_subhead",
   "gl_account_number_subhead",
   "material_code_subhead",
   "account_assignment_category_subhead",
   "purchase_group_subhead",
+  "line_item_number_subhead",
+  "service_number_subhead",
+  "gross_price_subhead",
+  "currency_subhead",
+  "service_type_subhead",
+  "net_value_subhead",
   "is_deleted",
   "is_created"
  ],
@@ -356,12 +375,6 @@
    "label": "Sub Head Unique ID"
   },
   {
-   "fieldname": "plant",
-   "fieldtype": "Link",
-   "label": "Plant",
-   "options": "Plant Master"
-  },
-  {
    "default": "0",
    "fieldname": "is_deleted",
    "fieldtype": "Check",
@@ -378,13 +391,116 @@
    "fieldtype": "Link",
    "label": "Purchase Requisition Type",
    "options": "Purchase Requisition Type"
+  },
+  {
+   "fieldname": "status_head",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "plant_head",
+   "fieldtype": "Link",
+   "label": "Plant",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "requisitioner_name_head",
+   "fieldtype": "Data",
+   "label": "Requisitioner Name"
+  },
+  {
+   "fieldname": "tracking_id_head",
+   "fieldtype": "Data",
+   "label": "Tracking ID"
+  },
+  {
+   "fieldname": "desired_vendor_head",
+   "fieldtype": "Data",
+   "label": "Desired Vendor"
+  },
+  {
+   "fieldname": "valuation_area_head",
+   "fieldtype": "Data",
+   "label": "Valuation Area"
+  },
+  {
+   "fieldname": "fixed_value_head",
+   "fieldtype": "Data",
+   "label": "Fixed Value"
+  },
+  {
+   "fieldname": "spit_head",
+   "fieldtype": "Data",
+   "label": "SPIT"
+  },
+  {
+   "fieldname": "purchase_organisation_head",
+   "fieldtype": "Link",
+   "label": "Purchase Organisation",
+   "options": "Purchase Organization Master"
+  },
+  {
+   "fieldname": "agreement_head",
+   "fieldtype": "Data",
+   "label": "Agreement"
+  },
+  {
+   "fieldname": "item_of_head",
+   "fieldtype": "Data",
+   "label": "Item of"
+  },
+  {
+   "fieldname": "mpn_number_head",
+   "fieldtype": "Data",
+   "label": "MPN Number"
+  },
+  {
+   "fieldname": "line_item_number_head",
+   "fieldtype": "Data",
+   "label": "Line Item Number"
+  },
+  {
+   "fieldname": "line_item_number_subhead",
+   "fieldtype": "Data",
+   "label": "Line Item Number"
+  },
+  {
+   "fieldname": "service_number_subhead",
+   "fieldtype": "Data",
+   "label": "Service Number"
+  },
+  {
+   "fieldname": "gross_price_subhead",
+   "fieldtype": "Data",
+   "label": "Gross Price"
+  },
+  {
+   "fieldname": "currency_subhead",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "service_type_subhead",
+   "fieldtype": "Data",
+   "label": "Service Type"
+  },
+  {
+   "fieldname": "net_value_subhead",
+   "fieldtype": "Data",
+   "label": "Net Value"
+  },
+  {
+   "fieldname": "company_code_area_head",
+   "fieldtype": "Data",
+   "label": "Company Code Area"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-10 11:28:07.345101",
+ "modified": "2025-07-10 15:52:42.991511",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform Table",

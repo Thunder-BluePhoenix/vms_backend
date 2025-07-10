@@ -145,6 +145,7 @@ def get_pur_req_table_data(name):
 				grouped_data[head_no] = {
 						"row_name": row.name,
 						"head_unique_id": row.head_unique_id,
+						"status_head": row.status_head,
 						"purchase_requisition_item_head": row.purchase_requisition_item_head,
 						"item_number_of_purchase_requisition_head": row.item_number_of_purchase_requisition_head,
 						"purchase_requisition_date_head": row.purchase_requisition_date_head,
@@ -159,6 +160,8 @@ def get_pur_req_table_data(name):
 						"asset_subnumber_head": row.asset_subnumber_head,
 						"profit_ctr_head": row.profit_ctr_head,
 						"short_text_head": row.short_text_head,
+						"line_item_number_head": row.line_item_number_head,
+						"company_code_area_head": row.company_code_area_head,
 						"quantity_head": row.quantity_head,
 						"price_of_purchase_requisition_head": row.price_of_purchase_requisition_head,
 						"gl_account_number_head": row.gl_account_number_head,
@@ -169,7 +172,17 @@ def get_pur_req_table_data(name):
 						"product_price_head": row.product_price_head,
 						"final_price_by_purchase_team_head": row.final_price_by_purchase_team_head,
 						"lead_time_head": row.lead_time_head,
-						"plant": row.plant,
+						"plant_head": row.plant_head,
+						"requisitioner_name_head": row.requisitioner_name_head,
+						"tracking_id_head": row.tracking_id_head,
+						"desired_vendor_head": row.desired_vendor_head,
+						"valuation_area_head": row.valuation_area_head,
+						"fixed_value_head": row.fixed_value_head,
+						"spit_head": row.spit_head,
+						"purchase_organisation_head": row.purchase_organisation_head,
+						"agreement_head": row.agreement_head,
+						"item_of_head": row.item_of_head,
+						"mpn_number_head": row.mpn_number_head,
 						"subhead_fields": []
 				}
 
@@ -195,7 +208,13 @@ def get_pur_req_table_data(name):
 					"gl_account_number_subhead": row.gl_account_number_subhead,
 					"material_code_subhead": row.material_code_subhead,
 					"account_assignment_category_subhead": row.account_assignment_category_subhead,
-					"purchase_group_subhead": row.purchase_group_subhead
+					"purchase_group_subhead": row.purchase_group_subhead,
+					"line_item_number_subhead": row.line_item_number_subhead,
+					"service_number_subhead": row.service_number_subhead,
+					"gross_price_subhead": row.gross_price_subhead,
+					"currency_subhead": row.currency_subhead,
+					"service_type_subhead": row.service_type_subhead,
+					"net_value_subhead": row.net_value_subhead,
 				})
 
 		final_result = list(grouped_data.values())
@@ -280,6 +299,8 @@ def create_update_pr_table_head_form(data):
 					"asset_subnumber_head": update_row.get("asset_subnumber_head"),
 					"profit_ctr_head": update_row.get("profit_ctr_head"),
 					"short_text_head": update_row.get("short_text_head"),
+					"line_item_number_head": update_row.get("line_item_number_head"),
+					"company_code_area_head": update_row.get("company_code_area_head"),
 					"quantity_head": update_row.get("quantity_head"),
 					"price_of_purchase_requisition_head": update_row.get("price_of_purchase_requisition_head"),
 					"gl_account_number_head": update_row.get("gl_account_number_head"),
@@ -290,7 +311,17 @@ def create_update_pr_table_head_form(data):
 					"product_price_head": update_row.get("product_price_head"),
 					"final_price_by_purchase_team_head": update_row.get("final_price_by_purchase_team_head"),
 					"lead_time_head": update_row.get("lead_time_head"),
-					"plant": update_row.get("plant")
+					"plant_head": update_row.get("plant_head"),
+					"requisitioner_name_head": update_row.get("requisitioner_name_head"),
+					"tracking_id_head": update_row.get("tracking_id_head"),
+					"desired_vendor_head": update_row.get("desired_vendor_head"),
+					"valuation_area_head": update_row.get("valuation_area_head"),
+					"fixed_value_head": update_row.get("fixed_value_head"),
+					"spit_head": update_row.get("spit_head"),
+					"purchase_organisation_head": update_row.get("purchase_organisation_head"),
+					"agreement_head": update_row.get("agreement_head"),
+					"item_of_head": update_row.get("item_of_head"),
+					"mpn_number_head": update_row.get("mpn_number_head")
 				})
 				created_rows.append(new_row.name)
 
@@ -528,7 +559,13 @@ def create_pr_table_subhead_form(data):
 			"gl_account_number_subhead",
 			"material_code_subhead",
 			"account_assignment_category_subhead",
-			"purchase_group_subhead"
+			"purchase_group_subhead",
+			"line_item_number_subhead",
+			"service_number_subhead",
+			"gross_price_subhead",
+			"currency_subhead",
+			"service_type_subhead",
+			"net_value_subhead"
 		]
 
 		head_fields = [
@@ -547,6 +584,8 @@ def create_pr_table_subhead_form(data):
 			"asset_subnumber_head",
 			"profit_ctr_head",
 			"short_text_head",
+			"line_item_number_head",
+			"company_code_area_head",
 			"quantity_head",
 			"price_of_purchase_requisition_head",
 			"gl_account_number_head",
@@ -557,7 +596,17 @@ def create_pr_table_subhead_form(data):
 			"product_price_head",
 			"final_price_by_purchase_team_head",
 			"lead_time_head",
-			"plant"
+			"plant_head",
+			"requisitioner_name_head",
+			"tracking_id_head",
+			"desired_vendor_head",
+			"valuation_area_head",
+			"fixed_value_head",
+			"spit_head",
+			"purchase_organisation_head",
+			"agreement_head",
+			"item_of_head",
+			"mpn_number_head"
 		]
 
 		if not head_row.is_created:
@@ -609,70 +658,57 @@ def update_pr_table_subhead_form(data):
 			data = json.loads(data)
 
 		docname = data.get("name")
-		rows = data.get("rows")
+		row_name = data.get("row_name")
 
-		if not docname or not rows or not isinstance(rows, list):
+		if not docname or not row_name:
 			return {
 				"status": "error",
-				"message": "'name' and 'rows' (as a list) are required."
+				"message": "'name' and 'row_name' are required."
 			}
 
 		doc = frappe.get_doc("Purchase Requisition Webform", docname)
-		updated_rows = []
+		subhead_fields = [
+			"purchase_requisition_item_subhead",
+			"item_number_of_purchase_requisition_subhead",
+			"purchase_requisition_date_subhead",
+			"delivery_date_subhead",
+			"store_location_subhead",
+			"item_category_subhead",
+			"material_group_subhead",
+			"uom_subhead",
+			"cost_center_subhead",
+			"main_asset_no_subhead",
+			"asset_subnumber_subhead",
+			"profit_ctr_subhead",
+			"short_text_subhead",
+			"quantity_subhead",
+			"price_of_purchase_requisition_subhead",
+			"gl_account_number_subhead",
+			"material_code_subhead",
+			"account_assignment_category_subhead",
+			"purchase_group_subhead",
+			"line_item_number_subhead",
+			"service_number_subhead",
+			"gross_price_subhead",
+			"currency_subhead",
+			"service_type_subhead",
+			"net_value_subhead"
+		]
 
-		for update_row in rows:
-			row_name = update_row.get("row_name")
-			if not row_name:
-				continue
+		row_found = False
+		for row in doc.purchase_requisition_form_table:
+			if row.name == row_name:
+				for field in subhead_fields:
+					value = data.get(field)
+					if value not in [None, ""]:
+						setattr(row, field, value)
+				row_found = True
+				break
 
-			for row in doc.purchase_requisition_form_table:
-				if row.name == row_name:
-					if "purchase_requisition_item_subhead" in update_row:
-						row.purchase_requisition_item_subhead = update_row["purchase_requisition_item_subhead"]
-					if "item_number_of_purchase_requisition_subhead" in update_row:
-						row.item_number_of_purchase_requisition_subhead = update_row["item_number_of_purchase_requisition_subhead"]
-					if "purchase_requisition_date_subhead" in update_row:
-						row.purchase_requisition_date_subhead = update_row["purchase_requisition_date_subhead"]
-					if "delivery_date_subhead" in update_row:
-						row.delivery_date_subhead = update_row["delivery_date_subhead"]
-					if "store_location_subhead" in update_row:
-						row.store_location_subhead = update_row["store_location_subhead"]
-					if "item_category_subhead" in update_row:
-						row.item_category_subhead = update_row["item_category_subhead"]
-					if "material_group_subhead" in update_row:
-						row.material_group_subhead = update_row["material_group_subhead"]
-					if "uom_subhead" in update_row:
-						row.uom_subhead = update_row["uom_subhead"]
-					if "cost_center_subhead" in update_row:
-						row.cost_center_subhead = update_row["cost_center_subhead"]
-					if "main_asset_no_subhead" in update_row:
-						row.main_asset_no_subhead = update_row["main_asset_no_subhead"]
-					if "asset_subnumber_subhead" in update_row:
-						row.asset_subnumber_subhead = update_row["asset_subnumber_subhead"]
-					if "profit_ctr_subhead" in update_row:
-						row.profit_ctr_subhead = update_row["profit_ctr_subhead"]
-					if "short_text_subhead" in update_row:
-						row.short_text_subhead = update_row["short_text_subhead"]
-					if "quantity_subhead" in update_row:
-						row.quantity_subhead = update_row["quantity_subhead"]
-					if "price_of_purchase_requisition_subhead" in update_row:
-						row.price_of_purchase_requisition_subhead = update_row["price_of_purchase_requisition_subhead"]
-					if "gl_account_number_subhead" in update_row:
-						row.gl_account_number_subhead = update_row["gl_account_number_subhead"]
-					if "material_code_subhead" in update_row:
-						row.material_code_subhead = update_row["material_code_subhead"]
-					if "account_assignment_category_subhead" in update_row:
-						row.account_assignment_category_subhead = update_row["account_assignment_category_subhead"]
-					if "purchase_group_subhead" in update_row:
-						row.purchase_group_subhead = update_row["purchase_group_subhead"]
-
-					updated_rows.append(row_name)
-					break
-
-		if not updated_rows:
+		if not row_found:
 			return {
 				"status": "error",
-				"message": "No matching subhead rows found to update."
+				"message": f"No matching subhead row found with name '{row_name}'."
 			}
 
 		doc.save(ignore_permissions=True)
@@ -680,15 +716,15 @@ def update_pr_table_subhead_form(data):
 
 		return {
 			"status": "success",
-			"message": f"{len(updated_rows)} subhead row(s) updated successfully.",
-			"updated_rows": updated_rows
+			"message": f"Subhead row '{row_name}' updated successfully.",
+			"updated_row": row_name
 		}
 
 	except Exception as e:
 		frappe.log_error(frappe.get_traceback(), "Update PR Subhead Form Error")
 		return {
 			"status": "error",
-			"message": "Failed to update subhead row data.",
+			"message": "Failed to update subhead row.",
 			"error": str(e)
 		}
 
