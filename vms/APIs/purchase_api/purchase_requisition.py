@@ -322,83 +322,29 @@ def update_pr_table_head_form(data):
 			data = json.loads(data)
 
 		docname = data.get("name")
-		rows = data.get("rows")
+		row_name = data.get("row_name")
 
-		if not docname or not rows or not isinstance(rows, list):
+		if not docname or not row_name:
 			return {
 				"status": "error",
-				"message": "'name' and 'rows' (as a list) are required."
+				"message": "'name' and 'row_name' are required."
 			}
 
 		doc = frappe.get_doc("Purchase Requisition Webform", docname)
+		updated = False
 
-		updated_rows = []
+		for row in doc.purchase_requisition_form_table:
+			if row.name == row_name:
+				for field, value in data.items():
+					if field not in ["name", "row_name"] and hasattr(row, field):
+						setattr(row, field, value if value is not None else "")
+				updated = True
+				break
 
-		for update_row in rows:
-			row_name = update_row.get("row_name")
-			if not row_name:
-				continue
-
-			for row in doc.purchase_requisition_form_table:
-				if row.name == row_name:
-					if "purchase_requisition_item_head" in update_row:
-						row.purchase_requisition_item_head = update_row["purchase_requisition_item_head"]
-					if "item_number_of_purchase_requisition_head" in update_row:
-						row.item_number_of_purchase_requisition_head = update_row["item_number_of_purchase_requisition_head"]
-					if "purchase_requisition_date_head" in update_row:
-						row.purchase_requisition_date_head = update_row["purchase_requisition_date_head"]
-					if "purchase_requisition_type" in update_row:
-						row.purchase_requisition_type = update_row["purchase_requisition_type"]
-					if "delivery_date_head" in update_row:
-						row.delivery_date_head = update_row["delivery_date_head"]
-					if "store_location_head" in update_row:
-						row.store_location_head = update_row["store_location_head"]
-					if "item_category_head" in update_row:
-						row.item_category_head = update_row["item_category_head"]
-					if "material_group_head" in update_row:
-						row.material_group_head = update_row["material_group_head"]
-					if "uom_head" in update_row:
-						row.uom_head = update_row["uom_head"]
-					if "cost_center_head" in update_row:
-						row.cost_center_head = update_row["cost_center_head"]
-					if "main_asset_no_head" in update_row:
-						row.main_asset_no_head = update_row["main_asset_no_head"]
-					if "asset_subnumber_head" in update_row:
-						row.asset_subnumber_head = update_row["asset_subnumber_head"]
-					if "profit_ctr_head" in update_row:
-						row.profit_ctr_head = update_row["profit_ctr_head"]
-					if "short_text_head" in update_row:
-						row.short_text_head = update_row["short_text_head"]
-					if "quantity_head" in update_row:
-						row.quantity_head = update_row["quantity_head"]
-					if "price_of_purchase_requisition_head" in update_row:
-						row.price_of_purchase_requisition_head = update_row["price_of_purchase_requisition_head"]
-					if "gl_account_number_head" in update_row:
-						row.gl_account_number_head = update_row["gl_account_number_head"]
-					if "material_code_head" in update_row:
-						row.material_code_head = update_row["material_code_head"]
-					if "account_assignment_category_head" in update_row:
-						row.account_assignment_category_head = update_row["account_assignment_category_head"]
-					if "purchase_group_head" in update_row:
-						row.purchase_group_head = update_row["purchase_group_head"]
-					if "product_name_head" in update_row:
-						row.product_name_head = update_row["product_name_head"]
-					if "product_price_head" in update_row:
-						row.product_price_head = update_row["product_price_head"]
-					if "final_price_by_purchase_team_head" in update_row:
-						row.final_price_by_purchase_team_head = update_row["final_price_by_purchase_team_head"]
-					if "lead_time_head" in update_row:
-						row.lead_time_head = update_row["lead_time_head"]
-					if "plant" in update_row:
-						row.plant = update_row["plant"]
-
-					updated_rows.append(row_name)
-					break
-
-		if not updated_rows:
+		if not updated:
 			return {
 				"status": "error",
-				"message": "No matching rows found to update."
+				"message": f"No row found with name: {row_name}"
 			}
 
 		doc.save(ignore_permissions=True)
@@ -406,8 +352,7 @@ def update_pr_table_head_form(data):
 
 		return {
 			"status": "success",
-			"message": f"{len(updated_rows)} row(s) updated successfully.",
-			"updated_rows": updated_rows
+			"message": f"Row '{row_name}' updated successfully."
 		}
 
 	except Exception as e:
