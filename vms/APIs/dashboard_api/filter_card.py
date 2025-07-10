@@ -308,6 +308,11 @@ def vendor_data_for_purchase(usr, user_roles):
             }
         )
 
+        po_count = frappe.db.count(
+            "Purchase Order",
+            filters={"email": ["in", user_ids]}
+        )
+
         # Count of Vendor Master records created by users from the same team
         # total_vendor_count = frappe.db.count(
         #     "Vendor Master",
@@ -354,7 +359,8 @@ def vendor_data_for_purchase(usr, user_roles):
             "approved_vendor_count": approved_vendor_count,
             "rejected_vendor_count": rejected_vendor_count,
             "expired_vendor_count": expired_vendor_count,
-            "current_month_vendor": current_month_vendor
+            "current_month_vendor": current_month_vendor,
+            "po_count": po_count
         }
 
     except Exception as e:
@@ -1199,3 +1205,97 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
             "vendor_onboarding": []
         }
 
+
+
+
+
+@frappe.whitelist(allow_guest=False)
+def filtering_po_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None):
+    try:
+        if usr is None:
+            usr = frappe.session.user
+        elif usr != frappe.session.user:
+            return {
+                "status": "error",
+                "message": "User mismatch or unauthorized access.",
+                "code": 404
+            }
+
+        # Base filters
+        conditions = []
+        values = {}
+
+        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+        if not team:
+            return {
+                "status": "error",
+                "message": "No Employee record found for the user.",
+                "po": []
+            }
+
+        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+        if not user_ids:
+            return {
+                "status": "error",
+                "message": "No users found in the same team.",
+                "po": []
+            }
+
+        conditions.append("po.email IN %(user_ids)s")
+        values["user_ids"] = user_ids
+
+        # Add additional filters if provided
+        if company:
+            conditions.append("po.company_code = %(company)s")
+            values["company"] = company
+            
+        # if refno:
+        #     conditions.append("po.ref_no = %(refno)s")
+        #     values["refno"] = refno
+            
+        if status:
+            conditions.append("po.vendor_status = %(status)s")
+            values["status"] = status
+
+        filter_clause = " AND ".join(conditions)
+
+        # Total count for pagination
+        total_count = frappe.db.sql(f"""
+            SELECT COUNT(*) AS count
+            FROM `tabPurchase Order` po
+            WHERE {filter_clause}
+        """, values)[0][0]
+
+        # Pagination
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        offset = (page_no - 1) * page_length
+        values["limit"] = page_length
+        values["offset"] = offset
+
+        # Final query - SELECT * to get all fields
+        po_docs = frappe.db.sql(f"""
+            SELECT po.*
+            FROM `tabPurchase Order` po
+            WHERE {filter_clause}
+            ORDER BY po.creation DESC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """, values, as_dict=True)
+
+        return {
+            "status": "success",
+            "message": "Paginated and filtered po records fetched successfully.",
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length,
+            "total_po": po_docs,
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Total po Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch po onboarding data.",
+            "error": str(e),
+            "po": []
+        }

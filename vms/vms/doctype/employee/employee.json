@@ -36,6 +36,7 @@
   "district",
   "team",
   "subhead",
+  "show_all_purchase_groups",
   "contact_details",
   "cell_number",
   "column_break_deuq",
@@ -267,12 +268,18 @@
    "fieldname": "subhead",
    "fieldtype": "Check",
    "label": "Sub-Head"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_all_purchase_groups",
+   "fieldtype": "Check",
+   "label": "Show All Purchase Groups"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 12:51:36.604119",
+ "modified": "2025-07-10 11:12:30.944035",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",
