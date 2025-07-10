@@ -30,11 +30,20 @@ def get_purchase_team_details(company_name=None):
         )
 
         # Fetch Purchase Groups
-        purchase_groups = frappe.get_all(
-            "Purchase Group Master",
-            filters={"company": company, "team": emp.team},
-            fields=["name", "purchase_group_name", "description"]
-        )
+
+        purchase_groups = []
+        if emp.show_all_purchase_groups == 1:
+            purchase_groups = frappe.get_all(
+                "Purchase Group Master",
+                filters={"company": company},
+                fields=["name", "purchase_group_name", "description"]
+            )
+        else:
+            purchase_groups = frappe.get_all(
+                "Purchase Group Master",
+                filters={"company": company, "team": emp.team},
+                fields=["name", "purchase_group_name", "description"]
+            )
 
         # Fetch Terms of Payment
         terms_of_payment = frappe.get_all(
