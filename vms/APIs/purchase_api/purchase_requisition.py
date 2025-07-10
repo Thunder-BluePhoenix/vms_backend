@@ -59,7 +59,8 @@ def create_purchase_requisition(cart_id):
 				"product_name_head": row.product_name,
 				"product_price_head": row.product_price,
 				"final_price_by_purchase_team_head": row.final_price_by_purchase_team,
-				"lead_time_head": row.lead_time
+				"lead_time_head": row.lead_time,
+				"purchase_requisition_type": cart_details.purchase_type
 			})
 			item_number += 10
 
@@ -147,6 +148,7 @@ def get_pur_req_table_data(name):
 						"purchase_requisition_item_head": row.purchase_requisition_item_head,
 						"item_number_of_purchase_requisition_head": row.item_number_of_purchase_requisition_head,
 						"purchase_requisition_date_head": row.purchase_requisition_date_head,
+						"purchase_requisition_type": row.purchase_requisition_type,
 						"delivery_date_head": row.delivery_date_head,
 						"store_location_head": row.store_location_head,
 						"item_category_head": row.item_category_head,
@@ -267,6 +269,7 @@ def create_update_pr_table_head_form(data):
 					"purchase_requisition_item_head": update_row.get("purchase_requisition_item_head"),
 					"item_number_of_purchase_requisition_head": update_row.get("item_number_of_purchase_requisition_head"),
 					"purchase_requisition_date_head": update_row.get("purchase_requisition_date_head"),
+					"purchase_requisition_type": update_row.get("purchase_requisition_type"),
 					"delivery_date_head": update_row.get("delivery_date_head"),
 					"store_location_head": update_row.get("store_location_head"),
 					"item_category_head": update_row.get("item_category_head"),
@@ -344,6 +347,8 @@ def update_pr_table_head_form(data):
 						row.item_number_of_purchase_requisition_head = update_row["item_number_of_purchase_requisition_head"]
 					if "purchase_requisition_date_head" in update_row:
 						row.purchase_requisition_date_head = update_row["purchase_requisition_date_head"]
+					if "purchase_requisition_type" in update_row:
+						row.purchase_requisition_type = update_row["purchase_requisition_type"]
 					if "delivery_date_head" in update_row:
 						row.delivery_date_head = update_row["delivery_date_head"]
 					if "store_location_head" in update_row:
@@ -463,6 +468,7 @@ def create_pr_table_subhead_form(data):
 						"purchase_requisition_item_head": head_row.purchase_requisition_item_head,
 						"item_number_of_purchase_requisition_head": head_row.item_number_of_purchase_requisition_head,
 						"purchase_requisition_date_head": head_row.purchase_requisition_date_head,
+						"purchase_requisition_type": head_row.purchase_requisition_type,
 						"delivery_date_head": head_row.delivery_date_head,
 						"store_location_head": head_row.store_location_head,
 						"item_category_head": head_row.item_category_head,
