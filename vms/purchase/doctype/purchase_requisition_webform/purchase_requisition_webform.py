@@ -8,7 +8,8 @@ import uuid
 
 class PurchaseRequisitionWebform(Document):
 	def before_save(self):
-		set_unique_id(self, method=None)
+		# set_unique_id(self, method=None)
+		pass
 
 	def on_update(self):
 		send_pur_req_email(self, method=None)
