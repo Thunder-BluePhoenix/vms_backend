@@ -18,6 +18,7 @@
   "general_disclosure_section",
   "valid_consent_from_pollution_control",
   "expiry_date_of_consent",
+  "valid_consent",
   "column_break_tjmk",
   "recycle_plastic_package_material",
   "plans_for_recycle_materials",
@@ -707,12 +708,17 @@
    "fieldname": "vendor_name",
    "fieldtype": "Data",
    "label": "Vendor Name"
+  },
+  {
+   "fieldname": "valid_consent",
+   "fieldtype": "Attach",
+   "label": "Valid Consent proof to Operate (CTO) from Pollution Control Board"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-01 12:19:41.103561",
+ "modified": "2025-07-11 17:36:03.573284",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Annual Supplier Assessment Questionnaire",

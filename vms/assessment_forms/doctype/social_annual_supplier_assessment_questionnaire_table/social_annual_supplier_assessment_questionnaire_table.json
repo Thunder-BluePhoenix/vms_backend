@@ -1,16 +1,11 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-06-16 12:27:18.530248",
+ "creation": "2025-07-11 15:22:33.354628",
  "doctype": "DocType",
+ "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "company_information_section",
-  "annual_supplier_assessment_questionnaire",
-  "name_of_the_company",
-  "column_break_kgek",
-  "location",
-  "name_of_product",
   "labor_rights_and_working_conditions_section",
   "have_prohibition_policy_of_child_labor",
   "upload_file_1",
@@ -69,29 +64,6 @@
   "upload_file_21"
  ],
  "fields": [
-  {
-   "fieldname": "company_information_section",
-   "fieldtype": "Section Break",
-   "label": "Company Information"
-  },
-  {
-   "fetch_from": "annual_supplier_assessment_questionnaire.name_of_the_company",
-   "fieldname": "name_of_the_company",
-   "fieldtype": "Data",
-   "label": "Name of the company"
-  },
-  {
-   "fetch_from": "annual_supplier_assessment_questionnaire.location",
-   "fieldname": "location",
-   "fieldtype": "Data",
-   "label": "Location (Full Address):"
-  },
-  {
-   "fetch_from": "annual_supplier_assessment_questionnaire.name_of_product",
-   "fieldname": "name_of_product",
-   "fieldtype": "Data",
-   "label": "Name of the product/products/services supplied/provided to Meril"
-  },
   {
    "fieldname": "labor_rights_and_working_conditions_section",
    "fieldtype": "Section Break",
@@ -436,40 +408,18 @@
    "fieldtype": "Attach",
    "in_list_view": 1,
    "label": "Upload File"
-  },
-  {
-   "fieldname": "annual_supplier_assessment_questionnaire",
-   "fieldtype": "Link",
-   "label": "Annual Supplier Assessment Questionnaire",
-   "options": "Annual Supplier Assessment Questionnaire"
-  },
-  {
-   "fieldname": "column_break_kgek",
-   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "istable": 1,
  "links": [],
- "modified": "2025-07-11 17:18:02.723014",
+ "modified": "2025-07-11 16:40:07.142840",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
- "name": "Social Annual Supplier Assessment Questionnaire",
+ "name": "Social Annual Supplier Assessment Questionnaire Table",
  "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  }
- ],
+ "permissions": [],
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
