@@ -1,11 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-06-16 12:18:03.326642",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "company_information_section",
+  "naming_series",
   "annual_supplier_assessment_questionnaire",
   "name_of_the_company",
   "column_break_fygz",
@@ -570,12 +572,18 @@
   {
    "fieldname": "column_break_fygz",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "ENV-ASAQ-.YYYY.-"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-11 17:09:37.485888",
+ "modified": "2025-07-12 09:37:06.262622",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Environment Annual Supplier Assessment Questionnaire",

@@ -1,11 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-06-16 12:27:18.530248",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "company_information_section",
+  "naming_series",
   "annual_supplier_assessment_questionnaire",
   "name_of_the_company",
   "column_break_kgek",
@@ -446,12 +448,18 @@
   {
    "fieldname": "column_break_kgek",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "SOC-ASAQ-.YYYY.-"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-11 17:18:02.723014",
+ "modified": "2025-07-12 09:36:27.293264",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Social Annual Supplier Assessment Questionnaire",
