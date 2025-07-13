@@ -130,65 +130,63 @@ def get_pur_req_table_data(name):
 			}
 
 		doc = frappe.get_doc("Purchase Requisition Webform", name)
-
 		grouped_data = {}
+
 		for row in sorted(doc.purchase_requisition_form_table, key=lambda x: x.idx):
-			if row.get("is_deleted") == 1:
-				continue 
-
-			head_no = str(row.item_number_of_purchase_requisition_head or "")
-
-			if not head_no:
+			head_id = row.head_unique_id
+			if not head_id:
 				continue
 
-			if head_no not in grouped_data:
-				grouped_data[head_no] = {
-						"row_name": row.name,
-						"head_unique_id": row.head_unique_id,
-						"status_head": row.status_head,
-						"purchase_requisition_item_head": row.purchase_requisition_item_head,
-						"item_number_of_purchase_requisition_head": row.item_number_of_purchase_requisition_head,
-						"purchase_requisition_date_head": row.purchase_requisition_date_head,
-						"purchase_requisition_type": row.purchase_requisition_type,
-						"delivery_date_head": row.delivery_date_head,
-						"store_location_head": row.store_location_head,
-						"item_category_head": row.item_category_head,
-						"material_group_head": row.material_group_head,
-						"uom_head": row.uom_head,
-						"cost_center_head": row.cost_center_head,
-						"main_asset_no_head": row.main_asset_no_head,
-						"asset_subnumber_head": row.asset_subnumber_head,
-						"profit_ctr_head": row.profit_ctr_head,
-						"short_text_head": row.short_text_head,
-						"line_item_number_head": row.line_item_number_head,
-						"company_code_area_head": row.company_code_area_head,
-						"c_delivery_date_head": row.c_delivery_date_head,
-						"quantity_head": row.quantity_head,
-						"price_of_purchase_requisition_head": row.price_of_purchase_requisition_head,
-						"gl_account_number_head": row.gl_account_number_head,
-						"material_code_head": row.material_code_head,
-						"account_assignment_category_head": row.account_assignment_category_head,
-						"purchase_group_head": row.purchase_group_head,
-						"product_name_head": row.product_name_head,
-						"product_price_head": row.product_price_head,
-						"final_price_by_purchase_team_head": row.final_price_by_purchase_team_head,
-						"lead_time_head": row.lead_time_head,
-						"plant_head": row.plant_head,
-						"requisitioner_name_head": row.requisitioner_name_head,
-						"tracking_id_head": row.tracking_id_head,
-						"desired_vendor_head": row.desired_vendor_head,
-						"valuation_area_head": row.valuation_area_head,
-						"fixed_value_head": row.fixed_value_head,
-						"spit_head": row.spit_head,
-						"purchase_organisation_head": row.purchase_organisation_head,
-						"agreement_head": row.agreement_head,
-						"item_of_head": row.item_of_head,
-						"mpn_number_head": row.mpn_number_head,
-						"subhead_fields": []
+			# Add head if not present
+			if head_id not in grouped_data:
+				grouped_data[head_id] = {
+					"row_name": row.name,
+					"head_unique_id": row.head_unique_id,
+					"status_head": row.status_head,
+					"purchase_requisition_item_head": row.purchase_requisition_item_head,
+					"item_number_of_purchase_requisition_head": row.item_number_of_purchase_requisition_head,
+					"purchase_requisition_date_head": row.purchase_requisition_date_head,
+					"purchase_requisition_type": row.purchase_requisition_type,
+					"delivery_date_head": row.delivery_date_head,
+					"store_location_head": row.store_location_head,
+					"item_category_head": row.item_category_head,
+					"material_group_head": row.material_group_head,
+					"uom_head": row.uom_head,
+					"cost_center_head": row.cost_center_head,
+					"main_asset_no_head": row.main_asset_no_head,
+					"asset_subnumber_head": row.asset_subnumber_head,
+					"profit_ctr_head": row.profit_ctr_head,
+					"short_text_head": row.short_text_head,
+					"line_item_number_head": row.line_item_number_head,
+					"company_code_area_head": row.company_code_area_head,
+					"c_delivery_date_head": row.c_delivery_date_head,
+					"quantity_head": row.quantity_head,
+					"price_of_purchase_requisition_head": row.price_of_purchase_requisition_head,
+					"gl_account_number_head": row.gl_account_number_head,
+					"material_code_head": row.material_code_head,
+					"account_assignment_category_head": row.account_assignment_category_head,
+					"purchase_group_head": row.purchase_group_head,
+					"product_name_head": row.product_name_head,
+					"product_price_head": row.product_price_head,
+					"final_price_by_purchase_team_head": row.final_price_by_purchase_team_head,
+					"lead_time_head": row.lead_time_head,
+					"plant_head": row.plant_head,
+					"requisitioner_name_head": row.requisitioner_name_head,
+					"tracking_id_head": row.tracking_id_head,
+					"desired_vendor_head": row.desired_vendor_head,
+					"valuation_area_head": row.valuation_area_head,
+					"fixed_value_head": row.fixed_value_head,
+					"spit_head": row.spit_head,
+					"purchase_organisation_head": row.purchase_organisation_head,
+					"agreement_head": row.agreement_head,
+					"item_of_head": row.item_of_head,
+					"mpn_number_head": row.mpn_number_head,
+					"subhead_fields": []
 				}
 
-			if row.get("is_created"):
-				grouped_data[head_no]["subhead_fields"].append({
+			# Add subhead if created, not deleted, and not same row as head
+			if row.is_created and not row.is_deleted:
+				subhead_data = {
 					"row_name": row.name,
 					"sub_head_unique_id": row.sub_head_unique_id,
 					"purchase_requisition_item_subhead": row.purchase_requisition_item_subhead,
@@ -215,29 +213,26 @@ def get_pur_req_table_data(name):
 					"gross_price_subhead": row.gross_price_subhead,
 					"currency_subhead": row.currency_subhead,
 					"service_type_subhead": row.service_type_subhead,
-					"net_value_subhead": row.net_value_subhead,
-				})
-
-		final_result = list(grouped_data.values())
+					"net_value_subhead": row.net_value_subhead
+				}
+				grouped_data[head_id]["subhead_fields"].append(subhead_data)
 
 		return {
 			"status": "success",
 			"docname": doc.name,
 			"Requisitioner": doc.requisitioner,
 			"purchase_requisition_type": doc.purchase_requisition_type,
-			"Company" : frappe.db.sql(
+			"Company": frappe.db.sql(
 				"""
 				SELECT name, company_name, description 
 				FROM `tabCompany Master` 
 				WHERE name = %s
-				""",
-				(doc.company,),
-				as_dict=True
+				""", (doc.company,), as_dict=True
 			),
 			"Purchase Group": doc.purchase_group,
 			"Cart ID": doc.cart_details_id,
-			"Form Status": doc.form_status,	
-			"data": final_result
+			"Form Status": doc.form_status,
+			"data": list(grouped_data.values())
 		}
 
 	except Exception as e:

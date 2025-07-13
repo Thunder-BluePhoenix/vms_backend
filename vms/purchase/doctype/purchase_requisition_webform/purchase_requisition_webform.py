@@ -8,8 +8,8 @@ import uuid
 
 class PurchaseRequisitionWebform(Document):
 	def before_save(self):
-		# set_unique_id(self, method=None)
-		pass
+		set_unique_id(self, method=None)
+		# pass
 
 	def on_update(self):
 		send_pur_req_email(self, method=None)
@@ -238,27 +238,29 @@ def set_unique_id(doc, method=None):
 	try:
 		item_head_map = {}
 
-		#  Build map from existing head_unique_ids
+		# Step 1: Build map of existing head_unique_ids
 		for row in doc.purchase_requisition_form_table:
-			item_number = str(row.item_number_of_purchase_requisition_head).strip() if row.item_number_of_purchase_requisition_head else None
-			if item_number and row.head_unique_id:
-				item_head_map[item_number] = row.head_unique_id
+			head_no = str(row.item_number_of_purchase_requisition_head).strip() if row.item_number_of_purchase_requisition_head else None
+			if head_no and row.head_unique_id:
+				item_head_map[head_no] = row.head_unique_id
 
-		# Assign missing IDs
+		# Step 2: Assign missing unique IDs
 		for row in doc.purchase_requisition_form_table:
-			item_number = str(row.item_number_of_purchase_requisition_head).strip() if row.item_number_of_purchase_requisition_head else None
-			if item_number:
+			head_no = str(row.item_number_of_purchase_requisition_head).strip() if row.item_number_of_purchase_requisition_head else None
+			if head_no:
+				# Assign head_unique_id (same for head and all subheads under it)
 				if not row.head_unique_id:
-					if item_number in item_head_map:
-						row.head_unique_id = item_head_map[item_number]
+					if head_no in item_head_map:
+						row.head_unique_id = item_head_map[head_no]
 					else:
-						short_head_id = str(uuid.uuid4())[:8]
-						item_head_map[item_number] = short_head_id
-						row.head_unique_id = short_head_id
+						new_uid = str(uuid.uuid4())[:8]
+						item_head_map[head_no] = new_uid
+						row.head_unique_id = new_uid
 
+				# Assign sub_head_unique_id only if not already set
 				if not row.sub_head_unique_id:
 					row.sub_head_unique_id = str(uuid.uuid4())[:8]
 
-	except Exception as e:
+	except Exception:
 		frappe.log_error(frappe.get_traceback(), "Set Unique ID Error")
 		raise
