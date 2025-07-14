@@ -790,18 +790,24 @@ def vendor_registration_multi(data):
                 if not is_duplicate:
                     vendor_master.append("multiple_company_data", row)
 
-        if "vendor_types" in data and isinstance(data["vendor_types"], list):
-            for row in data["vendor_types"]:
-                if not isinstance(row, dict):
-                    continue
-                    
-                is_duplicate = any(
-                    (existing.vendor_type or "").lower().strip() == (row.get("vendor_type") or "").lower().strip()
-                    for existing in vendor_master.vendor_types
-                )
-                
-                if not is_duplicate:
-                    vendor_master.append("vendor_types", row)
+        # Update vendor_types in Vendor Master (across all purchase_details entries)
+        all_vendor_types = set()
+
+        for row in data.get("purchase_details", []):
+            for vendor_type_entry in row.get("vendor_types", []):
+                vt = (vendor_type_entry.get("vendor_type") or "").strip().lower()
+                if vt:
+                    all_vendor_types.add(vt)
+
+        for vt in all_vendor_types:
+            is_duplicate = any(
+                (existing.vendor_type or "").strip().lower() == vt
+                for existing in vendor_master.vendor_types
+            )
+            if not is_duplicate:
+                vendor_master.append("vendor_types", {
+                    "vendor_type": vt
+                })
 
         # Save vendor master
         try:
@@ -909,18 +915,20 @@ def vendor_registration_multi(data):
                         })
 
                 # Add vendor types (avoiding duplicates)
-                if "vendor_types" in data and isinstance(data["vendor_types"], list):
-                    for row in data["vendor_types"]:
-                        if not isinstance(row, dict):
-                            continue
-                            
-                        is_duplicate = any(
-                            (existing.vendor_type or "").lower().strip() == (row.get("vendor_type") or "").lower().strip()
-                            for existing in vendor_onboarding.get("vendor_types", [])
-                        )
-                        
-                        if not is_duplicate:
-                            vendor_onboarding.append("vendor_types", row)
+                for vendor_type_entry in mc.get("vendor_types", []):
+                    vt = (vendor_type_entry.get("vendor_type") or "").strip().lower()
+                    if not vt:
+                        continue
+
+                    is_duplicate = any(
+                        (existing.vendor_type or "").strip().lower() == vt
+                        for existing in vendor_onboarding.vendor_types
+                    )
+
+                    if not is_duplicate:
+                        vendor_onboarding.append("vendor_types", {
+                            "vendor_type": vendor_type_entry.get("vendor_type")
+                        })
 
                 vendor_onboarding.save()
                 frappe.db.commit()
@@ -1065,5 +1073,4 @@ def vendor_registration_multi(data):
             "message": _("Vendor registration failed"),
             "error": str(e),
             "error_code": "GENERAL_ERROR"
-        }
-
+        } 

@@ -10,71 +10,113 @@ class PurchaseRequisitionWebform(Document):
 	def before_save(self):
 		set_unique_id(self, method=None)
 		# pass
-
-	def on_update(self):
 		send_pur_req_email(self, method=None)
 
+	def on_update(self):
 		field_map = [
 			"purchase_requisition_type",
 			"plant",
-			"company_code_area",
 			"company",
 			"requisitioner"
 		]
 
 		child_field_map = {
-			"purchase_requisition_item": "purchase_requisition_item",
-			"item_number_of_purchase_requisition": "item_number_of_purchase_requisition",
-			"purchase_requisition_date": "purchase_requisition_date",
-			"delivery_date": "delivery_date",
-			"store_location": "store_location",
-			"item_category": "item_category",
-			"material_group": "material_group",
-			"uom": "uom",
-			"cost_center": "cost_center",
-			"main_asset_no": "main_asset_no",
-			"asset_subnumber": "asset_subnumber",
-			"profit_ctr": "profit_ctr",
-			"short_text": "short_text",
-			"quantity": "quantity",
-			"gl_account_number": "gl_account_number",
-			"material_code": "material_code",
-			"account_assignment_category": "account_assignment_category",
-			"purchase_group": "purchase_group",
-			"price_of_purchase_requisition": "price_in_purchase_requisition"
+			# Head Fields
+			"purchase_requisition_item_head": "purchase_requisition_item_head",
+			"item_number_of_purchase_requisition_head": "item_number_of_purchase_requisition_head",
+			"purchase_requisition_date_head": "purchase_requisition_date_head",
+			"purchase_requisition_type": "purchase_requisition_type",
+			"delivery_date_head": "delivery_date_head",
+			"store_location_head": "store_location_head",
+			"item_category_head": "item_category_head",
+			"material_group_head": "material_group_head",
+			"uom_head": "uom_head",
+			"cost_center_head": "cost_center_head",
+			"main_asset_no_head": "main_asset_no_head",
+			"asset_subnumber_head": "asset_subnumber_head",
+			"profit_ctr_head": "profit_ctr_head",
+			"short_text_head": "short_text_head",
+			"line_item_number_head": "line_item_number_head",
+			"company_code_area_head": "company_code_area_head",
+			"c_delivery_date_head": "c_delivery_date_head",
+			"quantity_head": "quantity_head",
+			"price_of_purchase_requisition_head": "price_of_purchase_requisition_head",
+			"gl_account_number_head": "gl_account_number_head",
+			"material_code_head": "material_code_head",
+			"account_assignment_category_head": "account_assignment_category_head",
+			"purchase_group_head": "purchase_group_head",
+			"product_name_head": "product_name_head",
+			"product_price_head": "product_price_head",
+			"final_price_by_purchase_team_head": "final_price_by_purchase_team_head",
+			"lead_time_head": "lead_time_head",
+			"plant_head": "plant_head",
+			"requisitioner_name_head": "requisitioner_name_head",
+			"tracking_id_head": "tracking_id_head",
+			"desired_vendor_head": "desired_vendor_head",
+			"valuation_area_head": "valuation_area_head",
+			"fixed_value_head": "fixed_value_head",
+			"spit_head": "spit_head",
+			"purchase_organisation_head": "purchase_organisation_head",
+			"agreement_head": "agreement_head",
+			"item_of_head": "item_of_head",
+			"mpn_number_head": "mpn_number_head",
+			"status_head": "status_head",
+			"head_unique_id": "head_unique_id",
+			# Subhead Fields
+			"sub_head_unique_id": "sub_head_unique_id",
+			"purchase_requisition_item_subhead": "purchase_requisition_item_subhead",
+			"item_number_of_purchase_requisition_subhead": "item_number_of_purchase_requisition_subhead",
+			"purchase_requisition_date_subhead": "purchase_requisition_date_subhead",
+			"delivery_date_subhead": "delivery_date_subhead",
+			"store_location_subhead": "store_location_subhead",
+			"item_category_subhead": "item_category_subhead",
+			"material_group_subhead": "material_group_subhead",
+			"uom_subhead": "uom_subhead",
+			"cost_center_subhead": "cost_center_subhead",
+			"main_asset_no_subhead": "main_asset_no_subhead",
+			"asset_subnumber_subhead": "asset_subnumber_subhead",
+			"profit_ctr_subhead": "profit_ctr_subhead",
+			"short_text_subhead": "short_text_subhead",
+			"quantity_subhead": "quantity_subhead",
+			"price_of_purchase_requisition_subhead": "price_of_purchase_requisition_subhead",
+			"gl_account_number_subhead": "gl_account_number_subhead",
+			"material_code_subhead": "material_code_subhead",
+			"account_assignment_category_subhead": "account_assignment_category_subhead",
+			"purchase_group_subhead": "purchase_group_subhead",
+			"line_item_number_subhead": "line_item_number_subhead",
+			"service_number_subhead": "service_number_subhead",
+			"gross_price_subhead": "gross_price_subhead",
+			"currency_subhead": "currency_subhead",
+			"service_type_subhead": "service_type_subhead",
+			"net_value_subhead": "net_value_subhead",
+			# Utility
+			"is_deleted": "is_deleted",
+			"is_created": "is_created"
 		}
 
 		if not self.purchase_requisition_form_link:
-			# Create new Purchase Requisition Form
 			pur_req_form = frappe.new_doc("Purchase Requisition Form")
-
-			for field in field_map:
-				pur_req_form.set(field, self.get(field))
-
-			for item in self.get("purchase_requisition_form_table"):
-				new_row = pur_req_form.append("purchase_requisition_form_table", {})
-				for src_field, target_field in child_field_map.items():
-					new_row.set(target_field, item.get(src_field))
-
-			pur_req_form.save()
-			self.db_set("purchase_requisition_form_link", pur_req_form.name)
-
 		else:
-			# Update existing Purchase Requisition Form
 			pur_req_form = frappe.get_doc("Purchase Requisition Form", self.purchase_requisition_form_link)
 
-			for field in field_map:
+		# Update main fields
+		for field in field_map:
+			if hasattr(pur_req_form, field):
 				pur_req_form.set(field, self.get(field))
 
-			# Clear existing child table to avoid mismatch
-			pur_req_form.set("purchase_requisition_form_table", [])
+		# Clear and update child table
+		pur_req_form.set("purchase_requisition_form_table", [])
+		for item in self.get("purchase_requisition_form_table"):
+			new_row = pur_req_form.append("purchase_requisition_form_table", {})
+			for src_field, target_field in child_field_map.items():
+				new_row.set(target_field, item.get(src_field))
 
-			for item in self.get("purchase_requisition_form_table"):
-				new_row = pur_req_form.append("purchase_requisition_form_table", {})
-				for src_field, target_field in child_field_map.items():
-					new_row.set(target_field, item.get(src_field))
+		pur_req_form.save()
 
-			pur_req_form.save()
+		# Link the form
+		if not self.purchase_requisition_form_link:
+			self.db_set("purchase_requisition_form_link", pur_req_form.name)
+
 
 
 def send_pur_req_email(doc, method=None):
