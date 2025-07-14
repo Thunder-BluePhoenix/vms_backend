@@ -17,7 +17,6 @@
   "column_break_wrlo",
   "account_category",
   "gl_account",
-  "company_code_area",
   "company",
   "sap_client_code",
   "valuation_area",
@@ -54,12 +53,6 @@
    "fieldtype": "Link",
    "label": "GL Account",
    "options": "GL Account"
-  },
-  {
-   "fieldname": "company_code_area",
-   "fieldtype": "Link",
-   "label": "Company Code Area",
-   "options": "Company Code Area"
   },
   {
    "fieldname": "valuation_area",
@@ -131,7 +124,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-21 16:11:51.376827",
+ "modified": "2025-07-14 13:59:50.413857",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form",
