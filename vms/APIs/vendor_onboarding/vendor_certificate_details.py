@@ -165,15 +165,14 @@ def update_vendor_onboarding_certificate_details(data):
 
 
 @frappe.whitelist(allow_guest=True)
-def delete_vendor_onboarding_certificate_row(row_id, ref_no, vendor_onboarding):
+def delete_vendor_onboarding_certificate_row(certificate_code, ref_no, vendor_onboarding):
     try:
-        if not row_id or not ref_no or not vendor_onboarding:
+        if not certificate_code or not ref_no or not vendor_onboarding:
             return {
                 "status": "error",
-                "message": "Missing required fields: 'row_id', 'ref_no', or 'vendor_onboarding'."
+                "message": "Missing required fields: 'certificate_code', 'ref_no', or 'vendor_onboarding'."
             }
 
-        # Fetch the parent document name
         doc_name = frappe.db.get_value(
             "Vendor Onboarding Certificates",
             {"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
@@ -186,40 +185,76 @@ def delete_vendor_onboarding_certificate_row(row_id, ref_no, vendor_onboarding):
                 "message": "Vendor Onboarding Certificates record not found."
             }
 
-        # Fetch parent document
-        parent_doc = frappe.get_doc("Vendor Onboarding Certificates", doc_name)
+        main_doc = frappe.get_doc("Vendor Onboarding Certificates", doc_name)
+        deleted_from_docs = []
 
-        # Find and remove the matching row
-        found = False
-        new_rows = []
-        for row in parent_doc.certificates:
-            if row.name != row_id:
-                new_rows.append(row)
-            else:
-                found = True
+        if main_doc.registered_for_multi_companies == 1:
+            unique_multi_comp_id = main_doc.unique_multi_comp_id
 
-        if not found:
+            linked_docs = frappe.get_all(
+                "Vendor Onboarding Certificates",
+                filters={
+                    "registered_for_multi_companies": 1,
+                    "unique_multi_comp_id": unique_multi_comp_id
+                },
+                fields=["name"]
+            )
+
+            for entry in linked_docs:
+                doc = frappe.get_doc("Vendor Onboarding Certificates", entry.name)
+                original_len = len(doc.certificates)
+
+                doc.certificates = [
+                    row for row in doc.certificates
+                    if (row.certificate_code or "").strip() != certificate_code.strip()
+                ]
+
+                if len(doc.certificates) != original_len:
+                    doc.save(ignore_permissions=True)
+                    deleted_from_docs.append(doc.name)
+
+            if not deleted_from_docs:
+                return {
+                    "status": "error",
+                    "message": f"No matching certificate_code '{certificate_code}' found in linked records."
+                }
+
+            frappe.db.commit()
             return {
-                "status": "error",
-                "message": f"No row with ID {row_id} found in certificates table."
+                "status": "success",
+                "message": f"Certificate with code '{certificate_code}' deleted from linked records.",
+                "docnames": deleted_from_docs
             }
 
-        # Update the child table
-        parent_doc.set("certificates", new_rows)
-        parent_doc.save(ignore_permissions=True)
-        frappe.db.commit()
+        else:
+            original_len = len(main_doc.certificates)
 
-        return {
-            "status": "success",
-            "message": f"Row {row_id} deleted successfully from certificates table.",
-            "docname": parent_doc.name
-        }
+            main_doc.certificates = [
+                row for row in main_doc.certificates
+                if (row.certificate_code or "").strip() != certificate_code.strip()
+            ]
+
+            if len(main_doc.certificates) == original_len:
+                return {
+                    "status": "error",
+                    "message": f"No matching certificate_code '{certificate_code}' found in this document."
+                }
+
+            main_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": f"Certificate with code '{certificate_code}' deleted successfully.",
+                "docname": main_doc.name
+            }
 
     except Exception as e:
         frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Delete Vendor Certificate Row Error")
+        frappe.log_error(frappe.get_traceback(), "Delete Vendor Certificate by Code Error")
         return {
             "status": "error",
-            "message": "Failed to delete row from Vendor Onboarding Certificates.",
+            "message": "Failed to delete certificate row.",
             "error": str(e)
         }
+	
