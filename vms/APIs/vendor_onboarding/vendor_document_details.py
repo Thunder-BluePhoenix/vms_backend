@@ -310,7 +310,7 @@ def update_vendor_onboarding_document_details(data):
 		file_urls = {}
 		file_keys = [
 			"msme_proof", "pan_proof", "entity_proof",
-			"iec_proof", "form_10f_proof", "trc_certificate", "pe_certificate"
+			"iec_proof", "form_10f_proof", "trc_certificate", "pe_certificate", "gst_document"
 		]
 
 		for key in file_keys:
@@ -361,14 +361,14 @@ def update_vendor_onboarding_document_details(data):
 						if not gst_row:
 							continue
 
-					fields = ["gst_state", "gst_number", "gst_registration_date", "gst_ven_type"]
+					fields = ["gst_state", "gst_number", "gst_registration_date", "gst_ven_type", "gst_document"]
 					for field in fields:
 						if field in row and getattr(gst_row, field, None) != row[field]:
 							gst_row.set(field, row[field])
 
 					if "gst_document" in frappe.request.files:
-						file = frappe.request.files["gst_document"]
-						saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+						# file = frappe.request.files["gst_document"]
+						# saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
 						gst_row.gst_document = saved.file_url
 
 			doc.save(ignore_permissions=True)
