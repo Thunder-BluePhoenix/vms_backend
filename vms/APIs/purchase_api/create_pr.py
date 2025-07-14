@@ -19,6 +19,8 @@ def purchase_requsition_masters():
         purchase_group = frappe.db.sql("""SELECT name, purchase_group_code, purchase_group_name, description FROM `tabPurchase Group Master`""", as_dict=True)
         account_category = frappe.db.sql("""SELECT name, account_category_code, account_category_name, description FROM `tabAccount Category Master`""", as_dict=True)
         purchase_organisation = frappe.db.sql("""SELECT name, purchase_organization_code, purchase_organization_name, description FROM `tabPurchase Organization Master`""", as_dict=True)
+        store_location = frappe.db.sql("""SELECT name, store_name, store_location, store_location_name, description FROM `tabStore Location Master`""", as_dict=True)
+        valuation_area = frappe.db.sql("""SELECT name, valuation_area_name, valuation_area_code FROM `tabValuation Area Master`""", as_dict=True)
 
         return {
             "purchase_requisition_type": purchase_requisition_type,
@@ -36,6 +38,8 @@ def purchase_requsition_masters():
             "purchase_group": purchase_group,
             "account_category": account_category,
             "purchase_organisation": purchase_organisation,
+            "store_location": store_location,
+            "valuation_area": valuation_area    
         }
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Purchase Requisition Masters API Error")

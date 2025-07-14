@@ -60,7 +60,10 @@ def create_purchase_requisition(cart_id):
 				"product_price_head": row.product_price,
 				"final_price_by_purchase_team_head": row.final_price_by_purchase_team,
 				"lead_time_head": row.lead_time,
-				"purchase_requisition_type": cart_details.purchase_type
+				"purchase_requisition_type": cart_details.purchase_type,
+				"plant_head": cart_details.plant,
+				"requisitioner_name_head": cart_details.user,
+				"company_code_area_head": cart_details.company
 			})
 			item_number += 10
 
