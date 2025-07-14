@@ -10,9 +10,8 @@
   "cart_details_id",
   "purchase_requisition_form_link",
   "purchase_requisition_type",
-  "plant",
   "column_break_ynnz",
-  "company_code_area",
+  "plant",
   "company",
   "requisitioner",
   "purchase_group",
@@ -54,12 +53,6 @@
    "hidden": 1,
    "label": "Plant",
    "options": "Plant Master"
-  },
-  {
-   "fieldname": "company_code_area",
-   "fieldtype": "Link",
-   "label": "Company Code Area",
-   "options": "Company Code Area"
   },
   {
    "fieldname": "company",
@@ -238,7 +231,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-08 14:26:49.986335",
+ "modified": "2025-07-14 10:19:40.866551",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",

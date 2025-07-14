@@ -1,0 +1,89 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:store_name",
+ "creation": "2025-07-14 10:29:55.115496",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "store_location_details_section",
+  "store_name",
+  "store_location",
+  "store_location_name",
+  "column_break_qklz",
+  "company",
+  "description",
+  "plant_code"
+ ],
+ "fields": [
+  {
+   "fieldname": "store_location_details_section",
+   "fieldtype": "Section Break",
+   "label": "Store Location Details"
+  },
+  {
+   "fieldname": "store_location",
+   "fieldtype": "Data",
+   "label": "Store Location"
+  },
+  {
+   "fieldname": "column_break_qklz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  },
+  {
+   "fieldname": "store_location_name",
+   "fieldtype": "Data",
+   "label": "Store Location Name"
+  },
+  {
+   "fieldname": "store_name",
+   "fieldtype": "Data",
+   "label": "Store Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "plant_code",
+   "fieldtype": "Link",
+   "label": "Plant Code",
+   "options": "Plant Master"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-14 10:40:02.753530",
+ "modified_by": "Administrator",
+ "module": "VMS Masters",
+ "name": "Store Location Master",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
