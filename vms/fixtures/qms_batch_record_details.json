@@ -1,0 +1,37 @@
+[
+ {
+  "details_of_batch_record": "Description, Lot Number & Quantities of Material used",
+  "docstatus": 0,
+  "doctype": "QMS Batch Record Details",
+  "modified": "2025-07-13 15:39:19.367976",
+  "name": "Description, Lot Number & Quantities of Material used"
+ },
+ {
+  "details_of_batch_record": "Processing Conditions - Temperature, Time, etc",
+  "docstatus": 0,
+  "doctype": "QMS Batch Record Details",
+  "modified": "2025-07-13 15:39:35.233794",
+  "name": "Processing Conditions - Temperature, Time, etc"
+ },
+ {
+  "details_of_batch_record": "The identification of the personnel who performed the particular step",
+  "docstatus": 0,
+  "doctype": "QMS Batch Record Details",
+  "modified": "2025-07-13 15:39:49.287891",
+  "name": "The identification of the personnel who performed the particular step"
+ },
+ {
+  "details_of_batch_record": "Results of any In-process tests",
+  "docstatus": 0,
+  "doctype": "QMS Batch Record Details",
+  "modified": "2025-07-13 15:40:03.743451",
+  "name": "Results of any In-process tests"
+ },
+ {
+  "details_of_batch_record": "Details of deviations from standard conditions",
+  "docstatus": 0,
+  "doctype": "QMS Batch Record Details",
+  "modified": "2025-07-13 15:40:17.300026",
+  "name": "Details of deviations from standard conditions"
+ }
+]

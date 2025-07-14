@@ -1,0 +1,30 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "QMS Prior Notification",
+  "modified": "2025-07-13 15:34:01.150639",
+  "name": "Change in the method of manufacturing",
+  "prior_notification": "Change in the method of manufacturing"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Prior Notification",
+  "modified": "2025-07-13 15:34:12.599473",
+  "name": "Change in the manufacturing site",
+  "prior_notification": "Change in the manufacturing site"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Prior Notification",
+  "modified": "2025-07-13 15:34:35.808926",
+  "name": "Change in the registration / licensing status of the site",
+  "prior_notification": "Change in the registration / licensing status of the site"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Prior Notification",
+  "modified": "2025-07-13 15:34:49.634257",
+  "name": "Change in the Raw Material specification",
+  "prior_notification": "Change in the Raw Material specification"
+ }
+]
