@@ -1,0 +1,51 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "QMS Quality Control System",
+  "modified": "2025-07-13 15:18:12.674018",
+  "name": "ISO 9001",
+  "quality_control_system": "ISO 9001"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Quality Control System",
+  "modified": "2025-07-13 15:18:33.170037",
+  "name": "ISO 13485",
+  "quality_control_system": "ISO 13485"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Quality Control System",
+  "modified": "2025-07-13 15:18:50.808494",
+  "name": "GMP",
+  "quality_control_system": "GMP"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Quality Control System",
+  "modified": "2025-07-13 15:19:10.714063",
+  "name": "ISO/IEC 17025:2005",
+  "quality_control_system": "ISO/IEC 17025:2005"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Quality Control System",
+  "modified": "2025-07-13 15:19:31.525543",
+  "name": "ISO 14001",
+  "quality_control_system": "ISO 14001"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Quality Control System",
+  "modified": "2025-07-13 15:19:51.302206",
+  "name": "ISO 45001",
+  "quality_control_system": "ISO 45001"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Quality Control System",
+  "modified": "2025-07-13 15:30:52.441146",
+  "name": "Others",
+  "quality_control_system": "Others"
+ }
+]

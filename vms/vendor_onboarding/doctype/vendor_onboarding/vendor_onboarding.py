@@ -68,20 +68,36 @@ class VendorOnboarding(Document):
         #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
 	
-def on_update_check_fields(self,method=None):
+# def on_update_check_fields(self,method=None):
+#     """
+#     Alternative function that returns a detailed validation summary
+#     """
+#     result = validate_mandatory_data(self.name)
+
+#     # set_vendor_onboarding_status(self,method=None)
+
+#     if result["success"]:
+#         self.mandatory_data_filled = 1
+#         # frappe.db.commit()
+#         return f"✅ Validation passed for {len(result['data'])} company records"
+#     else:
+#         return f"❌ Validation failed: {result['message']}"
+
+def on_update_check_fields(self, method=None):
     """
-    Alternative function that returns a detailed validation summary
+    Silent validation function that returns a detailed validation summary
+    without showing any messages or popups
     """
     result = validate_mandatory_data(self.name)
-
-    # set_vendor_onboarding_status(self,method=None)
-
+    
     if result["success"]:
         self.mandatory_data_filled = 1
-        # frappe.db.commit()
-        return f"✅ Validation passed for {len(result['data'])} company records"
+        # return result
+        pass
     else:
-        return f"❌ Validation failed: {result['message']}"
+        self.mandatory_data_filled = 0
+        # return result
+        pass
 
 
 

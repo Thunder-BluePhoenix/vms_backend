@@ -27,6 +27,7 @@
   "qas_tab",
   "quality_assurance_systems_and_procedures_section",
   "quality_control_system",
+  "quality_control_system_html",
   "others_certificates",
   "have_documentsprocedure",
   "if_yes_for_prior_notification",
@@ -140,7 +141,9 @@
   "performer_esignature",
   "column_break_lwai",
   "performer_title",
-  "performent_date"
+  "performent_date",
+  "tab_12_tab",
+  "multiselect_data_json"
  ],
  "fields": [
   {
@@ -236,15 +239,15 @@
   },
   {
    "fieldname": "quality_control_system",
-   "fieldtype": "Small Text",
+   "fieldtype": "Table MultiSelect",
    "label": "1.Quality Control System is derived to comply",
-   "options": "-Select-\nISO 9001\nISO 13485\nGMP\nISO/IEC 17025:2005\nISO 14001\nISO 45001\nOthers:"
+   "options": "QMS Quality Control"
   },
   {
    "fieldname": "have_documentsprocedure",
-   "fieldtype": "Small Text",
+   "fieldtype": "Table MultiSelect",
    "label": "3.Have Documents/procedure",
-   "options": "Quality Management Manual\nInternal Quality Audit\nChange Control\nCorrective and Preventive Action\nEnvironmental Monitoring\nRisk Management\nCalibration\nEmergency Mitigation plan"
+   "options": "QMS Procedure Doc"
   },
   {
    "default": "-Select-",
@@ -278,9 +281,9 @@
   },
   {
    "fieldname": "if_yes_for_prior_notification",
-   "fieldtype": "Small Text",
+   "fieldtype": "Table MultiSelect",
    "label": "4a.If yes for prior notification",
-   "options": "Change in the method of manufacturing\nChange in the manufacturing site\nChange in the registration / licensing status of the site\nChange in the Raw Material specification"
+   "options": "QMS Prior Notification Table"
   },
   {
    "default": "-Select-",
@@ -514,9 +517,9 @@
   },
   {
    "fieldname": "details_of_batch_records",
-   "fieldtype": "Small Text",
+   "fieldtype": "Table MultiSelect",
    "label": "9a.Details of batch records",
-   "options": "Description, Lot Number & Quantities of Material used\nProcessing Conditions - Temperature, Time, etc\nThe identification of the personnel who performed the particular step\nResults of any In-process tests\nDetails of deviations from standard conditions"
+   "options": "QMS Batch Record Table"
   },
   {
    "fieldname": "column_break_zknl",
@@ -906,13 +909,27 @@
    "fieldname": "mail_sent_to_qa_team",
    "fieldtype": "Check",
    "label": "Mail Sent to QA Team"
+  },
+  {
+   "fieldname": "quality_control_system_html",
+   "fieldtype": "HTML",
+   "label": "1.Quality Control System is derived to comply html"
+  },
+  {
+   "fieldname": "tab_12_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "fieldname": "multiselect_data_json",
+   "fieldtype": "Text",
+   "label": "Multiselect data json"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
-
- "modified": "2025-07-08 17:35:33.205471",
+ "modified": "2025-07-14 11:11:06.068840",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",

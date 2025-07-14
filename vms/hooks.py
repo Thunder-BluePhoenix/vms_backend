@@ -67,7 +67,11 @@ fixtures = [
     # {"dt": "SAP Mapper PR"},
     {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor"]]}},
     {"dt": "Role Profile", "filters": {"name": ["in", ["Vendor"]]}},
-    {"dt": "Module Profile", "filters": {"name": ["in", ["Vendor"]]}}
+    {"dt": "Module Profile", "filters": {"name": ["in", ["Vendor"]]}},
+    {"dt": "QMS Quality Control System"},
+    {"dt": "QMS Procedure Doc Name"},
+    {"dt": "QMS Prior Notification"},
+    {"dt": "QMS Batch Record Details"},
 ]
 # Generators
 # ----------

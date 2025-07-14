@@ -1,0 +1,58 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "QMS Procedure Doc Name",
+  "modified": "2025-07-13 15:31:29.958815",
+  "name": "Quality Management Manual",
+  "procedure_doc_name": "Quality Management Manual"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Procedure Doc Name",
+  "modified": "2025-07-13 15:31:51.954333",
+  "name": "Internal Quality Audit",
+  "procedure_doc_name": "Internal Quality Audit"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Procedure Doc Name",
+  "modified": "2025-07-13 15:32:09.721949",
+  "name": "Change Control",
+  "procedure_doc_name": "Change Control"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Procedure Doc Name",
+  "modified": "2025-07-13 15:32:22.086925",
+  "name": "Corrective and Preventive Action",
+  "procedure_doc_name": "Corrective and Preventive Action"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Procedure Doc Name",
+  "modified": "2025-07-13 15:32:39.601825",
+  "name": "Environmental Monitoring",
+  "procedure_doc_name": "Environmental Monitoring"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Procedure Doc Name",
+  "modified": "2025-07-13 15:32:52.653730",
+  "name": "Risk Management",
+  "procedure_doc_name": "Risk Management"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Procedure Doc Name",
+  "modified": "2025-07-13 15:33:03.749852",
+  "name": "Calibration",
+  "procedure_doc_name": "Calibration"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Procedure Doc Name",
+  "modified": "2025-07-13 15:33:23.258645",
+  "name": "Emergency Mitigation plan",
+  "procedure_doc_name": "Emergency Mitigation plan"
+ }
+]
