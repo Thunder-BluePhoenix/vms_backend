@@ -215,7 +215,8 @@ def approve_qms_form(data):
                 "is_private": 0
             })
             _file.save(ignore_permissions=True)
-            qms_form.performer_esignature = _file.file_url
+            qms_form.performer_esignature = base64_signature
+            qms_form.performer_signature = _file.file_url
 
         qms_form.save(ignore_permissions=True)
         frappe.db.commit()
