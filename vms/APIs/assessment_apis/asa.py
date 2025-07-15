@@ -121,7 +121,7 @@ def create_annual_ass_form(data):
 		# Handle file upload for valid_consent
 		if "valid_consent" in frappe.request.files:
 			file = frappe.request.files["valid_consent"]
-			saved = save_file(file.filename, file.stream.read(), annual_ass.doctype, annual_ass.name, is_private=1)
+			saved = save_file(file.filename, file.stream.read(), annual_ass.doctype, annual_ass.name, is_private=0)
 			annual_ass.valid_consent = saved.file_url
 			annual_ass.save(ignore_permissions=True)
 
@@ -249,7 +249,7 @@ def create_env_asa_form(data):
 					uploaded_file.stream.read(),
 					env_doc.doctype,
 					env_doc.name,
-					is_private=1
+					is_private=0
 				)
 				env_doc.set(attach_field, saved.file_url)
 
@@ -326,7 +326,7 @@ def create_social_asa_form(data):
 					uploaded_file.stream.read(),
 					social_doc.doctype,
 					social_doc.name,
-					is_private=1
+					is_private=0
 				)
 				social_doc.set(attach_field, saved.file_url)
 
@@ -376,7 +376,7 @@ def create_gov_asa_form(data):
 					uploaded_file.stream.read(),
 					gov_doc.doctype,
 					gov_doc.name,
-					is_private=1
+					is_private=0
 				)
 				gov_doc.set(attach_field, saved.file_url)
 

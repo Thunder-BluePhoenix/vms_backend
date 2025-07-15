@@ -142,7 +142,7 @@ def update_dispatch_item(data=None):
 					if meta.has_field(file_key):
 						field = meta.get_field(file_key)
 						if field.fieldtype in ["Attach", "Attach Image"]:
-							saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
+							saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=0)
 							doc.set(file_key, saved.file_url)
 					
 					# Handle child table attachments (format: tablename_rowindex_fieldname)
@@ -159,7 +159,7 @@ def update_dispatch_item(data=None):
 									existing_rows = getattr(doc, table_name, [])
 									if row_index.isdigit() and int(row_index) < len(existing_rows):
 										child_row = existing_rows[int(row_index)]
-										saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
+										saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=0)
 										child_row.set(field_name, saved.file_url)
 
 		# Set dispatch form as submitted
@@ -393,7 +393,7 @@ def submit_dispatch_item(data=None):
 					if meta.has_field(file_key):
 						field = meta.get_field(file_key)
 						if field.fieldtype in ["Attach", "Attach Image"]:
-							saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
+							saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=0)
 							doc.set(file_key, saved.file_url)
 					
 					# Handle child table attachments (format: tablename_rowindex_fieldname)
@@ -410,7 +410,7 @@ def submit_dispatch_item(data=None):
 									existing_rows = getattr(doc, table_name, [])
 									if row_index.isdigit() and int(row_index) < len(existing_rows):
 										child_row = existing_rows[int(row_index)]
-										saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=1)
+										saved = save_file(uploaded_file.filename, uploaded_file.stream.read(), doc.doctype, doc.name, is_private=0)
 										child_row.set(field_name, saved.file_url)
 
 		# Set dispatch form as submitted
@@ -485,7 +485,7 @@ def submit_child_dispatch_item(data):
 					uploaded_file.stream.read(),
 					doc.doctype,
 					doc.name,
-					is_private=1
+					is_private=0
 				)
 				child_row.set(attach_field, saved.file_url)
 

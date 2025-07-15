@@ -153,7 +153,7 @@ def update_vendor_onboarding_company_address(data):
 
             if 'file' in frappe.request.files:
                 file = frappe.request.files['file']
-                saved_file = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=1)
+                saved_file = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
                 main_doc.address_proofattachment = saved_file.file_url
 
             main_doc.set("multiple_location_table", [])
@@ -229,7 +229,7 @@ def update_vendor_onboarding_company_address(data):
 
                 if 'file' in frappe.request.files:
                     file = frappe.request.files['file']
-                    saved_file = save_file(file.filename, file.stream.read(), linked_doc.doctype, linked_doc.name, is_private=1)
+                    saved_file = save_file(file.filename, file.stream.read(), linked_doc.doctype, linked_doc.name, is_private=0)
                     linked_doc.address_proofattachment = saved_file.file_url
 
                 linked_doc.set("multiple_location_table", [])
