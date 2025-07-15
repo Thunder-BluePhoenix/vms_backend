@@ -194,6 +194,20 @@ def modified_peq(data):
                 "fields_to_modify": data.get("fields_to_modify"),
                 "asked_to_modify_datetime": frappe.utils.now_datetime()
             })
+
+            request_data = data.get("data", {})
+            cart_products = request_data.get("cart_product", [])
+            
+            for cart_item in cart_products:
+                row_id = cart_item.get("row_id")
+                need_asset_code = int(cart_item.get("need_asset_code", 0))
+                
+                # Find and update the matching child record
+                for child in doc.cart_product:
+                    if child.name == row_id:
+                        child.need_asset_code = need_asset_code
+                        break 
+                      
             doc.save()
 
             employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
