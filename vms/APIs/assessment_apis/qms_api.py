@@ -1,5 +1,7 @@
 import frappe
 import json
+import uuid
+import base64
 from frappe import _
 
 # @frappe.whitelist(allow_guest=True)
@@ -187,14 +189,33 @@ def approve_qms_form(data):
         if isinstance(data, str):
             data = json.loads(data)
 
+        if not data.get("name"):
+            return {
+                "status": "error",
+                "message": "Missing QMS form name."
+            }
+
         qms_form = frappe.get_doc("Supplier QMS Assessment Form", data.get("name"))
 
-        qms_form.qms_form_status = data.get("qms_form_status")
-        qms_form.conclusion_by_meril = data.get("conclusion_by_meril")
-        qms_form.assessment_outcome = data.get("assessment_outcome")
-        qms_form.performer_name = data.get("performer_name")
-        qms_form.performer_title = data.get("performer_title")
-        qms_form.performent_date = data.get("performent_date")
+        qms_form.qms_form_status = data.get("qms_form_status") or ""
+        qms_form.conclusion_by_meril = data.get("conclusion_by_meril") or ""
+        qms_form.assessment_outcome = data.get("assessment_outcome") or ""
+        qms_form.performer_name = data.get("performer_name") or ""
+        qms_form.performer_title = data.get("performer_title") or ""
+        qms_form.performent_date = data.get("performent_date") or ""
+
+        base64_signature = data.get("performer_esignature")
+        if base64_signature:
+            file_name = f"{uuid.uuid4()}.png"
+            file_content = base64.b64decode(base64_signature.split(",")[-1])
+            _file = frappe.get_doc({
+                "doctype": "File",
+                "file_name": file_name,
+                "content": file_content,
+                "is_private": 0
+            })
+            _file.save(ignore_permissions=True)
+            qms_form.performer_esignature = _file.file_url
 
         qms_form.save(ignore_permissions=True)
         frappe.db.commit()
