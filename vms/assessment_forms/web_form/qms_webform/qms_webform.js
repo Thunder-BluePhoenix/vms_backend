@@ -705,7 +705,9 @@ frappe.ready(function() {
     //     // Debug fields after a delay
     //     setTimeout(debugFormFields, 5000);
     // }, 3000);
-    
+    setTimeout(function() {
+        autoCheckCompanyFields();
+    }, 1000);
     // Add this line
     setTimeout(function() {
         setupMultiselectDataCapture();
@@ -752,6 +754,299 @@ frappe.ready(function() {
     overrideFormSubmissionWithMultiselect();
 });
 
+// ADD THIS COMPLETE FUNCTION TO YOUR EXISTING CODE
+
+// ADD THIS COMPLETE FUNCTION TO YOUR EXISTING CODE
+
+function setupConditionalFieldVisibility() {
+    console.log('Setting up conditional field visibility...');
+    
+    // Configuration for conditional fields
+    const conditionalFields = {
+        // 2a. Inspected By Others (small text field) - shows when "Others" is selected in sites_inspected_by (select field)
+        'inspected_by_others': {
+            triggerType: 'select',
+            triggerField: 'sites_inspected_by',
+            triggerValue: 'Others',
+            description: '2a. Inspected By Others (small text field)'
+        },
+        
+        // 6a. Review frequency (small text field) - shows when "Yes" is selected in regular_review_quality_system (select field)
+        'if_yes_provide_the_review_frequency': {
+            triggerType: 'select',
+            triggerField: 'regular_review_quality_system',
+            triggerValue: 'Yes',
+            description: '6a. If yes provide the review frequency (small text field)'
+        }
+    };
+    
+    // Configuration for conditional CHECKBOX GROUPS (custom HTML checkboxes)
+    const conditionalCheckboxGroups = {
+        // 4a. If yes for prior notification checkboxes - shows when "Yes" is selected in prior_notification
+        'if_yes_for_prior_notification': {
+            triggerType: 'dropdown',
+            triggerField: 'prior_notification',
+            triggerValue: 'Yes',
+            description: '4a. If yes for prior notification (checkboxes)'
+        },
+        
+        // 9a. Details of batch records checkboxes - shows when "Yes" is selected in batch_record
+        'details_of_batch_records': {
+            triggerType: 'dropdown',
+            triggerField: 'batch_record',
+            triggerValue: 'Yes',
+            description: '9a. Details of batch records (checkboxes)'
+        }
+    };
+    
+    // Function to show/hide conditional regular fields
+    function toggleConditionalField(fieldName, show) {
+        const selectors = [
+            `[data-fieldname="${fieldName}"]`,
+            `[name="${fieldName}"]`
+        ];
+        
+        selectors.forEach(function(selector) {
+            const field = $(selector);
+            const container = field.closest('.form-group, .frappe-control, .web-form-field');
+            
+            if (show) {
+                container.show();
+                field.show();
+                console.log(`✅ Showing field: ${fieldName}`);
+            } else {
+                container.hide();
+                field.hide();
+                console.log(`❌ Hiding field: ${fieldName}`);
+            }
+        });
+    }
+    
+    // Function to show/hide conditional checkbox groups
+    function toggleConditionalCheckboxGroup(fieldName, show) {
+        const checkboxGroup = $(`.custom-checkbox-group[data-field="${fieldName}"]`);
+        
+        if (show) {
+            checkboxGroup.show();
+            console.log(`✅ Showing checkbox group: ${fieldName}`);
+        } else {
+            checkboxGroup.hide();
+            console.log(`❌ Hiding checkbox group: ${fieldName}`);
+        }
+    }
+    
+    // Function to check if "Others" checkbox is selected in quality_control_system
+    function checkOthersCheckbox() {
+        const checkboxGroup = $(`.custom-checkbox-group[data-field="quality_control_system"]`);
+        if (checkboxGroup.length > 0) {
+            const isChecked = checkboxGroup.find(`input[type="checkbox"][value="Others"]:checked`).length > 0;
+            return isChecked;
+        }
+        return false;
+    }
+    
+    // Function to check checkbox conditions
+    function checkCheckboxCondition(triggerField, triggerValue) {
+        const checkboxGroup = $(`.custom-checkbox-group[data-field="${triggerField}"]`);
+        if (checkboxGroup.length > 0) {
+            const isChecked = checkboxGroup.find(`input[type="checkbox"][value="${triggerValue}"]:checked`).length > 0;
+            return isChecked;
+        }
+        return false;
+    }
+    
+    // Function to check dropdown/select conditions
+    function checkSelectCondition(triggerField, triggerValue) {
+        const selectSelectors = [
+            `[data-fieldname="${triggerField}"] select`,
+            `[data-fieldname="${triggerField}"] input`,
+            `select[name="${triggerField}"]`,
+            `input[name="${triggerField}"]`
+        ];
+        
+        for (let selector of selectSelectors) {
+            const field = $(selector);
+            if (field.length > 0) {
+                const selectedValue = field.val();
+                console.log(`Checking ${triggerField}: current value = "${selectedValue}", looking for = "${triggerValue}"`);
+                return selectedValue === triggerValue;
+            }
+        }
+        return false;
+    }
+    
+    // Function to update all conditional fields
+    function updateConditionalFields() {
+        // Handle regular conditional fields
+        Object.keys(conditionalFields).forEach(function(fieldName) {
+            const config = conditionalFields[fieldName];
+            let shouldShow = false;
+            
+            if (config.triggerType === 'select') {
+                shouldShow = checkSelectCondition(config.triggerField, config.triggerValue);
+            }
+            
+            toggleConditionalField(fieldName, shouldShow);
+        });
+        
+        // Handle conditional checkbox groups
+        Object.keys(conditionalCheckboxGroups).forEach(function(fieldName) {
+            const config = conditionalCheckboxGroups[fieldName];
+            let shouldShow = false;
+            
+            if (config.triggerType === 'dropdown') {
+                shouldShow = checkSelectCondition(config.triggerField, config.triggerValue);
+            }
+            
+            toggleConditionalCheckboxGroup(fieldName, shouldShow);
+        });
+        
+        // Special case: Show "others_certificates" when "Others" is checked in quality_control_system
+        const showOthersCerts = checkOthersCheckbox();
+        toggleConditionalField('others_certificates', showOthersCerts);
+    }
+    
+    // Initially hide all conditional fields and checkbox groups
+    setTimeout(function() {
+        // Hide regular conditional fields
+        Object.keys(conditionalFields).forEach(function(fieldName) {
+            toggleConditionalField(fieldName, false);
+        });
+        
+        // Hide conditional checkbox groups
+        Object.keys(conditionalCheckboxGroups).forEach(function(fieldName) {
+            toggleConditionalCheckboxGroup(fieldName, false);
+        });
+        
+        // Then check and show/hide based on current values
+        updateConditionalFields();
+    }, 500);
+    
+    // Listen for checkbox changes
+    $(document).on('change', '.custom-checkbox-group input[type="checkbox"]', function() {
+        console.log('Checkbox changed:', $(this).val(), 'checked:', $(this).is(':checked'));
+        setTimeout(updateConditionalFields, 100);
+    });
+    
+    // Listen for dropdown/select changes
+    $(document).on('change', 'select, input[type="radio"]', function() {
+        const fieldName = $(this).attr('name') || $(this).closest('[data-fieldname]').attr('data-fieldname');
+        const value = $(this).val();
+        console.log('Dropdown/Radio changed:', fieldName, 'value:', value);
+        setTimeout(updateConditionalFields, 100);
+    });
+    
+    // Listen for any input changes (covers text inputs, selects, etc.)
+    $(document).on('input change', '.web-form input, .web-form select', function() {
+        setTimeout(updateConditionalFields, 100);
+    });
+    
+    // Periodic check to ensure fields are properly shown/hidden
+    setInterval(updateConditionalFields, 2000);
+    
+    console.log('✅ Conditional field visibility setup complete');
+    
+    // Debug function to check current states
+    window.debugConditionalFields = function() {
+        console.log('=== CONDITIONAL FIELDS DEBUG ===');
+        
+        // Debug regular fields
+        Object.keys(conditionalFields).forEach(function(fieldName) {
+            const config = conditionalFields[fieldName];
+            let shouldShow = false;
+            
+            if (config.triggerType === 'select') {
+                shouldShow = checkSelectCondition(config.triggerField, config.triggerValue);
+                console.log(`${fieldName}: Select ${config.triggerField}="${config.triggerValue}" = ${shouldShow}`);
+            }
+        });
+        
+        // Debug checkbox groups
+        Object.keys(conditionalCheckboxGroups).forEach(function(fieldName) {
+            const config = conditionalCheckboxGroups[fieldName];
+            let shouldShow = false;
+            
+            if (config.triggerType === 'dropdown') {
+                shouldShow = checkSelectCondition(config.triggerField, config.triggerValue);
+                console.log(`${fieldName} (checkbox group): Select ${config.triggerField}="${config.triggerValue}" = ${shouldShow}`);
+            }
+        });
+        
+        // Debug Others checkbox
+        const showOthersCerts = checkOthersCheckbox();
+        console.log(`others_certificates: Others checkbox in quality_control_system = ${showOthersCerts}`);
+    };
+}
+
+
+
+
+// UPDATE YOUR EXISTING initializeMultiselectCheckboxes() FUNCTION
+// Add this line at the end of your initializeMultiselectCheckboxes() function:
+
+/*
+function initializeMultiselectCheckboxes() {
+    // ... your existing multiselect code ...
+    
+    // ADD THIS LINE AT THE END:
+    setTimeout(function() {
+        setupConditionalFieldVisibility();
+    }, 2000);
+    
+    console.log('✅ Multiselect checkboxes initialized successfully');
+}
+*/
+
+// OR ADD THIS TO YOUR MAIN frappe.ready() FUNCTION:
+
+/*
+frappe.ready(function() {
+    // ... your existing code ...
+    
+    initializeMultiselectCheckboxes();
+    
+    // ADD THIS LINE:
+    setTimeout(function() {
+        setupConditionalFieldVisibility();
+    }, 3000);
+    
+    // ... rest of your code ...
+});
+*/
+
+// UPDATE YOUR EXISTING initializeMultiselectCheckboxes() FUNCTION
+// Add this line at the end of your initializeMultiselectCheckboxes() function:
+
+/*
+function initializeMultiselectCheckboxes() {
+    // ... your existing multiselect code ...
+    
+    // ADD THIS LINE AT THE END:
+    setTimeout(function() {
+        setupConditionalFieldVisibility();
+    }, 2000);
+    
+    console.log('✅ Multiselect checkboxes initialized successfully');
+}
+*/
+
+// OR ADD THIS TO YOUR MAIN frappe.ready() FUNCTION:
+
+/*
+frappe.ready(function() {
+    // ... your existing code ...
+    
+    initializeMultiselectCheckboxes();
+    
+    // ADD THIS LINE:
+    setTimeout(function() {
+        setupConditionalFieldVisibility();
+    }, 3000);
+    
+    // ... rest of your code ...
+});
+*/
+
 function hideHeaderFooter() {
     // Hide website header
     $('.navbar').hide();
@@ -780,7 +1075,9 @@ function hideSpecificFields() {
     const fieldsToHide = [
         'vendor_onboarding',
         'ref_no', 
-        'vendor_name1'
+        'vendor_name1',
+        // 'for_company_7000',
+        // 'for_company_2000'
     ];
     
     fieldsToHide.forEach(function(fieldname) {
@@ -799,12 +1096,16 @@ function hideSpecificFields() {
     });
     
     // CSS method for bulletproof hiding
+    
+    
     $('<style>')
         .prop('type', 'text/css')
         .html(`
             [data-fieldname="vendor_onboarding"],
             [data-fieldname="ref_no"],
-            [data-fieldname="vendor_name"] {
+            [data-fieldname="vendor_name"],
+            [data-fieldname="for_company_7000"],
+            [data-fieldname="for_company_2000"] {
                 display: none !important;
             }
             
@@ -1224,6 +1525,10 @@ function initializeMultiselectCheckboxes() {
         hideOriginalMultiselectFields(Object.keys(multiselectFields));
     }, 1500);
     
+
+    setTimeout(function() {
+        setupConditionalFieldVisibility();
+    }, 2000);
     // Override form submission (only once)
     // overrideFormSubmissionForMultiselect(multiselectFields);
     
@@ -1378,6 +1683,7 @@ function debugFields() {
         console.log('- ' + this.tagName + ': ' + ($(this).attr('name') || $(this).attr('data-fieldname') || 'no-name'), $(this)[0]);
     });
 }
+
 
 
 
@@ -1885,6 +2191,143 @@ function safeExecuteCompanyLogic() {
         hideAllCompanyFields();
     }
 }
+
+
+
+// Add this function to your existing JavaScript code
+function autoCheckCompanyFields() {
+    console.log('Setting up auto-check for company fields...');
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const companyCode = urlParams.get('company_code');
+    
+    if (!companyCode) {
+        console.log('No company_code parameter found in URL');
+        return;
+    }
+    
+    console.log('Raw company_code from URL:', companyCode);
+    
+    // Decode the URL-encoded string (%2C becomes comma)
+    const decodedCompanyCode = decodeURIComponent(companyCode);
+    console.log('Decoded company_code:', decodedCompanyCode);
+    
+    // Split by comma to get individual company codes
+    const companyCodes = decodedCompanyCode.split(',').map(code => code.trim());
+    console.log('Individual company codes:', companyCodes);
+    
+    // Check company 7000 field
+    if (companyCodes.includes('7000')) {
+        checkCompanyField('for_company_7000', true);
+        console.log('✅ Checked for_company_7000');
+    } else {
+        checkCompanyField('for_company_7000', false);
+        console.log('❌ Unchecked for_company_7000');
+    }
+    
+    // Check company 2000 field
+    if (companyCodes.includes('2000')) {
+        checkCompanyField('for_company_2000', true);
+        console.log('✅ Checked for_company_2000');
+    } else {
+        checkCompanyField('for_company_2000', false);
+        console.log('❌ Unchecked for_company_2000');
+    }
+    
+    // You can add more company codes here as needed
+    // Example for 4785:
+    if (companyCodes.includes('4785')) {
+        // If you have a field for company 4785, uncomment and modify:
+        // checkCompanyField('for_company_4785', true);
+        console.log('📝 Company 4785 detected (no corresponding field found)');
+    }
+}
+
+function checkCompanyField(fieldName, shouldCheck) {
+    // Multiple strategies to find and check the field
+    const selectors = [
+        `[data-fieldname="${fieldName}"]`,
+        `[name="${fieldName}"]`,
+        `input[data-fieldname="${fieldName}"]`,
+        `input[name="${fieldName}"]`,
+        `#${fieldName}`
+    ];
+    
+    let fieldFound = false;
+    
+    for (let selector of selectors) {
+        const field = $(selector);
+        if (field.length > 0) {
+            // Check if it's a checkbox
+            if (field.is('input[type="checkbox"]') || field.attr('type') === 'checkbox') {
+                field.prop('checked', shouldCheck);
+                field.attr('checked', shouldCheck);
+                
+                // Trigger change event to ensure Frappe handles it properly
+                field.trigger('change');
+                
+                fieldFound = true;
+                console.log(`Set ${fieldName} checkbox to ${shouldCheck} using selector: ${selector}`);
+                break;
+            }
+            // Handle Frappe's custom checkbox implementation
+            else if (field.hasClass('checkbox') || field.closest('.checkbox').length > 0) {
+                if (shouldCheck) {
+                    field.addClass('checked');
+                    field.closest('.checkbox').addClass('checked');
+                } else {
+                    field.removeClass('checked');
+                    field.closest('.checkbox').removeClass('checked');
+                }
+                
+                field.trigger('change');
+                fieldFound = true;
+                console.log(`Set ${fieldName} Frappe checkbox to ${shouldCheck} using selector: ${selector}`);
+                break;
+            }
+        }
+    }
+    
+    // If field not found by selectors, try finding by label
+    if (!fieldFound) {
+        $('label').each(function() {
+            const labelText = $(this).text().trim();
+            if (labelText.includes(fieldName) || 
+                (fieldName === 'for_company_7000' && labelText.includes('For Company 7000')) ||
+                (fieldName === 'for_company_2000' && labelText.includes('For Company 2000'))) {
+                
+                const labelFor = $(this).attr('for');
+                if (labelFor) {
+                    const associatedField = $(`#${labelFor}`);
+                    if (associatedField.length > 0) {
+                        associatedField.prop('checked', shouldCheck);
+                        associatedField.trigger('change');
+                        fieldFound = true;
+                        console.log(`Set ${fieldName} to ${shouldCheck} via label association`);
+                        return false; // break loop
+                    }
+                }
+                
+                // Look for nearby input fields
+                const nearbyInput = $(this).siblings('input[type="checkbox"]').first();
+                if (nearbyInput.length > 0) {
+                    nearbyInput.prop('checked', shouldCheck);
+                    nearbyInput.trigger('change');
+                    fieldFound = true;
+                    console.log(`Set ${fieldName} to ${shouldCheck} via nearby input`);
+                    return false; // break loop
+                }
+            }
+        });
+    }
+    
+    if (!fieldFound) {
+        console.warn(`Could not find field: ${fieldName}`);
+    }
+    
+    return fieldFound;
+}
+
 
 // Add this to your existing frappe.ready() function
 // Call this after other initialization is complete
