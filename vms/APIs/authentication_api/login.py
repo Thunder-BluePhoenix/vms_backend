@@ -185,6 +185,93 @@ def login(data):
 
 
 
+# def build_user_response(user, api_credentials):
+#     """
+#     Build comprehensive user response with relevant details.
+    
+#     Args:
+#         user (str): User ID
+#         api_credentials (dict): API key and secret
+        
+#     Returns:
+#         dict: User details and credentials
+#     """
+#     user_doc = frappe.get_doc('User', user)
+
+#     user_roles = frappe.get_roles(user_doc.name)
+
+#     if "Vendor" in user_roles:
+       
+#         vendor_master = frappe.get_doc("Vendor Master", {"office_email_primary": user_doc.name})
+#         vendor_code = collect_vendor_code_data(vendor_master, method=None)
+#         response = {
+#                     'vendor_codes': vendor_code,
+#                     'designation': 'Vendor'
+#                     }
+
+#         return response
+
+
+#     user_name = user_doc.full_name or frappe.db.get_value("User", user, "full_name")
+    
+#     # Get employee details if linked
+#     employee_id = frappe.get_value("Employee", {"user_id": user}, "name")
+#     employee_details = {}
+    
+#     if employee_id:
+#         employee_details = frappe.get_value(
+#             "Employee",
+#             employee_id,
+#             ["designation", "company_email", "company"],
+#             as_dict=True
+#         ) or {}
+    
+#     # Get vendor details if applicable
+#     vendor_id = frappe.get_value("Vendor Master", {"office_email_primary": user}, "name")
+    
+#     # Get company details if available
+#     company_details = {}
+#     if employee_details.get("company"):
+#         company_details = frappe.get_value(
+#             "Company Master",
+#             employee_details.get("company"),
+#             ["company_code", "company_short_form"],
+#             as_dict=True
+#         ) or {}
+    
+#     # Construct response
+#     response = {
+#         "success": True,
+#         "message": _("Authentication successful"),
+#         "user": {
+#             "email": user_doc.email,
+#             "username": user_doc.username,
+#             "full_name": user_name,
+#             "sid": frappe.session.sid,
+#         },
+#         "api_credentials": {
+#             "api_key": api_credentials.get("api_key"),
+#             "api_secret": api_credentials.get("api_secret")
+#         },
+#         "employee": {
+#             "id": employee_id,
+#             "designation": employee_details.get("designation"),
+#             "company_email": employee_details.get("company_email"),
+#         },
+#         "company": {
+#             "id": employee_details.get("company"),
+#             "code": company_details.get("company_code"),
+#             "short_form": company_details.get("company_short_form")
+#         },
+#         "vendor": {
+#             "id": vendor_id
+#         }
+#     }
+    
+#     frappe.response["message"] = response
+#     return response
+
+
 def build_user_response(user, api_credentials):
     """
     Build comprehensive user response with relevant details.
@@ -201,43 +288,51 @@ def build_user_response(user, api_credentials):
     user_roles = frappe.get_roles(user_doc.name)
 
     if "Vendor" in user_roles:
-       
         vendor_master = frappe.get_doc("Vendor Master", {"office_email_primary": user_doc.name})
         vendor_code = collect_vendor_code_data(vendor_master, method=None)
         response = {
-                    'vendor_codes': vendor_code,
-                    'designation': 'Vendor'
-                    }
-
+            'vendor_codes': vendor_code,
+            'designation': 'Vendor'
+        }
         return response
-
 
     user_name = user_doc.full_name or frappe.db.get_value("User", user, "full_name")
     
     # Get employee details if linked
     employee_id = frappe.get_value("Employee", {"user_id": user}, "name")
     employee_details = {}
+    companies_list = []
     
     if employee_id:
-        employee_details = frappe.get_value(
-            "Employee",
-            employee_id,
-            ["designation", "company_email"],
-            as_dict=True
-        ) or {}
+        employee_doc = frappe.get_doc("Employee", employee_id)
+        
+        # Get basic employee details
+        employee_details = {
+            "designation": employee_doc.designation,
+            "company_email": employee_doc.company_email
+        }
+        
+        # Get all company details from the table field
+        companies_list = []
+        if employee_doc.company and len(employee_doc.company) > 0:
+            for company_row in employee_doc.company:
+                company_name = company_row.company_name
+                
+                # Get company details from Company Master
+                if company_name:
+                    company_info = frappe.get_value(
+                        "Company Master",
+                        company_name,
+                        ["company_code", "company_short_form"],
+                        as_dict=True
+                    ) or {}
+                    
+                    # Add company name to the info
+                    company_info["company_name"] = company_name
+                    companies_list.append(company_info)
     
     # Get vendor details if applicable
-    vendor_id = frappe.get_value("Vendor Master", {"office_email_primary": user}, "name")
-    
-    # Get company details if available
-    company_details = {}
-    if employee_details.get("company"):
-        company_details = frappe.get_value(
-            "Company Master",
-            employee_details.get("company"),
-            ["company_code", "company_short_form"],
-            as_dict=True
-        ) or {}
+    vendor_id = frappe.get_value("Vendor Master", {"office_email_primary": user}, "name") or None
     
     # Construct response
     response = {
@@ -258,22 +353,14 @@ def build_user_response(user, api_credentials):
             "designation": employee_details.get("designation"),
             "company_email": employee_details.get("company_email"),
         },
-        "company": {
-            # "id": employee_details.get("company"),
-            "code": company_details.get("company_code"),
-            "short_form": company_details.get("company_short_form")
-        },
+        "company": companies_list,
         "vendor": {
             "id": vendor_id
-        }
+        } if vendor_id else None
     }
     
     frappe.response["message"] = response
     return response
-
-
-
-
 #  "designation_name": user_designation_name, --
 #         "username": user.username,  --
 #         "email": user.email,  --
