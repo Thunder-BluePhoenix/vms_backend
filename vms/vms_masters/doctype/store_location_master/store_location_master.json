@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:store_name",
  "creation": "2025-07-14 10:29:55.115496",
@@ -62,7 +63,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 10:40:02.753530",
+ "modified": "2025-07-15 12:02:16.814908",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Store Location Master",

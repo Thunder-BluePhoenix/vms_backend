@@ -15,21 +15,25 @@
   {
    "fieldname": "product_code",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Product Code"
   },
   {
    "fieldname": "product_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Product Name"
   },
   {
    "fieldname": "quantity",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Quantity"
   },
   {
    "fieldname": "price",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Price"
   }
  ],
@@ -37,7 +41,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-23 13:53:53.145899",
+ "modified": "2025-07-15 15:02:32.539069",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Items",
