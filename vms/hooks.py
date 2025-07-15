@@ -61,7 +61,7 @@ app_license = "mit"
 
 # website user home page (by Role)
 # role_home_page = {
-# 	"Role": "home_page"
+# 	"Role": "home_page"QMS Inspection Reports
 # }
 fixtures = [
     # {"dt": "SAP Mapper PR"},
@@ -72,6 +72,7 @@ fixtures = [
     {"dt": "QMS Procedure Doc Name"},
     {"dt": "QMS Prior Notification"},
     {"dt": "QMS Batch Record Details"},
+    {"dt": "QMS Inspection Reports"},
 ]
 # Generators
 # ----------

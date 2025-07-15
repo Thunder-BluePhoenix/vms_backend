@@ -1441,6 +1441,18 @@ function initializeMultiselectCheckboxes() {
                 'Change in the Raw Material specification'
             ]
         },
+        'inspection_reports': {
+            label: '5. Inspection Reports',
+            options: [
+                'In-house lot Identity',
+                'Suppliers Lot No',
+                'Date of Receipt',
+                'Suppliers Name',
+                'Quantity',
+                'Shelf Life Test Results',
+                'Details whether the lot is Accepted / Rejected'
+            ]
+        },
         'details_of_batch_records': {
             label: '9a. Details of batch records',
             options: [
@@ -1465,12 +1477,9 @@ function initializeMultiselectCheckboxes() {
         hideOriginalMultiselectFields(Object.keys(multiselectFields));
     }, 1500);
     
-
     setTimeout(function() {
         setupConditionalFieldVisibility();
     }, 2000);
-    // Override form submission (only once)
-    // overrideFormSubmissionForMultiselect(multiselectFields);
     
     // Mark as initialized
     window._multiselect_initialized = true;
@@ -1572,12 +1581,6 @@ function createSimpleCheckboxes(fieldName, fieldConfig) {
                 }
             }
         }
-        
-        // // Strategy 2: Fallback - append to form
-        // if (!placed) {
-        //     $('.web-form form, .form-container, .container').first().append(checkboxHTML);
-        //     console.log(`✅ Placed checkboxes for ${fieldName} using fallback method`);
-        // }
     }, 1000);
 }
 
@@ -1586,6 +1589,7 @@ function getSearchTexts(fieldName) {
         'quality_control_system': ['quality control', 'iso 9001', 'comply'],
         'have_documentsprocedure': ['documents', 'procedure', 'quality management'],
         'if_yes_for_prior_notification': ['prior notification', 'manufacturing'],
+        'inspection_reports': ['inspection reports', 'lot identity', 'suppliers'],
         'details_of_batch_records': ['batch records', 'lot number', 'processing conditions']
     };
     return searchMap[fieldName] || [fieldName.replace(/_/g, ' ')];
@@ -1602,7 +1606,6 @@ function hideOriginalMultiselectFields(fieldNames) {
         console.log(`Hidden original field: ${fieldName}`);
     });
 }
-
 
 // Debug function to check what fields exist
 function debugFields() {
@@ -1624,22 +1627,16 @@ function debugFields() {
     });
 }
 
-
-
-
-
 function setupMultiselectDataCapture() {
     // Hide the multiselect JSON field first
     hideMultiselectJsonField();
     
-    // Find the JSON storage field (assuming it has data-fieldname="multiselect_data_json" or similar)
-    // Adjust the field name according to your actual field name
+    // Find the JSON storage field
     const jsonFieldSelectors = [
         '[data-fieldname="multiselect_data_json"]',
         '[data-fieldname="multiselect_json"]',
         '[name="multiselect_data_json"]',
         '[name="multiselect_json"]',
-        // Add more potential field names as needed
         'input[type="text"]:contains("Multiselect data json")',
         'textarea:contains("Multiselect data json")'
     ];
@@ -1659,7 +1656,6 @@ function setupMultiselectDataCapture() {
                     jsonField = $(`#${fieldId}`);
                     return false; // break loop
                 }
-                // Also try to find nearby input
                 jsonField = $(this).siblings('input, textarea').first();
                 if (jsonField.length > 0) return false;
                 jsonField = $(this).closest('.form-group, .frappe-control').find('input, textarea').first();
@@ -1744,7 +1740,6 @@ function setupMultiselectDataCapture() {
     console.log('✅ Multiselect JSON data capture setup complete');
 }
 
-// Update your overrideFormSubmission function to include JSON update
 function overrideFormSubmissionWithMultiselect() {
     // Override form submission success callback
     $(document).on('web_form_doc_insert', function(e, data) {
@@ -1780,7 +1775,6 @@ function overrideFormSubmissionWithMultiselect() {
         }
     });
 }
-
 
 // Standalone function to update JSON before form submission
 function updateMultiselectJsonBeforeSubmit() {
@@ -1828,6 +1822,7 @@ function updateMultiselectJsonBeforeSubmit() {
     
     return jsonData;
 }
+
 function hideMultiselectJsonField() {
     const jsonFieldSelectors = [
         '[data-fieldname="multiselect_data_json"]',
@@ -1893,6 +1888,14 @@ function hideMultiselectJsonField() {
     
     console.log('✅ Multiselect JSON field hidden');
 }
+
+
+
+
+
+
+
+
 
 
 

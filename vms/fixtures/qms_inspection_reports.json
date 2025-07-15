@@ -1,0 +1,51 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "QMS Inspection Reports",
+  "inspection_report": "In-house lot Identity",
+  "modified": "2025-07-15 18:17:15.109649",
+  "name": "In-house lot Identity"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Inspection Reports",
+  "inspection_report": "Suppliers Lot No",
+  "modified": "2025-07-15 18:17:38.203658",
+  "name": "Suppliers Lot No"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Inspection Reports",
+  "inspection_report": "Date of Receipt",
+  "modified": "2025-07-15 18:17:54.101730",
+  "name": "Date of Receipt"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Inspection Reports",
+  "inspection_report": "Suppliers Name",
+  "modified": "2025-07-15 18:18:24.511716",
+  "name": "Suppliers Name"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Inspection Reports",
+  "inspection_report": "Quantity",
+  "modified": "2025-07-15 18:19:01.923092",
+  "name": "Quantity"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Inspection Reports",
+  "inspection_report": "Shelf Life Test Results",
+  "modified": "2025-07-15 18:21:32.651079",
+  "name": "Shelf Life Test Results"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "QMS Inspection Reports",
+  "inspection_report": "Details whether the lot is Accepted / Rejected",
+  "modified": "2025-07-15 18:23:35.124361",
+  "name": "Details whether the lot is Accepted / Rejected"
+ }
+]
