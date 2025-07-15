@@ -143,7 +143,9 @@
   "performer_title",
   "performent_date",
   "tab_12_tab",
-  "multiselect_data_json"
+  "multiselect_data_json",
+  "for_company_2000",
+  "for_company_7000"
  ],
  "fields": [
   {
@@ -272,7 +274,7 @@
    "fieldname": "sites_inspected_by",
    "fieldtype": "Select",
    "label": "2.Sites Inspected by",
-   "options": "-Select-\nLocal health authorities\nOthers:"
+   "options": "-Select-\nLocal health authorities\nOthers"
   },
   {
    "fieldname": "inspected_by_others",
@@ -924,12 +926,24 @@
    "fieldname": "multiselect_data_json",
    "fieldtype": "Text",
    "label": "Multiselect data json"
+  },
+  {
+   "default": "0",
+   "fieldname": "for_company_2000",
+   "fieldtype": "Check",
+   "label": "For Company 2000"
+  },
+  {
+   "default": "0",
+   "fieldname": "for_company_7000",
+   "fieldtype": "Check",
+   "label": "For Company 7000"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 11:11:06.068840",
+ "modified": "2025-07-15 11:27:05.655529",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
