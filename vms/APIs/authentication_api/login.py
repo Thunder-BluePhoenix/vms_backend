@@ -222,7 +222,7 @@ def build_user_response(user, api_credentials):
         employee_details = frappe.get_value(
             "Employee",
             employee_id,
-            ["designation", "company_email", "company"],
+            ["designation", "company_email"],
             as_dict=True
         ) or {}
     
@@ -259,7 +259,7 @@ def build_user_response(user, api_credentials):
             "company_email": employee_details.get("company_email"),
         },
         "company": {
-            "id": employee_details.get("company"),
+            # "id": employee_details.get("company"),
             "code": company_details.get("company_code"),
             "short_form": company_details.get("company_short_form")
         },
