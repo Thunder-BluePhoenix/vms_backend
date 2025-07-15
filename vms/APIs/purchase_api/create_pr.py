@@ -22,6 +22,18 @@ def purchase_requsition_masters():
         store_location = frappe.db.sql("""SELECT name, store_name, store_location, store_location_name, description FROM `tabStore Location Master`""", as_dict=True)
         valuation_area = frappe.db.sql("""SELECT name, valuation_area_name, valuation_area_code FROM `tabValuation Area Master`""", as_dict=True)
         currency_master = frappe.db.sql("""SELECT name, currency_code, currency_name FROM `tabCurrency Master`""", as_dict=True)
+        rfq_type = frappe.db.sql("""SELECT name, vendor_type_name, vendor_type_code FROM `tabVendor Type Master`""", as_dict=True)
+        mode_of_shipment = frappe.db.sql("""SELECT name, description FROM `tabMode Of Shipment`""", as_dict=True)
+        port_master = frappe.db.sql("""SELECT name, port_code, port_name FROM `tabPort Master`""", as_dict=True)
+        country_master = frappe.db.sql("""SELECT name, country_code, country_name  FROM `tabCountry Master`""", as_dict=True)
+        # port_master_code = frappe.db.sql("""SELECT name, port_code, port_name FROM `tabPort Master`""", as_dict=True)
+        incoterm_master = frappe.db.sql("""SELECT name, incoterm_code, incoterm_name FROM `tabIncoterm Master`""", as_dict=True)
+        package_type = frappe.db.sql("""SELECT name, package_code, package_name, description FROM `tabPackage Type Master`""", as_dict=True)
+        product_category = frappe.db.sql("""SELECT name, product_category_code, product_category_name, description FROM `tabProduct Category Master`""", as_dict=True)
+        shipment_type = frappe.db.sql("""SELECT name, shipment_type_code, shipment_type_name, description FROM `tabShipment Type Master`""", as_dict=True)
+        item_code = frappe.db.sql("""SELECT name, product_code, product_name, description FROM `tabProduct Master`""", as_dict=True)
+        material_category = frappe.db.sql("""SELECT name, material_category_code, material_category_name, description FROM `tabMaterial Category Master`""", as_dict=True)
+        storage_location = frappe.db.sql("""SELECT name, storage_location_name, description FROM `tabStorage Location Master`""", as_dict=True)
 
         return {
             "purchase_requisition_type": purchase_requisition_type,
@@ -41,7 +53,19 @@ def purchase_requsition_masters():
             "purchase_organisation": purchase_organisation,
             "store_location": store_location,
             "valuation_area": valuation_area,  
-            "currency_master": currency_master    
+            "currency_master": currency_master,
+            "rfq_type": rfq_type,
+            "mode_of_shipment": mode_of_shipment,
+            "port_master": port_master,
+            "country_master": country_master,
+            # "port_master_code": port_master_code,
+            "incoterm_master": incoterm_master,
+            "package_type": package_type,
+            "product_category": product_category,
+            "shipment_type": shipment_type,
+            "item_code": item_code,
+            "material_category": material_category,
+            "storage_location": storage_location,
         }
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Purchase Requisition Masters API Error")

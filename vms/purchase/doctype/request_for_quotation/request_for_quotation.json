@@ -1,14 +1,17 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-05-23 13:04:54.534508",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "rfq_type",
+  "column_break_ddyd",
+  "naming_series",
   "logistics_section",
-  "select_service",
-  "company_name",
-  "rfq_cutoff_date",
+  "company_name_logistic",
+  "rfq_cutoff_date_logistic",
   "mode_of_shipment",
   "destination_port",
   "port_of_loading",
@@ -18,11 +21,11 @@
   "invoice_date",
   "shipment_date",
   "remarks",
-  "vendor_list",
+  "expected_date_of_arrival",
   "column_break_akhk",
   "consignee_name",
   "sr_no",
-  "rfq_date",
+  "rfq_date_logistic",
   "country",
   "port_code",
   "inco_terms",
@@ -30,27 +33,28 @@
   "product_category",
   "actual_weight",
   "invoice_no",
+  "invoice_value",
   "shipment_type",
-  "file",
-  "rfq_type",
   "raised_by",
   "status",
   "material",
   "quantity",
   "required_by",
-  "meril_invoice_date",
+  "shipper_name",
   "material_section",
-  "pr_code",
-  "company_code",
+  "rfq_date",
+  "rfq_cutoff_date",
+  "company_name_materia",
   "purchase_organization",
   "purchase_group",
   "currency",
-  "collection_number",
   "column_break_pugn",
+  "collection_number",
   "quotation_deadline",
   "validity_start_date",
   "validity_end_date",
   "requestor_name",
+  "bidding_person",
   "materialitem_details_section",
   "item_code",
   "item_category",
@@ -58,54 +62,48 @@
   "item_dimension",
   "add_special_remarksif_any",
   "column_break_ynfu",
+  "material_code",
   "material_category",
   "plant_code",
+  "storage_location",
   "short_text",
   "catalogue_number",
   "make",
   "pack_size",
+  "services_section",
+  "service_code",
+  "service_category",
+  "column_break_ivze",
+  "select_language",
   "quantity_and_date_section",
   "rfq_quantity",
   "quantity_unit",
+  "column_break_wqng",
   "delivery_date",
-  "add_attachmentfor_material_reference_section",
-  "uploadpdfjpeg_excel",
+  "add_expected_budgetary_target_price_section",
+  "estimated_price",
+  "section_break_affd",
+  "rfq_items",
   "deadline_monitoring_section",
   "first_reminder",
   "second_reminder",
+  "column_break_wjmc",
   "third_reminder",
+  "attachments_section",
+  "multiple_attachments",
   "payment_terms_section",
   "non_negotiable",
   "column_break_fslg",
   "negotiable",
-  "add_vendors_section",
-  "vendor_code",
-  "services_section",
-  "bidding_person",
-  "select_language",
-  "service_code",
-  "service_category",
-  "storage_location",
-  "section_break_affd",
-  "table_jsfj"
+  "vendor_details_section",
+  "vendor_details"
  ],
  "fields": [
   {
-   "fieldname": "select_service",
-   "fieldtype": "Link",
-   "label": "Select Service",
-   "options": "Vendor Type Master"
-  },
-  {
-   "fieldname": "rfq_cutoff_date",
-   "fieldtype": "Datetime",
-   "label": "RFQ CutOff"
-  },
-  {
    "fieldname": "mode_of_shipment",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Mode Of Shipment",
-   "options": "By Road\nBy Sea\nBy Air"
+   "options": "Mode Of Shipment"
   },
   {
    "fieldname": "destination_port",
@@ -160,11 +158,6 @@
    "label": "Sr. No."
   },
   {
-   "fieldname": "rfq_date",
-   "fieldtype": "Date",
-   "label": "RFQ Date"
-  },
-  {
    "fieldname": "country",
    "fieldtype": "Link",
    "label": "Country",
@@ -175,12 +168,6 @@
    "fieldtype": "Link",
    "label": "Port Code",
    "options": "Port Master"
-  },
-  {
-   "fieldname": "inco_terms",
-   "fieldtype": "Link",
-   "label": "Inco Terms",
-   "options": "Incoterm Master"
   },
   {
    "fieldname": "package_type",
@@ -215,15 +202,10 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "file",
-   "fieldtype": "Attach",
-   "label": "File"
-  },
-  {
    "fieldname": "rfq_type",
    "fieldtype": "Link",
    "label": "RFQ Type",
-   "options": "RFQ Type Master"
+   "options": "Vendor Type Master"
   },
   {
    "fieldname": "raised_by",
@@ -254,17 +236,12 @@
   {
    "fieldname": "logistics_section",
    "fieldtype": "Section Break",
-   "label": "Logistics"
+   "label": "RFQ for Logistics"
   },
   {
    "fieldname": "material_section",
    "fieldtype": "Section Break",
-   "label": "Material"
-  },
-  {
-   "fieldname": "pr_code",
-   "fieldtype": "Data",
-   "label": "PR Code"
+   "label": "RFQ for Material/Services"
   },
   {
    "fieldname": "purchase_organization",
@@ -403,16 +380,6 @@
    "label": "Delivery Date"
   },
   {
-   "fieldname": "add_attachmentfor_material_reference_section",
-   "fieldtype": "Section Break",
-   "label": "Add Attachment(for material reference)"
-  },
-  {
-   "fieldname": "uploadpdfjpeg_excel",
-   "fieldtype": "Attach",
-   "label": "Upload(pdf,jpeg, excel)"
-  },
-  {
    "fieldname": "deadline_monitoring_section",
    "fieldtype": "Section Break",
    "label": "Deadline Monitoring"
@@ -454,17 +421,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "add_vendors_section",
-   "fieldtype": "Section Break",
-   "label": "Add Vendors"
-  },
-  {
-   "fieldname": "vendor_code",
-   "fieldtype": "Link",
-   "label": "Vendor Code",
-   "options": "Vendor Master"
-  },
-  {
    "fieldname": "services_section",
    "fieldtype": "Section Break",
    "label": "Services"
@@ -494,14 +450,9 @@
   },
   {
    "fieldname": "storage_location",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Storage Location",
-   "options": "Storage Location1\nStorage Location2\nStorage Location3\nStorage Location4"
-  },
-  {
-   "fieldname": "meril_invoice_date",
-   "fieldtype": "Date",
-   "label": "Meril Invoice Date"
+   "options": "Storage Location Master"
   },
   {
    "fieldname": "section_break_affd",
@@ -509,35 +460,133 @@
    "label": "RFQ Items"
   },
   {
-   "fieldname": "table_jsfj",
+   "fieldname": "invoice_value",
+   "fieldtype": "Data",
+   "label": "Invoice Value"
+  },
+  {
+   "fieldname": "shipper_name",
+   "fieldtype": "Data",
+   "label": "Shipper Name"
+  },
+  {
+   "fieldname": "attachments_section",
+   "fieldtype": "Section Break",
+   "label": "Attachments"
+  },
+  {
+   "fieldname": "multiple_attachments",
    "fieldtype": "Table",
+   "label": "Multiple Attachments",
+   "options": "Multiple Attachment"
+  },
+  {
+   "fieldname": "vendor_details_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Details"
+  },
+  {
+   "fieldname": "vendor_details",
+   "fieldtype": "Table",
+   "label": "Vendor Details",
+   "options": "Vendor Details"
+  },
+  {
+   "fieldname": "rfq_items",
+   "fieldtype": "Table",
+   "label": "RFQ Item List",
    "options": "RFQ Items"
   },
   {
-   "fieldname": "vendor_list",
-   "fieldtype": "Text",
-   "label": "Vendor List"
-  },
-  {
-   "fieldname": "company_name",
+   "fieldname": "company_name_logistic",
    "fieldtype": "Link",
    "label": "Company Name",
    "options": "Company Master"
   },
   {
-   "fieldname": "company_code",
+   "fieldname": "rfq_cutoff_date_logistic",
+   "fieldtype": "Datetime",
+   "label": "RFQ CutOff"
+  },
+  {
+   "fieldname": "rfq_date_logistic",
+   "fieldtype": "Date",
+   "label": "RFQ Date"
+  },
+  {
+   "fieldname": "column_break_wjmc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_wqng",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ivze",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rfq_date",
+   "fieldtype": "Date",
+   "label": "RFQ Date"
+  },
+  {
+   "fieldname": "rfq_cutoff_date",
+   "fieldtype": "Date",
+   "label": "RFQ Cut Off Date"
+  },
+  {
+   "fieldname": "company_name_materia",
    "fieldtype": "Link",
-   "label": "Company Code",
+   "label": "Company Name",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "material_code",
+   "fieldtype": "Link",
+   "label": "Material Code",
+   "options": "Material Master"
+  },
+  {
+   "fieldname": "add_expected_budgetary_target_price_section",
+   "fieldtype": "Section Break",
+   "label": "Add Expected/ Budgetary Target Price"
+  },
+  {
+   "fieldname": "estimated_price",
+   "fieldtype": "Data",
+   "label": "Estimated Price"
+  },
+  {
+   "fieldname": "column_break_ddyd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "PUR-RFQ-.YYYY.-"
+  },
+  {
+   "fieldname": "expected_date_of_arrival",
+   "fieldtype": "Date",
+   "label": "Expected Date of Arrival"
+  },
+  {
+   "fieldname": "inco_terms",
+   "fieldtype": "Link",
+   "label": "Inco Terms",
+   "options": "Incoterm Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-23 13:04:54.534508",
+ "modified": "2025-07-15 16:44:14.408525",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
