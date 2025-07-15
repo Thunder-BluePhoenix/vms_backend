@@ -63,7 +63,7 @@ def update_vendor_onboarding_certificate_details(data):
 		uploaded_file_url = ""
 		if "certificate_attach" in frappe.request.files:
 			file = frappe.request.files["certificate_attach"]
-			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=1)
+			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
 			uploaded_file_url = saved.file_url
 
 		# If multi-company, update all related docs

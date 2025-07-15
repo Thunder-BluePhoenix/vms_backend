@@ -146,17 +146,17 @@ def update_vendor_onboarding_manufacturing_details(data):
 
 		if 'brochure_proof' in frappe.request.files:
 			file = frappe.request.files['brochure_proof']
-			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=1)
+			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
 			brochure_url = saved.file_url
 
 		if 'organisation_structure_document' in frappe.request.files:
 			file = frappe.request.files['organisation_structure_document']
-			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=1)
+			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
 			org_structure_url = saved.file_url
 
 		if 'material_images' in frappe.request.files:
 			file = frappe.request.files['material_images']
-			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=1)
+			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
 			material_img_url = saved.file_url
 
 		# Get all linked docs if multi-company

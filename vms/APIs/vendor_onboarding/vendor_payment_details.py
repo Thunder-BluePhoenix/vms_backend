@@ -231,7 +231,7 @@ def update_vendor_onboarding_payment_details(data):
 		for key in file_keys:
 			if key in frappe.request.files:
 				file = frappe.request.files[key]
-				saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=1)
+				saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
 				file_urls[key] = saved.file_url
 
 		# Handle linked docs if registered_for_multi_companies is 1

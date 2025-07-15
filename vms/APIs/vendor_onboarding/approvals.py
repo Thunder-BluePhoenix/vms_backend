@@ -87,7 +87,7 @@ def purchase_team_check(data):
 
             if "bank_proof_by_purchase_team" in frappe.request.files:
                 file = frappe.request.files["bank_proof_by_purchase_team"]
-                saved = save_file(file.filename, file.stream.read(), payment_detail.doctype, payment_detail.name, is_private=1)
+                saved = save_file(file.filename, file.stream.read(), payment_detail.doctype, payment_detail.name, is_private=0)
                 payment_detail.bank_proof_by_purchase_team = saved.file_url
                 payment_detail.save(ignore_permissions=True)
 

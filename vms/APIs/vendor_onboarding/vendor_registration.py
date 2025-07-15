@@ -546,6 +546,8 @@ def onboarding_form_submit(data):
         }
     
 # send registration email link
+from urllib.parse import urlencode
+
 @frappe.whitelist(allow_guest=True)
 def send_registration_email_link(vendor_onboarding, refno):
     try:
@@ -558,6 +560,7 @@ def send_registration_email_link(vendor_onboarding, refno):
         onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
         vendor_master = frappe.get_doc("Vendor Master", onboarding_doc.ref_no)
 
+        company_codes = []
         if onboarding_doc.registered_for_multi_companies == 1:
             mul_docs = frappe.get_all(
                 "Vendor Onboarding",
@@ -568,12 +571,20 @@ def send_registration_email_link(vendor_onboarding, refno):
                 fields=["company_name"]
             )
             mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name")]
-            company_names = ", ".join([
-                frappe.db.get_value("Company Master", name, "company_name")
-                for name in mul_company_names if frappe.db.exists("Company Master", name)
-            ])
+
+            company_names = []
+            for name in mul_company_names:
+                if frappe.db.exists("Company Master", name):
+                    comp = frappe.db.get_value("Company Master", name, ["company_name", "company_code"], as_dict=True)
+                    if comp:
+                        company_names.append(comp.company_name)
+                        company_codes.append(comp.company_code)
+
+            company_names = ", ".join(company_names)
         else:
-            company_names = frappe.db.get_value("Company Master", onboarding_doc.company_name, "company_name")
+            comp = frappe.db.get_value("Company Master", onboarding_doc.company_name, ["company_name", "company_code"], as_dict=True)
+            company_names = comp.company_name if comp else ""
+            company_codes = [comp.company_code] if comp else []
 
         # Construct registration link
         http_server = frappe.conf.get("frontend_http")
@@ -590,7 +601,8 @@ def send_registration_email_link(vendor_onboarding, refno):
             query_params = urlencode({
                 "vendor_onboarding": onboarding_doc.name,
                 "ref_no": onboarding_doc.ref_no,
-                "mobile_number": vendor_master.mobile_number
+                "mobile_number": vendor_master.mobile_number,
+                "company_code": ",".join(company_codes)
             })
             http_backend_server = frappe.conf.get("backend_http")
             webform_link = f"{http_backend_server}/qms-webform/new?{query_params}"
@@ -639,7 +651,7 @@ def send_registration_email_link(vendor_onboarding, refno):
             )
 
             onboarding_doc.sent_registration_email_link = 1
-            onboarding_doc.sent_qms_form_link =1
+            onboarding_doc.sent_qms_form_link = 1
             if onboarding_doc.registered_for_multi_companies == 1:
                 onboarding_doc.head_target = 1
             onboarding_doc.save(ignore_permissions=True)
