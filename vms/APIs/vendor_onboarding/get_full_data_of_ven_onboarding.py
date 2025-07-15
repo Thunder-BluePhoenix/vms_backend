@@ -43,13 +43,13 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         company_details["company_name_description"] = company_name_description
 
         # --- Fetch vendor types from Vendor Master ---
-        # vendor_type_list = []
-        # if frappe.db.exists("Vendor Master", ref_no):
-        #     vendor_doc = frappe.get_doc("Vendor Master", ref_no)
-        #     for row in vendor_doc.vendor_types:
-        #         vendor_type_list.append(row.vendor_type)
+        vendor_type_list_from_master = []
+        if frappe.db.exists("Vendor Master", ref_no):
+            vendor_doc = frappe.get_doc("Vendor Master", ref_no)
+            for row in vendor_doc.vendor_types:
+                vendor_type_list_from_master.append(row.vendor_type)
 
-        # company_details["vendor_types"] = vendor_type_list
+        company_details["vendor_type_list_from_master"] = vendor_type_list_from_master
         # vendor_type_list = []
         # # if frappe.db.exists("Vendor Master", ref_no):
         # vendor_onb_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
