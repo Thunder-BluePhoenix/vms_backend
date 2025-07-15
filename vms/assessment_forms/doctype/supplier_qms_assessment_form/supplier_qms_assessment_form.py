@@ -163,7 +163,8 @@ def update_multiselect_child_fields(self, method=None):
             "quality_control_system": ("QMS Quality Control", "qms_quality_control"),
             "details_of_batch_records": ("QMS Batch Record Table", "qms_batch_record"),
             "have_documentsprocedure": ("QMS Procedure Doc", "qms_procedure_doc"),
-            "if_yes_for_prior_notification": ("QMS Prior Notification Table", "qms_prior_notification")
+            "if_yes_for_prior_notification": ("QMS Prior Notification Table", "qms_prior_notification"),
+            "inspection_reports":("QMS Inspection Report Table", "qms_inspection_report")
         }
         
         for json_field, (child_doctype, child_field) in field_mappings.items():

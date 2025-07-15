@@ -172,6 +172,7 @@ def process_qms_web_form(doc_data):
         process_checkbox_field(doc, doc_data, 'have_documentsprocedure', 'have_documentsprocedure_checkboxes', 'QMS Procedure Doc', 'value')
         process_checkbox_field(doc, doc_data, 'if_yes_for_prior_notification', 'if_yes_for_prior_notification_checkboxes', 'QMS Prior Notification Table', 'value')
         process_checkbox_field(doc, doc_data, 'details_of_batch_records', 'details_of_batch_records_checkboxes', 'QMS Batch Record Table', 'value')
+        process_checkbox_field(doc, doc_data, 'inspection_reports', 'inspection_reports_checkboxes', 'QMS Inspection Report Table', 'value')
         
         # Save the document
         doc.insert()

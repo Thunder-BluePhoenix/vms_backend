@@ -1,0 +1,35 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-15 18:12:50.020776",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "qms_inspection_report"
+ ],
+ "fields": [
+  {
+   "fieldname": "qms_inspection_report",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "QMS Inspection Report",
+   "options": "QMS Inspection Reports"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-15 18:15:31.248891",
+ "modified_by": "Administrator",
+ "module": "Assessment Forms",
+ "name": "QMS Inspection Report Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

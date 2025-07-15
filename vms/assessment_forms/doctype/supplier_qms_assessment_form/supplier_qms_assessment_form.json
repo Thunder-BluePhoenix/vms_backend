@@ -64,10 +64,10 @@
   "material_control_section",
   "approved_supplierlist",
   "control_and_inspection",
-  "inspection_reports",
-  "column_break_uasb",
   "agreements",
+  "column_break_uasb",
   "defined_areas",
+  "inspection_reports",
   "quality_tab",
   "quality_control_section",
   "qc_independent_of_production",
@@ -422,9 +422,9 @@
   },
   {
    "fieldname": "inspection_reports",
-   "fieldtype": "Small Text",
+   "fieldtype": "Table MultiSelect",
    "label": "5.Inspection Reports",
-   "options": "In-house lot Identity\nSuppliers Lot No\nDate of Receipt\nSuppliers Name\nQuantity\nShelf Life Test Results\nDetails whether the lot is Accepted / Rejected"
+   "options": "QMS Inspection Report Table"
   },
   {
    "fieldname": "column_break_uasb",
@@ -943,7 +943,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-15 11:27:05.655529",
+ "modified": "2025-07-15 18:25:30.959715",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
