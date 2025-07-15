@@ -978,75 +978,6 @@ function setupConditionalFieldVisibility() {
     };
 }
 
-
-
-
-// UPDATE YOUR EXISTING initializeMultiselectCheckboxes() FUNCTION
-// Add this line at the end of your initializeMultiselectCheckboxes() function:
-
-/*
-function initializeMultiselectCheckboxes() {
-    // ... your existing multiselect code ...
-    
-    // ADD THIS LINE AT THE END:
-    setTimeout(function() {
-        setupConditionalFieldVisibility();
-    }, 2000);
-    
-    console.log('✅ Multiselect checkboxes initialized successfully');
-}
-*/
-
-// OR ADD THIS TO YOUR MAIN frappe.ready() FUNCTION:
-
-/*
-frappe.ready(function() {
-    // ... your existing code ...
-    
-    initializeMultiselectCheckboxes();
-    
-    // ADD THIS LINE:
-    setTimeout(function() {
-        setupConditionalFieldVisibility();
-    }, 3000);
-    
-    // ... rest of your code ...
-});
-*/
-
-// UPDATE YOUR EXISTING initializeMultiselectCheckboxes() FUNCTION
-// Add this line at the end of your initializeMultiselectCheckboxes() function:
-
-/*
-function initializeMultiselectCheckboxes() {
-    // ... your existing multiselect code ...
-    
-    // ADD THIS LINE AT THE END:
-    setTimeout(function() {
-        setupConditionalFieldVisibility();
-    }, 2000);
-    
-    console.log('✅ Multiselect checkboxes initialized successfully');
-}
-*/
-
-// OR ADD THIS TO YOUR MAIN frappe.ready() FUNCTION:
-
-/*
-frappe.ready(function() {
-    // ... your existing code ...
-    
-    initializeMultiselectCheckboxes();
-    
-    // ADD THIS LINE:
-    setTimeout(function() {
-        setupConditionalFieldVisibility();
-    }, 3000);
-    
-    // ... rest of your code ...
-});
-*/
-
 function hideHeaderFooter() {
     // Hide website header
     $('.navbar').hide();
@@ -1124,28 +1055,31 @@ function hideModalDialogs() {
         return $('.success-page').length > 0 && $('.success-page').is(':visible');
     }
     
-    // Function to hide modal dialogs only on success page
+    // Function to hide msgprint-dialog modals only on success page
     function hideModalsOnSuccessPage() {
         if (isSuccessPageVisible()) {
-            // Hide the specific modal content structure you mentioned
-            $('.modal-content').each(function() {
-                const $modalContent = $(this);
-                const $modalBody = $modalContent.find('.modal-body');
-                const $msgprint = $modalBody.find('.msgprint');
+            // Hide only msgprint-dialog modals
+            $('.modal-dialog.msgprint-dialog').each(function() {
+                const $modalDialog = $(this);
+                const $modalContent = $modalDialog.find('.modal-content');
+                const $modal = $modalDialog.closest('.modal');
                 
-                // Check if this modal contains any error message
-                if ($msgprint.length > 0 && $msgprint.text().trim() !== '') {
-                    // Hide the entire modal
-                    $modalContent.closest('.modal').hide();
-                    $modalContent.hide();
-                }
+                // Hide the entire modal
+                $modal.hide();
+                $modalContent.hide();
             });
             
-            // Also hide modal backdrop
-            $('.modal-backdrop').hide();
+            // Also hide modal backdrop only if all visible modals are msgprint-dialog
+            const $visibleModals = $('.modal:visible');
+            const $nonMsgprintModals = $visibleModals.filter(function() {
+                return !$(this).find('.modal-dialog.msgprint-dialog').length;
+            });
             
-            // Remove modal-open class from body
-            $('body').removeClass('modal-open');
+            if ($nonMsgprintModals.length === 0) {
+                $('.modal-backdrop').hide();
+                // Remove modal-open class from body
+                $('body').removeClass('modal-open');
+            }
         }
     }
     
@@ -1172,12 +1106,17 @@ function hideModalDialogs() {
         hideModalsOnSuccessPage();
     }, 100);
     
-    // Listen for modal show events and prevent them only on success page
+    // Listen for modal show events and prevent them only on success page (only for msgprint-dialog)
     $(document).on('show.bs.modal', '.modal', function(e) {
         if (isSuccessPageVisible()) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
+            const $modalDialog = $(this).find('.modal-dialog.msgprint-dialog');
+            
+            // Only prevent msgprint-dialog modals
+            if ($modalDialog.length > 0) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
         }
     });
     
@@ -1195,32 +1134,33 @@ function hideModalDialogs() {
         };
     }
     
-    // Add CSS to hide modals only when success page is visible
+    // Add CSS to hide only msgprint-dialog modals when success page is visible
     $('<style>')
         .prop('type', 'text/css')
         .html(`
-            /* Hide modal dialogs only when success page is visible */
-            .success-page ~ .modal,
-            body:has(.success-page) .modal {
+            /* Hide only msgprint-dialog modals when success page is visible */
+            .success-page ~ .modal:has(.modal-dialog.msgprint-dialog),
+            body:has(.success-page) .modal:has(.modal-dialog.msgprint-dialog) {
                 display: none !important;
             }
             
-            .success-page ~ .modal-backdrop,
-            body:has(.success-page) .modal-backdrop {
+            /* Hide backdrop only when all visible modals are msgprint-dialog */
+            body:has(.success-page):not(:has(.modal:visible:not(:has(.modal-dialog.msgprint-dialog)))) .modal-backdrop {
                 display: none !important;
             }
             
-            /* Alternative CSS for older browsers */
-            .modal {
+            /* Alternative CSS for older browsers - target msgprint-dialog specifically */
+            .modal-dialog.msgprint-dialog {
                 display: none !important;
             }
             
-            .modal-backdrop {
-                display: none !important;
+            /* Show all non-msgprint modals normally */
+            .modal:not(:has(.modal-dialog.msgprint-dialog)) {
+                display: block !important;
             }
             
             /* Show modals again when success page is not present */
-            body:not(:has(.success-page)) .modal:not(.hidden-modal) {
+            body:not(:has(.success-page)) .modal-dialog.msgprint-dialog {
                 display: block !important;
             }
         `)
