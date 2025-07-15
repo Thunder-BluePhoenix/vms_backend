@@ -1,4 +1,5 @@
 import frappe
+import json
 from frappe import _
 
 # @frappe.whitelist(allow_guest=True)
@@ -177,3 +178,37 @@ def get_qms_details_without_label(vendor_onboarding):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "get_qms_details Error")
         frappe.throw(_("An unexpected error occurred while fetching QMS details."))
+
+
+# QMS form Approval
+@frappe.whitelist(allow_guest=True)
+def approve_qms_form(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        qms_form = frappe.get_doc("Supplier QMS Assessment Form", data.get("name"))
+
+        qms_form.qms_form_status = data.get("qms_form_status")
+        qms_form.conclusion_by_meril = data.get("conclusion_by_meril")
+        qms_form.assessment_outcome = data.get("assessment_outcome")
+        qms_form.performer_name = data.get("performer_name")
+        qms_form.performer_title = data.get("performer_title")
+        qms_form.performent_date = data.get("performent_date")
+
+        qms_form.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": "QMS form approved successfully."
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "QMS Approval Error")
+        return {
+            "status": "error",
+            "message": "Failed to approve QMS form.",
+            "error": str(e)
+        }
+

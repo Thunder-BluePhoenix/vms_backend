@@ -7,7 +7,13 @@
  "engine": "InnoDB",
  "field_order": [
   "category_name",
-  "purchase_team_user"
+  "purchase_team_user",
+  "name_of_person",
+  "purchase_team_contact_number",
+  "column_break_wedz",
+  "alternative_purchase_team",
+  "alternative_name_of_person",
+  "alternative_purchase_team_contact_number"
  ],
  "fields": [
   {
@@ -19,14 +25,46 @@
   {
    "fieldname": "purchase_team_user",
    "fieldtype": "Link",
-   "label": "Purchase Team",
+   "label": "Purchase Team ID",
    "options": "User"
+  },
+  {
+   "fetch_from": "purchase_team_user.full_name",
+   "fieldname": "name_of_person",
+   "fieldtype": "Data",
+   "label": "Name of Person"
+  },
+  {
+   "fieldname": "purchase_team_contact_number",
+   "fieldtype": "Data",
+   "label": "Purchase Team Contact Number"
+  },
+  {
+   "fieldname": "column_break_wedz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "alternative_purchase_team",
+   "fieldtype": "Link",
+   "label": "Alternative Purchase Team ID",
+   "options": "User"
+  },
+  {
+   "fetch_from": "purchase_team_user.full_name",
+   "fieldname": "alternative_name_of_person",
+   "fieldtype": "Data",
+   "label": "Name of Person"
+  },
+  {
+   "fieldname": "alternative_purchase_team_contact_number",
+   "fieldtype": "Data",
+   "label": "Purchase Team Contact Number"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 11:39:46.165237",
+ "modified": "2025-07-15 17:35:45.159908",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Category Master",
