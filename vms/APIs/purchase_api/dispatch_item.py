@@ -459,22 +459,23 @@ def submit_child_dispatch_item(data):
 				if key in data:
 					child_row.set(key, data[key])
 		else:
+			pass
 			# Append new row
-			child_row = doc.append("items", {
-				"po_number": data.get("po_number"),
-				"product_code": data.get("product_code"),
-				"product_name": data.get("product_name"),
-				"description": data.get("description"),
-				"quantity": data.get("quantity"),
-				"hsnsac": data.get("hsnsac"),
-				"uom": data.get("uom"),
-				"rate": data.get("rate"),
-				"amount": data.get("amount"),
-				"dispatch_qty": data.get("dispatch_qty"),
-				"pending_qty": data.get("pending_qty"),
-				"coa_document": data.get("coa_document"),
-				"msds_document": data.get("msds_document")
-			})
+			# child_row = doc.append("items", {
+			# 	"po_number": data.get("po_number"),
+			# 	"product_code": data.get("product_code"),
+			# 	"product_name": data.get("product_name"),
+			# 	"description": data.get("description"),
+			# 	"quantity": data.get("quantity"),
+			# 	"hsnsac": data.get("hsnsac"),
+			# 	"uom": data.get("uom"),
+			# 	"rate": data.get("rate"),
+			# 	"amount": data.get("amount"),
+			# 	"dispatch_qty": data.get("dispatch_qty"),
+			# 	"pending_qty": data.get("pending_qty"),
+			# 	"coa_document": data.get("coa_document"),
+			# 	"msds_document": data.get("msds_document")
+			# })
 
 		# Handle file uploads for this row
 		for attach_field in ["coa_document", "msds_document"]:
