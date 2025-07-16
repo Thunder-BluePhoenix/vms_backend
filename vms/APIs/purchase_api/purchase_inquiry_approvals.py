@@ -75,21 +75,30 @@ def purchase_approval_check(data):
 			cart_details_doc.purchase_team_approval_remarks = comments
 
 			# Clear old child rows
-			cart_details_doc.set("cart_product", [])
+			# cart_details_doc.set("cart_product", [])
 
 			for row in data.get("cart_product", []):
 				if not row:
 					continue
-				cart_details_doc.append("cart_product", {
-					"assest_code": row.get("assest_code"),
-					"product_name": row.get("product_name"),
-					"product_quantity": row.get("product_quantity"),
-					"user_specifications": row.get("user_specifications"),
-					"product_price": row.get("product_price"),
-					"uom": row.get("uom"),
-					"lead_time": row.get("lead_time"),
-					"final_price_by_purchase_team": row.get("final_price_by_purchase_team")
-				})
+				row_id = row.get("name")
+				final_price = row.get("final_price_by_purchase_team")
+				for child in cart_details_doc.cart_product:
+					if child.name == row_id:
+						child.final_price_by_purchase_team = final_price
+						break
+			
+
+
+				# cart_details_doc.append("cart_product", {
+				# 	"assest_code": row.get("assest_code"),
+				# 	"product_name": row.get("product_name"),
+				# 	"product_quantity": row.get("product_quantity"),
+				# 	"user_specifications": row.get("user_specifications"),
+				# 	"product_price": row.get("product_price"),
+				# 	"uom": row.get("uom"),
+				# 	"lead_time": row.get("lead_time"),
+				# 	"final_price_by_purchase_team": row.get("final_price_by_purchase_team")
+				# })
 					
 		elif is_rejected:
 			cart_details_doc.rejected = 1
