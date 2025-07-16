@@ -11,7 +11,8 @@
   "vendor_code",
   "office_email_primary",
   "mobile_number",
-  "country"
+  "country",
+  "mail_sent"
  ],
  "fields": [
   {
@@ -51,13 +52,19 @@
    "in_list_view": 1,
    "label": "Country",
    "options": "Country Master"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent",
+   "fieldtype": "Check",
+   "label": "Mail Sent"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-16 10:53:03.303040",
+ "modified": "2025-07-16 17:10:32.172846",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Vendor Details",
