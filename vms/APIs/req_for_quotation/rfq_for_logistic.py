@@ -2,7 +2,7 @@ import frappe
 import json
 from frappe import _
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def vendor_list(rfq_type=None, vendor_name=None, page_no=1, page_length=10):
 	if not rfq_type:
 		frappe.throw(_("Missing required parameter: rfq_type"))
@@ -74,7 +74,7 @@ def vendor_list(rfq_type=None, vendor_name=None, page_no=1, page_length=10):
 
 # create logistic import rfq data -----------------------------------------------------------------------------------------------
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def create_import_logistic_rfq(data):
 	try:
 		if isinstance(data, str):
@@ -145,7 +145,7 @@ def create_import_logistic_rfq(data):
             
 
 # get full data of logistic import rfq
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def get_full_data_import_logistic_rfq(name):
 	try:
 		doc = frappe.get_doc("Request For Quotation", name)
@@ -212,7 +212,7 @@ def get_full_data_import_logistic_rfq(name):
 
  # create logistic export rfq data  -----------------------------------------------------------------------------------------------
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def create_export_logistic_rfq(data):
 	try:
 		if isinstance(data, str):
@@ -283,7 +283,7 @@ def create_export_logistic_rfq(data):
                    
 # get full data of logistic export rfq
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def get_full_data_export_logistic_rfq(name):
 	try:
 		doc = frappe.get_doc("Request For Quotation", name)
@@ -346,5 +346,5 @@ def get_full_data_export_logistic_rfq(name):
 		frappe.throw(_("Error fetching RFQ: ") + str(e))
 
 
-# create rfq for material -----------------------------------------------------------------------------------------------
+
 
