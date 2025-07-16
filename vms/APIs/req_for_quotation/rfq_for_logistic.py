@@ -346,5 +346,42 @@ def get_full_data_export_logistic_rfq(name):
 		frappe.throw(_("Error fetching RFQ: ") + str(e))
 
 
+# dashboard for rfq logistic
+# take care for vendor login also now it is not hanled in the function
+@frappe.whitelist(allow_guest=False)
+def rfq_logistic_dashboard(company_name_logistic=None, name=None, page_no=1, page_length=5):
+	try:
+		conditions = {}
+		if company_name_logistic:
+			conditions["company_name_logistic"] = ["like", f"%{company_name_logistic}%"]
+		if name:
+			conditions["name"] = ["like", f"%{name}%"]
 
+		page_no = int(page_no) if page_no else 1
+		page_length = int(page_length) if page_length else 5
+		offset = (page_no - 1) * page_length
+
+		rfq_list = frappe.get_all(
+			"Request For Quotation",
+			filters=conditions,
+			fields=["name", "company_name_logistic", "rfq_type", "rfq_date_logistic", "status"],
+			start=offset,
+			page_length=page_length,
+			order_by="modified desc"
+		)
+
+		total_count = frappe.db.count("Request For Quotation", filters=conditions)
+
+		return {
+			"status": "success",
+			"message": f"{len(rfq_list)} RFQ(s) found",
+			"data": rfq_list,
+			"total_count": total_count,
+			"page_no": page_no,
+			"page_length": page_length
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "RFQ Dashboard Error")
+		frappe.throw(_("Error fetching RFQ list: ") + str(e))
 
