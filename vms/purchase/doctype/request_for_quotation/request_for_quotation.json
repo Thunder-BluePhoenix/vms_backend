@@ -72,8 +72,9 @@
   "pack_size",
   "services_section",
   "service_code",
-  "service_category",
+  "service_location",
   "column_break_ivze",
+  "service_category",
   "select_language",
   "quantity_and_date_section",
   "rfq_quantity",
@@ -96,7 +97,9 @@
   "column_break_fslg",
   "negotiable",
   "vendor_details_section",
-  "vendor_details"
+  "vendor_details",
+  "non_onboarded_vendor_details_section",
+  "non_onboarded_vendor_details"
  ],
  "fields": [
   {
@@ -577,12 +580,28 @@
    "fieldtype": "Link",
    "label": "Inco Terms",
    "options": "Incoterm Master"
+  },
+  {
+   "fieldname": "non_onboarded_vendor_details_section",
+   "fieldtype": "Section Break",
+   "label": "Non Onboarded Vendor Details"
+  },
+  {
+   "fieldname": "non_onboarded_vendor_details",
+   "fieldtype": "Table",
+   "label": "Non Onboarded Vendor Details",
+   "options": "Non Onboarded Vendor Details"
+  },
+  {
+   "fieldname": "service_location",
+   "fieldtype": "Text",
+   "label": "Service Location"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-15 16:44:14.408525",
+ "modified": "2025-07-16 12:34:32.326920",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
