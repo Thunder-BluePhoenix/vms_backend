@@ -10,7 +10,7 @@ def get_currency_list():
         
 
         # Fetch all currency records
-        all_cur = frappe.get_all("Currency Master", fields="name")
+        all_cur = frappe.get_all("Currency Master", fields={"name", "currency_name"})
 
         if not all_cur:
             return {
