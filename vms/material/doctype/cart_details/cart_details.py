@@ -14,20 +14,26 @@ def send_purchase_inquiry_email(doc, method=None):
 	if doc.user and not doc.rejected:
 		if not doc.purchase_team_approved and not doc.mail_sent_to_purchase_team:
 			send_mail_purchase(doc, method=None)
-			print("send_mail_purchase @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+			# print("send_mail_purchase @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		elif doc.purchase_team_approved and not doc.hod_approved and not doc.mail_sent_to_hod:
 			send_mail_hod(doc, method=None)
-			print("send_mail_hod @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+			# print("send_mail_hod @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		elif doc.hod_approved and not doc.ack_mail_to_user:
 			send_mail_user(doc, method=None)
-			print("send_mail_user @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+			# print("send_mail_user @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		else:
 			pass
 	elif doc.user and doc.rejected:
 		rejection_mail_to_user(doc, method=None)
-		print("send_rejection_mail_user @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+		# print("send_rejection_mail_user @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	else:
 		pass
+
+	if doc.purchase_team_approved or doc.rejected :
+		doc.is_approval = 1
+	else: 
+		doc.is_approval = 0
+	
 
 def send_mail_hod(doc, method=None):
 	try:

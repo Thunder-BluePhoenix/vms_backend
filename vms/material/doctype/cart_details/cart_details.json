@@ -52,7 +52,9 @@
   "purchase_team_status",
   "remarks",
   "tab_2_tab",
-  "modification_info"
+  "modification_info",
+  "section_break_iwzm",
+  "is_approval"
  ],
  "fields": [
   {
@@ -313,12 +315,22 @@
    "fieldtype": "Link",
    "label": "Purchase Type",
    "options": "Purchase Requisition Type"
+  },
+  {
+   "fieldname": "section_break_iwzm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_approval",
+   "fieldtype": "Check",
+   "label": "Is Approval"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-07 13:00:52.590098",
+ "modified": "2025-07-17 12:59:40.919570",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",

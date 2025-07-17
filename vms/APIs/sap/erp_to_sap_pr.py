@@ -34,48 +34,94 @@ def erp_to_sap_pr(doc_name, method=None):
     name_for_sap = f"{year_month_prefix}{str(new_count).zfill(5)}"
 
     
+    data_list = None
+    data = None
 
 
-    data_list = {
-        "Banfn": "",
-        "Ztype": "",
-        "Ztext": "",
-        "Zvmsprno": "",
-        "ItemSet":[]
-    }
-    # child_data = []
-    for item in doc.purchase_requisition_form_table:
-        
-        data =  {
-                "Bnfpo" : item.item_number_of_purchase_requisition or "",
-                "Matnr" : item.material_code or "",
-                "Txz01" : item.short_text or "",
-                "Menge" : item.quantity or "",
-                "Meins" : item.uom or "",
-                "Werks" : item.plant or "",
-                "Lgort" : item.store_location or "",
-                "Afnam" : item.requisitioner_name or "",
-                "Bsart" : item.purchase_requisition_type or "",
-                "Ekgrp" : item.purchase_group_code or "",
-                "Ernam" : item.created_by or "",
-                "Erdat": item.requisition_date.strftime("%Y%m%d") if item.requisition_date else "",
-                "Badat": item.delivery_date.strftime("%Y%m%d") if item.delivery_date else "",
+    if doc.purchase_requisition_type == "NB":
+        data_list = {
+            "Banfn": "",
+            "Ztype": "",
+            "Ztext": "",
+            "Zvmsprno": "",
+            "ItemSet":[]
+        }
+        # child_data = []
+        for item in doc.purchase_requisition_form_table:
+            
+            data =  {
+                    "Bnfpo" : item.item_number_of_purchase_requisition_head or "",
+                    "Matnr" : item.material_code_head or "",
+                    "Txz01" : item.short_text_head or "",
+                    "Menge" : item.quantity_head or "",
+                    "Meins" : item.uom_head or "",
+                    "Werks" : item.plant_head or "",
+                    "Lgort" : item.store_location_head or "",
+                    "Afnam" : item.requisitioner_name_head or "",
+                    "Bsart" : item.purchase_requisition_type or "",
+                    "Ekgrp" : item.purchase_grp_code_head or "",
+                    "Ernam" : item.requisitioner_name_head or "",
+                    "Erdat": item.purchase_requisition_date_head.strftime("%Y%m%d") if item.purchase_requisition_date_head else "",
+                    "Badat": item.delivery_date_head.strftime("%Y%m%d") if item.delivery_date_head else "",
+                    "Anln1" : item.main_asset_no_head or "",
+                    "Anln2" : item.asset_subnumber_head or "",
+                    "Knttp" : item.account_assignment_category_head or "",
+                    "Pstyp" : item.item_category_head or "",
+                    "Sakto" : item.gl_account_number_head or "",
+                    "Kostl" : item.cost_center_head or "",
+                    "Preis" : item.final_price_by_purchase_team_head or "",
+                    "Zvmsprno": doc.prf_name_for_sap or name_for_sap
+                    }
+
+            data_list["ItemSet"].append(data)
+            print("json data", data)
+
+            print("data_list", data_list)
 
 
-                "Anln1" : item.main_asset_no or "",
-                "Anln2" : item.asset_subnumber or "",
-                "Knttp" : item.account_assignment_category or "",
-                "Pstyp" : item.item_category or "",
-                "Sakto" : item.gl_account_number or "",
-                "Kostl" : item.cost_center or "",
-                "Preis" : item.price_in_purchase_requisition or "",
-                "Zvmsprno": doc.prf_name_for_sap or name_for_sap
-                }
+    elif doc.purchase_requisition_type == "SB":
+        data_list = {
+            "Banfn": "",
+            "Ztype": "",
+            "Ztext": "",
+            "Zvmsprno": "",
+            "ItemSet":[],
+            "ServSet":[],
+        }
+        # child_data = []
+        for item in doc.purchase_requisition_form_table:
+            
+            data =  {
+                    "Bnfpo" : item.item_number_of_purchase_requisition_head or "",
+                    "Matnr" : item.material_code_head or "",
+                    "Txz01" : item.short_text_head or "",
+                    "Menge" : item.quantity_head or "",
+                    "Meins" : item.uom_head or "",
+                    "Werks" : item.plant_head or "",
+                    "Lgort" : item.store_location_head or "",
+                    "Afnam" : item.requisitioner_name_head or "",
+                    "Bsart" : item.purchase_requisition_type or "",
+                    "Ekgrp" : item.purchase_grp_code_head or "",
+                    "Ernam" : item.requisitioner_name_head or "",
+                    "Erdat": item.purchase_requisition_date_head.strftime("%Y%m%d") if item.purchase_requisition_date_head else "",
+                    "Badat": item.delivery_date_head.strftime("%Y%m%d") if item.delivery_date_head else "",
+                    "Anln1" : item.main_asset_no_head or "",
+                    "Anln2" : item.asset_subnumber_head or "",
+                    "Knttp" : item.account_assignment_category_head or "",
+                    "Pstyp" : item.item_category_head or "",
+                    "Sakto" : item.gl_account_number_head or "",
+                    "Kostl" : item.cost_center_head or "",
+                    "Preis" : item.final_price_by_purchase_team_head or "",
+                    "Zvmsprno": doc.prf_name_for_sap or name_for_sap
+                    }
 
-        data_list["ItemSet"].append(data)
-        print("json data", data)
+            data_list["ItemSet"].append(data)
+            print("json data", data)
 
-        print("data_list", data_list)
+            print("data_list", data_list)
+
+
+
 
 
 
