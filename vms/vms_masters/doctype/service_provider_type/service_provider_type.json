@@ -1,0 +1,52 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:service_provider_type",
+ "creation": "2025-07-17 11:00:27.571580",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "service_provider_type",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "service_provider_type",
+   "fieldtype": "Data",
+   "label": "Service Provider Type",
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-17 11:01:06.367485",
+ "modified_by": "Administrator",
+ "module": "VMS Masters",
+ "name": "Service Provider Type",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

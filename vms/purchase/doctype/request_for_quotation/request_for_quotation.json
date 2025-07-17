@@ -23,6 +23,7 @@
   "remarks",
   "expected_date_of_arrival",
   "column_break_akhk",
+  "service_provider",
   "consignee_name",
   "sr_no",
   "rfq_date_logistic",
@@ -596,12 +597,18 @@
    "fieldtype": "Link",
    "label": "Company Name",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "service_provider",
+   "fieldtype": "Select",
+   "label": "Service Provider",
+   "options": "\nAll Service Provider\nPremium Service Provider\nCourier Service Provider\nAdhoc Service Provider"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 20:00:22.200469",
+ "modified": "2025-07-17 12:17:55.214441",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",

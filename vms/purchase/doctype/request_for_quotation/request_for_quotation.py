@@ -28,7 +28,7 @@ def send_quotation_email(doc):
 				message=message,
 				now=True
 			)
-			row.mail_sent = 1
+			frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
 
 	# For non-onboarded vendors
 	for row in doc.non_onboarded_vendor_details:
@@ -46,5 +46,4 @@ def send_quotation_email(doc):
 				message=message,
 				now=True
 			)
-			row.mail_sent = 1
-
+			frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)

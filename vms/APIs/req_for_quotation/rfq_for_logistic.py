@@ -3,7 +3,7 @@ import json
 from frappe import _
 
 @frappe.whitelist(allow_guest=False)
-def vendor_list(rfq_type=None, vendor_name=None, page_no=1, page_length=10):
+def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=1, page_length=10):
 	if not rfq_type:
 		frappe.throw(_("Missing required parameter: rfq_type"))
 
@@ -18,6 +18,13 @@ def vendor_list(rfq_type=None, vendor_name=None, page_no=1, page_length=10):
 		)
 
 		conditions = {"name": ["in", list(set(vendor_links))]}
+
+		if service_provider=="Courier Service Provider":
+			conditions["service_provider_type"] = "Courier Partner"
+
+		if service_provider == "Adhoc Service Provider":
+			conditions["service_provider_type"] = ["in", ["Courier Partner", "Premium Service Provider", "Service Provider"]]
+
 		if vendor_name:
 			conditions["vendor_name"] = ["like", f"%{vendor_name}%"]
 
@@ -28,7 +35,7 @@ def vendor_list(rfq_type=None, vendor_name=None, page_no=1, page_length=10):
 		vendor_masters = frappe.get_all(
 			"Vendor Master",
 			filters=conditions,
-			fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country"],
+			fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country", "service_provider_type"],
 			start=offset,
 			page_length=page_length
 		)
@@ -54,7 +61,8 @@ def vendor_list(rfq_type=None, vendor_name=None, page_no=1, page_length=10):
 				"office_email_primary": vm.office_email_primary,
 				"mobile_number": vm.mobile_number,
 				"country": vm.country,
-				"vendor_code": vendor_code
+				"vendor_code": vendor_code,
+				"service_provider_type": vm.service_provider_type
 			})
 
 		return {
@@ -86,6 +94,7 @@ def create_import_logistic_rfq(data):
 
 		rfq.rfq_type                = data.get("rfq_type")
 		rfq.company_name_logistic   = data.get("company_name_logistic")
+		rfq.service_provider        = data.get("service_provider")
 		rfq.sr_no                   = data.get("sr_no")
 		rfq.rfq_cutoff_date_logistic = data.get("rfq_cutoff_date_logistic")
 		rfq.rfq_date_logistic       = data.get("rfq_date_logistic")
@@ -107,6 +116,62 @@ def create_import_logistic_rfq(data):
 		rfq.invoice_value           = data.get("invoice_value")
 		rfq.expected_date_of_arrival  = data.get("expected_date_of_arrival")
 		rfq.remarks                 = data.get("remarks")
+		
+		# Add all vendors if "All Service Provider" is selected
+		if data.get("service_provider") == "All Service Provider":
+			vendors = frappe.get_all(
+				"Vendor Master",
+				filters={"service_provider_type": ["in", ["Service Provider", "Premium Service Provider"]]},
+				fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country"]
+			)
+			for vm in vendors:
+				vendor_code = []
+				company_vendor_code = frappe.get_all(
+					"Company Vendor Code",
+					filters={"vendor_ref_no": vm.name},
+					fields=["name"]
+				)
+				for row in company_vendor_code:
+					doc = frappe.get_doc("Company Vendor Code", row.name)
+					for code_row in doc.vendor_code:
+						vendor_code.append(code_row.vendor_code)
+
+				rfq.append("vendor_details", {
+					"ref_no": vm.name,
+					"vendor_name": vm.vendor_name,
+					"office_email_primary": vm.office_email_primary,
+					"vendor_code": ", ".join(vendor_code),
+					"mobile_number": vm.mobile_number,
+					"country": vm.country
+				})
+
+		# Add all vendors if "Premium Service Provider" is selected	
+		if data.get("service_provider") == "Premium Service Provider":
+			vendors = frappe.get_all(
+				"Vendor Master",
+				filters={"service_provider_type": ["in", ["Premium Service Provider"]]},
+				fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country"]
+			)
+			for vm in vendors:
+				vendor_code = []
+				company_vendor_code = frappe.get_all(
+					"Company Vendor Code",
+					filters={"vendor_ref_no": vm.name},
+					fields=["name"]
+				)
+				for row in company_vendor_code:
+					doc = frappe.get_doc("Company Vendor Code", row.name)
+					for code_row in doc.vendor_code:
+						vendor_code.append(code_row.vendor_code)
+
+				rfq.append("vendor_details", {
+					"ref_no": vm.name,
+					"vendor_name": vm.vendor_name,
+					"office_email_primary": vm.office_email_primary,
+					"vendor_code": ", ".join(vendor_code),
+					"mobile_number": vm.mobile_number,
+					"country": vm.country
+				})
 
         # Vendor Details Table
 		vendors = data.get("vendors", [])
@@ -173,6 +238,7 @@ def get_full_data_import_logistic_rfq(name):
 		data = {
 			"rfq_type": doc.rfq_type,
 			"company_name_logistic": doc.company_name_logistic,
+			"service_provider": doc.service_provider,
 			"sr_no": doc.sr_no,
 			"rfq_cutoff_date_logistic": doc.rfq_cutoff_date_logistic,
 			"rfq_date_logistic": doc.rfq_date_logistic,
@@ -224,6 +290,7 @@ def create_export_logistic_rfq(data):
 
 		rfq.rfq_type                = data.get("rfq_type")
 		rfq.company_name_logistic   = data.get("company_name_logistic")
+		rfq.service_provider        = data.get("service_provider")
 		rfq.sr_no                   = data.get("sr_no")
 		rfq.rfq_cutoff_date_logistic = data.get("rfq_cutoff_date_logistic")
 		rfq.rfq_date_logistic       = data.get("rfq_date_logistic")
@@ -244,6 +311,62 @@ def create_export_logistic_rfq(data):
 		rfq.consignee_name        = data.get("consignee_name")
 		rfq.shipment_date        = data.get("shipment_date")
 		rfq.remarks        = data.get("remarks")
+
+		# Add all vendors if "All Service Provider" is selected
+		if data.get("service_provider") == "All Service Provider":
+			vendors = frappe.get_all(
+				"Vendor Master",
+				filters={"service_provider_type": ["in", ["Service Provider", "Premium Service Provider"]]},
+				fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country"]
+			)
+			for vm in vendors:
+				vendor_code = []
+				company_vendor_code = frappe.get_all(
+					"Company Vendor Code",
+					filters={"vendor_ref_no": vm.name},
+					fields=["name"]
+				)
+				for row in company_vendor_code:
+					doc = frappe.get_doc("Company Vendor Code", row.name)
+					for code_row in doc.vendor_code:
+						vendor_code.append(code_row.vendor_code)
+
+				rfq.append("vendor_details", {
+					"ref_no": vm.name,
+					"vendor_name": vm.vendor_name,
+					"office_email_primary": vm.office_email_primary,
+					"vendor_code": ", ".join(vendor_code),
+					"mobile_number": vm.mobile_number,
+					"country": vm.country
+				})
+
+		# Add all vendors if "Premium Service Provider" is selected	
+		if data.get("service_provider") == "Premium Service Provider":
+			vendors = frappe.get_all(
+				"Vendor Master",
+				filters={"service_provider_type": ["in", ["Premium Service Provider"]]},
+				fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country"]
+			)
+			for vm in vendors:
+				vendor_code = []
+				company_vendor_code = frappe.get_all(
+					"Company Vendor Code",
+					filters={"vendor_ref_no": vm.name},
+					fields=["name"]
+				)
+				for row in company_vendor_code:
+					doc = frappe.get_doc("Company Vendor Code", row.name)
+					for code_row in doc.vendor_code:
+						vendor_code.append(code_row.vendor_code)
+
+				rfq.append("vendor_details", {
+					"ref_no": vm.name,
+					"vendor_name": vm.vendor_name,
+					"office_email_primary": vm.office_email_primary,
+					"vendor_code": ", ".join(vendor_code),
+					"mobile_number": vm.mobile_number,
+					"country": vm.country
+				})
 
         # Vendor Details Table
 		vendors = data.get("vendors", [])
@@ -311,6 +434,7 @@ def get_full_data_export_logistic_rfq(name):
 		data = {
 			"rfq_type": doc.rfq_type,
 			"company_name_logistic": doc.company_name_logistic,
+			"service_provider": doc.service_provider,
 			"sr_no": doc.sr_no,
 			"rfq_cutoff_date_logistic": doc.rfq_cutoff_date_logistic,
 			"rfq_date_logistic": doc.rfq_date_logistic,
