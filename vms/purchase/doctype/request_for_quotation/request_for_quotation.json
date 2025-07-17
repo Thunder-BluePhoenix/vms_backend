@@ -44,7 +44,7 @@
   "material_section",
   "rfq_date",
   "rfq_cutoff_date",
-  "company_name_materia",
+  "company_name",
   "purchase_organization",
   "purchase_group",
   "currency",
@@ -539,12 +539,6 @@
    "label": "RFQ Cut Off Date"
   },
   {
-   "fieldname": "company_name_materia",
-   "fieldtype": "Link",
-   "label": "Company Name",
-   "options": "Company Master"
-  },
-  {
    "fieldname": "material_code",
    "fieldtype": "Link",
    "label": "Material Code",
@@ -596,12 +590,18 @@
    "fieldname": "service_location",
    "fieldtype": "Text",
    "label": "Service Location"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "label": "Company Name",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 12:34:32.326920",
+ "modified": "2025-07-16 20:00:22.200469",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
