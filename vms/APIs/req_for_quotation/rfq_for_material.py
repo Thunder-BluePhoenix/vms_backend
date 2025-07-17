@@ -3,9 +3,18 @@ import json
 
 # PR Numbers list
 @frappe.whitelist(allow_guest=False)
-def pr_number_list():
+def pr_number_list(pr_number=None):
     try:
-        pr_numbers = frappe.get_all("Purchase Requisition Form", fields=["sap_pr_code"])
+        filters = {}
+        if pr_number:
+            filters["sap_pr_code"] = ["like", f"{pr_number}%"]
+
+        pr_numbers = frappe.get_all(
+            "Purchase Requisition Form",
+            filters=filters,
+            fields=["name", "sap_pr_code"],
+            limit_page_length=20
+        )
 
         return {
             "status": "success",
@@ -22,37 +31,44 @@ def pr_number_list():
 # add pr numbers
 
 @frappe.whitelist(allow_guest=False)
-def add_pr_number(pr_number):
+def add_pr_number(data):
     try:
-        if not pr_number:
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        pr_numbers = data.get("pr_numbers", [])
+
+        if not pr_numbers:
             return {
                 "status": "error",
-                "message": "Please select PR number"
+                "message": "Please select at least one PR number"
             }
 
-        pur_req = frappe.get_doc("Purchase Requisition Form", {"sap_pr_code": pr_number})
+        pr_items = []
+        for pr_number in pr_numbers:
+            pur_req = frappe.get_doc("Purchase Requisition Form", {"sap_pr_code": pr_number})
+            if pur_req:
+                for row in pur_req.purchase_requisition_form_table:
+                    pr_items.append({
+                        "requisition_no": pr_number,
+                        "material_code": row.material_code_head,
+                        "material_name": row.product_name_head,
+                        "quantity": row.quantity_head,
+                        "uom": row.uom_head,
+                        "price": row.product_price_head
+                    })
 
-        if pur_req:
-            pur_req_table = []
-            for row in pur_req.purchase_requisition_form_table:
-                pur_req_table.append({
-                    "requisition_no": pr_number,
-                    "material_code": row.material_code_head,
-                    "material_name": row.product_name_head,
-                    "quantity": row.quantity_head,
-                    "uom": row.uom_head,
-                    "price": row.product_price_head
-                })
-
+        if pr_items:
             return {
                 "status": "success",
-                "pr_items": pur_req_table
+                "pr_items": pr_items
             }
         else:
             return {
                 "status": "error",
                 "message": "No matching Purchase Requisition found"
             }
+
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Add PR Number Error")
         return {

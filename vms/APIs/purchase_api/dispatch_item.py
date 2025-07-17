@@ -253,7 +253,7 @@ def full_data_dispatch_item(name):
 			"error": str(e)
 		}
 
-
+# not in use
 @frappe.whitelist(allow_guest=True)
 def submit_dispatch_item(data=None):
 	try:
@@ -414,7 +414,7 @@ def submit_dispatch_item(data=None):
 										child_row.set(field_name, saved.file_url)
 
 		# Set dispatch form as submitted
-		doc.dispatch_form_submitted = 1
+		# doc.dispatch_form_submitted = 1
 		doc.save(ignore_permissions=True)
 
 		frappe.db.commit()
@@ -434,7 +434,7 @@ def submit_dispatch_item(data=None):
 			"error": str(e)
 		}
 	
-
+# update child table row
 @frappe.whitelist(allow_guest=True)
 def submit_child_dispatch_item(data):
 	try:
@@ -442,7 +442,6 @@ def submit_child_dispatch_item(data):
 			data = json.loads(data)
 
 		doc = frappe.get_doc("Dispatch Item", data["name"])
-
 		row_name = data.get("row_name")
 
 		child_row = None
@@ -458,36 +457,19 @@ def submit_child_dispatch_item(data):
 			]:
 				if key in data:
 					child_row.set(key, data[key])
-		else:
-			# Append new row
-			child_row = doc.append("items", {
-				"po_number": data.get("po_number"),
-				"product_code": data.get("product_code"),
-				"product_name": data.get("product_name"),
-				"description": data.get("description"),
-				"quantity": data.get("quantity"),
-				"hsnsac": data.get("hsnsac"),
-				"uom": data.get("uom"),
-				"rate": data.get("rate"),
-				"amount": data.get("amount"),
-				"dispatch_qty": data.get("dispatch_qty"),
-				"pending_qty": data.get("pending_qty"),
-				"coa_document": data.get("coa_document"),
-				"msds_document": data.get("msds_document")
-			})
 
-		# Handle file uploads for this row
-		for attach_field in ["coa_document", "msds_document"]:
-			if attach_field in frappe.request.files:
-				uploaded_file = frappe.request.files[attach_field]
-				saved = save_file(
-					uploaded_file.filename,
-					uploaded_file.stream.read(),
-					doc.doctype,
-					doc.name,
-					is_private=0
-				)
-				child_row.set(attach_field, saved.file_url)
+			# Handle file uploads only if field is empty and file is uploaded now
+			for attach_field in ["coa_document", "msds_document"]:
+				if not child_row.get(attach_field) and attach_field in frappe.request.files:
+					uploaded_file = frappe.request.files[attach_field]
+					saved = save_file(
+						uploaded_file.filename,
+						uploaded_file.stream.read(),
+						doc.doctype,
+						doc.name,
+						is_private=0
+					)
+					child_row.set(attach_field, saved.file_url)
 
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
