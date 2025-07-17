@@ -44,6 +44,10 @@
   "personal_email",
   "column_break_dhwa",
   "company_email",
+  "section_break_jknp",
+  "sign_attach",
+  "column_break_maws",
+  "esignature",
   "address_section",
   "current_address",
   "column_break_oztg",
@@ -276,6 +280,24 @@
    "label": "Show All Purchase Groups"
   },
   {
+   "fieldname": "section_break_jknp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "sign_attach",
+   "fieldtype": "Attach",
+   "label": "SIgn Attach"
+  },
+  {
+   "fieldname": "column_break_maws",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "esignature",
+   "fieldtype": "Signature",
+   "label": "eSignature"
+  },
+   {
    "default": "0",
    "fieldname": "create_user",
    "fieldtype": "Check",
@@ -285,7 +307,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 17:40:25.406510",
+ "modified": "2025-07-17 18:10:36.690546",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",
