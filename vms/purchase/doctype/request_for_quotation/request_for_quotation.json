@@ -23,6 +23,7 @@
   "remarks",
   "expected_date_of_arrival",
   "column_break_akhk",
+  "service_provider",
   "consignee_name",
   "sr_no",
   "rfq_date_logistic",
@@ -44,7 +45,7 @@
   "material_section",
   "rfq_date",
   "rfq_cutoff_date",
-  "company_name_materia",
+  "company_name",
   "purchase_organization",
   "purchase_group",
   "currency",
@@ -72,8 +73,9 @@
   "pack_size",
   "services_section",
   "service_code",
-  "service_category",
+  "service_location",
   "column_break_ivze",
+  "service_category",
   "select_language",
   "quantity_and_date_section",
   "rfq_quantity",
@@ -96,7 +98,9 @@
   "column_break_fslg",
   "negotiable",
   "vendor_details_section",
-  "vendor_details"
+  "vendor_details",
+  "non_onboarded_vendor_details_section",
+  "non_onboarded_vendor_details"
  ],
  "fields": [
   {
@@ -536,12 +540,6 @@
    "label": "RFQ Cut Off Date"
   },
   {
-   "fieldname": "company_name_materia",
-   "fieldtype": "Link",
-   "label": "Company Name",
-   "options": "Company Master"
-  },
-  {
    "fieldname": "material_code",
    "fieldtype": "Link",
    "label": "Material Code",
@@ -577,12 +575,40 @@
    "fieldtype": "Link",
    "label": "Inco Terms",
    "options": "Incoterm Master"
+  },
+  {
+   "fieldname": "non_onboarded_vendor_details_section",
+   "fieldtype": "Section Break",
+   "label": "Non Onboarded Vendor Details"
+  },
+  {
+   "fieldname": "non_onboarded_vendor_details",
+   "fieldtype": "Table",
+   "label": "Non Onboarded Vendor Details",
+   "options": "Non Onboarded Vendor Details"
+  },
+  {
+   "fieldname": "service_location",
+   "fieldtype": "Text",
+   "label": "Service Location"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "label": "Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "service_provider",
+   "fieldtype": "Select",
+   "label": "Service Provider",
+   "options": "\nAll Service Provider\nPremium Service Provider\nCourier Service Provider\nAdhoc Service Provider"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-15 16:44:14.408525",
+ "modified": "2025-07-17 12:17:55.214441",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",

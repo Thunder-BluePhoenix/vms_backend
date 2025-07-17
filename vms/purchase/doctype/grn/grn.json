@@ -8,7 +8,7 @@
  "field_order": [
   "grn_details_section",
   "naming_series",
-  "grn_no",
+  "grn_no_t",
   "column_break_wynz",
   "grn_date",
   "grn_items_section",
@@ -19,11 +19,6 @@
    "fieldname": "grn_details_section",
    "fieldtype": "Section Break",
    "label": "GRN Details"
-  },
-  {
-   "fieldname": "grn_no",
-   "fieldtype": "Data",
-   "label": "GRN No."
   },
   {
    "fieldname": "grn_items_section",
@@ -52,12 +47,17 @@
    "label": "Naming Series",
    "options": "GRN-.YYYY.-.MM.-",
    "print_hide": 1
+  },
+  {
+   "fieldname": "grn_no_t",
+   "fieldtype": "Data",
+   "label": "GRN No"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 14:11:16.887258",
+ "modified": "2025-07-17 16:20:23.076810",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GRN",

@@ -1,37 +1,34 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:doctype_name",
- "creation": "2025-05-23 14:52:40.705185",
+ "autoname": "field:service_provider_type",
+ "creation": "2025-07-17 11:00:27.571580",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "doctype_name",
-  "table_cjfk"
+  "service_provider_type",
+  "description"
  ],
  "fields": [
   {
-   "fieldname": "doctype_name",
-   "fieldtype": "Link",
-   "label": "Doctype Name",
-   "options": "DocType",
+   "fieldname": "service_provider_type",
+   "fieldtype": "Data",
+   "label": "Service Provider Type",
    "unique": 1
   },
   {
-   "allow_bulk_edit": 1,
-   "fieldname": "table_cjfk",
-   "fieldtype": "Table",
-   "label": "SAP to ERP Fields",
-   "options": "SAP Mapper PR Item"
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 12:41:51.561532",
+ "modified": "2025-07-17 11:01:06.367485",
  "modified_by": "Administrator",
- "module": "Vms",
- "name": "SAP Mapper PR",
+ "module": "VMS Masters",
+ "name": "Service Provider Type",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
@@ -49,9 +46,7 @@
   }
  ],
  "row_format": "Dynamic",
- "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
- "title_field": "doctype_name"
+ "states": []
 }

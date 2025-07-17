@@ -1,0 +1,533 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-07-16 14:51:55.794091",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vendor_details_section",
+  "naming_series",
+  "ref_no",
+  "vendor_name",
+  "vendor_code",
+  "column_break_yoni",
+  "office_email_primary",
+  "vendor_contact",
+  "vendor_country",
+  "status",
+  "logistics_section",
+  "mode_of_shipment",
+  "airlinevessel_name",
+  "chargeable_weight",
+  "ratekg",
+  "fuel_surcharge",
+  "sc",
+  "xray",
+  "pickuporigin",
+  "ex_works",
+  "transit_days",
+  "total_freight",
+  "from_currency",
+  "to_currency",
+  "exchange_rate",
+  "total_freightinr",
+  "destination_charge",
+  "shipping_line_charge",
+  "cfs_charge",
+  "total_landing_price",
+  "remarks",
+  "material",
+  "column_break_shjr",
+  "company_name_logistic",
+  "sr_no",
+  "rfq_date_logistic",
+  "destination_port",
+  "country",
+  "port_code",
+  "port_of_loading",
+  "inco_terms",
+  "shipper_name",
+  "package_type",
+  "no_of_pkg_units",
+  "product_category_logistic",
+  "vol_weight",
+  "actual_weight",
+  "invoice_date",
+  "invoice_no",
+  "invoice_value",
+  "expected_date_of_arrival",
+  "consignee_name",
+  "shipment_date",
+  "shipment_type",
+  "quantity",
+  "ship_to_address",
+  "quotation_data_section",
+  "rfq_number",
+  "company_name",
+  "rfq_date",
+  "quotation_deadline",
+  "delivery_date",
+  "contact_person",
+  "quote_amount",
+  "column_break_tiys",
+  "product_code",
+  "product_category",
+  "material_code",
+  "material_category",
+  "material_name",
+  "rfq_quantity",
+  "storage_location",
+  "remark",
+  "multiple_attachments_section",
+  "attachments"
+ ],
+ "fields": [
+  {
+   "fieldname": "quotation_data_section",
+   "fieldtype": "Section Break",
+   "label": "Quotation Data"
+  },
+  {
+   "fieldname": "rfq_number",
+   "fieldtype": "Link",
+   "label": "RFQ Number",
+   "options": "Request For Quotation"
+  },
+  {
+   "fieldname": "vendor_code",
+   "fieldtype": "Link",
+   "label": "Vendor Code",
+   "options": "Vendor Master"
+  },
+  {
+   "fieldname": "rfq_date",
+   "fieldtype": "Date",
+   "label": "RFQ Date"
+  },
+  {
+   "fieldname": "quotation_deadline",
+   "fieldtype": "Date",
+   "label": "Quotation Deadline"
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "label": "Delivery Date"
+  },
+  {
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "label": "Vendor Name"
+  },
+  {
+   "fieldname": "vendor_contact",
+   "fieldtype": "Data",
+   "label": "Vendor Contact"
+  },
+  {
+   "fieldname": "contact_person",
+   "fieldtype": "Data",
+   "label": "Contact Person"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "label": "Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "product_code",
+   "fieldtype": "Link",
+   "label": "Product Code",
+   "options": "Product Master"
+  },
+  {
+   "fieldname": "product_category",
+   "fieldtype": "Link",
+   "label": "Product Category",
+   "options": "Product Category Master"
+  },
+  {
+   "fieldname": "material_code",
+   "fieldtype": "Link",
+   "label": "Material Code",
+   "options": "Material Master"
+  },
+  {
+   "fieldname": "material_category",
+   "fieldtype": "Link",
+   "label": "Material Category",
+   "options": "Material Category Master"
+  },
+  {
+   "fieldname": "material_name",
+   "fieldtype": "Link",
+   "label": "Material Name",
+   "options": "Material Master"
+  },
+  {
+   "fieldname": "rfq_quantity",
+   "fieldtype": "Data",
+   "label": "RFQ Quantity"
+  },
+  {
+   "fieldname": "storage_location",
+   "fieldtype": "Data",
+   "label": "Storage Location"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Small Text",
+   "label": "Remark"
+  },
+  {
+   "fieldname": "column_break_tiys",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quote_amount",
+   "fieldtype": "Data",
+   "label": "Quote Amount"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "logistics_section",
+   "fieldtype": "Section Break",
+   "label": "Logistics"
+  },
+  {
+   "fieldname": "airlinevessel_name",
+   "fieldtype": "Data",
+   "label": "Airline/Vessel Name"
+  },
+  {
+   "fieldname": "chargeable_weight",
+   "fieldtype": "Data",
+   "label": "Chargeable Weight"
+  },
+  {
+   "fieldname": "ratekg",
+   "fieldtype": "Data",
+   "label": "Rate/Kg"
+  },
+  {
+   "fieldname": "fuel_surcharge",
+   "fieldtype": "Data",
+   "label": "Fuel Surcharge"
+  },
+  {
+   "fieldname": "sc",
+   "fieldtype": "Data",
+   "label": "SC"
+  },
+  {
+   "fieldname": "xray",
+   "fieldtype": "Data",
+   "label": "XRay"
+  },
+  {
+   "fieldname": "pickuporigin",
+   "fieldtype": "Data",
+   "label": "Pickup/Origin"
+  },
+  {
+   "fieldname": "ex_works",
+   "fieldtype": "Data",
+   "label": "Ex Works"
+  },
+  {
+   "fieldname": "total_freight",
+   "fieldtype": "Data",
+   "label": "Total Freight"
+  },
+  {
+   "fieldname": "from_currency",
+   "fieldtype": "Link",
+   "label": "From Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "to_currency",
+   "fieldtype": "Link",
+   "label": "To Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "exchange_rate",
+   "fieldtype": "Data",
+   "label": "Exchange Rate"
+  },
+  {
+   "fieldname": "total_freightinr",
+   "fieldtype": "Data",
+   "label": "Total Freight(INR)"
+  },
+  {
+   "fieldname": "destination_charge",
+   "fieldtype": "Data",
+   "label": "Destination Charge"
+  },
+  {
+   "fieldname": "shipping_line_charge",
+   "fieldtype": "Data",
+   "label": "Shipping Line Charge"
+  },
+  {
+   "fieldname": "cfs_charge",
+   "fieldtype": "Data",
+   "label": "CFS Charge"
+  },
+  {
+   "fieldname": "total_landing_price",
+   "fieldtype": "Data",
+   "label": "Total Landing Price"
+  },
+  {
+   "fieldname": "company_name_logistic",
+   "fieldtype": "Link",
+   "label": "Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "mode_of_shipment",
+   "fieldtype": "Link",
+   "label": "Mode Of Shipment",
+   "options": "Mode Of Shipment"
+  },
+  {
+   "fieldname": "destination_port",
+   "fieldtype": "Link",
+   "label": "Destination Port",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "port_of_loading",
+   "fieldtype": "Link",
+   "label": "Port Of Loading",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "ship_to_address",
+   "fieldtype": "Small Text",
+   "label": "Ship To Address"
+  },
+  {
+   "fieldname": "no_of_pkg_units",
+   "fieldtype": "Data",
+   "label": "No. Of Pkg Units"
+  },
+  {
+   "fieldname": "vol_weight",
+   "fieldtype": "Data",
+   "label": "Vol Weight (KG)"
+  },
+  {
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Invoice Date"
+  },
+  {
+   "fieldname": "shipment_date",
+   "fieldtype": "Date",
+   "label": "Shipment Date"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "expected_date_of_arrival",
+   "fieldtype": "Date",
+   "label": "Expected Date of Arrival"
+  },
+  {
+   "fieldname": "consignee_name",
+   "fieldtype": "Data",
+   "label": "Consignee Name"
+  },
+  {
+   "fieldname": "sr_no",
+   "fieldtype": "Data",
+   "label": "Sr. No."
+  },
+  {
+   "fieldname": "rfq_date_logistic",
+   "fieldtype": "Date",
+   "label": "RFQ Date"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "port_code",
+   "fieldtype": "Link",
+   "label": "Port Code",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "inco_terms",
+   "fieldtype": "Link",
+   "label": "Inco Terms",
+   "options": "Incoterm Master"
+  },
+  {
+   "fieldname": "package_type",
+   "fieldtype": "Link",
+   "label": "Package Type",
+   "options": "Package Type Master"
+  },
+  {
+   "fieldname": "product_category",
+   "fieldtype": "Link",
+   "label": "Product Category",
+   "options": "Product Category Master"
+  },
+  {
+   "fieldname": "actual_weight",
+   "fieldtype": "Data",
+   "label": "Actual Weight (KG)"
+  },
+  {
+   "fieldname": "invoice_no",
+   "fieldtype": "Data",
+   "label": "Invoice No."
+  },
+  {
+   "fieldname": "invoice_value",
+   "fieldtype": "Data",
+   "label": "Invoice Value"
+  },
+  {
+   "fieldname": "shipment_type",
+   "fieldtype": "Link",
+   "label": "Shipment Type",
+   "options": "Shipment Type Master"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "material",
+   "fieldtype": "Link",
+   "label": "Material",
+   "options": "Material Master"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Data",
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "shipper_name",
+   "fieldtype": "Data",
+   "label": "Shipper Name"
+  },
+  {
+   "fieldname": "transit_days",
+   "fieldtype": "Data",
+   "label": "Transit Days"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "column_break_shjr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vendor_details_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Details"
+  },
+  {
+   "fieldname": "ref_no",
+   "fieldtype": "Link",
+   "label": "Ref No",
+   "options": "Vendor Master"
+  },
+  {
+   "fieldname": "column_break_yoni",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "office_email_primary",
+   "fieldtype": "Data",
+   "label": " Office Email Primary"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "vendor_country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "product_category_logistic",
+   "fieldtype": "Link",
+   "label": "Product Category",
+   "options": "Product Category Master"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "SAL-QTN-.YYYY.-"
+  },
+  {
+   "fieldname": "multiple_attachments_section",
+   "fieldtype": "Section Break",
+   "label": "Multiple Attachments"
+  },
+  {
+   "fieldname": "attachments",
+   "fieldtype": "Table",
+   "label": "Attachments",
+   "options": "Multiple Attachment"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-16 17:08:11.220292",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Quotation",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -16,6 +16,7 @@
   "gender",
   "date_of_birth",
   "salutation",
+  "create_user",
   "column_break_levj",
   "status",
   "image",
@@ -126,7 +127,6 @@
    "label": "Date of Joining"
   },
   {
-   "collapsible": 1,
    "fieldname": "user_details_section",
    "fieldtype": "Section Break",
    "label": "User Details"
@@ -170,7 +170,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Designation",
-   "options": "Designation"
+   "options": "Role Profile"
   },
   {
    "fieldname": "reports_to",
@@ -296,6 +296,12 @@
    "fieldname": "esignature",
    "fieldtype": "Signature",
    "label": "eSignature"
+  },
+   {
+   "default": "0",
+   "fieldname": "create_user",
+   "fieldtype": "Check",
+   "label": "Create User"
   }
  ],
  "grid_page_length": 50,
