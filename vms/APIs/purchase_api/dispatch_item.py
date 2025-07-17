@@ -456,7 +456,10 @@ def submit_child_dispatch_item(data):
 				"coa_document", "msds_document"
 			]:
 				if key in data:
-					child_row.set(key, data[key])
+					value = data[key]
+					if isinstance(value, dict) and "url" in value:
+						value = value["url"]
+					child_row.set(key, value)
 
 			# Handle file uploads only if field is empty and file is uploaded now
 			for attach_field in ["coa_document", "msds_document"]:
