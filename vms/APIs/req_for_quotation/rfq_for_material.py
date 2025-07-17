@@ -20,7 +20,6 @@ def pr_number_list():
 
 
 # add pr numbers
-import frappe
 
 @frappe.whitelist(allow_guest=False)
 def add_pr_number(pr_number):
@@ -37,6 +36,7 @@ def add_pr_number(pr_number):
             pur_req_table = []
             for row in pur_req.purchase_requisition_form_table:
                 pur_req_table.append({
+                    "requisition_no": pr_number,
                     "material_code": row.material_code_head,
                     "material_name": row.product_name_head,
                     "quantity": row.quantity_head,
@@ -59,3 +59,8 @@ def add_pr_number(pr_number):
             "status": "error",
             "message": str(e)
         }
+    
+
+# create Material rfq
+# @frappe.whitelist(allow_guest=False)
+# def 
