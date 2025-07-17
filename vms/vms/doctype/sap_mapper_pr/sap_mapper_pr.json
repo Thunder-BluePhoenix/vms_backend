@@ -18,6 +18,7 @@
    "unique": 1
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "table_cjfk",
    "fieldtype": "Table",
    "label": "SAP to ERP Fields",
@@ -27,7 +28,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-27 00:12:54.774502",
+ "modified": "2025-07-17 12:41:51.561532",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "SAP Mapper PR",
