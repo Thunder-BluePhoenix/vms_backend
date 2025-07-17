@@ -22,6 +22,7 @@
   "office_email_secondary",
   "registered_date",
   "qa_required",
+  "service_provider_type",
   "created_from_registration",
   "user_create",
   "asa_required",
@@ -276,12 +277,18 @@
    "fieldname": "form_records",
    "fieldtype": "Table",
    "options": "Assessment Form Records"
+  },
+  {
+   "fieldname": "service_provider_type",
+   "fieldtype": "Link",
+   "label": "Service Provider Type",
+   "options": "Service Provider Type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 10:48:45.636740",
+ "modified": "2025-07-17 11:02:09.354346",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
