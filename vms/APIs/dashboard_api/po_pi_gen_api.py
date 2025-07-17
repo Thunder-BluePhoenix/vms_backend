@@ -348,67 +348,171 @@ def vendor_data_for_purchase(usr, user_roles):
 
 
 
-
-
-
-
-
-
-
-
+@frappe.whitelist(allow_guest=True)
+def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None):
+    try:
+        purchase_team_user = frappe.session.user
+        cart_categories = frappe.get_all("Category Master",
+                                         filters={"purchase_team_user": purchase_team_user},
+                                         fields=["name"])
+        cart_category_names = [c.name for c in cart_categories]
+        
+        if not cart_category_names:
+            return {
+                "status": "success",
+                "message": "No categories found for the user.",
+                "cart_details": [],
+                "total_count": 0,
+                "page_no": 1,
+                "page_length": 5
+            }
+        
+        # Total count for pagination
+        total_count = frappe.db.count("Cart Details", 
+                                     filters={"category_type": ("in", cart_category_names)})
+        
+        # Pagination
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        start = (page_no - 1) * page_length
+        
+        all_pi = frappe.get_all("Cart Details",
+                               filters={"category_type": ("in", cart_category_names)},
+                               order_by="modified desc",
+                               fields="*",
+                               start=start,
+                               page_length=page_length)
+        
+        return {
+            "status": "success",
+            "message": "Cart details fetched successfully.",
+            "cart_details": all_pi,
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length
+        }
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get PI for PT API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch cart details.",
+            "error": str(e),
+            "cart_details": []
+        }
 
 
 @frappe.whitelist(allow_guest=True)
-def get_pi_for_pt(purchase_team_user=None):
-   
-    
-    
-    purchase_team_user = frappe.session.user
-    cart_categories = frappe.get_all("Category Master",
-                                     filters={"purchase_team_user": purchase_team_user},
-                                     fields=["name"])
-    cart_category_names = [c.name for c in cart_categories]
-    
-    if not cart_category_names:
-        return []
-    
-    all_pi = frappe.get_all("Cart Details",
-                           filters={"category_type": ("in", cart_category_names)},
-                           order_by="modified desc",
-                           fields="*")
-    
-    return all_pi
-
-
-
-
-
-
-
-
-@frappe.whitelist(allow_guest = True)
-def get_pi():
+def get_pi(page_no=None, page_length=None):
     try:
         usr = frappe.session.user
         if not usr:
-            return {"error": _("User not logged in.")}
+            return {
+                "status": "error",
+                "message": "User not logged in.",
+                "cart_details": []
+            }
 
         allowed_roles = {"Purchase Team"}
         user_roles = set(frappe.get_roles(usr))
 
+        # Pagination parameters
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+
         if allowed_roles.intersection(user_roles):
-            return get_pi_for_pt(purchase_team_user=usr)
+            return get_pi_for_pt(purchase_team_user=usr, page_no=page_no, page_length=page_length)
         else:
+            # Total count for pagination
+            total_count = frappe.db.count("Cart Details", filters={"user": usr})
+            
+            # Calculate start position
+            start = (page_no - 1) * page_length
+            
             all_pi = frappe.get_all("Cart Details",
                                     filters={"user": usr},
                                     fields="*",
-                                    order_by="modified desc")
-            return all_pi
+                                    order_by="modified desc",
+                                    start=start,
+                                    page_length=page_length)
+            
+            return {
+                "status": "success",
+                "message": "Cart details fetched successfully.",
+                "cart_details": all_pi,
+                "total_count": total_count,
+                "page_no": page_no,
+                "page_length": page_length
+            }
 
     except Exception as e:
         # Log the error and return a message
         frappe.log_error(message=str(e), title="Error in get_pi API")
-        return {"error": _("Something went wrong. Please try again later.")}
+        return {
+            "status": "error",
+            "message": "Something went wrong. Please try again later.",
+            "cart_details": []
+        }
+
+
+
+
+
+
+
+
+
+# @frappe.whitelist(allow_guest=True)
+# def get_pi_for_pt(purchase_team_user=None):
+   
+    
+    
+#     purchase_team_user = frappe.session.user
+#     cart_categories = frappe.get_all("Category Master",
+#                                      filters={"purchase_team_user": purchase_team_user},
+#                                      fields=["name"])
+#     cart_category_names = [c.name for c in cart_categories]
+    
+#     if not cart_category_names:
+#         return []
+    
+#     all_pi = frappe.get_all("Cart Details",
+#                            filters={"category_type": ("in", cart_category_names)},
+#                            order_by="modified desc",
+#                            fields="*")
+    
+#     return all_pi
+
+
+
+
+
+
+
+
+# @frappe.whitelist(allow_guest = True)
+# def get_pi():
+#     try:
+#         usr = frappe.session.user
+#         if not usr:
+#             return {"error": _("User not logged in.")}
+
+#         allowed_roles = {"Purchase Team"}
+#         user_roles = set(frappe.get_roles(usr))
+
+#         if allowed_roles.intersection(user_roles):
+#             return get_pi_for_pt(purchase_team_user=usr)
+#         else:
+#             all_pi = frappe.get_all("Cart Details",
+#                                     filters={"user": usr},
+#                                     fields="*",
+#                                     order_by="modified desc")
+#             return all_pi
+
+#     except Exception as e:
+#         # Log the error and return a message
+#         frappe.log_error(message=str(e), title="Error in get_pi API")
+#         return {"error": _("Something went wrong. Please try again later.")}
 
 
 
