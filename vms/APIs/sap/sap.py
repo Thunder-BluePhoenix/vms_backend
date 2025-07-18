@@ -6,6 +6,7 @@ from requests.auth import HTTPBasicAuth
 
 @frappe.whitelist(allow_guest=True)
 def erp_to_sap_vendor_data(onb_ref):
+    print("Fetching Vendor Onboarding details for SAP push...")
     onb = frappe.get_doc("Vendor Onboarding", onb_ref)
     onb_vm = frappe.get_doc("Vendor Master", onb.ref_no)
     onb_pmd = frappe.get_doc("Vendor Onboarding Payment Details", onb.payment_detail)
@@ -142,12 +143,14 @@ def erp_to_sap_vendor_data(onb_ref):
         #     }
         auth = HTTPBasicAuth(user, password)
         response = requests.get(url, headers=headers, auth=auth)
+        print("Response status code:", response)
     
         if response.status_code == 200:
             
             csrf_token = response.headers.get('x-csrf-token')
             key1 = response.cookies.get(f'SAP_SESSIONID_BHD_{sap_client_code}')
             key2 = response.cookies.get('sap-usercontext')
+            print("CSRF Token fetched successfully:", csrf_token, key1, key2)
             
             # Sending details to SAP
             send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, vcd.state, vcd.gst, vcd.company_name, onb.name)
