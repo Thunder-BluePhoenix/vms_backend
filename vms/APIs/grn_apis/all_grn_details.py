@@ -1,5 +1,8 @@
 import frappe
 from frappe import _
+import json
+from datetime import datetime, date
+
 
 # @frappe.whitelist()
 # def get_all_grn_details():
@@ -131,114 +134,94 @@ def get_all_grn_details():
     try:
         print("Fetching all GRN records...")
         user = frappe.session.user
-        print(f"Current user: {user}")
         team = frappe.db.get_value("Employee", {"user_id": user}, "team")
-        print(f"Team filter applied: {team}")
-        
-        grn_list = frappe.get_all("GRN", fields="*")
-        print(f"Fetched GRN records: {len(grn_list)}")
-
-        team_pg_codes = []
+        grns = frappe.get_all("GRN", fields="*")
+        print(f"📄 Total GRNs fetched: {len(grns)}")
+        pg_team_map = {}
         if team:
-            print(f"Filtering Purchase Group Master with team: {team}")
-            pg_list = frappe.get_all(
-                "Purchase Group Master",
-                filters={"team": team},
-                fields=["name", "purchase_group_code", "company"]
-            )
-            team_pg_codes = pg_list
-
-        filtered_grns = []
-
-        for grn in grn_list:
-            print(f"\nProcessing GRN: {grn['name']}")
-            
-            grn_items = frappe.get_all(
-                "GRN Items",
-                fields="*",
-                filters={"parent": grn["name"]}
-            )
-
-            found_team_match = False
+            pg_list = frappe.get_all("Purchase Group Master", filters={"team": team}, fields=["purchase_group_code", "company"])
+            pg_team_map = {(pg["purchase_group_code"], pg["company"]) for pg in pg_list}
+            print(f"🔗 Purchase Group Mappings for team: {pg_team_map}")
+        result = []
+        for grn in grns:
+            grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn["name"]})
+            found_match = False
 
             for item in grn_items:
-                po_number = item.get("po_no")
-                plant_code = item.get("plant")
+                po_no, plant = item.get("po_no"), item.get("plant")
 
-                if not po_number or not plant_code:
-                    item["team"] = None
+                if not (po_no and plant):
                     continue
 
-                try:
-                    plant_master = frappe.get_doc("Plant Master", plant_code)
-                    company_code = plant_master.get("company")
-                except frappe.DoesNotExistError:
-                    item["team"] = None
-                    continue
+                company = frappe.db.get_value("Plant Master", plant, "company")
+                pg_code = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
 
-                if not company_code:
-                    item["team"] = None
-                    continue
+                if (pg_code, company) in pg_team_map:
+                    found_match = True
+                    break
 
-                try:
-                    purchase_order = frappe.get_doc("Purchase Order", po_number)
-                    po_pg_code = purchase_order.get("purchase_group")
-                except frappe.DoesNotExistError:
-                    item["team"] = None
-                    continue
-
-                if not po_pg_code:
-                    item["team"] = None
-                    continue
-
-                matched_team = None
-                for pg in team_pg_codes:
-                    if pg["company"] == company_code and pg["purchase_group_code"] == po_pg_code:
-                        matched_team = team
-                        break
-
-                item["team"] = matched_team
-                if matched_team == team:
-                    found_team_match = True
-
-            if team:
-                if found_team_match:
-                    grn["grn_items"] = grn_items
-                    filtered_grns.append(grn)
-            else:
+            if found_match or not team:
                 grn["grn_items"] = grn_items
-                filtered_grns.append(grn)
+                result.append(grn)
 
-        print(f"\nReturning {len(filtered_grns)} GRNs after filtering by team.")
-        return filtered_grns
+        print(f"Returning {len(result)} GRNs after filtering.")
+        return result
 
     except Exception as e:
-        error_message = str(e)
-        print(f"Error occurred: {error_message}")
-        frappe.log_error(message=error_message, title="Error in fetching GRN details")
-        frappe.throw(_("An error occurred while fetching GRN details. Please check the logs for more details."))
+        frappe.log_error(str(e), "Error in get_all_grn_details")
+        frappe.throw(_("Something went wrong while fetching GRNs."))
 
 
 @frappe.whitelist()
-def get_grn_details_of_grn_number(grn_number):
-    
+def get_grn_details_of_grn_number(grn_number=None):
     if not grn_number:
-        frappe.throw("GRN number is required")
+        frappe.throw("GRN Number is required")
 
-    grn = frappe.get_all(
-        "GRN",
-        filters={"grn_no": grn_number},
-        fields=["*"]
-    )
+    user = frappe.session.user
+    user_team = frappe.db.get_value("Employee", {"user_id": user}, "team")
 
-    if not grn:
-        return []
+    if not user_team:
+        frappe.throw("Your team is not mapped. Contact Admin.")
 
-    for record in grn:
-        record["grn_items"] = frappe.get_all(
-            "GRN Items",
-            filters={"parent": record.get("name")},
-            fields=["*"]
-        )
+    grn_name = frappe.db.get_value("GRN", {"grn_no_t": grn_number})
+    if not grn_name:
+        frappe.throw("GRN not found.")
 
-    return grn
+    try:
+        grn_doc = frappe.get_doc("GRN", grn_name)
+    except frappe.DoesNotExistError:
+        frappe.throw("GRN document does not exist.")
+
+    filtered_items = []
+
+    grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn_name})
+    if not grn_items:
+        frappe.throw("No GRN Items found in this GRN.")
+
+    for item in grn_items:
+        po_no = item.get("po_no")
+        plant = item.get("plant")
+
+        if not po_no or not plant:
+            continue
+
+        purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
+        company = frappe.db.get_value("Plant Master", plant, "company")
+
+        if not purchase_group or not company:
+            continue
+
+        pg_master_name = f"{purchase_group}-{company}"
+        pg_team = frappe.db.get_value("Purchase Group Master", pg_master_name, "team")
+
+        if pg_team and pg_team == user_team:
+            filtered_items.append(item)
+
+    if not filtered_items:
+        frappe.throw("You are not authorized to view any items in this GRN.")
+
+    return {
+        "grn_no": grn_doc.grn_no_t,
+        "grn_date": grn_doc.grn_date,
+        "grn_items": filtered_items
+    }
