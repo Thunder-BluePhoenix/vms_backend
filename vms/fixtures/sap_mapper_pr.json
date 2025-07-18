@@ -2,6 +2,675 @@
  {
   "docstatus": 0,
   "doctype": "SAP Mapper PR",
+  "doctype_name": "GRN",
+  "modified": "2025-07-17 15:52:49.947220",
+  "name": "GRN",
+  "table_cjfk": [
+   {
+    "erp_field": "grn_no",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "Grn"
+   },
+   {
+    "erp_field": "plant",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WERKS_I"
+   },
+   {
+    "erp_field": "movement_type",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BWART_I"
+   },
+   {
+    "erp_field": "pr_no",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BANFN"
+   },
+   {
+    "erp_field": "pr_date",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BADAT"
+   },
+   {
+    "erp_field": "pr_item",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BNFPO"
+   },
+   {
+    "erp_field": "pr_requester",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "AFNAM"
+   },
+   {
+    "erp_field": "pr_cost_center",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "KOSTL"
+   },
+   {
+    "erp_field": "po_no",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EBELN_I"
+   },
+   {
+    "erp_field": "po_item",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EBELP_I"
+   },
+   {
+    "erp_field": "po_date",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEDAT"
+   },
+   {
+    "erp_field": "material",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MATNR_I"
+   },
+   {
+    "erp_field": "material_description",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MAKTX"
+   },
+   {
+    "erp_field": "batch_no",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CHARG_I"
+   },
+   {
+    "erp_field": "vendor_batch_no",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LICHA"
+   },
+   {
+    "erp_field": "vendor_code",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LIFNR"
+   },
+   {
+    "erp_field": "vendor_name",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NAME1"
+   },
+   {
+    "erp_field": "po_delivery_Date",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EINDT"
+   },
+   {
+    "erp_field": "invoice_no",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "XBLNR"
+   },
+   {
+    "erp_field": "quantity",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MENGE_I"
+   },
+   {
+    "erp_field": "uom",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MEINS_I"
+   },
+   {
+    "erp_field": "quantity_2",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LSMNG_I"
+   },
+   {
+    "erp_field": "material_receipt_date",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRBNR"
+   },
+   {
+    "erp_field": "quantity_3",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LMENGE01"
+   },
+   {
+    "erp_field": "quantity_4",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LMENGE04"
+   },
+   {
+    "erp_field": "rtv_inv_no",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BKTXT"
+   },
+   {
+    "erp_field": "grn_status",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GRN_STAT"
+   },
+   {
+    "erp_field": "qc_clearance_date",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "VDATUM"
+   },
+   {
+    "erp_field": "reason_for_rejection",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SGTXT"
+   },
+   {
+    "erp_field": "grn_submit_to_ac",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GRN_ACC_DATE"
+   },
+   {
+    "erp_field": "gr_covering_note_ref",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GRN_COVER"
+   },
+   {
+    "erp_field": "remarks",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "REMARKS"
+   },
+   {
+    "erp_field": "po_created_by",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ERNAM"
+   },
+   {
+    "erp_field": "gate_entry_date",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZIDATE"
+   },
+   {
+    "erp_field": "gate_entry",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZZGATE_NO"
+   },
+   {
+    "erp_field": "vehicle_no",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZZVEH_NO"
+   },
+   {
+    "erp_field": "transporter",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZZTRAN_NO"
+   },
+   {
+    "erp_field": "gate_entry_description",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZZLR_COPY"
+   },
+   {
+    "erp_field": "pending_days",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZDAYS"
+   },
+   {
+    "erp_field": "account_doc_no",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BELNR"
+   },
+   {
+    "erp_field": "account_doc_year",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GJAHR"
+   },
+   {
+    "erp_field": "",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "XBLNR2"
+   },
+   {
+    "erp_field": "",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LGORT_I"
+   },
+   {
+    "erp_field": "",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "USNAM"
+   },
+   {
+    "erp_field": "grn_number",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MBLNR"
+   },
+   {
+    "erp_field": "grn_item",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZEILE_I"
+   },
+   {
+    "erp_field": "grn_date",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BUDAT"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "SAP Mapper PR",
+  "doctype_name": "GRN Items",
+  "modified": "2025-07-17 12:57:22.726911",
+  "name": "GRN Items",
+  "table_cjfk": [
+   {
+    "erp_field": "plant",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WERKS_I"
+   },
+   {
+    "erp_field": "grn_number",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MBLNR"
+   },
+   {
+    "erp_field": "grn_item",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZEILE_I"
+   },
+   {
+    "erp_field": "grn_date",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BUDAT"
+   },
+   {
+    "erp_field": "movement_type",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BWART_I"
+   },
+   {
+    "erp_field": "pr_no",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BANFN"
+   },
+   {
+    "erp_field": "pr_date",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BADAT"
+   },
+   {
+    "erp_field": "pr_item",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BNFPO"
+   },
+   {
+    "erp_field": "pr_requester",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "AFNAM"
+   },
+   {
+    "erp_field": "pr_cost_center",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "KOSTL"
+   },
+   {
+    "erp_field": "po_no",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EBELN_I"
+   },
+   {
+    "erp_field": "po_item",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EBELP_I"
+   },
+   {
+    "erp_field": "po_date",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEDAT"
+   },
+   {
+    "erp_field": "material",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MATNR_I"
+   },
+   {
+    "erp_field": "material_description",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MAKTX"
+   },
+   {
+    "erp_field": "batch_no",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "CHARG_I"
+   },
+   {
+    "erp_field": "vendor_batch_no",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LICHA"
+   },
+   {
+    "erp_field": "vendor_code",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LIFNR"
+   },
+   {
+    "erp_field": "vendor_name",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "NAME1"
+   },
+   {
+    "erp_field": "po_delivery_Date",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "EINDT"
+   },
+   {
+    "erp_field": "invoice_no",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "XBLNR"
+   },
+   {
+    "erp_field": "quantity",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MENGE_I"
+   },
+   {
+    "erp_field": "uom",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MEINS_I"
+   },
+   {
+    "erp_field": "quantity_2",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LSMNG_I"
+   },
+   {
+    "erp_field": "material_receipt_date",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRBNR"
+   },
+   {
+    "erp_field": "quantity_3",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LMENGE01"
+   },
+   {
+    "erp_field": "quantity_4",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LMENGE04"
+   },
+   {
+    "erp_field": "rtv_inv_no",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BKTXT"
+   },
+   {
+    "erp_field": "grn_status",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GRN_STAT"
+   },
+   {
+    "erp_field": "qc_clearance_date",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "VDATUM"
+   },
+   {
+    "erp_field": "reason_for_rejection",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SGTXT"
+   },
+   {
+    "erp_field": "grn_submit_to_ac",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GRN_ACC_DATE"
+   },
+   {
+    "erp_field": "gr_covering_note_ref",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GRN_COVER"
+   },
+   {
+    "erp_field": "remarks",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "REMARKS"
+   },
+   {
+    "erp_field": "po_created_by",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ERNAM"
+   },
+   {
+    "erp_field": "gate_entry_date",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZIDATE"
+   },
+   {
+    "erp_field": "gate_entry",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZZGATE_NO"
+   },
+   {
+    "erp_field": "vehicle_no",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZZVEH_NO"
+   },
+   {
+    "erp_field": "transporter",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZZTRAN_NO"
+   },
+   {
+    "erp_field": "gate_entry_description",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZZLR_COPY"
+   },
+   {
+    "erp_field": "pending_days",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ZDAYS"
+   },
+   {
+    "erp_field": "account_doc_no",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BELNR"
+   },
+   {
+    "erp_field": "account_doc_year",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "GJAHR"
+   },
+   {
+    "erp_field": "",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "XBLNR2"
+   },
+   {
+    "erp_field": "",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "LGORT_I"
+   },
+   {
+    "erp_field": "",
+    "parent": "GRN Items",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "USNAM"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "SAP Mapper PR",
   "doctype_name": "Purchase Requisition",
   "modified": "2025-05-23 15:52:50.326042",
   "name": "Purchase Requisition",
