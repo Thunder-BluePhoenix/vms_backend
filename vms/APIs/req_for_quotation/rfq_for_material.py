@@ -1,5 +1,6 @@
 import frappe
 import json
+from frappe.utils.file_manager import save_file
 
 # PR Numbers list
 @frappe.whitelist(allow_guest=False)
@@ -144,10 +145,118 @@ def add_pr_number(data):
     
 
 # create Material rfq
-# @frappe.whitelist(allow_guest=False)
-# def create_rfq_material(data):
-#     try:
-#         if isinstance(data, str):
-#             data = json.loads(data)
+@frappe.whitelist(allow_guest=False)
+def create_rfq_material(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
 
-        
+        rfq = frappe.new_doc("Request For Quotation")
+
+        # RFQ Basic Fields
+        rfq.rfq_type = data.get("rfq_type")
+        rfq.rfq_date = data.get("rfq_date")
+        rfq.company_name = data.get("company_name")
+        rfq.purchase_organization = data.get("purchase_organization")
+        rfq.purchase_group = data.get("purchase_group")
+        rfq.currency = data.get("currency")
+
+        # Administrative Fields
+        rfq.collection_number = data.get("collection_number")
+        rfq.quotation_deadline = data.get("quotation_deadline")
+        rfq.validity_start_date = data.get("validity_start_date")
+        rfq.validity_end_date = data.get("validity_end_date")
+        rfq.bidding_person = data.get("bidding_person")
+
+        # Material/Service Details
+        rfq.service_code = data.get("service_code")
+        rfq.service_category = data.get("service_category")
+        rfq.material_code = data.get("material_code")
+        rfq.material_category = data.get("material_category")
+        rfq.plant_code = data.get("plant_code")
+        rfq.storage_location = data.get("storage_location")
+        rfq.short_text = data.get("short_text")
+
+        # Quantity & Dates
+        rfq.rfq_quantity = data.get("rfq_quantity")
+        rfq.quantity_unit = data.get("quantity_unit")
+        rfq.delivery_date = data.get("delivery_date")
+
+        # Target Price
+        rfq.estimated_price = data.get("estimated_price")
+
+        # Reminders
+        rfq.first_reminder = data.get("first_reminder")
+        rfq.second_reminder = data.get("second_reminder")
+        rfq.third_reminder = data.get("third_reminder")
+
+        # RFQ Items Table
+        pr_items = data.get("pr_items", [])
+        for item in pr_items:
+            rfq.append("rfq_items", {
+                # head
+                "head_unique_field": item.get("head_unique_field"),
+                "purchase_requisition_number": item.get("purchase_requisition_number"),
+                "material_code_head": item.get("material_code_head"),
+                "material_name_head": item.get("material_name_head"),
+                "quantity_head": item.get("quantity_head"),
+                "uom_head": item.get("uom_head"),
+                "price_head": item.get("price_head"),
+                # subhead
+                "subhead_unique_field": item.get("subhead_unique_field"),
+                "material_code_subhead": item.get("material_code_subhead"),
+                "material_name_subhead": item.get("material_name_subhead"),
+                "quantity_subhead": item.get("quantity_subhead"),
+                "uom_subhead": item.get("uom_subhead"),
+                "price_subhead": item.get("price_subhead")
+            })
+
+        # Vendor Details Table
+        vendors = data.get("vendors", [])
+        for vendor in vendors:
+            rfq.append("vendor_details", {
+                "ref_no": vendor.get("refno"),
+                "vendor_name": vendor.get("vendor_name"),
+                "vendor_code": ", ".join(vendor.get("vendor_code", [])),
+                "office_email_primary": vendor.get("office_email_primary"),
+                "mobile_number": vendor.get("mobile_number"),
+                "service_provider_type": vendor.get("service_provider_type"),
+                "country": vendor.get("country")
+            })
+
+        # Non-Onboarded Vendor Table
+        non_vendors = data.get("non_onboarded_vendors", [])
+        for vendor in non_vendors:
+            rfq.append("non_onboarded_vendor_details", {
+                "office_email_primary": vendor.get("office_email_primary"),
+                "vendor_name": vendor.get("vendor_name"),
+                "mobile_number": vendor.get("mobile_number"),
+                "country": vendor.get("country")
+            })
+
+        rfq.insert(ignore_permissions=True)
+
+        # Attachments Handling (multiple file uploads)
+        files = frappe.request.files.getlist("file")
+        for file in files:
+            saved = save_file(file.filename, file.stream.read(), rfq.doctype, rfq.name, is_private=0)
+            rfq.append("multiple_attachments", {
+                "attachment_name": saved.file_url
+            })
+
+        rfq.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": "RFQ created successfully",
+            "rfq_name": rfq.name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Create RFQ API Error")
+        return {
+            "status": "error",
+            "message": "Error creating RFQ: " + str(e)
+        }
+
