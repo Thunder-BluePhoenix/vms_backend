@@ -205,7 +205,7 @@ def full_data_dispatch_item(name):
 				if row.get(field):
 					file_doc = frappe.get_doc("File", {"file_url": row.get(field)})
 					row_data[field] = {
-						"url": frappe.utils.get_url(file_doc.file_url),
+						"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
 						"name": file_doc.name,
 						"file_name": file_doc.file_name
 					}
@@ -229,7 +229,7 @@ def full_data_dispatch_item(name):
 			if doc.get(top_field):
 				file_doc = frappe.get_doc("File", {"file_url": doc.get(top_field)})
 				data[top_field] = {
-					"url": frappe.utils.get_url(file_doc.file_url),
+					"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
 					"name": file_doc.name,
 					"file_name": file_doc.file_name
 				}

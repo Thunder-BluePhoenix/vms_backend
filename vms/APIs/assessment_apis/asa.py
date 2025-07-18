@@ -417,7 +417,7 @@ def get_data_ann_ass_form(name):
 		if ann_doc.valid_consent:
 			file_doc = frappe.get_doc("File", {"file_url": ann_doc.valid_consent})
 			general_disclosure["valid_consent"] = {
-				"url": frappe.utils.get_url(file_doc.file_url),
+				"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
 				"name": file_doc.name,
 				"file_name": file_doc.file_name
 			}
