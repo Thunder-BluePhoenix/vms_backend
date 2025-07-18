@@ -196,7 +196,7 @@ def create_rfq_material(data):
             rfq.append("rfq_items", {
                 # head
                 "head_unique_field": item.get("head_unique_field"),
-                "purchase_requisition_number": item.get("purchase_requisition_number"),
+                "purchase_requisition_number": item.get("requisition_no"),
                 "material_code_head": item.get("material_code_head"),
                 "material_name_head": item.get("material_name_head"),
                 "quantity_head": item.get("quantity_head"),

@@ -36,6 +36,7 @@
   {
    "fieldname": "purchase_requisition_number",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Purchase Requisition Number"
   },
   {
@@ -77,32 +78,38 @@
   {
    "fieldname": "subhead_unique_field",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Subhead Unique Field"
   },
   {
    "fieldname": "material_code_subhead",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Material Code"
   },
   {
    "fieldname": "material_name_subhead",
    "fieldtype": "Small Text",
+   "in_list_view": 1,
    "label": "Material Name/Description"
   },
   {
    "fieldname": "quantity_subhead",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Quantity"
   },
   {
    "fieldname": "uom_subhead",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "UOM",
    "options": "UOM Master"
   },
   {
    "fieldname": "price_subhead",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Price"
   }
  ],
@@ -110,7 +117,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-18 11:32:20.239907",
+ "modified": "2025-07-18 19:53:05.546292",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Items",
