@@ -7,6 +7,10 @@ from frappe.utils.file_manager import save_file
 def vendor_certificate_name_masters():
     try:
         certificate_names = frappe.db.sql("SELECT name, certificate_name, certificate_code  FROM `tabCertificate Master`", as_dict=True)
+		 other_options = [
+            {"name": "other", "certificate_name": "other", "certificate_code": "other"},
+        ]
+		certificate_names.extend(other_options)
 
         return {
             "status": "success",
@@ -87,6 +91,7 @@ def update_vendor_onboarding_certificate_details(data):
 					certificate_name = (row.get("certificate_name") or "").strip()
 					other_certificate_name = (row.get("other_certificate_name") or "").strip()
 					valid_till = (row.get("valid_till") or "").strip()
+					other = (row.get("other") or "").strip()
 
 					is_duplicate = any(
 						(c.certificate_code or "").strip() == certificate_code
@@ -98,7 +103,8 @@ def update_vendor_onboarding_certificate_details(data):
 							"certificate_code": certificate_code,
 							"certificate_name": certificate_name,
 							"other_certificate_name": other_certificate_name,
-							"valid_till": valid_till
+							"valid_till": valid_till,
+							"other": other
 						})
 
 						# Set file URL explicitly if available
@@ -121,6 +127,7 @@ def update_vendor_onboarding_certificate_details(data):
 				certificate_name = (row.get("certificate_name") or "").strip()
 				other_certificate_name = (row.get("other_certificate_name") or "").strip()
 				valid_till = (row.get("valid_till") or "").strip()
+				other = (row.get("other") or "").strip()
 
 				is_duplicate = any(
 					(c.certificate_code or "").strip() == certificate_code
@@ -132,7 +139,8 @@ def update_vendor_onboarding_certificate_details(data):
 						"certificate_code": certificate_code,
 						"certificate_name": certificate_name,
 						"other_certificate_name": other_certificate_name,
-						"valid_till": valid_till
+						"valid_till": valid_till,
+						"other": other
 					})
 
 					# Set file URL explicitly if available
