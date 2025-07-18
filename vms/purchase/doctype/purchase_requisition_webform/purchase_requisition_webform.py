@@ -17,7 +17,8 @@ class PurchaseRequisitionWebform(Document):
 			"purchase_requisition_type",
 			"plant",
 			"company",
-			"requisitioner"
+			"requisitioner",
+			"purchase_group"
 		]
 
 		child_field_map = {
