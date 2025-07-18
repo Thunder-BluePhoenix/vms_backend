@@ -170,7 +170,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         if doc.address_proofattachment:
             file_doc = frappe.get_doc("File", {"file_url": doc.address_proofattachment})
             address_details["address_proofattachment"] = {
-                "url": frappe.utils.get_url(file_doc.file_url),
+                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                 "name": file_doc.name,
                 "file_name": file_doc.file_name
 
@@ -211,7 +211,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             if file_url:
                 file_doc = frappe.get_doc("File", {"file_url": file_url})
                 document_details[field] = {
-                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                     "name": file_doc.name,
                     "file_name": file_doc.file_name
                 }
@@ -233,7 +233,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             if row.gst_document:
                 file_doc = frappe.get_doc("File", {"file_url": row.gst_document})
                 gst_row["gst_document"] = {
-                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                     "name": file_doc.name,
                     "file_name": file_doc.file_name
                 }
@@ -275,7 +275,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         if payment_doc.bank_proof:
             file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof})
             payment_details["bank_proof"] = {
-                "url": frappe.utils.get_url(file_doc.file_url),
+                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                 "name": file_doc.name,
                 "file_name": file_doc.file_name
             }
@@ -289,7 +289,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         if payment_doc.bank_proof_by_purchase_team:
             file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof_by_purchase_team})
             payment_details["bank_proof_by_purchase_team"] = {
-                "url": frappe.utils.get_url(file_doc.file_url),
+                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                 "name": file_doc.name,
                 "file_name": file_doc.file_name
             }
@@ -318,7 +318,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             if row.bank_proof_for_beneficiary_bank:
                 file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_beneficiary_bank})
                 bank_row["bank_proof_for_beneficiary_bank"] = {
-                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                     "name": file_doc.name,
                     "file_name": file_doc.file_name
                 }
@@ -342,7 +342,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             if row.bank_proof_for_intermediate_bank:
                 file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_intermediate_bank})
                 bank_row["bank_proof_for_intermediate_bank"] = {
-                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                     "name": file_doc.name,
                     "file_name": file_doc.file_name
                 }
@@ -406,7 +406,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             if row.material_images:
                 file_doc = frappe.get_doc("File", {"file_url": row.material_images})
                 row_data["material_images"] = {
-                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                     "name": file_doc.name,
                     "file_name": file_doc.file_name
                 }
@@ -426,7 +426,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             if file_url:
                 file_doc = frappe.get_doc("File", {"file_url": file_url})
                 manuf_details[field] = {
-                    "url": frappe.utils.get_url(file_doc.file_url),
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                     "name": file_doc.name,
                     "file_name": file_doc.file_name
                 }
@@ -472,7 +472,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 if row.certificate_attach:
                     file_doc = frappe.get_doc("File", {"file_url": row.certificate_attach})
                     row_data["certificate_attach"] = {
-                        "url": frappe.utils.get_url(file_doc.file_url),
+                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                         "name": file_doc.name,
                         "file_name": file_doc.file_name
                     }
