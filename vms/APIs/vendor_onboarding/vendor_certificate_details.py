@@ -7,10 +7,10 @@ from frappe.utils.file_manager import save_file
 def vendor_certificate_name_masters():
     try:
         certificate_names = frappe.db.sql("SELECT name, certificate_name, certificate_code  FROM `tabCertificate Master`", as_dict=True)
-		 other_options = [
+        other_options = [
             {"name": "other", "certificate_name": "other", "certificate_code": "other"},
         ]
-		certificate_names.extend(other_options)
+        certificate_names.extend(other_options)
 
         return {
             "status": "success",
@@ -27,7 +27,7 @@ def vendor_certificate_name_masters():
             "message": "Failed to fetch Vendor certificate names values.",
             "error": str(e)
         }
-
+		
 @frappe.whitelist(allow_guest=True)
 def update_vendor_onboarding_certificate_details(data):
 	try:
