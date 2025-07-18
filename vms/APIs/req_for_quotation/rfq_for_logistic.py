@@ -153,6 +153,7 @@ def create_import_logistic_rfq(data):
 					"office_email_primary": vm.office_email_primary,
 					"vendor_code": ", ".join(vendor_code),
 					"mobile_number": vm.mobile_number,
+					"service_provider_type": vm.service_provider_type,
 					"country": vm.country
 				})
 
@@ -181,6 +182,7 @@ def create_import_logistic_rfq(data):
 					"office_email_primary": vm.office_email_primary,
 					"vendor_code": ", ".join(vendor_code),
 					"mobile_number": vm.mobile_number,
+					"service_provider_type": vm.service_provider_type,
 					"country": vm.country
 				})
 
@@ -193,6 +195,7 @@ def create_import_logistic_rfq(data):
 				"vendor_code": ", ".join(vendor.get("vendor_code", [])),
 				"office_email_primary": vendor.get("office_email_primary"),
 				"mobile_number": vendor.get("mobile_number"),
+				"service_provider_type": vendor.get("service_provider_type"),
 				"country": vendor.get("country")
 			})
 			
@@ -234,6 +237,7 @@ def get_full_data_import_logistic_rfq(name):
         		"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
 				"office_email_primary": row.office_email_primary,
 				"mobile_number": row.mobile_number,
+				"service_provider_type": row.service_provider_type,
 				"country": row.country
 			})
 
@@ -348,6 +352,7 @@ def create_export_logistic_rfq(data):
 					"office_email_primary": vm.office_email_primary,
 					"vendor_code": ", ".join(vendor_code),
 					"mobile_number": vm.mobile_number,
+					"service_provider_type": vm.service_provider_type,
 					"country": vm.country
 				})
 
@@ -376,6 +381,7 @@ def create_export_logistic_rfq(data):
 					"office_email_primary": vm.office_email_primary,
 					"vendor_code": ", ".join(vendor_code),
 					"mobile_number": vm.mobile_number,
+					"service_provider_type": vm.service_provider_type,
 					"country": vm.country
 				})
 
@@ -388,6 +394,7 @@ def create_export_logistic_rfq(data):
 				"vendor_code": ", ".join(vendor.get("vendor_code", [])),
 				"office_email_primary": vendor.get("office_email_primary"),
 				"mobile_number": vendor.get("mobile_number"),
+				"service_provider_type": vendor.get("service_provider_type"),
 				"country": vendor.get("country")
 			})
 			
@@ -430,6 +437,7 @@ def get_full_data_export_logistic_rfq(name):
         		"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
 				"office_email_primary": row.office_email_primary,
 				"mobile_number": row.mobile_number,
+				"service_provider_type": row.service_provider_type,
 				"country": row.country
 			})
 

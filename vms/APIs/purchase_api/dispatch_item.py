@@ -463,7 +463,7 @@ def submit_child_dispatch_item(data):
 
 			# Handle file uploads only if field is empty and file is uploaded now
 			for attach_field in ["coa_document", "msds_document"]:
-				if not child_row.get(attach_field) and attach_field in frappe.request.files:
+				if attach_field in frappe.request.files:
 					uploaded_file = frappe.request.files[attach_field]
 					saved = save_file(
 						uploaded_file.filename,
@@ -473,6 +473,11 @@ def submit_child_dispatch_item(data):
 						is_private=0
 					)
 					child_row.set(attach_field, saved.file_url)
+					
+				# Else if value in data is URL, only set if not already present
+				elif attach_field in data and isinstance(data[attach_field], dict) and "url" in data[attach_field]:
+					if not child_row.get(attach_field):
+						child_row.set(attach_field, data[attach_field]["url"])
 
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()

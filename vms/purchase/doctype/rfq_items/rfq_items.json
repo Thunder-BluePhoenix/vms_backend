@@ -6,50 +6,111 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "material_code",
-  "material_name",
-  "quantity",
-  "uom",
-  "price"
+  "head_fields_section",
+  "head_unique_field",
+  "purchase_requisition_number",
+  "material_code_head",
+  "material_name_head",
+  "quantity_head",
+  "uom_head",
+  "price_head",
+  "subhead_fields_section",
+  "subhead_unique_field",
+  "material_code_subhead",
+  "material_name_subhead",
+  "quantity_subhead",
+  "uom_subhead",
+  "price_subhead"
  ],
  "fields": [
   {
-   "fieldname": "quantity",
+   "fieldname": "head_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Head Fields"
+  },
+  {
+   "fieldname": "head_unique_field",
+   "fieldtype": "Data",
+   "label": "Head Unique Field"
+  },
+  {
+   "fieldname": "purchase_requisition_number",
+   "fieldtype": "Data",
+   "label": "Purchase Requisition Number"
+  },
+  {
+   "fieldname": "material_code_head",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material Code"
+  },
+  {
+   "fieldname": "material_name_head",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Material Name/Description"
+  },
+  {
+   "fieldname": "quantity_head",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Quantity"
   },
   {
-   "fieldname": "price",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Price"
-  },
-  {
-   "fieldname": "uom",
+   "fieldname": "uom_head",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "UOM",
    "options": "UOM Master"
   },
   {
-   "fieldname": "material_code",
+   "fieldname": "price_head",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "label": "Price"
+  },
+  {
+   "fieldname": "subhead_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Subhead Fields"
+  },
+  {
+   "fieldname": "subhead_unique_field",
+   "fieldtype": "Data",
+   "label": "Subhead Unique Field"
+  },
+  {
+   "fieldname": "material_code_subhead",
+   "fieldtype": "Data",
    "label": "Material Code"
   },
   {
-   "fieldname": "material_name",
+   "fieldname": "material_name_subhead",
+   "fieldtype": "Small Text",
+   "label": "Material Name/Description"
+  },
+  {
+   "fieldname": "quantity_subhead",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Material Name"
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "uom_subhead",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "price_subhead",
+   "fieldtype": "Data",
+   "label": "Price"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-16 19:51:25.162949",
+ "modified": "2025-07-18 11:32:20.239907",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Items",
