@@ -191,7 +191,7 @@ def send_po_to_pr(data=None):
         
         frappe.sendmail(**email_params)
         
-        g
+        
         frappe.logger().info(f"Purchase Order email sent successfully to {', '.join(to_emails)}")
         
         return {
