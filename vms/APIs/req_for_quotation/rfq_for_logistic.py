@@ -8,6 +8,17 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
 		frappe.throw(_("Missing required parameter: rfq_type"))
 
 	try:
+		# Return empty result if the service provider is All Service Provider, Premium Service Provider
+		if service_provider in ["All Service Provider", "Premium Service Provider"]:
+			return {
+				"status": "success",
+				"message": "No vendors returned for this service provider.",
+				"data": [],
+				"total_count": 0,
+				"page_no": page_no,
+				"page_length": page_length
+			}
+
 		vendor_links = frappe.get_all(
 			"Vendor Type Group",
 			filters={
