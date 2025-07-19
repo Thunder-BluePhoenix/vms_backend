@@ -9,7 +9,7 @@ from frappe import _
 def cart_details_masters():
     try:
         category_type = frappe.db.sql("select name, category_name from `tabCategory Master`", as_dict=True)
-        uom_master = frappe.db.sql("select name, uom from `tabUOM Master`", as_dict=True)
+        uom_master = frappe.db.sql("select name, uom, uom_code, description from `tabUOM Master`", as_dict=True)
 
         return {
             "category_type": category_type,
