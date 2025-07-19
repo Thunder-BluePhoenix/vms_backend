@@ -10,7 +10,8 @@
   "vendor_onboarding_link",
   "purchase_requisition_link",
   "erp_to_sap_data",
-  "sap_response"
+  "sap_response",
+  "total_transaction"
  ],
  "fields": [
   {
@@ -42,12 +43,17 @@
    "label": "Purchase Requisition Link",
    "options": "Purchase Requisition Form",
    "read_only": 1
+  },
+  {
+   "fieldname": "total_transaction",
+   "fieldtype": "Long Text",
+   "label": "Total Transaction"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 12:07:42.197187",
+ "modified": "2025-07-18 15:49:20.724023",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "VMS SAP Logs",
