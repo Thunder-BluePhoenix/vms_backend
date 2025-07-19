@@ -51,7 +51,9 @@
   "address_section",
   "current_address",
   "column_break_oztg",
-  "permanent_address"
+  "permanent_address",
+  "more_info_tab",
+  "restricted"
  ],
  "fields": [
   {
@@ -297,17 +299,28 @@
    "fieldtype": "Signature",
    "label": "eSignature"
   },
-   {
+  {
    "default": "0",
    "fieldname": "create_user",
    "fieldtype": "Check",
    "label": "Create User"
+  },
+  {
+   "fieldname": "more_info_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted",
+   "fieldtype": "Check",
+   "label": "Restricted"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 18:10:36.690546",
+ "modified": "2025-07-18 00:27:58.168494",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",
