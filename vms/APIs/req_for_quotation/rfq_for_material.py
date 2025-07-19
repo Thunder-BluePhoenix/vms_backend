@@ -67,88 +67,84 @@ def pr_number_list(pr_number=None, rfq_type=None):
 
 @frappe.whitelist(allow_guest=False)
 def add_pr_number(data):
-    try:
-        if isinstance(data, str):
-            data = json.loads(data)
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
 
-        pr_numbers = data.get("pr_numbers", [])
+		pr_numbers = data.get("pr_numbers", [])
 
-        if not pr_numbers:
-            return {
-                "status": "error",
-                "message": "Please select at least one PR number"
-            }
+		if not pr_numbers:
+			return {
+				"status": "error",
+				"message": "Please select at least one PR number"
+			}
 
-        pr_items = []
+		grouped_data = {}
 
-        for pr_number in pr_numbers:
-            pur_req = frappe.get_doc("Purchase Requisition Form", {"sap_pr_code": pr_number})
-            if not pur_req or not pur_req.purchase_requisition_form_table:
-                continue
+		for pr_number in pr_numbers:
+			pur_req = frappe.get_doc("Purchase Requisition Form", {"sap_pr_code": pr_number})
+			if not pur_req or not pur_req.purchase_requisition_form_table:
+				continue
 
-            if pur_req.purchase_requisition_type == "NB":
-                for row in pur_req.purchase_requisition_form_table:
-                    pr_items.append({
-                        # head
-                        "row_id": row.name,
-                        "head_unique_field": row.head_unique_id or "",
-                        "requisition_no": pr_number,
-                        "material_code_head": row.material_code_head or "",
-                        "material_name_head": row.short_text_head or "",
-                        "quantity_head": row.quantity_head or 0,
-                        "uom_head": row.uom_head or "",
-                        "price_head": row.product_price_head or 0,
-                        "delivery_date_head": row.delivery_date_head or 0,
-                        "plant_head": row.plant_head or 0
-                    })
+			for row in sorted(pur_req.purchase_requisition_form_table, key=lambda x: x.idx):
+				head_id = row.head_unique_id
+				if not head_id:
+					continue
 
-            elif pur_req.purchase_requisition_type == "SB":
-                for row in pur_req.purchase_requisition_form_table:
-                    pr_items.append({
-                        # head
-                        "row_id": row.name,
-                        "head_unique_field": row.head_unique_id or "",
-                        "requisition_no": pr_number,
-                        "material_code_head": row.material_code_head or "",
-                        "material_name_head": row.short_text_head or "",
-                        "quantity_head": row.quantity_head or 0,
-                        "uom_head": row.uom_head or "",
-                        "price_head": row.product_price_head or 0,
-                        "delivery_date_head": row.delivery_date_head or 0,
-                        "plant_head": row.plant_head or 0,
-                        # subhead
-                        "subhead_unique_field": row.sub_head_unique_id or "",
-                        "material_code_subhead": row.material_code_subhead or "",
-                        "material_name_subhead": row.short_text_subhead or "",
-                        "quantity_subhead": row.quantity_subhead or 0,
-                        "uom_subhead": row.uom_subhead or "",
-                        "price_subhead": row.gross_price_subhead or 0,
-                        "delivery_date_subhead": row.delivery_date_subhead or 0
-                    })
+				if head_id not in grouped_data:
+					grouped_data[head_id] = {
+						"row_id": row.name,
+						"head_unique_field": head_id,
+						"requisition_no": pr_number,
+						"material_code_head": row.material_code_head or "",
+						"material_name_head": row.short_text_head or "",
+						"quantity_head": row.quantity_head or 0,
+						"uom_head": row.uom_head or "",
+						"price_head": row.product_price_head or 0,
+						"delivery_date_head": row.delivery_date_head or "",
+						"plant_head": row.plant_head or "",
+						"subhead_fields": []
+					}
 
-            else:
-                return {
-                    "status": "error",
-                    "message": f"No Purchase Requisition Type found for PR: {pr_number}"
-                }
+				if (
+					pur_req.purchase_requisition_type == "SB"
+					and row.sub_head_unique_id
+					and row.is_created
+					and not row.is_deleted
+				):
+					parent_id = row.head_unique_id
+					if parent_id in grouped_data:
+						subhead_entry = {
+							"row_id": row.name,
+							"subhead_unique_field": row.sub_head_unique_id or "",
+							"material_code_subhead": row.material_code_subhead or "",
+							"material_name_subhead": row.short_text_subhead or "",
+							"quantity_subhead": row.quantity_subhead or 0,
+							"uom_subhead": row.uom_subhead or "",
+							"price_subhead": row.gross_price_subhead or 0,
+							"delivery_date_subhead": row.delivery_date_subhead or ""
+						}
+						if subhead_entry not in grouped_data[parent_id]["subhead_fields"]:
+							grouped_data[parent_id]["subhead_fields"].append(subhead_entry)
 
-        if pr_items:
-            return {
-                "status": "success",
-                "pr_items": pr_items
-            }
+		if grouped_data:
+			return {
+				"status": "success",
+				"pr_items": list(grouped_data.values())
+			}
 
-        return {
-            "status": "error",
-            "message": "No matching Purchase Requisition items found"
-        }
+		return {
+			"status": "error",
+			"message": "No matching Purchase Requisition items found"
+		}
 
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Add PR Number Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Add PR Number Error")
+		return {
+			"status": "error",
+			"message": str(e)
+		}
+
     
 
 # create Material rfq
@@ -261,4 +257,122 @@ def create_rfq_material(data):
             "status": "error",
             "message": "Error creating RFQ: " + str(e)
         }
+
+
+@frappe.whitelist(allow_guest=False)
+def get_full_data_material_rfq(name):
+	try:
+		doc = frappe.get_doc("Request For Quotation", name)
+
+		# RFQ Items Table
+		pr_items = []
+		for row in doc.rfq_items:
+			pr_items.append({
+				"row_id": row.name,
+				"head_unique_field": row.head_unique_field,
+				"purchase_requisition_number": row.purchase_requisition_number,
+				"material_code_head": row.material_code_head,
+				"delivery_date_head": row.delivery_date_head,
+				"plant_head": row.plant_head,
+				"material_name_head": row.material_name_head,
+				"quantity_head": row.quantity_head,
+				"uom_head": row.uom_head,
+				"price_head": row.price_head
+			})
+
+		# Onboarded Vendor Details Table
+		vendor_details_data = []
+		for row in doc.vendor_details:
+			vendor_details_data.append({
+				"refno": row.ref_no,
+				"vendor_name": row.vendor_name,
+				"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
+				"office_email_primary": row.office_email_primary,
+				"mobile_number": row.mobile_number,
+				"service_provider_type": row.service_provider_type,
+				"country": row.country
+			})
+
+		# Non-Onboarded Vendor Details Table
+		non_onboarded_vendor_details_data = []
+		for row in doc.non_onboarded_vendor_details:
+			non_onboarded_vendor_details_data.append({
+				"office_email_primary": row.office_email_primary,
+				"vendor_name": row.vendor_name,
+				"mobile_number": row.mobile_number,
+				"country": row.country
+			})
+
+		# File Attachments Section
+		attachments = []
+		for row in doc.multiple_attachments:
+			file_url = row.get("attachment_name")
+			if file_url:
+				file_doc = frappe.get_doc("File", {"file_url": file_url})
+				attachments.append({
+					"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+					"name": file_doc.name,
+					"file_name": file_doc.file_name
+				})
+			else:
+				attachments.append({
+					"url": "",
+					"name": "",
+					"file_name": ""
+				})
+
+		# RFQ Basic Fields
+		data = {
+			"rfq_type": doc.rfq_type,
+			"rfq_date": doc.rfq_date,
+			"company_name": doc.company_name,
+			"purchase_organization": doc.purchase_organization,
+			"purchase_group": doc.purchase_group,
+			"currency": doc.currency,
+
+			# Administrative Fields
+			"collection_number": doc.collection_number,
+			"quotation_deadline": doc.quotation_deadline,
+			"validity_start_date": doc.validity_start_date,
+			"validity_end_date": doc.validity_end_date,
+			"bidding_person": doc.bidding_person,
+
+			# Material/Service Details
+			"service_code": doc.service_code,
+			"service_category": doc.service_category,
+			"material_code": doc.material_code,
+			"material_category": doc.material_category,
+			"plant_code": doc.plant_code,
+			"storage_location": doc.storage_location,
+			"short_text": doc.short_text,
+
+			# Quantity & Dates
+			"rfq_quantity": doc.rfq_quantity,
+			"quantity_unit": doc.quantity_unit,
+			"delivery_date": doc.delivery_date,
+
+			# Target Price
+			"estimated_price": doc.estimated_price,
+
+			# Reminders
+			"first_reminder": doc.first_reminder,
+			"second_reminder": doc.second_reminder,
+			"third_reminder": doc.third_reminder,
+
+			# Child Tables
+			"pr_items": pr_items,
+			"vendor_details": vendor_details_data,
+			"non_onboarded_vendors": non_onboarded_vendor_details_data,
+			"attachments": attachments
+		}
+
+		return {
+			"status": "success",
+			"rfq_name": name,
+			"data": data
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Fetch Material RFQ Error")
+		frappe.throw(_("Error fetching RFQ: ") + str(e))
 
