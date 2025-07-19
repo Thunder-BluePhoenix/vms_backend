@@ -171,62 +171,355 @@ def get_all_grn_details():
         frappe.log_error(str(e), "Error in get_all_grn_details")
         frappe.throw(_("Something went wrong while fetching GRNs."))
 
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+# @frappe.whitelist()
+# def get_grn_details_of_grn_number(grn_number=None):
+#     if not grn_number:
+#         frappe.throw("GRN Number is required")
 
-@frappe.whitelist()
-def get_grn_details_of_grn_number(grn_number=None):
-    if not grn_number:
-        frappe.throw("GRN Number is required")
+#     user = frappe.session.user
+#     user_team = frappe.db.get_value("Employee", {"user_id": user}, "team")
 
-    user = frappe.session.user
-    user_team = frappe.db.get_value("Employee", {"user_id": user}, "team")
+#     if not user_team:
+#         frappe.throw("Your team is not mapped. Contact Admin.")
 
-    if not user_team:
-        frappe.throw("Your team is not mapped. Contact Admin.")
+#     grn_name = frappe.db.get_value("GRN", {"grn_no_t": grn_number})
+#     if not grn_name:
+#         frappe.throw("GRN not found.")
 
-    grn_name = frappe.db.get_value("GRN", {"grn_no_t": grn_number})
-    if not grn_name:
-        frappe.throw("GRN not found.")
+#     try:
+#         grn_doc = frappe.get_doc("GRN", grn_name)
+#     except frappe.DoesNotExistError:
+#         frappe.throw("GRN document does not exist.")
 
+#     filtered_items = []
+
+#     grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn_name})
+#     if not grn_items:
+#         frappe.throw("No GRN Items found in this GRN.")
+
+#     for item in grn_items:
+#         po_no = item.get("po_no")
+#         plant = item.get("plant")
+
+#         if not po_no or not plant:
+#             continue
+
+#         purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
+#         company = frappe.db.get_value("Plant Master", plant, "company")
+
+#         if not purchase_group or not company:
+#             continue
+
+#         pg_master_name = f"{purchase_group}-{company}"
+#         pg_team = frappe.db.get_value("Purchase Group Master", pg_master_name, "team")
+
+#         if pg_team and pg_team == user_team:
+#             filtered_items.append(item)
+
+#     if not filtered_items:
+#         frappe.throw("You are not authorized to view any items in this GRN.")
+
+#     return {
+#         "grn_no": grn_doc.grn_no_t,
+#         "grn_date": grn_doc.grn_date,
+#         "grn_items": filtered_items
+#     }
+
+@frappe.whitelist(allow_guest=False)
+def get_grn_details_of_grn_number(grn_number=None, page_no=None, page_length=None):
     try:
-        grn_doc = frappe.get_doc("GRN", grn_name)
-    except frappe.DoesNotExistError:
-        frappe.throw("GRN document does not exist.")
+        # Validate grn_number parameter
+        if not grn_number:
+            return {
+                "status": "error",
+                "message": "GRN Number is required.",
+                "code": 400
+            }
 
-    filtered_items = []
+        # Get current user and validate team
+        user = frappe.session.user
+        user_team = frappe.db.get_value("Employee", {"user_id": user}, "team")
 
-    grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn_name})
-    if not grn_items:
-        frappe.throw("No GRN Items found in this GRN.")
+        if not user_team:
+            return {
+                "status": "error",
+                "message": "Your team is not mapped. Contact Admin.",
+                "code": 403
+            }
 
-    for item in grn_items:
-        po_no = item.get("po_no")
-        plant = item.get("plant")
+        # Check if GRN exists
+        grn_name = frappe.db.get_value("GRN", {"grn_no_t": grn_number})
+        if not grn_name:
+            return {
+                "status": "error",
+                "message": "GRN not found.",
+                "code": 404
+            }
 
-        if not po_no or not plant:
-            continue
+        # Get GRN document
+        try:
+            grn_doc = frappe.get_doc("GRN", grn_name)
+        except frappe.DoesNotExistError:
+            return {
+                "status": "error",
+                "message": "GRN document does not exist.",
+                "code": 404
+            }
 
-        purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
-        company = frappe.db.get_value("Plant Master", plant, "company")
+        # Get all GRN items
+        grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn_name})
+        if not grn_items:
+            return {
+                "status": "error",
+                "message": "No GRN Items found in this GRN.",
+                "code": 404
+            }
 
-        if not purchase_group or not company:
-            continue
+        # Filter items based on team authorization
+        filtered_items = []
+        
+        for item in grn_items:
+            try:
+                po_no = item.get("po_no")
+                plant = item.get("plant")
 
-        pg_master_name = f"{purchase_group}-{company}"
-        pg_team = frappe.db.get_value("Purchase Group Master", pg_master_name, "team")
+                if not po_no or not plant:
+                    continue
 
-        if pg_team and pg_team == user_team:
-            filtered_items.append(item)
+                # Get purchase group from PO
+                purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
+                if not purchase_group:
+                    continue
 
-    if not filtered_items:
-        frappe.throw("You are not authorized to view any items in this GRN.")
+                # Get company from plant
+                company = frappe.db.get_value("Plant Master", plant, "company")
+                if not company:
+                    continue
 
-    return {
-        "grn_no": grn_doc.grn_no_t,
-        "grn_date": grn_doc.grn_date,
-        "grn_items": filtered_items
-    }
+                # Check team authorization
+                pg_master_name = f"{purchase_group}-{company}"
+                pg_team = frappe.db.get_value("Purchase Group Master", pg_master_name, "team")
+
+                if pg_team and pg_team == user_team:
+                    filtered_items.append(item)
+
+            except Exception as item_error:
+                # Log individual item processing errors but continue
+                frappe.log_error(f"Error processing GRN item {item.get('name', 'Unknown')}: {str(item_error)}", 
+                               "GRN Item Processing Error")
+                continue
+
+        if not filtered_items:
+            return {
+                "status": "error",
+                "message": "You are not authorized to view any items in this GRN.",
+                "code": 403
+            }
+
+        # Pagination setup
+        total_items = len(filtered_items)
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 10
+        
+        # Enforce maximum limit of 20
+        if page_length > 20:
+            page_length = 20
+        
+        # Calculate pagination
+        offset = (page_no - 1) * page_length
+        end_index = offset + page_length
+        
+        # Slice the filtered items for pagination
+        paginated_items = filtered_items[offset:end_index]
+        
+        # Calculate total pages
+        total_pages = (total_items + page_length - 1) // page_length
+
+        return {
+            "status": "success",
+            "message": "GRN details fetched successfully.",
+            "data": {
+                "grn_no": grn_doc.grn_no_t,
+                "grn_date": grn_doc.grn_date,
+                "grn_items": paginated_items
+            },
+            "pagination": {
+                "total_items": total_items,
+                "page_no": page_no,
+                "page_length": page_length,
+                "total_pages": total_pages,
+                "has_next_page": page_no < total_pages,
+                "has_previous_page": page_no > 1
+            }
+        }
+
+    except ValueError as ve:
+        return {
+            "status": "error",
+            "message": f"Invalid parameter value: {str(ve)}",
+            "code": 400
+        }
+    
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "GRN Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch GRN details.",
+            "error": str(e),
+            "code": 500
+        }
 
 
+# Alternative version with database-level filtering for better performance
+# @frappe.whitelist(allow_guest=False)
+# def get_grn_details_of_grn_number_optimized(grn_number=None, page_no=None, page_length=None):
+#     try:
+#         # Validate grn_number parameter
+#         if not grn_number:
+#             return {
+#                 "status": "error",
+#                 "message": "GRN Number is required.",
+#                 "code": 400
+#             }
+
+#         # Get current user and validate team
+#         user = frappe.session.user
+#         user_team = frappe.db.get_value("Employee", {"user_id": user}, "team")
+
+#         if not user_team:
+#             return {
+#                 "status": "error",
+#                 "message": "Your team is not mapped. Contact Admin.",
+#                 "code": 403
+#             }
+
+#         # Check if GRN exists
+#         grn_name = frappe.db.get_value("GRN", {"grn_no_t": grn_number})
+#         if not grn_name:
+#             return {
+#                 "status": "error",
+#                 "message": "GRN not found.",
+#                 "code": 404
+#             }
+
+#         # Get GRN document
+#         try:
+#             grn_doc = frappe.get_doc("GRN", grn_name)
+#         except frappe.DoesNotExistError:
+#             return {
+#                 "status": "error",
+#                 "message": "GRN document does not exist.",
+#                 "code": 404
+#             }
+
+#         # Get purchase groups for user's team
+#         purchase_groups = frappe.get_all("Purchase Group Master", 
+#                                         filters={"team": user_team}, 
+#                                         pluck="name")
+        
+#         if not purchase_groups:
+#             return {
+#                 "status": "error",
+#                 "message": "No purchase groups found for your team.",
+#                 "code": 403
+#             }
+
+#         # Pagination setup
+#         page_no = int(page_no) if page_no else 1
+#         page_length = int(page_length) if page_length else 10
+        
+#         # Enforce maximum limit of 20
+#         if page_length > 20:
+#             page_length = 20
+        
+#         offset = (page_no - 1) * page_length
+
+#         # Database query to get filtered and paginated items
+#         items_query = f"""
+#             SELECT gi.*, 
+#                    CONCAT(po.purchase_group, '-', pm.company) as pg_master_name
+#             FROM `tabGRN Items` gi
+#             LEFT JOIN `tabPurchase Order` po ON gi.po_no = po.name
+#             LEFT JOIN `tabPlant Master` pm ON gi.plant = pm.name
+#             WHERE gi.parent = %(grn_name)s
+#               AND po.purchase_group IS NOT NULL
+#               AND pm.company IS NOT NULL
+#               AND CONCAT(po.purchase_group, '-', pm.company) IN %(purchase_groups)s
+#             ORDER BY gi.idx
+#             LIMIT %(limit)s OFFSET %(offset)s
+#         """
+
+#         # Count query for total items
+#         count_query = f"""
+#             SELECT COUNT(*) as total
+#             FROM `tabGRN Items` gi
+#             LEFT JOIN `tabPurchase Order` po ON gi.po_no = po.name
+#             LEFT JOIN `tabPlant Master` pm ON gi.plant = pm.name
+#             WHERE gi.parent = %(grn_name)s
+#               AND po.purchase_group IS NOT NULL
+#               AND pm.company IS NOT NULL
+#               AND CONCAT(po.purchase_group, '-', pm.company) IN %(purchase_groups)s
+#         """
+
+#         # Execute queries
+#         values = {
+#             "grn_name": grn_name,
+#             "purchase_groups": purchase_groups,
+#             "limit": page_length,
+#             "offset": offset
+#         }
+
+#         # Get total count
+#         total_count_result = frappe.db.sql(count_query, values, as_dict=True)
+#         total_items = total_count_result[0]["total"] if total_count_result else 0
+
+#         if total_items == 0:
+#             return {
+#                 "status": "error",
+#                 "message": "You are not authorized to view any items in this GRN.",
+#                 "code": 403
+#             }
+
+#         # Get paginated items
+#         filtered_items = frappe.db.sql(items_query, values, as_dict=True)
+
+#         # Calculate total pages
+#         total_pages = (total_items + page_length - 1) // page_length
+
+#         return {
+#             "status": "success",
+#             "message": "GRN details fetched successfully.",
+#             "data": {
+#                 "grn_no": grn_doc.grn_no_t,
+#                 "grn_date": grn_doc.grn_date,
+#                 "grn_items": filtered_items
+#             },
+#             "pagination": {
+#                 "total_items": total_items,
+#                 "page_no": page_no,
+#                 "page_length": page_length,
+#                 "total_pages": total_pages,
+#                 "has_next_page": page_no < total_pages,
+#                 "has_previous_page": page_no > 1
+#             }
+#         }
+
+#     except ValueError as ve:
+#         return {
+#             "status": "error",
+#             "message": f"Invalid parameter value: {str(ve)}",
+#             "code": 400
+#         }
+    
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "GRN Details Optimized API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to fetch GRN details.",
+#             "error": str(e),
+#             "code": 500
+#         }
 
 @frappe.whitelist(allow_guest=False)
 def filtering_pr_details(page_no=None, page_length=None, company=None, purchase_requisition_type=None, usr=None):
