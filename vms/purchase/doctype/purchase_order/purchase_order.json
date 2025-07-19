@@ -94,6 +94,9 @@
   "instructions",
   "section_break_mqft",
   "po_items",
+  "section_break_oqgf",
+  "user_confirmation",
+  "payment_release",
   "tab_2_tab",
   "status",
   "reason_for_rejection",
@@ -676,13 +679,30 @@
    "fieldtype": "Table",
    "label": "Dispatch IDs",
    "options": "Dispatch of PO"
+  },
+  {
+   "fieldname": "section_break_oqgf",
+   "fieldtype": "Section Break",
+   "label": "Checks For API"
+  },
+  {
+   "default": "1",
+   "fieldname": "user_confirmation",
+   "fieldtype": "Check",
+   "label": "User Confirmation"
+  },
+  {
+   "default": "0",
+   "fieldname": "payment_release",
+   "fieldtype": "Check",
+   "label": "Payment release"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 12:53:19.905525",
- "modified_by": "Administrator",
+ "modified": "2025-07-19 13:31:05.334691",
+ "modified_by": "abhishek@mail.hybrowlabs.com",
  "module": "Purchase",
  "name": "Purchase Order",
  "naming_rule": "Expression",
