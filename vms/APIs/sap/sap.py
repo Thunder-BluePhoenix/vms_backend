@@ -419,22 +419,59 @@ def erp_to_sap_vendor_data(onb_ref):
         csrf_result = get_csrf_token_and_session(sap_client_code)
         
         if csrf_result["success"]:
-            # Send details to SAP with proper session
-            result = send_detail(
-                csrf_result["csrf_token"], 
-                data, 
-                csrf_result["session_cookies"],
-                onb.ref_no, 
-                sap_client_code, 
-                vcd.state, 
-                vcd.gst, 
-                vcd.company_name, 
-                onb.name
-            )
-            return result
+            try:
+                # Send details to SAP with proper session
+                result = send_detail(
+                    csrf_result["csrf_token"], 
+                    data, 
+                    csrf_result["session_cookies"],
+                    onb.ref_no, 
+                    sap_client_code, 
+                    vcd.state, 
+                    vcd.gst, 
+                    vcd.company_name, 
+                    onb.name
+                )
+                
+                # Check if send_detail failed or returned error
+                if not result or "error" in result:
+                    send_failure_notification(
+                        onb.name, 
+                        "SAP API Call Failed", 
+                        f"The SAP integration API call failed. Error: {result.get('error', 'Unknown error') if result else 'No response from send_detail function'}"
+                    )
+                # Check if Vedno is 'E' or empty
+                elif result and isinstance(result, dict):
+                    vedno = result.get('d', {}).get('Vedno', '') if 'd' in result else result.get('Vedno', '')
+                    zmsg = result.get('d', {}).get('Zmsg', '') if 'd' in result else result.get('Zmsg', '')
+                    
+                    if vedno == 'E' or vedno == '' or not vedno:
+                        send_failure_notification(
+                            onb.name, 
+                            "SAP Vendor Creation Failed", 
+                            f"SAP returned an error or empty vendor code. Vendor Code (Vedno): '{vedno}'. SAP Message (Zmsg): '{zmsg}'"
+                        )
+                
+                return result
+                
+            except Exception as send_detail_err:
+                error_msg = f"Exception in send_detail function: {str(send_detail_err)}"
+                frappe.log_error(error_msg)
+                send_failure_notification(
+                    onb.name, 
+                    "SAP Integration Exception", 
+                    error_msg
+                )
+                return {"error": error_msg}
         else:
-            frappe.log_error(f"Failed to get CSRF token: {csrf_result['error']}")
-            return {"error": csrf_result["error"]}
+            error_msg = f"Failed to get CSRF token: {csrf_result['error']}"
+            frappe.log_error(error_msg)
+            send_failure_notification(
+                onb.name, 
+                "SAP CSRF Token Failed", 
+                error_msg
+            )
+            return {"error": error_msg}
 
 
 def safe_get(obj, list_name, index, attr, default=""):
@@ -566,10 +603,31 @@ def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, c
         if response.status_code == 201 and response.text.strip():
             try:
                 vendor_sap_code = response.json()
-                # Extract Vedno as per original code logic
+                # Extract Vedno and Zmsg as per original code logic
                 vendor_code = vendor_sap_code['d']['Vedno']
-                transaction_status = "Success"
-                print(f"✅ Vendor details posted successfully. Vendor Code: {vendor_code}")
+                zmsg = vendor_sap_code['d'].get('Zmsg', '')
+                
+                # Check if Vedno indicates error or is empty
+                if vendor_code == 'E' or vendor_code == '' or not vendor_code:
+                    transaction_status = "SAP Error"
+                    error_details = f"SAP returned error vendor code. Vedno: '{vendor_code}', Zmsg: '{zmsg}'"
+                    print(f"❌ SAP Error: {error_details}")
+                    
+                    # Send notification for SAP error
+                    try:
+                        send_failure_notification(
+                            onb_name, 
+                            "SAP Vendor Creation Error", 
+                            error_details
+                        )
+                    except Exception as notif_err:
+                        print(f"⚠️ Failed to send notification: {str(notif_err)}")
+                else:
+                    transaction_status = "Success"
+                    print(f"✅ Vendor details posted successfully. Vendor Code: {vendor_code}")
+                    if zmsg:
+                        print(f"📝 SAP Message: {zmsg}")
+                
                 print(f"✅ Full SAP Response: {json.dumps(vendor_sap_code, indent=2)}")
                 
             except (JSONDecodeError, KeyError) as json_err:
@@ -579,11 +637,31 @@ def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, c
                 print(f"❌ JSON parsing error: {error_details}")
                 print(f"❌ Available response keys: {list(vendor_sap_code.get('d', {}).keys()) if 'vendor_sap_code' in locals() else 'Could not parse response'}")
                 
+                # Send notification for parsing error
+                try:
+                    send_failure_notification(
+                        onb_name, 
+                        "SAP Response Parse Error", 
+                        error_details
+                    )
+                except Exception as notif_err:
+                    print(f"⚠️ Failed to send notification: {str(notif_err)}")
+                
         elif response.status_code == 403:
             error_details = f"CSRF Token validation failed. Response: {response.text}"
             transaction_status = "CSRF Token Error"
             frappe.log_error(error_details)
             print(f"❌ CSRF Error: {error_details}")
+            
+            # Send notification for CSRF error
+            try:
+                send_failure_notification(
+                    onb_name, 
+                    "SAP Authentication Error", 
+                    error_details
+                )
+            except Exception as notif_err:
+                print(f"⚠️ Failed to send notification: {str(notif_err)}")
             
         elif response.status_code != 201:
             error_details = f"SAP API returned status {response.status_code}: {response.text}"
@@ -591,11 +669,31 @@ def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, c
             frappe.log_error(error_details)
             print(f"❌ Error in POST request: {error_details}")
             
+            # Send notification for HTTP error
+            try:
+                send_failure_notification(
+                    onb_name, 
+                    f"SAP API Error {response.status_code}", 
+                    error_details
+                )
+            except Exception as notif_err:
+                print(f"⚠️ Failed to send notification: {str(notif_err)}")
+            
         else:
             error_details = "Empty response from SAP API"
             transaction_status = "Empty Response"
             frappe.log_error(error_details)
             print(f"❌ Error: {error_details}")
+            
+            # Send notification for empty response
+            try:
+                send_failure_notification(
+                    onb_name, 
+                    "SAP Empty Response", 
+                    error_details
+                )
+            except Exception as notif_err:
+                print(f"⚠️ Failed to send notification: {str(notif_err)}")
 
     except RequestException as req_err:
         error_details = f"Request failed: {str(req_err)}"
@@ -604,12 +702,32 @@ def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, c
         print(f"❌ Request error: {error_details}")
         sap_response_text = str(req_err)[:1000]
         
+        # Send notification for request exception
+        try:
+            send_failure_notification(
+                onb_name, 
+                "SAP Network Error", 
+                error_details
+            )
+        except Exception as notif_err:
+            print(f"⚠️ Failed to send notification: {str(notif_err)}")
+        
     except Exception as e:
         error_details = f"Unexpected error: {str(e)}"
         transaction_status = "Unexpected Error"
         frappe.log_error(error_details)
         print(f"❌ Unexpected error: {error_details}")
         sap_response_text = str(e)[:1000]
+        
+        # Send notification for unexpected error
+        try:
+            send_failure_notification(
+                onb_name, 
+                "SAP Unexpected Error", 
+                error_details
+            )
+        except Exception as notif_err:
+            print(f"⚠️ Failed to send notification: {str(notif_err)}")
 
     # Always log the transaction with full data since fields are JSON/Code types
     try:
@@ -698,7 +816,8 @@ def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, c
         )
 
     # Update vendor master with company vendor code if successful
-    if vendor_code and transaction_status == "Success":
+    if vendor_code not in ('E', '') and transaction_status == "Success":
+
         try:
             update_vendor_master(name, company_name, sap_code, vendor_code, gst, state)
             print(f"✅ Vendor master updated successfully with vendor code: {vendor_code}")
@@ -731,40 +850,276 @@ def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, c
         }
 
 
-def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state):
-    """Update vendor master with company vendor code"""
-    ref_vm = frappe.get_doc("Vendor Master", name)
+def send_failure_notification(onb_name, failure_type, error_details):
+    """Send email notifications to purchase team when SAP integration fails"""
+    try:
+        # Get vendor onboarding document
+        onb_doc = frappe.get_doc("Vendor Onboarding", onb_name)
+        registered_by = onb_doc.registered_by
+        
+        if not registered_by:
+            print(f"⚠️ No registered_by found for {onb_name}")
+            return
+        
+        # Get email recipients
+        recipients = get_notification_recipients(registered_by)
+        
+        if not recipients:
+            print(f"⚠️ No email recipients found for registered_by: {registered_by}")
+            return
+        
+        # Prepare email content
+        subject = f"🚨 SAP Integration Alert: {failure_type} - {onb_doc.vendor_name or 'Unknown Vendor'}"
+        
+        # Get vendor details for email
+        vendor_details = get_vendor_details_for_email(onb_doc)
+        
+        # Create email message
+        message = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <div style="background-color: #dc3545; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+                <h2 style="margin: 0; font-size: 24px;">🚨 SAP Integration Alert</h2>
+                <p style="margin: 5px 0 0 0; font-size: 16px;">Action Required: {failure_type}</p>
+            </div>
+            
+            <div style="padding: 20px;">
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <h3 style="color: #dc3545; margin-top: 0;">⚠️ Issue Summary</h3>
+                    <p style="margin: 0; font-size: 16px; line-height: 1.5;"><strong>{error_details}</strong></p>
+                </div>
+                
+                <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">📋 Vendor Information</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 40%;">Vendor Name</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['vendor_name']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Reference Number</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['ref_no']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Onboarding ID</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{onb_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Company</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['company']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Email</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['email']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Mobile</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['mobile']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Registered By</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{registered_by}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Date & Time</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{frappe.utils.now()}</td>
+                    </tr>
+                </table>
+                
+                <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <h4 style="color: #856404; margin-top: 0;">🔍 Next Steps</h4>
+                    <ul style="margin: 0; color: #856404;">
+                        <li>Review the vendor onboarding details</li>
+                        <li>Check SAP connectivity and credentials</li>
+                        <li>Verify vendor data completeness</li>
+                        <li>Contact IT team if technical issues persist</li>
+                        <li>Retry the SAP integration after resolving issues</li>
+                    </ul>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="{frappe.utils.get_url()}/app/vendor-onboarding/{onb_name}" 
+                       style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                        📝 View Vendor Onboarding
+                    </a>
+                </div>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 0 0 8px 8px; text-align: center; color: #666; font-size: 12px;">
+                <p style="margin: 0;">This is an automated alert from the VMS SAP Integration System</p>
+                <p style="margin: 5px 0 0 0;">Please do not reply to this email</p>
+            </div>
+        </div>
+        """
+        
+        # Send email to all recipients
+        for recipient in recipients:
+            try:
+                frappe.sendmail(
+                    recipients=[recipient["email"]],
+                    subject=subject,
+                    message=message,
+                    now=True
+                )
+                print(f"📧 Notification sent to: {recipient['name']} ({recipient['email']})")
+                
+            except Exception as email_err:
+                print(f"❌ Failed to send email to {recipient['email']}: {str(email_err)}")
+                frappe.log_error(f"Failed to send notification email to {recipient['email']}: {str(email_err)}")
+        
+        # Log the notification
+        frappe.log_error(
+            title=f"SAP Integration Notification Sent - {failure_type}",
+            message=f"Vendor: {vendor_details['vendor_name']}\nOnboarding: {onb_name}\nError: {error_details}\nNotified: {', '.join([r['email'] for r in recipients])}"
+        )
+        
+    except Exception as e:
+        error_msg = f"Failed to send failure notification: {str(e)}"
+        print(f"❌ {error_msg}")
+        frappe.log_error(error_msg)
+
+
+def get_notification_recipients(registered_by):
+    """Get email recipients: registered_by user and their reporting manager"""
+    recipients = []
     
-    cvc_name = frappe.db.exists("Company Vendor Code", {
-        "sap_client_code": sap_code, 
-        "vendor_ref_no": ref_vm.name
-    })
+    try:
+        # Get the user who registered the vendor
+        user_email = registered_by
+        
+        # Try to find employee record for registered_by user
+        employee = None
+        employee_name = frappe.db.exists("Employee", {"user_id": registered_by})
+        
+        if employee_name:
+            employee = frappe.get_doc("Employee", employee_name)
+            recipients.append({
+                "name": employee.first_name,
+                "email": user_email,
+                "role": "Registered By"
+            })
+            
+            # Get reporting manager if exists
+            if employee.reports_to:
+                try:
+                    manager = frappe.get_doc("Employee", employee.reports_to)
+                    if manager.user_id:
+                        recipients.append({
+                            "name": manager.employee_name or manager.name,
+                            "email": manager.user_id,
+                            "role": "Reporting Manager"
+                        })
+                except Exception as manager_err:
+                    print(f"⚠️ Could not get manager details: {str(manager_err)}")
+        else:
+            # If no employee record found, just use the registered_by email
+            recipients.append({
+                "name": registered_by.split("@")[0].title(),
+                "email": user_email,
+                "role": "Registered By"
+            })
+            
+        # Remove duplicates and invalid emails
+        unique_recipients = []
+        seen_emails = set()
+        
+        for recipient in recipients:
+            if recipient["email"] and recipient["email"] not in seen_emails and "@" in recipient["email"]:
+                unique_recipients.append(recipient)
+                seen_emails.add(recipient["email"])
+        
+        return unique_recipients
+        
+    except Exception as e:
+        print(f"❌ Error getting notification recipients: {str(e)}")
+        frappe.log_error(f"Error getting notification recipients: {str(e)}")
+        return []
+
+
+def get_vendor_details_for_email(onb_doc):
+    """Extract vendor details for email notification"""
+    try:
+        vendor_master = frappe.get_doc("Vendor Master", onb_doc.ref_no) if onb_doc.ref_no else None
+        
+        return {
+            "vendor_name": vendor_master.vendor_name if vendor_master else "Unknown",
+            "ref_no": onb_doc.ref_no or "Not Set",
+            "company": onb_doc.company or "Not Specified",
+            "email": vendor_master.office_email_primary if vendor_master else "Not Provided",
+            "mobile": vendor_master.mobile_number if vendor_master else "Not Provided"
+        }
+    except Exception as e:
+        print(f"⚠️ Error getting vendor details: {str(e)}")
+        return {
+            "vendor_name": "Unknown",
+            "ref_no": "Unknown",
+            "company": "Unknown", 
+            "email": "Unknown",
+            "mobile": "Unknown"
+        }
+#     """Update vendor master with company vendor code"""
+#     ref_vm = frappe.get_doc("Vendor Master", name)
     
-    if cvc_name:
-        cvc = frappe.get_doc("Company Vendor Code", cvc_name)
-    else:
-        cvc = frappe.new_doc("Company Vendor Code")
-        cvc.vendor_ref_no = ref_vm.name
-        cvc.company_name = company_name
-        cvc.sap_client_code = sap_code
+#     cvc_name = frappe.db.exists("Company Vendor Code", {
+#         "sap_client_code": sap_code, 
+#         "vendor_ref_no": ref_vm.name
+#     })
+    
+#     if cvc_name:
+#         cvc = frappe.get_doc("Company Vendor Code", cvc_name)
+#     else:
+#         cvc = frappe.new_doc("Company Vendor Code")
+#         cvc.vendor_ref_no = ref_vm.name
+#         cvc.company_name = company_name
+#         cvc.sap_client_code = sap_code
 
-    # Update or add vendor code
-    found = False
-    for vc in cvc.vendor_code:
-        if vc.gst_no == gst and vc.state == state:
-            vc.vendor_code = vendor_code
-            found = True
-            break
+#     # Update or add vendor code
+#     found = False
+#     for vc in cvc.vendor_code:
+#         if vc.gst_no == gst and vc.state == state:
+#             vc.vendor_code = vendor_code
+#             found = True
+#             break
 
-    if not found:
-        cvc.append("vendor_code", {
-            "vendor_code": vendor_code,
-            "gst_no": gst,
-            "state": state
-        })
+#     if not found:
+#         cvc.append("vendor_code", {
+#             "vendor_code": vendor_code,
+#             "gst_no": gst,
+#             "state": state
+#         })
 
-    cvc.save(ignore_permissions=True)
-    ref_vm.db_update()
+# def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state):
+#     """Update vendor master with company vendor code"""
+#     ref_vm = frappe.get_doc("Vendor Master", name)
+    
+#     cvc_name = frappe.db.exists("Company Vendor Code", {
+#         "sap_client_code": sap_code, 
+#         "vendor_ref_no": ref_vm.name
+#     })
+    
+#     if cvc_name:
+#         cvc = frappe.get_doc("Company Vendor Code", cvc_name)
+#     else:
+#         cvc = frappe.new_doc("Company Vendor Code")
+#         cvc.vendor_ref_no = ref_vm.name
+#         cvc.company_name = company_name
+#         cvc.sap_client_code = sap_code
+
+#     # Update or add vendor code
+#     found = False
+#     for vc in cvc.vendor_code:
+#         if vc.gst_no == gst and vc.state == state:
+#             vc.vendor_code = vendor_code
+#             found = True
+#             break
+
+#     if not found:
+#         cvc.append("vendor_code", {
+#             "vendor_code": vendor_code,
+#             "gst_no": gst,
+#             "state": state
+#         })
+
+#     cvc.save(ignore_permissions=True)
+#     ref_vm.db_update()
 
 def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state):
     """Update vendor master with company vendor code"""
