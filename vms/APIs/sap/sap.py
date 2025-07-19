@@ -874,6 +874,7 @@ def send_failure_notification(onb_name, failure_type, error_details):
         # Get vendor details for email
         vendor_details = get_vendor_details_for_email(onb_doc)
         
+        
         # Create email message
         message = f"""
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px;">
@@ -935,12 +936,7 @@ def send_failure_notification(onb_name, failure_type, error_details):
                     </ul>
                 </div>
                 
-                <div style="text-align: center; margin-top: 20px;">
-                    <a href="{frappe.utils.get_url()}/app/vendor-onboarding/{onb_name}" 
-                       style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                        📝 View Vendor Onboarding
-                    </a>
-                </div>
+                
             </div>
             
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 0 0 8px 8px; text-align: center; color: #666; font-size: 12px;">

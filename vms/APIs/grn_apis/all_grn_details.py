@@ -225,3 +225,169 @@ def get_grn_details_of_grn_number(grn_number=None):
         "grn_date": grn_doc.grn_date,
         "grn_items": filtered_items
     }
+
+
+
+@frappe.whitelist(allow_guest=False)
+def filtering_pr_details(page_no=None, page_length=None, company=None, purchase_requisition_type=None, usr=None):
+    try:
+        if usr is None:
+            usr = frappe.session.user
+        elif usr != frappe.session.user:
+            return {
+                "status": "error",
+                "message": "User mismatch or unauthorized access.",
+                "code": 404
+            }
+
+        # Get user's employee record and team
+        employee = frappe.db.get_value("Employee", {"user_id": usr}, ["team", "name"], as_dict=True)
+        if not employee or not employee.team:
+            return {
+                "status": "error",
+                "message": "No Employee record found for the user or team not assigned.",
+                "pr": []
+            }
+
+        user_team = employee.team
+
+        # Get all purchase groups that belong to the same team
+        purchase_groups = frappe.get_all("Purchase Group Master", 
+                                        filters={"team": user_team}, 
+                                        pluck="name")
+        
+        if not purchase_groups:
+            return {
+                "status": "error",
+                "message": "No purchase groups found for the user's team.",
+                "pr": []
+            }
+
+        # Base filters
+        conditions = []
+        values = {}
+
+        # Filter by purchase groups (team-based filtering)
+        conditions.append("pr.purchase_group IN %(purchase_groups)s")
+        values["purchase_groups"] = purchase_groups
+
+        # Add additional filters if provided
+        if company:
+            conditions.append("pr.company = %(company)s")
+            values["company"] = company
+            
+        if purchase_requisition_type:
+            conditions.append("pr.purchase_requisition_type = %(purchase_requisition_type)s")
+            values["purchase_requisition_type"] = purchase_requisition_type
+            
+        # if status:
+        #     conditions.append("pr.status = %(status)s")
+        #     values["status"] = status
+
+        filter_clause = " AND ".join(conditions)
+
+        
+        total_count = frappe.db.sql(f"""
+            SELECT COUNT(*) AS count
+            FROM `tabPurchase Requisition` pr
+            WHERE {filter_clause}
+        """, values)[0][0]
+
+       
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        offset = (page_no - 1) * page_length
+        values["limit"] = page_length
+        values["offset"] = offset
+
+        
+        pr_docs = frappe.db.sql(f"""
+            SELECT 
+                pr.name,
+                pr.purchase_requisition_type,
+                pr.sap_pr_code,
+                pr.requisitioner,
+                prt.purchase_requisition_date_head
+            FROM `tabPurchase Requisition` pr
+            LEFT JOIN `tabPurchase Requisition Form Table` prt ON pr.name = prt.parent
+            WHERE {filter_clause}
+            ORDER BY pr.creation DESC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """, values, as_dict=True)
+
+        return {
+            "status": "success",
+            "message": "Paginated and filtered purchase requisition records fetched successfully.",
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length,
+            "total_pr": pr_docs,
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Purchase Requisition Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch purchase requisition data.",
+            "error": str(e),
+            "pr": []
+        }
+    
+
+
+
+@frappe.whitelist(allow_guest=False)
+def get_pr_details_simple(pr_name=None):
+    try:
+        # Get current user from session
+        usr = frappe.session.user
+        
+        # Validate pr_name parameter
+        if not pr_name:
+            return {
+                "status": "error",
+                "message": "Purchase Requisition name is required.",
+                "code": 400
+            }
+        
+        # Check if Purchase Requisition Form document exists
+        if not frappe.db.exists("Purchase Requisition Form", pr_name):
+            return {
+                "status": "error",
+                "message": f"Purchase Requisition Form '{pr_name}' not found.",
+                "code": 404
+            }
+        
+
+        
+        # Get the Purchase Requisition Form document
+        pr = frappe.get_doc("Purchase Requisition Form", pr_name)
+        
+        return {
+            "status": "success",
+            "message": "Purchase Requisition details fetched successfully.",
+            "data": pr.as_dict()
+        }
+        
+    except frappe.PermissionError:
+        return {
+            "status": "error",
+            "message": "Permission denied. You don't have access to this document.",
+            "code": 403
+        }
+    
+    except frappe.DoesNotExistError:
+        return {
+            "status": "error",
+            "message": f"Purchase Requisition Form '{pr_name}' does not exist.",
+            "code": 404
+        }
+    
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get PR Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch Purchase Requisition details.",
+            "error": str(e),
+            "code": 500
+        }
