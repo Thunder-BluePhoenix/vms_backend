@@ -453,7 +453,7 @@ def submit_child_dispatch_item(data):
 			for key in [
 				"po_number", "product_code", "product_name", "description", "quantity",
 				"hsnsac", "uom", "rate", "amount", "dispatch_qty", "pending_qty",
-				"coa_document", "msds_document"
+				# "coa_document", "msds_document"
 			]:
 				if key in data:
 					value = data[key]
