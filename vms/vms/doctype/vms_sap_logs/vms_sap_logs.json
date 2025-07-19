@@ -46,14 +46,14 @@
   },
   {
    "fieldname": "total_transaction",
-   "fieldtype": "Long Text",
+   "fieldtype": "Code",
    "label": "Total Transaction"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-18 15:49:20.724023",
+ "modified": "2025-07-19 13:28:09.298529",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "VMS SAP Logs",
@@ -80,6 +80,7 @@
    "read": 1,
    "report": 1,
    "role": "Guest",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -91,6 +92,7 @@
    "read": 1,
    "report": 1,
    "role": "All",
+   "select": 1,
    "share": 1,
    "write": 1
   }

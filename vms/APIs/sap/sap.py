@@ -308,7 +308,6 @@ def update_sap_vonb(doc, method=None):
 
 
 
-
 import frappe
 from frappe import _
 import json
@@ -339,7 +338,6 @@ def erp_to_sap_vendor_data(onb_ref):
         if row.vendor_type:
             vendor_type_doc = frappe.get_doc("Vendor Type Master", row.vendor_type)
             vendor_type_names.append(vendor_type_doc.vendor_type_name)
-    vendor_type_names_str = ", ".join(vendor_type_names)
 
     data_list = []
     for company in onb.vendor_company_details:
@@ -347,7 +345,6 @@ def erp_to_sap_vendor_data(onb_ref):
         country_doc = frappe.get_doc("Country Master", vcd.country)
         country_code = country_doc.country_code
         com_vcd = frappe.get_doc("Company Master", vcd.company_name)
-        com_code = com_vcd.company_code
         sap_client_code = com_vcd.sap_client_code
         vcd_state = frappe.get_doc("State Master", vcd.state)
 
@@ -360,7 +357,7 @@ def erp_to_sap_vendor_data(onb_ref):
             "Name2": "",
             "Sort1": onb_vm.search_term,
             "Street": vcd.address_line_1,
-            "StrSuppl1": vcd.address_line_2,
+            "StrSuppl1": vcd.address_line_2 or "",  # Convert None to empty string
             "StrSuppl2": "",
             "StrSuppl3": "",
             "PostCode1": vcd.pincode,
@@ -418,42 +415,26 @@ def erp_to_sap_vendor_data(onb_ref):
         }
         data_list.append(data)
 
-        sap_settings = frappe.get_doc("SAP Settings")
-        erp_to_sap_url = sap_settings.url
-        url = f"{erp_to_sap_url}{sap_client_code}"
-        header_auth_type = sap_settings.authorization_type
-        header_auth_key = sap_settings.authorization_key
-        user = sap_settings.auth_user_name
-        password = sap_settings.auth_user_pass
-
-        headers = {
-            'X-CSRF-TOKEN': 'Fetch',
-            'Authorization': f"{header_auth_type} {header_auth_key}",
-            'Content-Type': 'application/json'
-        }
-
-        auth = HTTPBasicAuth(user, password)
+        # Get CSRF token and session with proper session handling
+        csrf_result = get_csrf_token_and_session(sap_client_code)
         
-        try:
-            response = requests.get(url, headers=headers, auth=auth, timeout=30)
-            
-            if response.status_code == 200:
-                csrf_token = response.headers.get('x-csrf-token')
-                key1 = response.cookies.get(f'SAP_SESSIONID_BHD_{sap_client_code}')
-                key2 = response.cookies.get('sap-usercontext')
-                
-                # Sending details to SAP
-                result = send_detail(csrf_token, data, key1, key2, onb.ref_no, sap_client_code, vcd.state, vcd.gst, vcd.company_name, onb.name)
-                return result
-            else:
-                error_msg = f"Failed to fetch CSRF token from SAP. Status: {response.status_code}, Response: {response.text}"
-                frappe.log_error(error_msg)
-                return {"error": error_msg}
-                
-        except RequestException as e:
-            error_msg = f"Request failed: {str(e)}"
-            frappe.log_error(error_msg)
-            return {"error": error_msg}
+        if csrf_result["success"]:
+            # Send details to SAP with proper session
+            result = send_detail(
+                csrf_result["csrf_token"], 
+                data, 
+                csrf_result["session_cookies"],
+                onb.ref_no, 
+                sap_client_code, 
+                vcd.state, 
+                vcd.gst, 
+                vcd.company_name, 
+                onb.name
+            )
+            return result
+        else:
+            frappe.log_error(f"Failed to get CSRF token: {csrf_result['error']}")
+            return {"error": csrf_result["error"]}
 
 
 def safe_get(obj, list_name, index, attr, default=""):
@@ -463,8 +444,71 @@ def safe_get(obj, list_name, index, attr, default=""):
         return default
 
 
+def get_csrf_token_and_session(sap_client_code):
+    """Get CSRF token and session cookies with proper session handling"""
+    try:
+        sap_settings = frappe.get_doc("SAP Settings")
+        erp_to_sap_url = sap_settings.url
+        url = f"{erp_to_sap_url}{sap_client_code}"
+        header_auth_type = sap_settings.authorization_type
+        header_auth_key = sap_settings.authorization_key
+        user = sap_settings.auth_user_name
+        password = sap_settings.auth_user_pass
+
+        # Create a session to maintain cookies
+        session = requests.Session()
+        auth = HTTPBasicAuth(user, password)
+
+        headers = {
+            'X-CSRF-TOKEN': 'Fetch',
+            'Authorization': f"{header_auth_type} {header_auth_key}",
+            'Content-Type': 'application/json'
+        }
+
+        print("=" * 80)
+        print("FETCHING CSRF TOKEN")
+        print("=" * 80)
+        print(f"URL: {url}")
+        print(f"User: {user}")
+        print("=" * 80)
+
+        response = session.get(url, headers=headers, auth=auth, timeout=30)
+        
+        print(f"CSRF Response Status: {response.status_code}")
+        print(f"CSRF Response Headers: {dict(response.headers)}")
+        print(f"CSRF Response Cookies: {dict(response.cookies)}")
+        print("=" * 80)
+        
+        if response.status_code == 200:
+            csrf_token = response.headers.get('x-csrf-token')
+            
+            # Get all session cookies properly
+            session_cookies = {}
+            for cookie in response.cookies:
+                session_cookies[cookie.name] = cookie.value
+            
+            print(f"✅ CSRF Token obtained: {csrf_token}")
+            print(f"✅ Session cookies: {session_cookies}")
+            
+            return {
+                "success": True,
+                "csrf_token": csrf_token,
+                "session_cookies": session_cookies,
+                "session": session
+            }
+        else:
+            error_msg = f"Failed to fetch CSRF token. Status: {response.status_code}, Response: {response.text}"
+            print(f"❌ {error_msg}")
+            return {"success": False, "error": error_msg}
+            
+    except Exception as e:
+        error_msg = f"Exception while fetching CSRF token: {str(e)}"
+        print(f"❌ {error_msg}")
+        return {"success": False, "error": error_msg}
+
+
 @frappe.whitelist(allow_guest=True)
-def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, company_name, onb_name):
+def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, company_name, onb_name):
     sap_settings = frappe.get_doc("SAP Settings")
     erp_to_sap_url = sap_settings.url
     url = f"{erp_to_sap_url}{sap_code}"
@@ -473,12 +517,15 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
     user = sap_settings.auth_user_name
     password = sap_settings.auth_user_pass
 
+    # Build cookie string from session cookies
+    cookie_string = "; ".join([f"{name}={value}" for name, value in session_cookies.items()])
+
     headers = {
         'X-CSRF-TOKEN': csrf_token,
         'Authorization': f"{header_auth_type} {header_auth_key}",
         'Content-Type': 'application/json;charset=utf-8',
         'Accept': 'application/json',
-        'Cookie': f"SAP_SESSIONID_BHD_{sap_code}={key1}; sap-usercontext={key2}"
+        'Cookie': cookie_string
     }
 
     auth = HTTPBasicAuth(user, password)
@@ -503,7 +550,7 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
     
     try:
         response = requests.post(url, headers=headers, auth=auth, json=data, timeout=30)
-        sap_response_text = response.text
+        sap_response_text = response.text[:1000]  # Truncate to avoid DB constraint issues
         
         # Debug response details
         print("=" * 80)
@@ -519,16 +566,25 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         if response.status_code == 201 and response.text.strip():
             try:
                 vendor_sap_code = response.json()
-                vendor_code = vendor_sap_code.get('d', {}).get('Vedno', '')
+                # Extract Vedno as per original code logic
+                vendor_code = vendor_sap_code['d']['Vedno']
                 transaction_status = "Success"
                 print(f"✅ Vendor details posted successfully. Vendor Code: {vendor_code}")
+                print(f"✅ Full SAP Response: {json.dumps(vendor_sap_code, indent=2)}")
                 
             except (JSONDecodeError, KeyError) as json_err:
-                error_details = f"Invalid JSON response from SAP: {str(json_err)}"
+                error_details = f"Invalid JSON response or missing Vedno field: {str(json_err)}"
                 transaction_status = "JSON Parse Error"
                 frappe.log_error(error_details)
                 print(f"❌ JSON parsing error: {error_details}")
+                print(f"❌ Available response keys: {list(vendor_sap_code.get('d', {}).keys()) if 'vendor_sap_code' in locals() else 'Could not parse response'}")
                 
+        elif response.status_code == 403:
+            error_details = f"CSRF Token validation failed. Response: {response.text}"
+            transaction_status = "CSRF Token Error"
+            frappe.log_error(error_details)
+            print(f"❌ CSRF Error: {error_details}")
+            
         elif response.status_code != 201:
             error_details = f"SAP API returned status {response.status_code}: {response.text}"
             transaction_status = f"HTTP Error {response.status_code}"
@@ -546,80 +602,126 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
         transaction_status = "Request Exception"
         frappe.log_error(error_details)
         print(f"❌ Request error: {error_details}")
-        sap_response_text = str(req_err)
+        sap_response_text = str(req_err)[:1000]
         
     except Exception as e:
         error_details = f"Unexpected error: {str(e)}"
         transaction_status = "Unexpected Error"
         frappe.log_error(error_details)
         print(f"❌ Unexpected error: {error_details}")
-        sap_response_text = str(e)
+        sap_response_text = str(e)[:1000]
 
-    # Always log the transaction with detailed information
+    # Always log the transaction with full data since fields are JSON/Code types
     try:
         sap_log = frappe.new_doc("VMS SAP Logs")
         sap_log.vendor_onboarding_link = onb_name
-        sap_log.erp_to_sap_data = json.dumps(data, indent=2, default=str)
-        sap_log.sap_response = sap_response_text
         
-        # Add the total_transaction field for debugging
-        sap_log.total_transaction = json.dumps({
-            "request_url": url,
-            "request_headers": dict(headers),
-            "request_payload": data,
-            "response_status": response.status_code if response else "No Response",
-            "response_headers": dict(response.headers) if response else {},
-            "response_body": response.text if response else "No Response",
-            "transaction_status": transaction_status,
-            "error_details": error_details,
-            "vendor_code": vendor_code,
-            "timestamp": frappe.utils.now(),
-            "sap_client_code": sap_code,
-            "company_name": company_name,
-            "vendor_ref_no": name
-        }, indent=2, default=str)
+        # Store full data since erp_to_sap_data is JSON field
+        sap_log.erp_to_sap_data = data
         
+        # Store full response since sap_response is JSON field  
+        if response and response.text.strip():
+            try:
+                sap_log.sap_response = response.json()
+            except JSONDecodeError:
+                sap_log.sap_response = {"raw_response": response.text, "parse_error": "Could not parse as JSON"}
+        else:
+            sap_log.sap_response = {"error": sap_response_text}
+        
+        # Create comprehensive transaction log for Code field
+        total_transaction_data = {
+            "request_details": {
+                "url": url,
+                "headers": {k: v for k, v in headers.items() if k != 'Authorization'},
+                "auth_user": user,
+                "payload": data
+            },
+            "response_details": {
+                "status_code": response.status_code if response else "No Response",
+                "headers": dict(response.headers) if response else {},
+                "body": response.json() if response and response.text.strip() else sap_response_text
+            },
+            "transaction_summary": {
+                "status": transaction_status,
+                "vendor_code": vendor_code,
+                "error_details": error_details,
+                "timestamp": frappe.utils.now(),
+                "sap_client_code": sap_code,
+                "company_name": company_name,
+                "vendor_ref_no": name
+            }
+        }
+        
+        sap_log.total_transaction = json.dumps(total_transaction_data, indent=2, default=str)
         sap_log.save(ignore_permissions=True)
         print(f"📝 SAP Log created with name: {sap_log.name}")
         
     except Exception as log_err:
+        # If SAP log creation fails, create a simple error log entry
         log_error_msg = f"Failed to create SAP log: {str(log_err)}"
-        frappe.log_error(log_error_msg)
         print(f"❌ Log creation error: {log_error_msg}")
-
-    # Create error log entry for failed transactions
-    if transaction_status != "Success":
+        
+        # Create a minimal log entry using Frappe's error log
         try:
+            frappe.log_error(
+                title=f"SAP Integration - {transaction_status}",
+                message=f"Vendor: {name}\nStatus: {transaction_status}\nVendor Code: {vendor_code}\nError: {error_details}"
+            )
+            print("📝 Fallback error log created")
+        except Exception as fallback_err:
+            print(f"❌ Even fallback logging failed: {str(fallback_err)}")
+            # At minimum, log to console
+            print(f"CRITICAL: SAP Transaction Status: {transaction_status}, Vendor Code: {vendor_code}")
+
+    # Create error log entry for failed transactions OR success log for successful ones
+    try:
+        if transaction_status == "Success":
+            # Create success log
+            success_log = frappe.new_doc("Error Log")
+            success_log.method = "send_detail"
+            success_log.error = f"SAP Integration SUCCESS - Vendor Created: {vendor_code}\nVendor Ref: {name}\nCompany: {company_name}\nSAP Client: {sap_code}"
+            success_log.save(ignore_permissions=True)
+            print(f"📝 Success Log created with name: {success_log.name}")
+        else:
+            # Create error log for failures
             error_log = frappe.new_doc("Error Log")
             error_log.method = "send_detail"
-            error_log.error = f"SAP Integration Error - {transaction_status}: {error_details}"
+            error_log.error = f"SAP Integration Error - {transaction_status}: {error_details[:1000]}"  # Truncate
             error_log.save(ignore_permissions=True)
             print(f"📝 Error Log created with name: {error_log.name}")
-        except Exception as err_log_err:
-            print(f"❌ Failed to create Error Log: {str(err_log_err)}")
+    except Exception as err_log_err:
+        print(f"❌ Failed to create Error Log: {str(err_log_err)}")
+        # Fallback to Frappe's built-in error logging
+        frappe.log_error(
+            title=f"SAP Integration - {transaction_status}",
+            message=f"Status: {transaction_status}\nVendor: {name}\nDetails: {error_details[:500]}"
+        )
 
     # Update vendor master with company vendor code if successful
-    if vendor_code:
+    if vendor_code and transaction_status == "Success":
         try:
             update_vendor_master(name, company_name, sap_code, vendor_code, gst, state)
-            print(f"✅ Vendor master updated successfully")
+            print(f"✅ Vendor master updated successfully with vendor code: {vendor_code}")
         except Exception as update_err:
             update_error_msg = f"Failed to update vendor master: {str(update_err)}"
             frappe.log_error(update_error_msg)
             print(f"❌ Vendor master update error: {update_error_msg}")
+    elif transaction_status == "Success" and not vendor_code:
+        print(f"⚠️ Warning: Transaction successful but no vendor code extracted from SAP response")
     
     frappe.db.commit()
     
-    # Return appropriate response
+    # Return appropriate response based on original code logic
     if response and response.status_code == 201:
         try:
-            return response.json()
+            return response.json()  # Return the full SAP response as per original code
         except JSONDecodeError:
             return {
                 "success": True, 
                 "vendor_code": vendor_code, 
                 "message": "Vendor created but response parsing failed",
-                "transaction_status": transaction_status
+                "transaction_status": transaction_status,
+                "raw_response": response.text
             }
     else:
         return {
@@ -628,6 +730,41 @@ def send_detail(csrf_token, data, key1, key2, name, sap_code, state, gst, compan
             "error_details": error_details
         }
 
+
+def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state):
+    """Update vendor master with company vendor code"""
+    ref_vm = frappe.get_doc("Vendor Master", name)
+    
+    cvc_name = frappe.db.exists("Company Vendor Code", {
+        "sap_client_code": sap_code, 
+        "vendor_ref_no": ref_vm.name
+    })
+    
+    if cvc_name:
+        cvc = frappe.get_doc("Company Vendor Code", cvc_name)
+    else:
+        cvc = frappe.new_doc("Company Vendor Code")
+        cvc.vendor_ref_no = ref_vm.name
+        cvc.company_name = company_name
+        cvc.sap_client_code = sap_code
+
+    # Update or add vendor code
+    found = False
+    for vc in cvc.vendor_code:
+        if vc.gst_no == gst and vc.state == state:
+            vc.vendor_code = vendor_code
+            found = True
+            break
+
+    if not found:
+        cvc.append("vendor_code", {
+            "vendor_code": vendor_code,
+            "gst_no": gst,
+            "state": state
+        })
+
+    cvc.save(ignore_permissions=True)
+    ref_vm.db_update()
 
 def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state):
     """Update vendor master with company vendor code"""
