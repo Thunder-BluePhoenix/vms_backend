@@ -90,6 +90,7 @@ def add_pr_number(data):
                 for row in pur_req.purchase_requisition_form_table:
                     pr_items.append({
                         # head
+                        "row_id": row.name,
                         "head_unique_field": row.head_unique_id or "",
                         "requisition_no": pr_number,
                         "material_code_head": row.material_code_head or "",
@@ -97,12 +98,15 @@ def add_pr_number(data):
                         "quantity_head": row.quantity_head or 0,
                         "uom_head": row.uom_head or "",
                         "price_head": row.product_price_head or 0,
+                        "delivery_date_head": row.delivery_date_head or 0,
+                        "plant_head": row.plant_head or 0
                     })
 
             elif pur_req.purchase_requisition_type == "SB":
                 for row in pur_req.purchase_requisition_form_table:
                     pr_items.append({
                         # head
+                        "row_id": row.name,
                         "head_unique_field": row.head_unique_id or "",
                         "requisition_no": pr_number,
                         "material_code_head": row.material_code_head or "",
@@ -110,13 +114,16 @@ def add_pr_number(data):
                         "quantity_head": row.quantity_head or 0,
                         "uom_head": row.uom_head or "",
                         "price_head": row.product_price_head or 0,
+                        "delivery_date_head": row.delivery_date_head or 0,
+                        "plant_head": row.plant_head or 0,
                         # subhead
                         "subhead_unique_field": row.sub_head_unique_id or "",
                         "material_code_subhead": row.material_code_subhead or "",
                         "material_name_subhead": row.short_text_subhead or "",
                         "quantity_subhead": row.quantity_subhead or 0,
                         "uom_subhead": row.uom_subhead or "",
-                        "price_subhead": row.gross_price_subhead or 0
+                        "price_subhead": row.gross_price_subhead or 0,
+                        "delivery_date_subhead": row.delivery_date_subhead or 0
                     })
 
             else:
@@ -198,17 +205,12 @@ def create_rfq_material(data):
                 "head_unique_field": item.get("head_unique_field"),
                 "purchase_requisition_number": item.get("requisition_no"),
                 "material_code_head": item.get("material_code_head"),
+                "delivery_date_head": item.delivery_date_head or 0,
+                "plant_head": item.plant_head or 0,  
                 "material_name_head": item.get("material_name_head"),
                 "quantity_head": item.get("quantity_head"),
                 "uom_head": item.get("uom_head"),
-                "price_head": item.get("price_head"),
-                # subhead
-                "subhead_unique_field": item.get("subhead_unique_field"),
-                "material_code_subhead": item.get("material_code_subhead"),
-                "material_name_subhead": item.get("material_name_subhead"),
-                "quantity_subhead": item.get("quantity_subhead"),
-                "uom_subhead": item.get("uom_subhead"),
-                "price_subhead": item.get("price_subhead")
+                "price_head": item.get("price_head")
             })
 
         # Vendor Details Table
