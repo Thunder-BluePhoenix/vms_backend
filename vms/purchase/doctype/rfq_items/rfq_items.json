@@ -10,7 +10,7 @@
   "head_unique_field",
   "purchase_requisition_number",
   "material_code_head",
-  "delivey_date_head",
+  "delivery_date_head",
   "plant_head",
   "material_name_head",
   "quantity_head",
@@ -23,8 +23,7 @@
   "quantity_subhead",
   "uom_subhead",
   "price_subhead",
-  "delivery_date_subhead",
-  "plant_subhead"
+  "delivery_date_subhead"
  ],
  "fields": [
   {
@@ -117,11 +116,6 @@
    "label": "Price"
   },
   {
-   "fieldname": "delivey_date_head",
-   "fieldtype": "Date",
-   "label": "Delivery Date"
-  },
-  {
    "fieldname": "plant_head",
    "fieldtype": "Link",
    "label": "Plant",
@@ -133,17 +127,16 @@
    "label": "Delivery Date"
   },
   {
-   "fieldname": "plant_subhead",
-   "fieldtype": "Link",
-   "label": "Plant",
-   "options": "Plant Master"
+   "fieldname": "delivery_date_head",
+   "fieldtype": "Date",
+   "label": "Delivery Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-19 10:04:10.177980",
+ "modified": "2025-07-19 10:22:52.242182",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Items",
