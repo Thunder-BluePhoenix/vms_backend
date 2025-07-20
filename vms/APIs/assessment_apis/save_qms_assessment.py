@@ -3,50 +3,54 @@ from frappe import _
 from frappe.utils import nowdate, now
 import json
 
-@frappe.whitelist(methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def save_qms_assessment_smart():
-    """
-    One-shot API that handles everything automatically:
-    - Finds linked documents by display values
-    - Matches existing records intelligently
-    - Creates or updates as needed
-    - Returns complete current data
-    """
+
     try:
         # Get the request data
         data = frappe.local.form_dict
         
-        # Extract identification fields - REQUIRED
+        
         vendor_onboarding_input = data.get('vendor_onboarding')
         ref_no_input = data.get('ref_no')
         
-        # Extract form data to save - OPTIONAL
+        
         form_data = data.get('form_data', {})
         
-        # Validate required identification fields
+
         if not vendor_onboarding_input or not ref_no_input:
             return {
                 "status": "error",
                 "message": "vendor_onboarding and ref_no are required"
             }
         
-        # Clean the input values
+        
         vendor_onboarding_input = str(vendor_onboarding_input).strip()
         ref_no_input = str(ref_no_input).strip()
         
-        # Step 1: Find the actual linked document names
+        
         vendor_onboarding_doc = find_vendor_onboarding_document(vendor_onboarding_input)
         ref_no_doc = find_ref_no_document(ref_no_input)
         
-        # Step 2: Find existing QMS Assessment record using multiple strategies
+        
         existing_doc = find_existing_qms_record(vendor_onboarding_input, ref_no_input, vendor_onboarding_doc, ref_no_doc)
         
+
+        debug_info = {
+            "input_vendor_onboarding": vendor_onboarding_input,
+            "input_ref_no": ref_no_input,
+            "resolved_vendor_onboarding": vendor_onboarding_doc,
+            "resolved_ref_no": ref_no_doc,
+            "existing_record_found": existing_doc,
+            "search_strategies_used": get_search_strategies_debug(vendor_onboarding_input, ref_no_input, vendor_onboarding_doc, ref_no_doc)
+        }
+        
         if existing_doc:
-            # UPDATE existing record using direct database update to avoid version conflicts
+            
             if form_data:
-                # Use frappe.db.set_value for direct updates (bypasses version check)
+
                 for field_name, field_value in form_data.items():
-                    # Only update regular fields, skip child tables for now
+                    
                     regular_fields = [
                         'vendor_name1', 'supplier_company_name', 'name_of_manufacturer_of_supplied_material',
                         'name_of_parent_company', 'name_of_person', 'designation_of_person', 
@@ -75,55 +79,49 @@ def save_qms_assessment_smart():
                     if field_name in regular_fields:
                         frappe.db.set_value("Supplier QMS Assessment Form", existing_doc, field_name, field_value)
                 
-                # Update modified timestamp
+
                 frappe.db.set_value("Supplier QMS Assessment Form", existing_doc, "modified", now())
                 frappe.db.commit()
                 action = "updated"
             else:
                 action = "loaded"
             
-            # Get the updated document for response
+            
             doc = frappe.get_doc("Supplier QMS Assessment Form", existing_doc)
             
         else:
-            # CREATE new record
+
             doc = frappe.new_doc("Supplier QMS Assessment Form")
             
-            # Use the resolved document names if found, otherwise use input values
+            
             doc.vendor_onboarding = vendor_onboarding_doc or vendor_onboarding_input
             doc.ref_no = ref_no_doc or ref_no_input
             doc.date1 = nowdate()
             
-            # Set default values
+            
             set_default_values(doc)
             
-            # Update fields if form_data is provided
+            
             if form_data:
                 update_document_fields(doc, form_data)
             
-            # Insert new document
+            
             doc.insert()
-            frappe.db.commit()  # Commit the transaction
+            frappe.db.commit()  
             action = "created"
         
-        # Return success with current document data
+  
         return {
             "status": "success",
             "message": f"Record {action} successfully",
             "action": action,
             "doc_name": doc.name,
             "current_data": get_formatted_data(doc),
-            "debug_info": {
-                "input_vendor_onboarding": vendor_onboarding_input,
-                "input_ref_no": ref_no_input,
-                "resolved_vendor_onboarding": vendor_onboarding_doc,
-                "resolved_ref_no": ref_no_doc,
-                "existing_record_found": existing_doc
-            }
+            "debug_info": debug_info
         }
         
     except Exception as e:
-        # Use shorter error message to avoid title length issues
+        
         error_msg = str(e)[:100] + "..." if len(str(e)) > 100 else str(e)
         frappe.log_error(f"QMS API Error: {error_msg}")
         return {
@@ -132,20 +130,18 @@ def save_qms_assessment_smart():
         }
 
 def find_vendor_onboarding_document(input_value):
-    """
-    Find the actual Vendor Onboarding document name from various possible inputs
-    """
+   
     try:
-        # Strategy 1: Direct match (if input is already the document name)
+
         if frappe.db.exists("Vendor Onboarding", input_value):
             return input_value
         
-        # Strategy 2: Search by common fields in Vendor Onboarding
+        
         possible_fields = ['vendor_onboarding_id', 'reference_no', 'onboarding_id', 'vendor_id']
         
         for field in possible_fields:
             try:
-                # Check if field exists in doctype first
+
                 if frappe.db.has_column("Vendor Onboarding", field):
                     doc_name = frappe.db.get_value("Vendor Onboarding", {field: input_value}, "name")
                     if doc_name:
@@ -153,7 +149,7 @@ def find_vendor_onboarding_document(input_value):
             except:
                 continue
         
-        # Strategy 3: Search by partial match in name or title
+        
         try:
             sql_result = frappe.db.sql("""
                 SELECT name FROM `tabVendor Onboarding` 
@@ -166,11 +162,11 @@ def find_vendor_onboarding_document(input_value):
         except:
             pass
         
-        # Strategy 4: Return None if not found (will use input value as is)
+   
         return None
         
     except Exception as e:
-        # Use shorter error message
+        
         error_msg = str(e)[:50] + "..." if len(str(e)) > 50 else str(e)
         frappe.log_error(f"Vendor onboarding search error: {error_msg}")
         return None
@@ -180,25 +176,25 @@ def find_ref_no_document(input_value):
     Find the actual document name for ref_no from various possible doctypes
     """
     try:
-        # Possible doctypes that ref_no might link to
+        
         possible_doctypes = ['Vendor Master', 'Supplier', 'Vendor', 'Customer']
         
         for doctype in possible_doctypes:
             try:
-                # Check if doctype exists
+            
                 if not frappe.db.exists("DocType", doctype):
                     continue
                     
-                # Strategy 1: Direct match
+           
                 if frappe.db.exists(doctype, input_value):
                     return input_value
                 
-                # Strategy 2: Search by common fields
+              
                 possible_fields = ['vendor_id', 'supplier_id', 'reference_no', 'vendor_code', 'supplier_code']
                 
                 for field in possible_fields:
                     try:
-                        # Check if field exists in doctype first
+                  
                         if frappe.db.has_column(doctype, field):
                             doc_name = frappe.db.get_value(doctype, {field: input_value}, "name")
                             if doc_name:
@@ -206,7 +202,7 @@ def find_ref_no_document(input_value):
                     except:
                         continue
                 
-                # Strategy 3: Search by partial match
+              
                 try:
                     sql_result = frappe.db.sql(f"""
                         SELECT name FROM `tab{doctype}` 
@@ -222,21 +218,19 @@ def find_ref_no_document(input_value):
             except:
                 continue
         
-        # Return None if not found (will use input value as is)
+       
         return None
         
     except Exception as e:
-        # Use shorter error message
+        
         error_msg = str(e)[:50] + "..." if len(str(e)) > 50 else str(e)
         frappe.log_error(f"Ref no search error: {error_msg}")
         return None
 
 def find_existing_qms_record(vendor_onboarding_input, ref_no_input, vendor_onboarding_doc, ref_no_doc):
-    """
-    Find existing QMS Assessment record using multiple strategies
-    """
+  
     try:
-        # Strategy 1: Direct match with resolved document names
+        
         if vendor_onboarding_doc and ref_no_doc:
             existing = frappe.db.get_value("Supplier QMS Assessment Form", {
                 "vendor_onboarding": vendor_onboarding_doc,
@@ -245,7 +239,7 @@ def find_existing_qms_record(vendor_onboarding_input, ref_no_input, vendor_onboa
             if existing:
                 return existing
         
-        # Strategy 2: Direct match with input values
+        
         existing = frappe.db.get_value("Supplier QMS Assessment Form", {
             "vendor_onboarding": vendor_onboarding_input,
             "ref_no": ref_no_input
@@ -253,7 +247,7 @@ def find_existing_qms_record(vendor_onboarding_input, ref_no_input, vendor_onboa
         if existing:
             return existing
         
-        # Strategy 3: Match with any combination
+        
         combinations_to_try = [
             (vendor_onboarding_doc, ref_no_input),
             (vendor_onboarding_input, ref_no_doc),
@@ -267,12 +261,11 @@ def find_existing_qms_record(vendor_onboarding_input, ref_no_input, vendor_onboa
                 }, "name")
                 if existing:
                     return existing
-        
-        # Strategy 4: SQL search with LIKE for partial matches
+    
         try:
             sql_result = frappe.db.sql("""
                 SELECT name FROM `tabSupplier QMS Assessment Form` 
-                WHERE vendor_onboarding LIKE %s OR ref_no LIKE %s
+                WHERE vendor_onboarding LIKE %s AND ref_no LIKE %s
                 LIMIT 1
             """, (f"%{vendor_onboarding_input}%", f"%{ref_no_input}%"))
             
@@ -281,11 +274,73 @@ def find_existing_qms_record(vendor_onboarding_input, ref_no_input, vendor_onboa
         except:
             pass
         
-        # No existing record found
+        
+        if vendor_onboarding_doc and ref_no_doc:
+            try:
+                sql_result = frappe.db.sql("""
+                    SELECT name FROM `tabSupplier QMS Assessment Form` 
+                    WHERE vendor_onboarding LIKE %s AND ref_no LIKE %s
+                    LIMIT 1
+                """, (f"%{vendor_onboarding_doc}%", f"%{ref_no_doc}%"))
+                
+                if sql_result:
+                    return sql_result[0][0]
+            except:
+                pass
+        
+      
+        try:
+            vendor_matches = frappe.db.sql("""
+                SELECT name, ref_no FROM `tabSupplier QMS Assessment Form` 
+                WHERE vendor_onboarding = %s
+            """, (vendor_onboarding_input,), as_dict=True)
+            
+            
+            if len(vendor_matches) == 1:
+                return vendor_matches[0].name
+            
+        except:
+            pass
+        
+
+        try:
+            ref_matches = frappe.db.sql("""
+                SELECT name, vendor_onboarding FROM `tabSupplier QMS Assessment Form` 
+                WHERE ref_no = %s
+            """, (ref_no_input,), as_dict=True)
+            
+            
+            if len(ref_matches) == 1:
+                return ref_matches[0].name
+                
+        except:
+            pass
+        
+        
+        try:
+            advanced_match = frappe.db.sql("""
+                SELECT name, vendor_onboarding, ref_no 
+                FROM `tabSupplier QMS Assessment Form` 
+                WHERE (vendor_onboarding LIKE %s OR vendor_onboarding LIKE %s)
+                AND (ref_no LIKE %s OR ref_no LIKE %s)
+                LIMIT 1
+            """, (
+                f"%{vendor_onboarding_input}%", 
+                f"%{vendor_onboarding_doc}%" if vendor_onboarding_doc else "%none%",
+                f"%{ref_no_input}%", 
+                f"%{ref_no_doc}%" if ref_no_doc else "%none%"
+            ))
+            
+            if advanced_match:
+                return advanced_match[0][0]
+        except:
+            pass
+        
+
         return None
         
     except Exception as e:
-        # Use shorter error message
+        
         error_msg = str(e)[:50] + "..." if len(str(e)) > 50 else str(e)
         frappe.log_error(f"QMS record search error: {error_msg}")
         return None
@@ -298,12 +353,9 @@ def set_default_values(doc):
     doc.organization_name = "Meril"
 
 def update_document_fields(doc, form_data):
-    """
-    Update document fields from form_data
-    All fields are optional - handles empty/null values gracefully
-    """
+   
     
-    # Regular fields - all optional, no validation required
+
     regular_fields = [
         'vendor_name1', 'supplier_company_name', 'name_of_manufacturer_of_supplied_material',
         'name_of_parent_company', 'name_of_person', 'designation_of_person', 
@@ -329,14 +381,14 @@ def update_document_fields(doc, form_data):
         'additional_or_supplement_information', 'tissue_supplier'
     ]
     
-    # Update fields only if they exist in form_data (allows empty/null values)
+
     for field_name in regular_fields:
         if field_name in form_data:
-            # Set field value even if it's empty string, null, or 0
+            
             field_value = form_data[field_name]
             setattr(doc, field_name, field_value)
     
-    # Handle child tables - also optional
+
     child_tables = {
         'details_of_batch_records': 'details_of_batch_records',
         'quality_control_system': 'quality_control_system',
@@ -349,10 +401,10 @@ def update_document_fields(doc, form_data):
     
     for table_field, table_name in child_tables.items():
         if table_field in form_data:
-            # Clear existing entries only if new data is provided
+            
             doc.set(table_field, [])
             
-            # Add new entries (can be empty array)
+            
             table_data = form_data.get(table_field, [])
             if isinstance(table_data, list):
                 for row_data in table_data:
@@ -365,7 +417,7 @@ def get_formatted_data(doc):
     """
     doc_dict = doc.as_dict()
     
-    # Remove system fields that frontend doesn't need
+
     system_fields = [
         'docstatus', 'idx', 'owner', 'creation', 'modified', 'modified_by',
         '__last_sync_on', 'doctype', 'for_company_2000', 'for_company_7000',
@@ -376,3 +428,41 @@ def get_formatted_data(doc):
         doc_dict.pop(field, None)
     
     return doc_dict
+
+def get_search_strategies_debug(vendor_onboarding_input, ref_no_input, vendor_onboarding_doc, ref_no_doc):
+  
+    debug_results = {}
+    
+    try:
+
+        debug_results["exact_input_combination"] = frappe.db.exists("Supplier QMS Assessment Form", {
+            "vendor_onboarding": vendor_onboarding_input,
+            "ref_no": ref_no_input
+        })
+        
+        if vendor_onboarding_doc and ref_no_doc:
+            debug_results["exact_resolved_combination"] = frappe.db.exists("Supplier QMS Assessment Form", {
+                "vendor_onboarding": vendor_onboarding_doc,
+                "ref_no": ref_no_doc
+            })
+        
+
+        vendor_matches = frappe.db.sql("""
+            SELECT name, ref_no FROM `tabSupplier QMS Assessment Form` 
+            WHERE vendor_onboarding = %s
+        """, (vendor_onboarding_input,), as_dict=True)
+        
+        ref_matches = frappe.db.sql("""
+            SELECT name, vendor_onboarding FROM `tabSupplier QMS Assessment Form` 
+            WHERE ref_no = %s
+        """, (ref_no_input,), as_dict=True)
+        
+        debug_results["vendor_onboarding_matches"] = len(vendor_matches)
+        debug_results["ref_no_matches"] = len(ref_matches)
+        debug_results["vendor_match_details"] = vendor_matches[:3]  
+        debug_results["ref_match_details"] = ref_matches[:3]  
+        
+    except Exception as e:
+        debug_results["debug_error"] = str(e)[:50]
+    
+    return debug_results
