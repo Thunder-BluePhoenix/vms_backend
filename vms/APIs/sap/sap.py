@@ -347,131 +347,148 @@ def erp_to_sap_vendor_data(onb_ref):
         com_vcd = frappe.get_doc("Company Master", vcd.company_name)
         sap_client_code = com_vcd.sap_client_code
         vcd_state = frappe.get_doc("State Master", vcd.state)
+        for gst_table in vcd.comp_gst_table:
+            gst_state = gst_table.gst_state
+            gst_state_doc = frappe.get_doc("State Master", gst_state)
+            gst_num = gst_table.gst_number
+            gst_pin = gst_table.pincode
+            gst_addrs = frappe.get_doc("Pincode Master", gst_pin)
+            gst_city = gst_addrs.city
+            gst_cuntry = gst_addrs.country
+            gst_district = gst_addrs.district
+            gst_adderss_text = ", ".join(filter(None, [
+                                                            gst_city,
+                                                            gst_district,
+                                                            gst_state,
+                                                            f"PIN: {gst_pin}" if gst_pin else None,
+                                                            gst_cuntry
+                                                        ]))
 
-        data = {
-            "Bukrs": com_vcd.company_code,
-            "Ekorg": pur_org.purchase_organization_code,
-            "Ktokk": acc_grp.account_group_code,
-            "Title": "",
-            "Name1": onb_vm.vendor_name,
-            "Name2": "",
-            "Sort1": onb_vm.search_term,
-            "Street": vcd.address_line_1,
-            "StrSuppl1": vcd.address_line_2 or "",  # Convert None to empty string
-            "StrSuppl2": "",
-            "StrSuppl3": "",
-            "PostCode1": vcd.pincode,
-            "City1": vcd.city,
-            "Country": country_code,
-            "J1kftind": "",
-            "Region": vcd_state.sap_state_code,
-            "TelNumber": "",
-            "MobNumber": onb_vm.mobile_number,
-            "SmtpAddr": onb_vm.office_email_primary,
-            "SmtpAddr1": onb_vm.office_email_secondary or "",
-            "Zuawa": "",
-            "Akont": onb_reco.reconcil_account_code,
-            "Waers": onb_pmd.currency_code,
-            "Zterm": onb_pm_term.terms_of_payment_code,
-            "Inco1": onb_inco.incoterm_code,
-            "Inco2": onb_inco.incoterm_name,
-            "Kalsk": "",
-            "Ekgrp": pur_grp.purchase_group_code,
-            "Xzemp": payee,
-            "Reprf": check_double_invoice,
-            "Webre": gr_based_inv_ver,
-            "Lebre": service_based_inv_ver,
-            "Stcd3": vcd.gst,
-            "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
-            "J1ipanno": vcd.company_pan_number,
-            "J1ipanref": onb_vm.vendor_name,
-            "Namev": safe_get(onb, "contact_details", 0, "first_name"),
-            "Name11": safe_get(onb, "contact_details", 0, "last_name"),
-            "Bankl": onb_bank.bank_code,
-            "Bankn": onb_pmd.account_number,
-            "Bkref": onb_bank.bank_name,
-            "Banka": onb_pmd.ifsc_code,
-            "Xezer": "",
-            "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
-            "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
-            "ZZBEN_ACCT_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_account_no"),
-            "ZZBENF_IBAN": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_iban_no"),
-            "ZZBENF_BANKADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_address"),
-            "ZZBENF_SHFTADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_swift_code"),
-            "ZZBENF_ACH_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_ach_no"),
-            "ZZBENF_ABA_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_aba_no"),
-            "ZZBENF_ROUTING": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_routing_no"),
-            "ZZINTR_ACCT_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_account_no"),
-            "ZZINTR_IBAN": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_iban_no"),
-            "ZZINTR_BANK_NM": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_name"),
-            "ZZINTR_BANKADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_address"),
-            "ZZINTR_SHFTADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_swift_code"),
-            "ZZINTR_ACH_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_ach_no"),
-            "ZZINTR_ABA_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_aba_no"),
-            "ZZINTR_ROUTING": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_routing_no"),
-            "Refno": onb.ref_no,
-            "Vedno": "",
-            "Zmsg": ""
-        }
-        data_list.append(data)
+
+            data = {
+                "Bukrs": com_vcd.company_code,
+                "Ekorg": pur_org.purchase_organization_code,
+                "Ktokk": acc_grp.account_group_code,
+                "Title": "",
+                "Name1": onb_vm.vendor_name,
+                "Name2": "",
+                "Sort1": onb_vm.search_term,
+                "Street": vcd.address_line_1,
+                "StrSuppl1": gst_adderss_text or "",  # Convert None to empty string
+                "StrSuppl2": "",
+                "StrSuppl3": "",
+                "PostCode1": gst_pin,
+                "City1": gst_city,
+                "Country": country_code,
+                "J1kftind": "",
+                "Region": gst_state_doc.sap_state_code,
+                "TelNumber": "",
+                "MobNumber": onb_vm.mobile_number,
+                "SmtpAddr": onb_vm.office_email_primary,
+                "SmtpAddr1": onb_vm.office_email_secondary or "",
+                "Zuawa": "",
+                "Akont": onb_reco.reconcil_account_code,
+                "Waers": onb_pmd.currency_code,
+                "Zterm": onb_pm_term.terms_of_payment_code,
+                "Inco1": onb_inco.incoterm_code,
+                "Inco2": onb_inco.incoterm_name,
+                "Kalsk": "",
+                "Ekgrp": pur_grp.purchase_group_code,
+                "Xzemp": payee,
+                "Reprf": check_double_invoice,
+                "Webre": gr_based_inv_ver,
+                "Lebre": service_based_inv_ver,
+                "Stcd3": gst_num,
+                "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
+                "J1ipanno": vcd.company_pan_number,
+                "J1ipanref": onb_vm.vendor_name,
+                "Namev": safe_get(onb, "contact_details", 0, "first_name"),
+                "Name11": safe_get(onb, "contact_details", 0, "last_name"),
+                "Bankl": onb_bank.bank_code,
+                "Bankn": onb_pmd.account_number,
+                "Bkref": onb_bank.bank_name,
+                "Banka": onb_pmd.ifsc_code,
+                "Xezer": "",
+                "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
+                "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
+                "ZZBEN_ACCT_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_account_no"),
+                "ZZBENF_IBAN": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_iban_no"),
+                "ZZBENF_BANKADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_address"),
+                "ZZBENF_SHFTADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_swift_code"),
+                "ZZBENF_ACH_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_ach_no"),
+                "ZZBENF_ABA_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_aba_no"),
+                "ZZBENF_ROUTING": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_routing_no"),
+                "ZZINTR_ACCT_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_account_no"),
+                "ZZINTR_IBAN": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_iban_no"),
+                "ZZINTR_BANK_NM": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_name"),
+                "ZZINTR_BANKADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_address"),
+                "ZZINTR_SHFTADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_swift_code"),
+                "ZZINTR_ACH_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_ach_no"),
+                "ZZINTR_ABA_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_aba_no"),
+                "ZZINTR_ROUTING": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_routing_no"),
+                "Refno": onb.ref_no,
+                "Vedno": "",
+                "Zmsg": ""
+            }
+            data_list.append(data)
 
         # Get CSRF token and session with proper session handling
-        csrf_result = get_csrf_token_and_session(sap_client_code)
-        
-        if csrf_result["success"]:
-            try:
-                # Send details to SAP with proper session
-                result = send_detail(
-                    csrf_result["csrf_token"], 
-                    data, 
-                    csrf_result["session_cookies"],
-                    onb.ref_no, 
-                    sap_client_code, 
-                    vcd.state, 
-                    vcd.gst, 
-                    vcd.company_name, 
-                    onb.name
-                )
-                
-                # Check if send_detail failed or returned error
-                if not result or "error" in result:
-                    send_failure_notification(
-                        onb.name, 
-                        "SAP API Call Failed", 
-                        f"The SAP integration API call failed. Error: {result.get('error', 'Unknown error') if result else 'No response from send_detail function'}"
+            csrf_result = get_csrf_token_and_session(sap_client_code)
+            
+            if csrf_result["success"]:
+                try:
+                    # Send details to SAP with proper session
+                    result = send_detail(
+                        csrf_result["csrf_token"], 
+                        data, 
+                        csrf_result["session_cookies"],
+                        onb.ref_no, 
+                        sap_client_code, 
+                        gst_state, 
+                        gst_num, 
+                        vcd.company_name, 
+                        onb.name
                     )
-                # Check if Vedno is 'E' or empty
-                elif result and isinstance(result, dict):
-                    vedno = result.get('d', {}).get('Vedno', '') if 'd' in result else result.get('Vedno', '')
-                    zmsg = result.get('d', {}).get('Zmsg', '') if 'd' in result else result.get('Zmsg', '')
                     
-                    if vedno == 'E' or vedno == '' or not vedno:
+                    # Check if send_detail failed or returned error
+                    if not result or "error" in result:
                         send_failure_notification(
                             onb.name, 
-                            "SAP Vendor Creation Failed", 
-                            f"SAP returned an error or empty vendor code. Vendor Code (Vedno): '{vedno}'. SAP Message (Zmsg): '{zmsg}'"
+                            "SAP API Call Failed", 
+                            f"The SAP integration API call failed. Error: {result.get('error', 'Unknown error') if result else 'No response from send_detail function'}"
                         )
-                
-                return result
-                
-            except Exception as send_detail_err:
-                error_msg = f"Exception in send_detail function: {str(send_detail_err)}"
+                    # Check if Vedno is 'E' or empty
+                    elif result and isinstance(result, dict):
+                        vedno = result.get('d', {}).get('Vedno', '') if 'd' in result else result.get('Vedno', '')
+                        zmsg = result.get('d', {}).get('Zmsg', '') if 'd' in result else result.get('Zmsg', '')
+                        
+                        if vedno == 'E' or vedno == '' or not vedno:
+                            send_failure_notification(
+                                onb.name, 
+                                "SAP Vendor Creation Failed", 
+                                f"SAP returned an error or empty vendor code. Vendor Code (Vedno): '{vedno}'. SAP Message (Zmsg): '{zmsg}'"
+                            )
+                    
+                    return result
+                    
+                except Exception as send_detail_err:
+                    error_msg = f"Exception in send_detail function: {str(send_detail_err)}"
+                    frappe.log_error(error_msg)
+                    send_failure_notification(
+                        onb.name, 
+                        "SAP Integration Exception", 
+                        error_msg
+                    )
+                    return {"error": error_msg}
+            else:
+                error_msg = f"Failed to get CSRF token: {csrf_result['error']}"
                 frappe.log_error(error_msg)
                 send_failure_notification(
                     onb.name, 
-                    "SAP Integration Exception", 
+                    "SAP CSRF Token Failed", 
                     error_msg
                 )
                 return {"error": error_msg}
-        else:
-            error_msg = f"Failed to get CSRF token: {csrf_result['error']}"
-            frappe.log_error(error_msg)
-            send_failure_notification(
-                onb.name, 
-                "SAP CSRF Token Failed", 
-                error_msg
-            )
-            return {"error": error_msg}
 
 
 def safe_get(obj, list_name, index, attr, default=""):

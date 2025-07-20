@@ -352,24 +352,24 @@ def update_vendor_onboarding_document_details(data):
 				doc.set(file_key, file_url)
 
 			# Update gst_table
-			if "gst_table" in data:
-				for row in data["gst_table"]:
-					if not row.get("name"):
-						gst_row = doc.append("gst_table", {})
-					else:
-						gst_row = next((r for r in doc.gst_table if r.name == row.get("name")), None)
-						if not gst_row:
-							continue
+			# if "gst_table" in data:
+			# 	for row in data["gst_table"]:
+			# 		if not row.get("name"):
+			# 			gst_row = doc.append("gst_table", {})
+			# 		else:
+			# 			gst_row = next((r for r in doc.gst_table if r.name == row.get("name")), None)
+			# 			if not gst_row:
+			# 				continue
 
-					fields = ["gst_state", "gst_number", "gst_registration_date", "gst_ven_type", "gst_document"]
-					for field in fields:
-						if field in row and getattr(gst_row, field, None) != row[field]:
-							gst_row.set(field, row[field])
+			# 		fields = ["gst_state", "gst_number", "gst_registration_date", "gst_ven_type", "gst_document"]
+			# 		for field in fields:
+			# 			if field in row and getattr(gst_row, field, None) != row[field]:
+			# 				gst_row.set(field, row[field])
 
-					if "gst_document" in frappe.request.files:
-						# file = frappe.request.files["gst_document"]
-						# saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
-						gst_row.gst_document = saved.file_url
+			# 		if "gst_document" in frappe.request.files:
+			# 			# file = frappe.request.files["gst_document"]
+			# 			# saved = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=1)
+			# 			gst_row.gst_document = saved.file_url
 
 			doc.save(ignore_permissions=True)
 
@@ -458,15 +458,17 @@ def update_vendor_onboarding_gst_details(data):
 					gst_number = (row.get("gst_number") or "").strip()
 					gst_registration_date = (row.get("gst_registration_date") or "").strip()
 					gst_ven_type = (row.get("gst_ven_type") or "").strip()
+					pincode = (row.get("pincode") or "").strip()
 
 					if row_name:
-						# Update existing row by name (row ID)
+						# Update existing row by name (row ID).pincode
 						existing_row = next((g for g in doc.gst_table if g.name == row_name), None)
 						if existing_row:
 							existing_row.gst_state = gst_state
 							existing_row.gst_number = gst_number
 							existing_row.gst_registration_date = gst_registration_date
 							existing_row.gst_ven_type = gst_ven_type
+							existing_row.pincode = pincode
 							
 							# Set file URL if available
 							if uploaded_file_url:
@@ -490,7 +492,8 @@ def update_vendor_onboarding_gst_details(data):
 								"gst_state": gst_state,
 								"gst_number": gst_number,
 								"gst_registration_date": gst_registration_date,
-								"gst_ven_type": gst_ven_type
+								"gst_ven_type": gst_ven_type,
+								"pincode":pincode
 							})
 
 							# Set file URL explicitly if available
@@ -514,6 +517,7 @@ def update_vendor_onboarding_gst_details(data):
 				gst_number = (row.get("gst_number") or "").strip()
 				gst_registration_date = (row.get("gst_registration_date") or "").strip()
 				gst_ven_type = (row.get("gst_ven_type") or "").strip()
+				pincode = (row.get("pincode") or "").strip()
 
 				if row_name:
 					# Update existing row by name (row ID)
@@ -523,6 +527,7 @@ def update_vendor_onboarding_gst_details(data):
 						existing_row.gst_number = gst_number
 						existing_row.gst_registration_date = gst_registration_date
 						existing_row.gst_ven_type = gst_ven_type
+						existing_row.pincode = pincode
 						
 						# Set file URL if available
 						if uploaded_file_url:
@@ -546,7 +551,8 @@ def update_vendor_onboarding_gst_details(data):
 							"gst_state": gst_state,
 							"gst_number": gst_number,
 							"gst_registration_date": gst_registration_date,
-							"gst_ven_type": gst_ven_type
+							"gst_ven_type": gst_ven_type,
+							"pincode": pincode
 						})
 
 						# Set file URL explicitly if available
