@@ -52,6 +52,7 @@ class LegalDocuments(Document):
 				gst_row.gst_registration_date = gst_d.gst_registration_date
 				gst_row.gst_ven_type = gst_d.gst_ven_type
 				gst_row.gst_document = gst_d.gst_document
+				gst_row.pincode = gst_d.pincode
 		else:
 			frappe.log_error("GST table is empty or missing in Legal Documents", "on_update")
 		
