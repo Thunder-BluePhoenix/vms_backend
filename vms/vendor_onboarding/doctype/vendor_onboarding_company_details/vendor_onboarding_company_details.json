@@ -12,6 +12,8 @@
   "vendor_onboarding",
   "gst",
   "company_pan_number",
+  "section_break_ftjb",
+  "comp_gst_table",
   "company_details_section",
   "vendor_title",
   "company_name",
@@ -339,12 +341,22 @@
    "fieldname": "unique_multi_comp_id",
    "fieldtype": "Data",
    "label": "Unique ID"
+  },
+  {
+   "fieldname": "section_break_ftjb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "comp_gst_table",
+   "fieldtype": "Table",
+   "label": "GST Table",
+   "options": "Vendor Company GST Table"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 20:22:56.162117",
+ "modified": "2025-07-20 13:53:27.437245",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",
