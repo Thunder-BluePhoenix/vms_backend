@@ -287,3 +287,167 @@ def handle_po_confirmation(po_id, response):
             html=html_response("An error occurred while processing your confirmation. Please try again later."),
             indicator_color='red'
         )
+
+
+
+@frappe.whitelist(allow_guest=True)
+def send_payment_release_notification_api(po_id):
+   
+    try:
+        if not po_id:
+            return {
+                "status": "error",
+                "message": "Missing required field: 'po_id'."
+            }
+
+        if not frappe.db.exists("Purchase Order", po_id):
+            return {
+                "status": "error",
+                "message": f"Purchase Order '{po_id}' not found."
+            }
+
+        
+        po_doc = frappe.get_doc("Purchase Order", po_id)
+        po_doc.payment_release = 0
+        po_doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        
+        company_code = po_doc.get("company_code")
+        if not company_code:
+            return {
+                "status": "error",
+                "message": "Company code not found in Purchase Order."
+            }
+
+        
+        accounts_team_emails = []
+        
+        
+        employees = frappe.get_all("Employee", fields=["name", "user_id"])
+        
+        for employee in employees:
+            if not employee.user_id:
+                continue
+                
+            try:
+                emp_doc = frappe.get_doc("Employee", employee.name)
+            
+            
+                if hasattr(emp_doc, 'company') and emp_doc.company:
+                    company_code_match = False
+                    
+                    
+                    for company_row in emp_doc.company:
+                        print(company_row.company_name)
+                        if hasattr(company_row, 'company_name') and company_row.company_name == company_code:
+                            company_code_match = True
+                            break
+                    
+                    if company_code_match:
+                        user_roles = frappe.get_all("Has Role", 
+                                                  filters={"parent": employee.user_id, "role": "Accounts Team"}, 
+                                                  fields=["role"])
+                        
+                        
+                        if user_roles:
+                            user_email = frappe.get_value("User", employee.user_id, "email")
+                            user_name = frappe.get_value("User", employee.user_id, "first_name") or frappe.get_value("User", employee.user_id, "full_name") or "Team Member"
+                            
+                            if user_email:
+                                accounts_team_emails.append({
+                                    "email": user_email,
+                                    "name": user_name
+                                })
+                                
+            except Exception as emp_error:
+                frappe.log_error(f"Error processing employee {employee.name}: {str(emp_error)}", "Employee Processing Error")
+                continue
+        
+        
+        if not accounts_team_emails:
+            return {
+                "status": "error",
+                "message": f"No accounts team members found for company code: {company_code}"
+            }
+        
+       
+        successful_emails = 0
+        failed_emails = 0
+        
+        for member in accounts_team_emails:
+            try:
+                subject = f"Payment Release Approved - PO: {po_doc.name}"
+                
+                message = f"""
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #28a745;">Payment Release Notification</h2>
+                        
+                        <p>Dear {member['name']},</p>
+                        
+                        <p>Good news! We have received confirmation that goods have been delivered for the following purchase order. You can now proceed with payment release.</p>
+                        
+                        
+                        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <strong>Purchase Order Details:</strong><br>
+                            <strong>PO Number:</strong> {po_doc.name}<br>
+                            <strong>Company Code:</strong> {company_code}<br>
+                            <strong>Delivery Date:</strong> {frappe.utils.format_date(po_doc.delivery_date) if po_doc.delivery_date else 'Not specified'}<br>
+                        </div>
+                        
+                        <div style="background-color: #cce5ff; border: 1px solid #99ccff; color: #004085; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <strong>Action Required:</strong> Please proceed with payment release for this purchase order as goods delivery has been confirmed.
+                        </div>
+                        
+                        <p>Please process the payment at your earliest convenience.</p>
+                        
+                        <p>Regards,<br>VMS Team</p>
+                    </div>
+                """
+                
+                frappe.sendmail(
+                    recipients=[member['email']],
+                    subject=subject,
+                    message=message,
+                    now=True
+                )
+                
+                successful_emails += 1
+                
+            except Exception as email_error:
+                frappe.log_error(f"Error sending email to {member['email']}: {str(email_error)}", "Accounts Team Email Error")
+                failed_emails += 1
+        
+        
+        if successful_emails > 0:
+            return {
+                "status": "success",
+                "message": f"Payment release notification sent successfully to {successful_emails} accounts team member(s).",
+                "details": {
+                    "po_id": po_id,
+                    "company_code": company_code,
+                    "total_recipients": len(accounts_team_emails),
+                    "successful_emails": successful_emails,
+                    "failed_emails": failed_emails,
+                    "recipients": [member['email'] for member in accounts_team_emails]
+                }
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Failed to send any notification emails.",
+                "details": {
+                    "po_id": po_id,
+                    "company_code": company_code,
+                    "total_recipients": len(accounts_team_emails),
+                    "failed_emails": failed_emails
+                }
+            }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Payment Release Notification API Error")
+        return {
+            "status": "error",
+            "message": "Failed to send payment release notification.",
+            "error": str(e)
+        }

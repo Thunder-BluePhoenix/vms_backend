@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:state_code",
+ "autoname": "format:{state_name}",
  "creation": "2025-05-04 19:43:41.218574",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,7 +9,8 @@
   "state_code",
   "state_name",
   "country_name",
-  "sap_state_code"
+  "sap_state_code",
+  "custom_gst_state_code"
  ],
  "fields": [
   {
@@ -33,16 +34,21 @@
    "fieldtype": "Link",
    "label": "Country Name",
    "options": "Country Master"
+  },
+  {
+   "fieldname": "custom_gst_state_code",
+   "fieldtype": "Data",
+   "label": "GST State Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:40:26.658812",
+ "modified": "2025-07-20 11:02:04.513692",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "State Master",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

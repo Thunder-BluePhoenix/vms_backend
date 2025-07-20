@@ -49,10 +49,9 @@ def create_rfq_service(data):
         rfq.second_reminder = data.get("second_reminder")
         rfq.third_reminder = data.get("third_reminder")
 
-        # Group RFQ items head-wise and subhead-wise
+        # Group RFQ items head-wise and subhead-wise as one row per subhead (with head repeated)
         for item in data.get("pr_items", []):
-            # Head Row
-            head_row = rfq.append("rfq_items", {
+            head_fields = {
                 "head_unique_field": item.get("head_unique_field"),
                 "purchase_requisition_number": item.get("requisition_no"),
                 "material_code_head": item.get("material_code_head"),
@@ -62,22 +61,35 @@ def create_rfq_service(data):
                 "quantity_head": item.get("quantity_head"),
                 "uom_head": item.get("uom_head"),
                 "price_head": item.get("price_head")
-            })
+            }
 
-            # Flatten and append subhead rows as separate rfq_items with is_subhead=1
-            for sub in item.get("subhead_fields", []):
+            subheads = item.get("subhead_fields", [])
+
+            if subheads:
+                for sub in subheads:
+                    rfq.append("rfq_items", {
+                        **head_fields,
+                        "is_subhead": 1,
+                        "subhead_unique_field": sub.get("subhead_unique_field"),
+                        "material_code_subhead": sub.get("material_code_subhead"),
+                        "material_name_subhead": sub.get("material_name_subhead"),
+                        "quantity_subhead": sub.get("quantity_subhead"),
+                        "uom_subhead": sub.get("uom_subhead"),
+                        "price_subhead": sub.get("price_subhead"),
+                        "delivery_date_subhead": sub.get("delivery_date_subhead")
+                    })
+            else:
                 rfq.append("rfq_items", {
-                    "is_subhead": 1,
-                    "head_unique_field": item.get("head_unique_field"),
-                    "subhead_unique_field": sub.get("subhead_unique_field"),
-                    "material_code_subhead": sub.get("material_code_subhead"),
-                    "material_name_subhead": sub.get("material_name_subhead"),
-                    "quantity_subhead": sub.get("quantity_subhead"),
-                    "uom_subhead": sub.get("uom_subhead"),
-                    "price_subhead": sub.get("price_subhead"),
-                    "delivery_date_subhead": sub.get("delivery_date_subhead")
+                    **head_fields,
+                    "is_subhead": 0,
+                    "subhead_unique_field": "",
+                    "material_code_subhead": "",
+                    "material_name_subhead": "",
+                    "quantity_subhead": "",
+                    "uom_subhead": "",
+                    "price_subhead": "",
+                    "delivery_date_subhead": ""
                 })
-
 
         # Vendor Details Table
         vendors = data.get("vendors", [])

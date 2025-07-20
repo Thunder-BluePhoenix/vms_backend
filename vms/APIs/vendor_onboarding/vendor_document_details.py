@@ -390,3 +390,265 @@ def update_vendor_onboarding_document_details(data):
 			"message": "Failed to update Legal Documents.",
 			"error": str(e)
 		}
+
+
+
+# API to update GST table entries
+@frappe.whitelist(allow_guest=True)
+def update_vendor_onboarding_gst_details(data):
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
+
+		ref_no = data.get("ref_no")
+		vendor_onboarding = data.get("vendor_onboarding")
+
+		if not ref_no or not vendor_onboarding:
+			return {
+				"status": "error",
+				"message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
+			}
+
+		doc_name = frappe.db.get_value(
+			"Legal Documents",
+			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+			"name"
+		)
+
+		if not doc_name:
+			return {
+				"status": "error",
+				"message": "Legal Documents record not found."
+			}
+
+		main_doc = frappe.get_doc("Legal Documents", doc_name)
+
+		if not data.get("gst_table"):
+			return {
+				"status": "error",
+				"message": "Missing child table fields: 'gst_table'."
+			}
+
+		# Upload file only once
+		uploaded_file_url = ""
+		if "gst_document" in frappe.request.files:
+			file = frappe.request.files["gst_document"]
+			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
+			uploaded_file_url = saved.file_url
+
+		# If multi-company, update all related docs
+		if main_doc.registered_for_multi_companies == 1:
+			unique_multi_comp_id = main_doc.unique_multi_comp_id
+
+			linked_docs = frappe.get_all(
+				"Legal Documents",
+				filters={
+					"registered_for_multi_companies": 1,
+					"unique_multi_comp_id": unique_multi_comp_id
+				},
+				fields=["name"]
+			)
+
+			for entry in linked_docs:
+				doc = frappe.get_doc("Legal Documents", entry.name)
+
+				for row in data["gst_table"]:
+					row_name = row.get("name")
+					gst_state = (row.get("gst_state") or "").strip()
+					gst_number = (row.get("gst_number") or "").strip()
+					gst_registration_date = (row.get("gst_registration_date") or "").strip()
+					gst_ven_type = (row.get("gst_ven_type") or "").strip()
+
+					if row_name:
+						# Update existing row by name (row ID)
+						existing_row = next((g for g in doc.gst_table if g.name == row_name), None)
+						if existing_row:
+							existing_row.gst_state = gst_state
+							existing_row.gst_number = gst_number
+							existing_row.gst_registration_date = gst_registration_date
+							existing_row.gst_ven_type = gst_ven_type
+							
+							# Set file URL if available
+							if uploaded_file_url:
+								existing_row.gst_document = uploaded_file_url
+					else:
+						# Add new row (check for duplicates by gst_number)
+						is_duplicate = any(
+							(g.gst_number or "").strip() == gst_number
+							for g in doc.gst_table
+						)
+
+						if not is_duplicate and gst_number:
+							new_row = doc.append("gst_table", {
+								"gst_state": gst_state,
+								"gst_number": gst_number,
+								"gst_registration_date": gst_registration_date,
+								"gst_ven_type": gst_ven_type
+							})
+
+							# Set file URL explicitly if available
+							if uploaded_file_url:
+								new_row.gst_document = uploaded_file_url
+
+				doc.save(ignore_permissions=True)
+				frappe.db.commit()
+
+			return {
+				"status": "success",
+				"message": "GST details updated successfully for all linked records.",
+				"docnames": [doc.name for doc in linked_docs]
+			}
+
+		else:
+			# Single doc update
+			for row in data["gst_table"]:
+				row_name = row.get("name")
+				gst_state = (row.get("gst_state") or "").strip()
+				gst_number = (row.get("gst_number") or "").strip()
+				gst_registration_date = (row.get("gst_registration_date") or "").strip()
+				gst_ven_type = (row.get("gst_ven_type") or "").strip()
+
+				if row_name:
+					# Update existing row by name (row ID)
+					existing_row = next((g for g in main_doc.gst_table if g.name == row_name), None)
+					if existing_row:
+						existing_row.gst_state = gst_state
+						existing_row.gst_number = gst_number
+						existing_row.gst_registration_date = gst_registration_date
+						existing_row.gst_ven_type = gst_ven_type
+						
+						# Set file URL if available
+						if uploaded_file_url:
+							existing_row.gst_document = uploaded_file_url
+				else:
+					# Add new row (check for duplicates by gst_number)
+					is_duplicate = any(
+						(g.gst_number or "").strip() == gst_number
+						for g in main_doc.gst_table
+					)
+
+					if not is_duplicate and gst_number:
+						new_row = main_doc.append("gst_table", {
+							"gst_state": gst_state,
+							"gst_number": gst_number,
+							"gst_registration_date": gst_registration_date,
+							"gst_ven_type": gst_ven_type
+						})
+
+						# Set file URL explicitly if available
+						if uploaded_file_url:
+							new_row.gst_document = uploaded_file_url
+
+			main_doc.save(ignore_permissions=True)
+			frappe.db.commit()
+
+			return {
+				"status": "success",
+				"message": "GST details updated successfully.",
+				"docname": main_doc.name
+			}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "GST Details Update Error")
+		return {
+			"status": "error",
+			"message": "Failed to update GST details.",
+			"error": str(e)
+		}
+
+
+# API to delete GST table row
+@frappe.whitelist(allow_guest=True)
+def delete_vendor_onboarding_gst_row(row_name, ref_no, vendor_onboarding):
+	try:
+		if not row_name or not ref_no or not vendor_onboarding:
+			return {
+				"status": "error",
+				"message": "Missing required fields: 'row_name', 'ref_no', or 'vendor_onboarding'."
+			}
+
+		doc_name = frappe.db.get_value(
+			"Legal Documents",
+			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+			"name"
+		)
+
+		if not doc_name:
+			return {
+				"status": "error",
+				"message": "Legal Documents record not found."
+			}
+
+		main_doc = frappe.get_doc("Legal Documents", doc_name)
+		deleted_from_docs = []
+
+		if main_doc.registered_for_multi_companies == 1:
+			unique_multi_comp_id = main_doc.unique_multi_comp_id
+
+			linked_docs = frappe.get_all(
+				"Legal Documents",
+				filters={
+					"registered_for_multi_companies": 1,
+					"unique_multi_comp_id": unique_multi_comp_id
+				},
+				fields=["name"]
+			)
+
+			for entry in linked_docs:
+				doc = frappe.get_doc("Legal Documents", entry.name)
+				original_len = len(doc.gst_table)
+
+				doc.gst_table = [
+					row for row in doc.gst_table
+					if row.name != row_name
+				]
+
+				if len(doc.gst_table) != original_len:
+					doc.save(ignore_permissions=True)
+					deleted_from_docs.append(doc.name)
+
+			if not deleted_from_docs:
+				return {
+					"status": "error",
+					"message": f"No matching row with ID '{row_name}' found in linked records."
+				}
+
+			frappe.db.commit()
+			return {
+				"status": "success",
+				"message": f"GST entry with row ID '{row_name}' deleted from linked records.",
+				"docnames": deleted_from_docs
+			}
+
+		else:
+			original_len = len(main_doc.gst_table)
+
+			main_doc.gst_table = [
+				row for row in main_doc.gst_table
+				if row.name != row_name
+			]
+
+			if len(main_doc.gst_table) == original_len:
+				return {
+					"status": "error",
+					"message": f"No matching row with ID '{row_name}' found in this document."
+				}
+
+			main_doc.save(ignore_permissions=True)
+			frappe.db.commit()
+
+			return {
+				"status": "success",
+				"message": f"GST entry with row ID '{row_name}' deleted successfully.",
+				"docname": main_doc.name
+			}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Delete GST Entry Error")
+		return {
+			"status": "error",
+			"message": "Failed to delete GST entry.",
+			"error": str(e)
+		}
