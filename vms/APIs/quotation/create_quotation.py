@@ -1,6 +1,8 @@
 import frappe
 import json
 from frappe.utils.file_manager import save_file
+from frappe.utils import nowdate, now
+from frappe import _
 
 @frappe.whitelist(allow_guest=True)
 def fetch_rfq_data(name, ref_no):
@@ -216,3 +218,130 @@ def fetch_rfq_data(name, ref_no):
 
 # if quotation deadline or rfqcutoff date > today datetime then i will throw a message that quotation cannot be create as time pass
 # do in above code (discussion pending with neel)
+
+
+@frappe.whitelist(allow_guest=False)
+def create_or_update_quotation():
+    try:
+        data = frappe.local.form_dict
+        
+        if isinstance(data.get('data'), str):
+            try:
+                data = json.loads(data.get('data'))
+            except json.JSONDecodeError:
+                data = frappe.local.form_dict
+
+      
+        attachments_data = data.pop('attachments', [])
+        
+        quotation_name = data.get('name')
+        
+        if quotation_name:
+            if frappe.db.exists('Quotation', quotation_name):
+                quotation = frappe.get_doc('Quotation', quotation_name)
+                
+                # Update main quotation fields
+                for key, value in data.items():
+                    if hasattr(quotation, key) and key != 'name':
+                        setattr(quotation, key, value)
+                
+
+                _handle_attachments(quotation, attachments_data)
+                
+                quotation.save()
+                frappe.db.commit()
+                
+                return {
+                    "status": "success",
+                    "message": "Quotation updated successfully",
+                    "data": {
+                        "name": quotation.name,
+                        "action": "updated",
+                        "attachments_count": len(quotation.attachments) if quotation.attachments else 0
+                    }
+                }
+            else:
+                data.pop('name', None)
+        
+
+        quotation = frappe.new_doc('Quotation')
+        
+        
+        if not data.get('rfq_date'):
+            data['rfq_date'] = nowdate()
+        if not data.get('rfq_date_logistic'):
+            data['rfq_date_logistic'] = nowdate()
+        
+        for key, value in data.items():
+            if hasattr(quotation, key):
+                setattr(quotation, key, value)
+        
+        _handle_attachments(quotation, attachments_data)
+        
+        quotation.insert()
+        frappe.db.commit()
+        
+        return {
+            "status": "success",
+            "message": "Quotation created successfully",
+            "data": {
+                "name": quotation.name,
+                "action": "created",
+            }
+        }
+        
+    except frappe.ValidationError as e:
+        frappe.db.rollback()
+        return {
+            "status": "error",
+            "message": f"Validation Error: {str(e)}",
+            "error_type": "validation"
+        }
+    
+    except frappe.DuplicateEntryError as e:
+        frappe.db.rollback()
+        return {
+            "status": "error",
+            "message": f"Duplicate Entry: {str(e)}",
+            "error_type": "duplicate"
+        }
+    
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(f"Quotation API Error: {str(e)}", "quotation_api_error")
+        return {
+            "status": "error",
+            "message": f"An error occurred: {str(e)}",
+            "error_type": "general"
+        }
+
+
+def _handle_attachments(quotation, attachments_data):
+
+    if not attachments_data:
+        return
+
+    if quotation.get('attachments'):
+        quotation.set('attachments', [])
+    
+    for attachment_data in attachments_data:
+        if isinstance(attachment_data, dict):
+            attachment_row = quotation.append('attachments', {})
+            
+            for field, value in attachment_data.items():
+                if hasattr(attachment_row, field):
+                    setattr(attachment_row, field, value)
+            
+            if attachment_data.get('file_content') and attachment_data.get('filename'):
+                try:
+                    file_doc = _create_file_attachment(
+                        quotation.name,
+                        attachment_data.get('filename'),
+                        attachment_data.get('file_content'),
+                        attachment_data.get('file_type', 'application/octet-stream')
+                    )
+                    attachment_row.file_url = file_doc.file_url
+                    attachment_row.file_name = file_doc.file_name
+                except Exception as e:
+                    frappe.log_error(f"File upload error: {str(e)}", "attachment_upload_error")
+
