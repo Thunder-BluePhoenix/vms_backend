@@ -601,7 +601,7 @@ def filtering_pr_details(page_no=None, page_length=None, company=None, purchase_
                 pr.sap_pr_code,
                 pr.requisitioner,
                 prt.purchase_requisition_date_head
-            FROM `tabPurchase Requisition` pr
+            FROM `tabPurchase Requisition Form` pr
             LEFT JOIN `tabPurchase Requisition Form Table` prt ON pr.name = prt.parent
             WHERE {filter_clause}
             ORDER BY pr.creation DESC
