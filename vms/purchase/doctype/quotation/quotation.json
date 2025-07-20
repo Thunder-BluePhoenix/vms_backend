@@ -15,6 +15,7 @@
   "office_email_primary",
   "vendor_contact",
   "vendor_country",
+  "rfq_number",
   "status",
   "logistics_section",
   "mode_of_shipment",
@@ -22,6 +23,7 @@
   "chargeable_weight",
   "ratekg",
   "fuel_surcharge",
+  "surcharge",
   "sc",
   "xray",
   "pickuporigin",
@@ -42,6 +44,7 @@
   "company_name_logistic",
   "sr_no",
   "rfq_date_logistic",
+  "rfq_cutoff_date",
   "destination_port",
   "country",
   "port_code",
@@ -63,22 +66,38 @@
   "quantity",
   "ship_to_address",
   "quotation_data_section",
-  "rfq_number",
-  "company_name",
   "rfq_date",
   "quotation_deadline",
-  "delivery_date",
-  "contact_person",
-  "quote_amount",
+  "company_name",
+  "purchase_organization",
+  "purchase_group",
+  "currency",
+  "collection_number",
+  "validity_start_date",
+  "validity_end_date",
   "column_break_tiys",
+  "contact_person",
+  "bidding_person",
+  "storage_location",
   "product_code",
   "product_category",
   "material_code",
   "material_category",
   "material_name",
+  "services_section",
+  "service_location",
+  "column_break_xnxm",
+  "service_code",
+  "service_category",
+  "quantity_and_date_section",
   "rfq_quantity",
-  "storage_location",
-  "remark",
+  "quantity_unit",
+  "column_break_xhdv",
+  "delivery_date",
+  "quotation_amount_section",
+  "quote_amount",
+  "rfq_items_section",
+  "rfq_item_list",
   "multiple_attachments_section",
   "attachments"
  ],
@@ -96,9 +115,8 @@
   },
   {
    "fieldname": "vendor_code",
-   "fieldtype": "Link",
-   "label": "Vendor Code",
-   "options": "Vendor Master"
+   "fieldtype": "Data",
+   "label": "Vendor Code"
   },
   {
    "fieldname": "rfq_date",
@@ -107,7 +125,7 @@
   },
   {
    "fieldname": "quotation_deadline",
-   "fieldtype": "Date",
+   "fieldtype": "Datetime",
    "label": "Quotation Deadline"
   },
   {
@@ -175,11 +193,6 @@
    "fieldname": "storage_location",
    "fieldtype": "Data",
    "label": "Storage Location"
-  },
-  {
-   "fieldname": "remark",
-   "fieldtype": "Small Text",
-   "label": "Remark"
   },
   {
    "fieldname": "column_break_tiys",
@@ -501,12 +514,117 @@
    "fieldtype": "Table",
    "label": "Attachments",
    "options": "Multiple Attachment"
+  },
+  {
+   "fieldname": "rfq_cutoff_date",
+   "fieldtype": "Datetime",
+   "label": "RFQ Cutoff Date"
+  },
+  {
+   "fieldname": "surcharge",
+   "fieldtype": "Data",
+   "label": "Surcharge"
+  },
+  {
+   "fieldname": "purchase_organization",
+   "fieldtype": "Link",
+   "label": "Purchase Organization",
+   "options": "Purchase Organization Master"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Link",
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "collection_number",
+   "fieldtype": "Data",
+   "label": "Collection Number"
+  },
+  {
+   "fieldname": "validity_start_date",
+   "fieldtype": "Date",
+   "label": "Validity Start Date"
+  },
+  {
+   "fieldname": "validity_end_date",
+   "fieldtype": "Date",
+   "label": "Validity End Date"
+  },
+  {
+   "fieldname": "bidding_person",
+   "fieldtype": "Data",
+   "label": "Bidding Person"
+  },
+  {
+   "fieldname": "services_section",
+   "fieldtype": "Section Break",
+   "label": "Services"
+  },
+  {
+   "fieldname": "service_location",
+   "fieldtype": "Small Text",
+   "label": "Service Location"
+  },
+  {
+   "fieldname": "column_break_xnxm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "service_code",
+   "fieldtype": "Select",
+   "label": "Service Code",
+   "options": "Service Code1\nService Code2\nService Code3\nService Code4"
+  },
+  {
+   "fieldname": "service_category",
+   "fieldtype": "Select",
+   "label": "Service Category",
+   "options": "Category1\nCategory2\nCategory3\nCategory4"
+  },
+  {
+   "fieldname": "quantity_and_date_section",
+   "fieldtype": "Section Break",
+   "label": "Quantity and Date"
+  },
+  {
+   "fieldname": "quantity_unit",
+   "fieldtype": "Link",
+   "label": "Quantity Unit",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "column_break_xhdv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quotation_amount_section",
+   "fieldtype": "Section Break",
+   "label": "Quotation Amount"
+  },
+  {
+   "fieldname": "rfq_items_section",
+   "fieldtype": "Section Break",
+   "label": "RFQ Items"
+  },
+  {
+   "fieldname": "rfq_item_list",
+   "fieldtype": "Table",
+   "label": "RFQ Item List",
+   "options": "RFQ Items"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 17:08:11.220292",
+ "modified": "2025-07-20 13:36:15.596939",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Quotation",
