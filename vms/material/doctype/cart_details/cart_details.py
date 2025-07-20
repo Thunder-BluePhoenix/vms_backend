@@ -76,10 +76,12 @@ def send_mail_hod(doc, method=None):
 				table_html += "</table>"
 
 				subject = f"Purchase Team Approved Cart Details Submitted by {employee_name}"
-				message = f"""
+
+				# Message for HOD with buttons
+				hod_message = f"""
 					<p>Dear {hod_name},</p>		
-					<p>A new cart details submission has been made by <b>{employee_name}</b> which is approved by Purchase Team</p>
-					<p> please review the details and take necessary actions.</p>
+					<p>A new cart details submission has been made by <b>{employee_name}</b> which is approved by Purchase Team.</p>
+					<p>Please review the details and take necessary actions.</p>
 					<p><b>Cart ID:</b> {doc.name}</p>
 					<p><b>Cart Date:</b> {doc.cart_date}</p>
 					<p><b>Cart Products:</b></p>
@@ -95,16 +97,42 @@ def send_mail_hod(doc, method=None):
 					</div>
 					<p>Thank you!</p>
 				"""
-				frappe.sendmail(recipients=[hod_email], cc= doc.user, subject=subject, message=message, now=True)
 
-				# doc.mail_sent_to_hod = 1
+				# Message for user (without buttons)
+				user_message = f"""
+					<p>Dear {employee_name},</p>
+					<p>Your cart has been approved by Purchase Team and sent to your HOD <b>{hod_name}</b> for further approval.</p>
+					<p><b>Cart ID:</b> {doc.name}</p>
+					<p><b>Cart Date:</b> {doc.cart_date}</p>
+					<p><b>Cart Products:</b></p>
+					{table_html}
+					<p>Thank you!</p>
+				"""
+
+				# Send to HOD
+				frappe.sendmail(
+					recipients=[hod_email],
+					subject=subject,
+					message=hod_message,
+					now=True
+				)
+
+				# Send to User separately (without buttons)
+				frappe.sendmail(
+					recipients=[doc.user],
+					subject=subject,
+					message=user_message,
+					now=True
+				)
+
+				# Set flag
 				frappe.db.set_value("Cart Details", doc.name, "mail_sent_to_hod", 1)
-				
+
 				return {
 					"status": "success",
-					"message": "Email sent to HOD successfully."
+					"message": "Email sent to HOD and user successfully."
 				}
-		
+
 		return {
 			"status": "error",
 			"message": "HOD email or user email not found.",
@@ -339,6 +367,14 @@ def hod_approval_check():
 
 		doc = frappe.get_doc("Cart Details", cart_id)
 
+		# Prevent multiple submissions
+		if doc.hod_approval_status in ["Approved", "Rejected"]:
+			return {
+				f"This cart has already been <b>{doc.hod_approval_status}",
+				"Further action is not required.",
+				f"Cart ID: {cart_id}"
+			}
+
 		if action == "approve":
 			doc.hod_approved = 1
 			doc.hod_approval_status = "Approved"
@@ -357,14 +393,11 @@ def hod_approval_check():
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
-		return """
-			<html>
-				<body style="text-align: center; padding: 50px; font-family: Arial;">
-					<h2>Thank you!</h2>
-					<p>Your response has been recorded for Cart ID: <b>{}</b>.</p>
-				</body>
-			</html>
-		""".format(cart_id)
+		return {
+			"Thank you!",
+			f"Your response has been recorded for Cart ID: {cart_id}",
+			f"Status: {doc.hod_approval_status}"
+		}
 
 	except Exception as e:
 		frappe.log_error(frappe.get_traceback(), "Error updating Cart Details (HOD Approval)")
