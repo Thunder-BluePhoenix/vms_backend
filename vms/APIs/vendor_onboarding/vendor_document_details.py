@@ -472,13 +472,20 @@ def update_vendor_onboarding_gst_details(data):
 							if uploaded_file_url:
 								existing_row.gst_document = uploaded_file_url
 					else:
-						# Add new row (check for duplicates by gst_number)
-						is_duplicate = any(
-							(g.gst_number or "").strip() == gst_number
-							for g in doc.gst_table
-						)
+						# Add new row - allow if gst_ven_type exists, check duplicates only if gst_number provided
+						can_add = False
+						
+						if gst_ven_type:  # If vendor type exists, allow the row
+							if gst_number:  # If GST number is also provided, check for duplicates
+								is_duplicate = any(
+									(g.gst_number or "").strip() == gst_number and gst_number
+									for g in doc.gst_table
+								)
+								can_add = not is_duplicate
+							else:  # No GST number but vendor type exists, allow
+								can_add = True
 
-						if not is_duplicate and gst_number:
+						if can_add:
 							new_row = doc.append("gst_table", {
 								"gst_state": gst_state,
 								"gst_number": gst_number,
@@ -521,13 +528,20 @@ def update_vendor_onboarding_gst_details(data):
 						if uploaded_file_url:
 							existing_row.gst_document = uploaded_file_url
 				else:
-					# Add new row (check for duplicates by gst_number)
-					is_duplicate = any(
-						(g.gst_number or "").strip() == gst_number
-						for g in main_doc.gst_table
-					)
+					# Add new row - allow if gst_ven_type exists, check duplicates only if gst_number provided
+					can_add = False
+					
+					if gst_ven_type:  # If vendor type exists, allow the row
+						if gst_number:  # If GST number is also provided, check for duplicates
+							is_duplicate = any(
+								(g.gst_number or "").strip() == gst_number and gst_number
+								for g in main_doc.gst_table
+							)
+							can_add = not is_duplicate
+						else:  # No GST number but vendor type exists, allow
+							can_add = True
 
-					if not is_duplicate and gst_number:
+					if can_add:
 						new_row = main_doc.append("gst_table", {
 							"gst_state": gst_state,
 							"gst_number": gst_number,
