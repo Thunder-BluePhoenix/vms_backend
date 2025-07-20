@@ -398,7 +398,7 @@ def erp_to_sap_vendor_data(onb_ref):
                 "Reprf": check_double_invoice,
                 "Webre": gr_based_inv_ver,
                 "Lebre": service_based_inv_ver,
-                "Stcd3": gst_num,
+                "Stcd3": gst_num or "",
                 "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                 "J1ipanno": vcd.company_pan_number,
                 "J1ipanref": onb_vm.vendor_name,
