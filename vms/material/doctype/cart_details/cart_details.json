@@ -54,7 +54,9 @@
   "tab_2_tab",
   "modification_info",
   "section_break_iwzm",
-  "is_approval"
+  "is_approval",
+  "mailed_to_alternate_purchase_team",
+  "mailed_to_purchase_head"
  ],
  "fields": [
   {
@@ -325,12 +327,24 @@
    "fieldname": "is_approval",
    "fieldtype": "Check",
    "label": "Is Approval"
+  },
+  {
+   "default": "0",
+   "fieldname": "mailed_to_alternate_purchase_team",
+   "fieldtype": "Check",
+   "label": "Mailed to Alternate Purchase Team"
+  },
+  {
+   "default": "0",
+   "fieldname": "mailed_to_purchase_head",
+   "fieldtype": "Check",
+   "label": "Mailed to Purchase Head"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 12:59:40.919570",
+ "modified": "2025-07-20 17:02:49.720111",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
