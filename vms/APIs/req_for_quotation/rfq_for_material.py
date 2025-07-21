@@ -376,3 +376,11 @@ def get_full_data_material_rfq(name):
 		frappe.log_error(frappe.get_traceback(), "Fetch Material RFQ Error")
 		frappe.throw(_("Error fetching RFQ: ") + str(e))
 
+
+# send revised quotation
+# @frappe.whitelist(allow_guest=False)
+# def send_revised_quotation(data):
+# 	if data.get("name"):
+# 		rfq = frappe.get_doc("Request for Quotation", data.get("name"))
+
+# 		for row in rfq.rfq_items:
