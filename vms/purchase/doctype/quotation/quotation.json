@@ -14,9 +14,7 @@
   "column_break_yoni",
   "office_email_primary",
   "vendor_contact",
-  "vendor_country",
   "rfq_number",
-  "status",
   "logistics_section",
   "mode_of_shipment",
   "airlinevessel_name",
@@ -46,7 +44,6 @@
   "rfq_date_logistic",
   "rfq_cutoff_date",
   "destination_port",
-  "country",
   "port_code",
   "port_of_loading",
   "inco_terms",
@@ -104,7 +101,11 @@
   "rfq_items_section",
   "rfq_item_list",
   "multiple_attachments_section",
-  "attachments"
+  "attachments",
+  "status",
+  "country",
+  "more_info_tab",
+  "table_tbvu"
  ],
  "fields": [
   {
@@ -492,12 +493,6 @@
    "options": "Country Master"
   },
   {
-   "fieldname": "vendor_country",
-   "fieldtype": "Link",
-   "label": "Country",
-   "options": "Country Master"
-  },
-  {
    "fieldname": "product_category_logistic",
    "fieldtype": "Link",
    "label": "Product Category",
@@ -650,13 +645,23 @@
    "fieldname": "payment_terms",
    "fieldtype": "Small Text",
    "label": "Payment Terms"
+  },
+  {
+   "fieldname": "more_info_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "fieldname": "table_tbvu",
+   "fieldtype": "Table",
+   "options": "RFQ Item History"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-21 11:26:29.223358",
- "modified_by": "Administrator",
+ "modified": "2025-07-21 17:02:15.089050",
+ "modified_by": "abhishek@mail.hybrowlabs.com",
  "module": "Purchase",
  "name": "Quotation",
  "naming_rule": "By \"Naming Series\" field",
@@ -678,5 +683,8 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
 }
