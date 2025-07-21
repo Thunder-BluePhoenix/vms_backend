@@ -20,11 +20,13 @@
   "rate_head",
   "moq_head",
   "lead_time_head",
+  "tax",
   "subhead_fields_section",
   "subhead_unique_field",
   "material_code_subhead",
   "material_name_subhead",
   "quantity_subhead",
+  "delivery_date_subhead",
   "column_break_pyel",
   "uom_subhead",
   "price_subhead",
@@ -170,13 +172,23 @@
    "fieldname": "lead_time_subhead",
    "fieldtype": "Date",
    "label": "Lead Time/Delivery"
+  },
+  {
+   "fieldname": "tax",
+   "fieldtype": "Data",
+   "label": "TAX"
+  },
+  {
+   "fieldname": "delivery_date_subhead",
+   "fieldtype": "Date",
+   "label": "Delivery Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-20 11:20:28.644174",
+ "modified": "2025-07-21 13:07:40.162212",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Items",

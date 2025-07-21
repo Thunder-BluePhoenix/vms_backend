@@ -96,6 +96,11 @@
   "delivery_date",
   "quotation_amount_section",
   "quote_amount",
+  "payment_terms_section",
+  "negotiable",
+  "non_negotiable",
+  "column_break_nnid",
+  "payment_terms",
   "rfq_items_section",
   "rfq_item_list",
   "multiple_attachments_section",
@@ -619,12 +624,38 @@
    "fieldtype": "Table",
    "label": "RFQ Item List",
    "options": "RFQ Items"
+  },
+  {
+   "fieldname": "payment_terms_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Terms"
+  },
+  {
+   "default": "0",
+   "fieldname": "negotiable",
+   "fieldtype": "Check",
+   "label": " Negotiable"
+  },
+  {
+   "default": "0",
+   "fieldname": "non_negotiable",
+   "fieldtype": "Check",
+   "label": " Non Negotiable"
+  },
+  {
+   "fieldname": "column_break_nnid",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "payment_terms",
+   "fieldtype": "Small Text",
+   "label": "Payment Terms"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-20 13:36:15.596939",
+ "modified": "2025-07-21 11:26:29.223358",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Quotation",
