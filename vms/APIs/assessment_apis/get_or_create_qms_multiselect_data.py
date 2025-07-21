@@ -495,3 +495,72 @@ def create_batch_record_detail(details_of_batch_record):
             "status": "error",
             "message": str(e)
         }
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_quality_agreement_list():
+    try:
+        # Get all Quality Agreement Type records with required fields
+        all_templates = frappe.get_all("Quality Agreement Type", fields=["name", "sample_document"])
+        
+        if not all_templates:
+            return {
+                "status": "success",
+                "message": "No template records found.",
+                "data": []
+            }
+
+        # Process each template to include attachment details
+        processed_templates = []
+        
+        for template in all_templates:
+            template_data = {
+                "name": template.name
+            }
+            
+            # Handle sample_document attachment
+            if template.sample_document:
+                try:
+                    file_doc = frappe.get_doc("File", {"file_url": template.sample_document})
+                    template_data["sample_document"] = {
+                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                        "name": file_doc.name,
+                        "file_name": file_doc.file_name
+                    }
+                except frappe.DoesNotExistError:
+                    # Handle case where file document doesn't exist
+                    template_data["sample_document"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
+            else:
+                template_data["sample_document"] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
+            
+            processed_templates.append(template_data)
+
+        return {
+            "status": "success",
+            "message": f"{len(processed_templates)} template(s) found.",
+            "data": processed_templates
+        }
+
+    except frappe.DoesNotExistError:
+        frappe.log_error(frappe.get_traceback(), "Quality Agreement Type Doctype Not Found")
+        return {
+            "status": "error",
+            "message": "Quality Agreement Type doctype does not exist."
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in get_quality_agreement_list")
+        return {
+            "status": "error",
+            "message": f"An unexpected error occurred: {str(e)}"
+        }

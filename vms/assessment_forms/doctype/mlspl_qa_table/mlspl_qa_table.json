@@ -7,28 +7,41 @@
  "engine": "InnoDB",
  "field_order": [
   "document_type",
+  "document_template",
+  "column_break_rfla",
   "qa_attachment"
  ],
  "fields": [
   {
    "fieldname": "document_type",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "in_list_view": 1,
-   "label": "Document Type"
+   "label": "Document Type",
+   "options": "Quality Agreement Type"
   },
   {
    "fieldname": "qa_attachment",
    "fieldtype": "Attach",
    "in_list_view": 1,
    "label": "QA Attachment"
+  },
+  {
+   "fetch_from": "document_type.sample_document",
+   "fieldname": "document_template",
+   "fieldtype": "Attach",
+   "label": "Document Template"
+  },
+  {
+   "fieldname": "column_break_rfla",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-19 11:33:55.746475",
+ "modified": "2025-07-21 10:42:11.968523",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "MLSPL QA Table",
