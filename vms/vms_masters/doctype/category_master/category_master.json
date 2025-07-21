@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "category_name",
+  "section_break_achd",
   "purchase_team_user",
   "name_of_person",
   "purchase_team_contact_number",
@@ -50,21 +51,25 @@
    "options": "User"
   },
   {
-   "fetch_from": "purchase_team_user.full_name",
+   "fetch_from": "alternative_purchase_team.full_name",
    "fieldname": "alternative_name_of_person",
    "fieldtype": "Data",
-   "label": "Name of Person"
+   "label": "Name of Person(Alternate)"
   },
   {
    "fieldname": "alternative_purchase_team_contact_number",
    "fieldtype": "Data",
-   "label": "Purchase Team Contact Number"
+   "label": "Purchase Team Contact Number(Alternate)"
+  },
+  {
+   "fieldname": "section_break_achd",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-15 17:35:45.159908",
+ "modified": "2025-07-21 16:17:11.485961",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Category Master",
