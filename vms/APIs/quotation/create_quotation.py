@@ -3,6 +3,7 @@ import json
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, now
 from frappe import _
+import base64
 
 @frappe.whitelist(allow_guest=True)
 def fetch_rfq_data(name, ref_no):
@@ -220,6 +221,7 @@ def fetch_rfq_data(name, ref_no):
 # do in above code (discussion pending with neel)
 
 
+
 @frappe.whitelist(allow_guest=False)
 def create_or_update_quotation():
     try:
@@ -231,7 +233,7 @@ def create_or_update_quotation():
             except json.JSONDecodeError:
                 data = frappe.local.form_dict
 
-      
+        
         attachments_data = data.pop('attachments', [])
         
         quotation_name = data.get('name')
@@ -240,15 +242,17 @@ def create_or_update_quotation():
             if frappe.db.exists('Quotation', quotation_name):
                 quotation = frappe.get_doc('Quotation', quotation_name)
                 
-                # Update main quotation fields
+                
                 for key, value in data.items():
                     if hasattr(quotation, key) and key != 'name':
                         setattr(quotation, key, value)
                 
-
-                _handle_attachments(quotation, attachments_data)
-                
                 quotation.save()
+                
+        
+                handle_quotation_attachments(quotation, attachments_data)
+                
+                quotation.save()  
                 frappe.db.commit()
                 
                 return {
@@ -263,7 +267,7 @@ def create_or_update_quotation():
             else:
                 data.pop('name', None)
         
-
+        
         quotation = frappe.new_doc('Quotation')
         
         
@@ -272,13 +276,19 @@ def create_or_update_quotation():
         if not data.get('rfq_date_logistic'):
             data['rfq_date_logistic'] = nowdate()
         
+        
         for key, value in data.items():
             if hasattr(quotation, key):
                 setattr(quotation, key, value)
         
-        _handle_attachments(quotation, attachments_data)
         
         quotation.insert()
+        
+        
+        handle_quotation_attachments(quotation, attachments_data)
+        
+        
+        quotation.save()
         frappe.db.commit()
         
         return {
@@ -287,6 +297,7 @@ def create_or_update_quotation():
             "data": {
                 "name": quotation.name,
                 "action": "created",
+                "attachments_count": len(quotation.attachments) if quotation.attachments else 0
             }
         }
         
@@ -316,11 +327,73 @@ def create_or_update_quotation():
         }
 
 
-def _handle_attachments(quotation, attachments_data):
+def handle_quotation_attachments(quotation, attachments_data):
 
     if not attachments_data:
         return
+    
+    
+    if quotation.get('attachments'):
+        quotation.set('attachments', [])
+    
+    for attachment_data in attachments_data:
+        if isinstance(attachment_data, dict):
 
+            attachment_row = quotation.append('attachments', {})
+            
+    
+            if 'name1' in attachment_data:
+                attachment_row.name1 = attachment_data['name1']
+            
+    
+            attachment_info = attachment_data.get('attachment_name')
+            
+            if isinstance(attachment_info, dict):
+        
+                file_content = attachment_info.get('content')  
+                file_name = attachment_info.get('filename')
+                file_type = attachment_info.get('content_type', 'application/octet-stream')
+                
+                if file_content and file_name:
+                    try:
+                    
+                        file_data = base64.b64decode(file_content)
+                        
+                        
+                        file_doc = frappe.get_doc({
+                            "doctype": "File",
+                            "file_name": file_name,
+                            "content": file_data,
+                            "decode": False,
+                            "is_private": 0,  
+                            "attached_to_doctype": "Quotation",
+                            "attached_to_name": quotation.name
+                        })
+                        file_doc.insert()
+                        
+                        
+                        attachment_row.attachment_name = file_doc.file_url
+                        
+                    except Exception as e:
+                        frappe.log_error(f"Error handling attachment {file_name}: {str(e)}", "attachment_error")
+                        
+                        attachment_row.attachment_name = file_name
+            
+            elif isinstance(attachment_info, str):
+    
+                attachment_row.attachment_name = attachment_info
+            
+            
+            for field, value in attachment_data.items():
+                if field not in ['name1', 'attachment_name'] and hasattr(attachment_row, field):
+                    if not isinstance(value, dict):  
+                        setattr(attachment_row, field, value)
+
+
+def handle_quotation_attachments_flat(quotation, attachments_data):
+    if not attachments_data:
+        return
+    
     if quotation.get('attachments'):
         quotation.set('attachments', [])
     
@@ -328,20 +401,40 @@ def _handle_attachments(quotation, attachments_data):
         if isinstance(attachment_data, dict):
             attachment_row = quotation.append('attachments', {})
             
-            for field, value in attachment_data.items():
-                if hasattr(attachment_row, field):
-                    setattr(attachment_row, field, value)
+        
+            if 'name1' in attachment_data:
+                attachment_row.name1 = attachment_data['name1']
             
-            if attachment_data.get('file_content') and attachment_data.get('filename'):
+            if 'file_content' in attachment_data and 'filename' in attachment_data:
+                file_content = attachment_data['file_content']
+                file_name = attachment_data['filename']
+                file_type = attachment_data.get('content_type', 'application/octet-stream')
+                
                 try:
-                    file_doc = _create_file_attachment(
-                        quotation.name,
-                        attachment_data.get('filename'),
-                        attachment_data.get('file_content'),
-                        attachment_data.get('file_type', 'application/octet-stream')
-                    )
-                    attachment_row.file_url = file_doc.file_url
-                    attachment_row.file_name = file_doc.file_name
+    
+                    file_data = base64.b64decode(file_content)
+                    
+
+                    file_doc = frappe.get_doc({
+                        "doctype": "File",
+                        "file_name": file_name,
+                        "content": file_data,
+                        "decode": False,
+                        "is_private": 0,
+                        "attached_to_doctype": "Quotation",
+                        "attached_to_name": quotation.name
+                    })
+                    file_doc.insert()
+                    
+            
+                    attachment_row.attachment_name = file_doc.file_url
+                    
                 except Exception as e:
-                    frappe.log_error(f"File upload error: {str(e)}", "attachment_upload_error")
+                    frappe.log_error(f"Error creating file {file_name}: {str(e)}", "file_creation_error")
+                    attachment_row.attachment_name = file_name
+            
+         
+            elif 'attachment_name' in attachment_data:
+                attachment_row.attachment_name = attachment_data['attachment_name']
+
 
