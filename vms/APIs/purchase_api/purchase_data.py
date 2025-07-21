@@ -24,16 +24,31 @@ def get_purchase_order_data(po_id):
         
         po_data = po_doc.as_dict()
         
-        #  Remove sensitive fields if needed
-        # sensitive_fields = ['owner', 'modified_by', 'creation', 'modified']
-        # for field in sensitive_fields:
-        #     po_data.pop(field, None)
-        
-        return {
-            "status": "success",
-            "message": "Purchase Order data retrieved successfully.",
-            "data": po_data
-        }
+       
+        if po_doc.get('dispatched'):
+            
+            return {
+                "status": "success",
+                "message": "Purchase Order data retrieved successfully.",
+                "data": po_data
+            }
+        else:
+          
+            fields_to_exclude = ['user_confirmation', 'payment_release']  
+            
+            for field in fields_to_exclude:
+                po_data.pop(field, None)
+            
+            #  Remove sensitive fields if needed
+            # sensitive_fields = ['owner', 'modified_by', 'creation', 'modified']
+            # for field in sensitive_fields:
+            #     po_data.pop(field, None)
+            
+            return {
+                "status": "success",
+                "message": "Purchase Order data retrieved successfully.",
+                "data": po_data
+            }
 
     except frappe.PermissionError:
         return {
@@ -53,5 +68,3 @@ def get_purchase_order_data(po_id):
             "status": "error",
             "message": f"An unexpected error occurred: {str(e)}"
         }
-
-
