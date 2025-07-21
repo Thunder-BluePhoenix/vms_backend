@@ -100,7 +100,10 @@
   "vendor_details_section",
   "vendor_details",
   "non_onboarded_vendor_details_section",
-  "non_onboarded_vendor_details"
+  "non_onboarded_vendor_details",
+  "old_rfq_items_section",
+  "data",
+  "table_html"
  ],
  "fields": [
   {
@@ -603,12 +606,27 @@
    "fieldtype": "Select",
    "label": "Service Provider",
    "options": "\nAll Service Provider\nPremium Service Provider\nCourier Service Provider\nAdhoc Service Provider"
+  },
+  {
+   "fieldname": "old_rfq_items_section",
+   "fieldtype": "Section Break",
+   "label": "Old RFQ Items"
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Code",
+   "label": "Data"
+  },
+  {
+   "fieldname": "table_html",
+   "fieldtype": "HTML",
+   "label": "Table HTML"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-20 13:35:25.349641",
+ "modified": "2025-07-21 14:59:48.216198",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
@@ -631,5 +649,8 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
 }
