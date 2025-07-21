@@ -15,6 +15,7 @@
   "company",
   "requisitioner",
   "purchase_group",
+  "purchase_requisition_date",
   "section_break_prrh",
   "purchase_requisition_form_table",
   "approval_status_section",
@@ -226,12 +227,18 @@
    "fieldtype": "Select",
    "label": "Form Status",
    "options": "Pending\nSubmitted"
+  },
+  {
+   "default": "Today",
+   "fieldname": "purchase_requisition_date",
+   "fieldtype": "Date",
+   "label": "Requisition Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 10:19:40.866551",
+ "modified": "2025-07-21 15:18:28.805526",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",

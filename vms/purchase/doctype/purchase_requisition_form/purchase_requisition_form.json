@@ -21,6 +21,7 @@
   "sap_client_code",
   "valuation_area",
   "requisitioner",
+  "purchase_requisition_date",
   "section_break_hrwl",
   "purchase_requisition_form_table"
  ],
@@ -119,12 +120,17 @@
    "fieldtype": "Data",
    "label": "PRF Name for SAP",
    "unique": 1
+  },
+  {
+   "fieldname": "purchase_requisition_date",
+   "fieldtype": "Date",
+   "label": "Requisition Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 13:59:50.413857",
+ "modified": "2025-07-21 15:12:16.600995",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form",
