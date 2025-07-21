@@ -24,6 +24,7 @@
   "vendor_signature",
   "qms_form_status",
   "mail_sent_to_qa_team",
+  "form_fully_submitted",
   "qas_tab",
   "quality_assurance_systems_and_procedures_section",
   "quality_control_system",
@@ -938,12 +939,18 @@
    "fieldname": "for_company_7000",
    "fieldtype": "Check",
    "label": "For Company 7000"
+  },
+  {
+   "default": "0",
+   "fieldname": "form_fully_submitted",
+   "fieldtype": "Check",
+   "label": "Form Fully Submitted "
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-15 18:25:30.959715",
+ "modified": "2025-07-21 17:17:54.223261",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
