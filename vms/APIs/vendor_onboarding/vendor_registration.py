@@ -605,7 +605,8 @@ def send_registration_email_link(vendor_onboarding, refno):
                 "company_code": ",".join(company_codes)
             })
             http_backend_server = frappe.conf.get("backend_http")
-            webform_link = f"{http_backend_server}/qms-webform/new?{query_params}"
+            # webform_link = f"{http_backend_server}/qms-webform/new?{query_params}"
+            webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
             qms_section = f"""
                 <p>As part of your registration, please also complete the QMS Form at the link below:</p>
                 <p style="margin: 15px 0px;">
