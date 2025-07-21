@@ -500,7 +500,7 @@ def save_qms_assessment_complete():
         
         vendor_onboarding_input = data.get('vendor_onboarding')
         ref_no_input = data.get('ref_no')
-        form_data = data.get('form_data', {})
+        form_data = data.get('data', {})
         attachments_data = data.get('attachments', {})
         signatures_data = data.get('signatures', {})
         
