@@ -108,35 +108,69 @@ def update_quotation(doc):
 		if not quotations:
 			return
 
-		rfq_meta = frappe.get_meta("Request For Quotation")
-		quotation_meta = frappe.get_meta("Quotation")
-
-		rfq_fields = [f.fieldname for f in rfq_meta.fields]
-		quotation_fields = [f.fieldname for f in quotation_meta.fields]
-		common_fields = list(set(rfq_fields) & set(quotation_fields))
-
 		for q in quotations:
 			quotation = frappe.get_doc("Quotation", q.name)
-			updated = False
 
-			for field in common_fields:
-				if doc.get(field) is not None:
-					quotation.set(field, doc.get(field))
-					updated = True
+			# logistic
+			quotation.company_name_logistic = doc.company_name_logistic
+			quotation.mode_of_shipment = doc.mode_of_shipment
+			quotation.sr_no = doc.sr_no
+			quotation.rfq_date_logistic = doc.rfq_date_logistic
+			quotation.rfq_cutoff_date = doc.rfq_cutoff_date_logistic
+			quotation.destination_port = doc.destination_port
+			quotation.port_code = doc.port_code
+			quotation.port_of_loading = doc.port_of_loading
+			quotation.inco_terms = doc.inco_terms
+			quotation.shipper_name = doc.shipper_name
+			quotation.package_type = doc.package_type
+			quotation.no_of_pkg_units = doc.no_of_pkg_units
+			quotation.product_category_logistic = doc.product_category
+			quotation.vol_weight = doc.vol_weight
+			quotation.actual_weight = doc.actual_weight
+			quotation.invoice_date = doc.invoice_date
+			quotation.invoice_no = doc.invoice_no
+			quotation.invoice_value = doc.invoice_value
+			quotation.expected_date_of_arrival = doc.expected_date_of_arrival
+			quotation.consignee_name = doc.consignee_name
+			quotation.shipment_date = doc.shipment_date
+			quotation.shipment_type = doc.shipment_type
+			quotation.quantity = doc.quantity
+			quotation.ship_to_address = doc.ship_to_address
 
-			rfq_items = doc.get("rfq_items", [])
-			quotation_items = quotation.get("rfq_item_list", [])
+			# material & services
+			quotation.rfq_date = doc.rfq_date
+			quotation.quotation_deadline = doc.quotation_deadline
+			quotation.company_name = doc.company_name
+			quotation.purchase_organization = doc.purchase_organization
+			quotation.purchase_group = doc.purchase_group
+			quotation.currency = doc.currency
+			quotation.collection_number = doc.collection_number
+			quotation.validity_start_date = doc.validity_start_date
+			quotation.validity_end_date = doc.validity_end_date
+			quotation.bidding_person = doc.bidding_person
+			quotation.storage_location = doc.storage_location
+			quotation.service_location = doc.service_location
+			quotation.service_code = doc.service_code
+			quotation.service_category = doc.service_category
+			quotation.rfq_quantity = doc.rfq_quantity
+			quotation.quantity_unit = doc.quantity_unit
+			quotation.delivery_date = doc.delivery_date
 
-			for i, rfq_row in enumerate(rfq_items):
-				if i < len(quotation_items):
-					quote_row = quotation_items[i]
-					for field in rfq_row.as_dict():
-						if field in quote_row.as_dict() and rfq_row.get(field) is not None:
-							quote_row.set(field, rfq_row.get(field))
-							updated = True
+			# Update child table rows based on idx
+			for rfq_row in doc.rfq_items:
+				for q_row in quotation.rfq_item_list:
+					if rfq_row.idx == q_row.idx:
+						q_row.head_unique_field = rfq_row.head_unique_field
+						q_row.purchase_requisition_number = rfq_row.purchase_requisition_number
+						q_row.material_code_head = rfq_row.material_code_head
+						q_row.delivery_date_head = rfq_row.delivery_date_head
+						q_row.plant_head = rfq_row.plant_head
+						q_row.material_name_head = rfq_row.material_name_head
+						q_row.quantity_head = rfq_row.quantity_head
+						q_row.uom_head = rfq_row.uom_head
+						q_row.price_head = rfq_row.price_head
 
-			if updated:
-				quotation.save(ignore_permissions=True)
+			quotation.save(ignore_permissions=True)
 
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "update_quotation failed")
@@ -154,24 +188,23 @@ def send_mail_on_revised_quotation(doc):
 			email = row.get("office_email_primary")
 			vendor_name = row.get("vendor_name")
 
-			if not email:
+			if not email or not row.mail_sent:
 				continue
-			
-			if row.mail_sent:
-				if quotation_id:
-					link = f"{site_url}/quotation-form?name={doc.name}&quotation={quotation_id}"
-					body = f"""
-						<p> Dear {vendor_name}</p><br
-						<p>The RFQ <strong>{doc.name}</strong> has been revised. Please review your previously submitted quotation <strong>{quotation_id}</strong>.</p>
-						<p><a href="{link}">Click here to view/update the quotation</a></p>
-					"""
-				else:
-					link = f"{site_url}/quotation-form?name={doc.name}&ref_no={ref_no}"
-					body = f"""
-						<p> Dear {vendor_name}</p><br
-						<p>The RFQ <strong>{doc.name}</strong> has been revised. Please review and submit your quotation.</p>
-						<p><a href="{link}">Click here to fill the quotation</a></p>
-					"""
+
+			if quotation_id:
+				link = f"{site_url}/quotation-form?name={doc.name}&quotation={quotation_id}"
+				body = f"""
+					<p>Dear {vendor_name},</p><br/>
+					<p>The RFQ <strong>{doc.name}</strong> has been revised. Please review your previously submitted quotation <strong>{quotation_id}</strong>.</p>
+					<p><a href="{link}">Click here to view/update the quotation</a></p>
+				"""
+			else:
+				link = f"{site_url}/quotation-form?name={doc.name}&ref_no={ref_no}"
+				body = f"""
+					<p>Dear {vendor_name},</p><br/>
+					<p>The RFQ <strong>{doc.name}</strong> has been revised. Please review and submit your quotation.</p>
+					<p><a href="{link}">Click here to fill the quotation</a></p>
+				"""
 
 			frappe.sendmail(
 				recipients=[email],
@@ -186,24 +219,23 @@ def send_mail_on_revised_quotation(doc):
 			email = row.get("office_email_primary")
 			vendor_name = row.get("vendor_name")
 
-			if not email:
+			if not email or not row.mail_sent:
 				continue
-			
-			if row.mail_sent:
-				if quotation_id:
-					link = f"{site_url}/quotation-form?name={doc.name}&quotation={quotation_id}"
-					body = f"""
-						<p> Dear {vendor_name}</p><br
-						<p>The RFQ <strong>{doc.name}</strong> has been revised. Please review your previously submitted quotation <strong>{quotation_id}</strong>.</p>
-						<p><a href="{link}">Click here to view/update the quotation</a></p>
-					"""
-				else:
-					link = f"{site_url}/quotation-form?name={doc.name}"
-					body = f"""
-						<p> Dear {vendor_name}</p><br
-						<p>The RFQ <strong>{doc.name}</strong> has been revised. Please review and submit your quotation.</p>
-						<p><a href="{link}">Click here to fill the quotation</a></p>
-					"""
+
+			if quotation_id:
+				link = f"{site_url}/quotation-form?name={doc.name}&quotation={quotation_id}"
+				body = f"""
+					<p>Dear {vendor_name},</p><br/>
+					<p>The RFQ <strong>{doc.name}</strong> has been revised. Please review your previously submitted quotation <strong>{quotation_id}</strong>.</p>
+					<p><a href="{link}">Click here to view/update the quotation</a></p>
+				"""
+			else:
+				link = f"{site_url}/quotation-form?name={doc.name}"
+				body = f"""
+					<p>Dear {vendor_name},</p><br/>
+					<p>The RFQ <strong>{doc.name}</strong> has been revised. Please review and submit your quotation.</p>
+					<p><a href="{link}">Click here to fill the quotation</a></p>
+				"""
 
 			frappe.sendmail(
 				recipients=[email],
