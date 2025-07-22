@@ -86,6 +86,7 @@
   "estimated_price",
   "section_break_affd",
   "rfq_items",
+  "more_info_tab",
   "deadline_monitoring_section",
   "first_reminder",
   "second_reminder",
@@ -616,12 +617,17 @@
    "fieldtype": "Table",
    "label": "Version History",
    "options": "RFQ Item History"
+  },
+  {
+   "fieldname": "more_info_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-21 17:58:12.702046",
+ "modified": "2025-07-22 10:49:55.568547",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",

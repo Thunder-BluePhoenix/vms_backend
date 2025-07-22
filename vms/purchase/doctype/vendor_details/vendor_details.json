@@ -6,6 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "vendor_details_section",
   "ref_no",
   "vendor_name",
   "vendor_code",
@@ -13,7 +14,9 @@
   "mobile_number",
   "service_provider_type",
   "country",
-  "mail_sent"
+  "mail_sent",
+  "more_info_section",
+  "quotation"
  ],
  "fields": [
   {
@@ -65,13 +68,29 @@
    "fieldtype": "Link",
    "label": "Service Provider Type",
    "options": "Service Provider Type"
+  },
+  {
+   "fieldname": "vendor_details_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Details"
+  },
+  {
+   "fieldname": "more_info_section",
+   "fieldtype": "Section Break",
+   "label": "More Info"
+  },
+  {
+   "fieldname": "quotation",
+   "fieldtype": "Link",
+   "label": "Quotation",
+   "options": "Quotation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-18 11:35:17.042114",
+ "modified": "2025-07-22 08:06:19.717824",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Vendor Details",

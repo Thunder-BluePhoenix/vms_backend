@@ -18,7 +18,7 @@ class Quotation(Document):
 			self._old_items = {}
 	
 	def on_update(self):
-		
+		set_quotation_id_in_rfq(self)
 		if hasattr(self, '_old_items'):
 			self.track_child_table_changes()
 	
@@ -110,4 +110,24 @@ class Quotation(Document):
 					cleaned_data[key] = value
 		
 		return cleaned_data
+	
+
+# set quotation id in rfq for those vendor who fill the quotation already
+def set_quotation_id_in_rfq(doc):
+	if not doc.rfq_number:
+		return
+
+	rfq = frappe.get_doc("Request For Quotation", doc.rfq_number)
+
+	# Onboarded vendors
+	if doc.ref_no and rfq.vendor_details:
+		for row in rfq.vendor_details:
+			if row.ref_no == doc.ref_no and not row.quotation:
+				frappe.db.set_value("Vendor Details", row.name, "quotation", doc.name)
+
+	# Non-onboarded vendors
+	if doc.office_email_primary and rfq.non_onboarded_vendor_details:
+		for row in rfq.non_onboarded_vendor_details:
+			if row.office_email_primary == doc.office_email_primary and not row.quotation:
+				frappe.db.set_value("Non Onboarded Vendor Details", row.name, "quotation", doc.name)
 
