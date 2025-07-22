@@ -352,44 +352,113 @@ def vendor_data_for_purchase(usr, user_roles):
 def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None):
     try:
         purchase_team_user = frappe.session.user
+        
+       
         cart_categories = frappe.get_all("Category Master",
                                          filters={"purchase_team_user": purchase_team_user},
                                          fields=["name"])
-        cart_category_names = [c.name for c in cart_categories]
         
-        if not cart_category_names:
+        
+        alternate_cart_categories = frappe.get_all("Category Master",
+                                                  filters={"alternative_purchase_team": purchase_team_user},
+                                                  fields=["name"])
+        
+        cart_category_names = [c.name for c in cart_categories]
+        alternate_cart_category_names = [c.name for c in alternate_cart_categories]
+        
+        
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        
+        
+        all_filters = []
+        
+       
+        if cart_category_names:
+            all_filters.append({"category_type": ("in", cart_category_names)})
+        
+        
+        if alternate_cart_category_names:
+            all_filters.append([
+                {"category_type": ("in", alternate_cart_category_names)},
+                {"mailed_to_alternate_purchase_team": 1}
+            ])
+        
+        if not all_filters:
             return {
                 "status": "success",
                 "message": "No categories found for the user.",
                 "cart_details": [],
                 "total_count": 0,
-                "page_no": 1,
-                "page_length": 5
+                "page_no": page_no,
+                "page_length": page_length
             }
         
-        # Total count for pagination
-        total_count = frappe.db.count("Cart Details", 
-                                     filters={"category_type": ("in", cart_category_names)})
         
-        # Pagination
-        page_no = int(page_no) if page_no else 1
-        page_length = int(page_length) if page_length else 5
+        total_count = 0
+        
+        if cart_category_names:
+            primary_count = frappe.db.count("Cart Details", 
+                                           filters={"category_type": ("in", cart_category_names)})
+            total_count += primary_count
+        
+        if alternate_cart_category_names:
+            alternate_count = frappe.db.count("Cart Details", 
+                                             filters=[
+                                                 {"category_type": ("in", alternate_cart_category_names)},
+                                                 {"mailed_to_alternate_purchase_team": 1}
+                                             ])
+            total_count += alternate_count
+        
+        
+        all_cart_details = []
+        
+        
+        if cart_category_names:
+            primary_pi = frappe.get_all("Cart Details",
+                                       filters={"category_type": ("in", cart_category_names)},
+                                       fields="*",
+                                       order_by="modified desc")
+            all_cart_details.extend(primary_pi)
+        
+        
+        if alternate_cart_category_names:
+            alternate_pi = frappe.get_all("Cart Details",
+                                         filters=[
+                                             {"category_type": ("in", alternate_cart_category_names)},
+                                             {"mailed_to_alternate_purchase_team": 1}
+                                         ],
+                                         fields="*",
+                                         order_by="modified desc")
+            all_cart_details.extend(alternate_pi)
+        
+        
+        seen_names = set()
+        unique_cart_details = []
+        for item in all_cart_details:
+            if item.name not in seen_names:
+                seen_names.add(item.name)
+                unique_cart_details.append(item)
+        
+        
+        unique_cart_details.sort(key=lambda x: x.modified, reverse=True)
+        
+        
         start = (page_no - 1) * page_length
+        end = start + page_length
+        paginated_cart_details = unique_cart_details[start:end]
         
-        all_pi = frappe.get_all("Cart Details",
-                               filters={"category_type": ("in", cart_category_names)},
-                               order_by="modified desc",
-                               fields="*",
-                               start=start,
-                               page_length=page_length)
+        
+        actual_total_count = len(unique_cart_details)
         
         return {
             "status": "success",
             "message": "Cart details fetched successfully.",
-            "cart_details": all_pi,
-            "total_count": total_count,
+            "cart_details": paginated_cart_details,
+            "total_count": actual_total_count,
             "page_no": page_no,
-            "page_length": page_length
+            "page_length": page_length,
+            "total_pages": (actual_total_count + page_length - 1) // page_length
         }
         
     except Exception as e:
@@ -398,8 +467,13 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None):
             "status": "error",
             "message": "Failed to fetch cart details.",
             "error": str(e),
-            "cart_details": []
+            "cart_details": [],
+            "total_count": 0,
+            "page_no": page_no if page_no else 1,
+            "page_length": page_length if page_length else 5
         }
+    
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -520,35 +594,46 @@ def get_pi(page_no=None, page_length=None):
 @frappe.whitelist(allow_guest=True)
 def get_pi_details(pi_name):
     try:
-        # Fetch the PI (Cart Details) document
+        
         pi = frappe.get_doc("Cart Details", pi_name)
         user = frappe.session.user
-
-        # Get employee linked to the current user
         employee = frappe.get_doc("Employee", {"user_id": user})
-
-        # Get cart owner employee
+        
         cart_owner_emp = frappe.get_doc("Employee", {"user_id": pi.user})
+        cat_type = frappe.get_doc("Category Master", pi.category_type)
+        
         hod = 0
+        purchase_team = 0
+
         if cart_owner_emp.reports_to == employee.name:
             hod = 1
 
-        # Get category type and purchase team user
-        cat_type = frappe.get_doc("Category Master", pi.category_type)
-        purchase_team = 0
         if cat_type.purchase_team_user:
             try:
                 cart_team_emp = frappe.get_doc("Employee", {"user_id": cat_type.purchase_team_user})
                 if cart_team_emp.name == employee.name:
                     purchase_team = 1
             except frappe.DoesNotExistError:
-                pass  # Skip if purchase team user does not map to Employee
+                pass  
+
+        if pi.mailed_to_alternate_purchase_team == 1:
+            
+            if cat_type.alternative_purchase_team == user:
+                purchase_team = 1
+            if cat_type.alternative_purchase_team:
+                try:
+                    alternate_team_emp = frappe.get_doc("Employee", {"user_id": cat_type.alternative_purchase_team})
+                    if alternate_team_emp.reports_to == employee.name:
+                        hod = 1
+                except frappe.DoesNotExistError:
+                    pass  
 
         # Return all necessary info
         pi_dict = pi.as_dict()
         pi_dict.update({
             "hod": hod,
             "purchase_team": purchase_team
+            # "is_alternate_purchase_team": pi.mailed_to_alternate_purchase_team
         })
 
         return pi_dict
@@ -558,7 +643,6 @@ def get_pi_details(pi_name):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "get_pi_details Error")
         frappe.throw(_("An unexpected error occurred while fetching PI details."))
-
 
 
 @frappe.whitelist(allow_guest = True)
