@@ -105,7 +105,12 @@
   "status",
   "country",
   "more_info_tab",
-  "table_tbvu"
+  "table_tbvu",
+  "section_break_unla",
+  "approved",
+  "asked_to_revise",
+  "column_break_bgwt",
+  "bidding_status"
  ],
  "fields": [
   {
@@ -655,12 +660,38 @@
    "fieldname": "table_tbvu",
    "fieldtype": "Table",
    "options": "RFQ Item History"
+  },
+  {
+   "fieldname": "section_break_unla",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "approved",
+   "fieldtype": "Check",
+   "label": "Approved"
+  },
+  {
+   "default": "0",
+   "fieldname": "asked_to_revise",
+   "fieldtype": "Check",
+   "label": "Asked to Revise"
+  },
+  {
+   "fieldname": "bidding_status",
+   "fieldtype": "Select",
+   "label": "Bidding Status",
+   "options": "\nWin\nLose"
+  },
+  {
+   "fieldname": "column_break_bgwt",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-21 17:02:15.089050",
+ "modified": "2025-07-22 16:06:20.201171",
  "modified_by": "abhishek@mail.hybrowlabs.com",
  "module": "Purchase",
  "name": "Quotation",

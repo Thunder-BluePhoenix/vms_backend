@@ -242,14 +242,17 @@ def create_or_update_quotation():
             if frappe.db.exists('Quotation', quotation_name):
                 quotation = frappe.get_doc('Quotation', quotation_name)
                 
-                
+				
                 for key, value in data.items():
                     if hasattr(quotation, key) and key != 'name':
                         setattr(quotation, key, value)
                 
+                
+                quotation.asked_to_revise = 0
+                
                 quotation.save()
                 
-        
+                
                 handle_quotation_attachments(quotation, attachments_data)
                 
                 quotation.save()  
@@ -267,26 +270,22 @@ def create_or_update_quotation():
             else:
                 data.pop('name', None)
         
-        
         quotation = frappe.new_doc('Quotation')
-        
         
         if not data.get('rfq_date'):
             data['rfq_date'] = nowdate()
         if not data.get('rfq_date_logistic'):
             data['rfq_date_logistic'] = nowdate()
         
-        
         for key, value in data.items():
             if hasattr(quotation, key):
                 setattr(quotation, key, value)
         
+        quotation.asked_to_revise = 0
         
         quotation.insert()
         
-        
         handle_quotation_attachments(quotation, attachments_data)
-        
         
         quotation.save()
         frappe.db.commit()
