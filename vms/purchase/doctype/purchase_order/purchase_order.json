@@ -527,6 +527,7 @@
   {
    "fieldname": "po_items",
    "fieldtype": "Table",
+   "label": "Items",
    "options": "Purchase Order Item"
   },
   {
@@ -778,7 +779,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 18:34:15.613622",
+ "modified": "2025-07-22 16:49:43.349867",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
