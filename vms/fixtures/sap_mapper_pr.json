@@ -961,7 +961,7 @@
   "docstatus": 0,
   "doctype": "SAP Mapper PR",
   "doctype_name": "Purchase Order",
-  "modified": "2025-05-23 15:53:12.677038",
+  "modified": "2025-07-22 18:53:33.077239",
   "name": "Purchase Order",
   "table_cjfk": [
    {
@@ -2069,6 +2069,83 @@
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "LGORT"
+   },
+   {
+    "erp_field": "approval_level1",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGC1"
+   },
+   {
+    "erp_field": "approval_level2",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGC2"
+   },
+   {
+    "erp_field": "approval_level3",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGC3"
+   },
+   {
+    "erp_field": "approval_level4",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGC4"
+   },
+   {
+    "erp_field": "approval_level5",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGC5"
+   },
+   {
+    "erp_field": "approval_level6",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGC6"
+   },
+   {
+    "erp_field": "release_status",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGET"
+   },
+   {
+    "erp_field": "rel_status",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "FRGZU"
+   },
+   {
+    "erp_field": "approval_1",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ANAME1"
+   },
+   {
+    "erp_field": "approval_2",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ANAME2"
+   },
+   {
+    "erp_field": "approval_3",
+    "parent": "Purchase Order",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "ANAME3"
    }
   ]
  }
