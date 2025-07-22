@@ -101,9 +101,8 @@
   "vendor_details",
   "non_onboarded_vendor_details_section",
   "non_onboarded_vendor_details",
-  "old_rfq_items_section",
-  "data",
-  "table_html"
+  "version_history_section",
+  "version_history"
  ],
  "fields": [
   {
@@ -608,25 +607,21 @@
    "options": "\nAll Service Provider\nPremium Service Provider\nCourier Service Provider\nAdhoc Service Provider"
   },
   {
-   "fieldname": "old_rfq_items_section",
+   "fieldname": "version_history_section",
    "fieldtype": "Section Break",
-   "label": "Old RFQ Items"
+   "label": "Version History"
   },
   {
-   "fieldname": "data",
-   "fieldtype": "Code",
-   "label": "Data"
-  },
-  {
-   "fieldname": "table_html",
-   "fieldtype": "HTML",
-   "label": "Table HTML"
+   "fieldname": "version_history",
+   "fieldtype": "Table",
+   "label": "Version History",
+   "options": "RFQ Item History"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-21 14:59:48.216198",
+ "modified": "2025-07-21 17:58:12.702046",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
