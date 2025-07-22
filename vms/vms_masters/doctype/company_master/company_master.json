@@ -10,7 +10,17 @@
   "company_code",
   "company_name",
   "company_short_form",
-  "description"
+  "description",
+  "column_break_otai",
+  "gstin_number",
+  "dl_number",
+  "ssi_region_number",
+  "company_logo",
+  "company_address_section",
+  "street_1",
+  "street_2",
+  "city",
+  "pincode"
  ],
  "fields": [
   {
@@ -39,12 +49,61 @@
    "fieldname": "description",
    "fieldtype": "Long Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "column_break_otai",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gstin_number",
+   "fieldtype": "Data",
+   "label": "GSTIN Number"
+  },
+  {
+   "fieldname": "dl_number",
+   "fieldtype": "Data",
+   "label": "D/L Number"
+  },
+  {
+   "fieldname": "ssi_region_number",
+   "fieldtype": "Data",
+   "label": "SSI Region Number"
+  },
+  {
+   "fieldname": "company_logo",
+   "fieldtype": "Attach",
+   "label": "Company Logo"
+  },
+  {
+   "fieldname": "company_address_section",
+   "fieldtype": "Section Break",
+   "label": "Company Address"
+  },
+  {
+   "fieldname": "street_1",
+   "fieldtype": "Data",
+   "label": "Street 1"
+  },
+  {
+   "fieldname": "street_2",
+   "fieldtype": "Data",
+   "label": "Street 2"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City"
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Data",
+   "label": "Pincode"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-10 12:58:40.379822",
+ "modified": "2025-07-22 18:21:02.240948",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Company Master",
