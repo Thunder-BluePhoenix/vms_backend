@@ -15,6 +15,7 @@
   "company",
   "ref_no",
   "vendor_name1",
+  "vendor_title",
   "date1",
   "name_of_parent_company",
   "name_of_manufacturer_of_supplied_material",
@@ -945,12 +946,19 @@
    "fieldname": "form_fully_submitted",
    "fieldtype": "Check",
    "label": "Form Fully Submitted "
+  },
+  {
+   "fetch_from": "ref_no.vendor_title",
+   "fieldname": "vendor_title",
+   "fieldtype": "Link",
+   "label": "Vendor Title",
+   "options": "Vendor Title"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-21 17:17:54.223261",
+ "modified": "2025-07-22 10:47:53.363606",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
