@@ -949,16 +949,16 @@
    "label": "Meril Signature"
   },
   {
-   "fieldname": "meril_signed_date",
-   "fieldtype": "Date",
-   "label": "Meril Signed Date"
-  },
-  {
-    "default": "0",
-   "fieldname": "form_fully_submitted",
-   "fieldtype": "Check",
-   "label": "Form Fully Submitted "
-  },
+  "fieldname": "meril_signed_date",
+  "fieldtype": "Date",
+  "label": "Meril Signed Date",
+  "default": "0"
+},
+{
+  "fieldname": "form_fully_submitted",
+  "fieldtype": "Check",
+  "label": "Form Fully Submitted"
+},
   {
    "fetch_from": "ref_no.vendor_title",
    "fieldname": "vendor_title",
