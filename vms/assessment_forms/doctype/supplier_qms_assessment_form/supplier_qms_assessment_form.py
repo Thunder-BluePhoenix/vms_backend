@@ -8,16 +8,17 @@ from datetime import datetime
 
 
 class SupplierQMSAssessmentForm(Document):
-	def on_update(self):
+    def on_update(self):
 
-		# set_unique_data(self, method=None)
-		# set_qms_form_link(self, method=None)
-		set_qms_form_link_unique_data(self, method=None)
-		update_multiselect_child_fields(self, method=None)
+        # set_unique_data(self, method=None)
+        # set_qms_form_link(self, method=None)
+        set_qms_form_link_unique_data(self, method=None)
+        update_multiselect_child_fields(self, method=None)
 
-		set_unique_data(self, method=None)
-		set_qms_form_link(self, method=None)
-		send_mail_qa_team(self, method=None)
+        set_unique_data(self, method=None)
+        set_qms_form_link(self, method=None)
+        if self.form_fully_submitted:
+            send_mail_qa_team(self, method=None)
 		
 
 
