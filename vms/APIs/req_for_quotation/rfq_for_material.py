@@ -378,9 +378,60 @@ def get_full_data_material_rfq(name):
 
 
 # send revised quotation
-# @frappe.whitelist(allow_guest=False)
-# def send_revised_quotation(data):
-# 	if data.get("name"):
-# 		rfq = frappe.get_doc("Request for Quotation", data.get("name"))
 
-# 		for row in rfq.rfq_items:
+@frappe.whitelist(allow_guest=False)
+def send_revised_quotation(data):
+	if not data.get("name"):
+		frappe.throw(_("Missing RFQ name"))
+
+	rfq = frappe.get_doc("Request For Quotation", data.get("name"))
+
+	main_fields = [
+		"status", "company_name_logistic", "rfq_cutoff_date_logistic", "mode_of_shipment",
+		"destination_port", "port_of_loading", "ship_to_address", "no_of_pkg_units", "vol_weight",
+		"invoice_date", "shipment_date", "remarks", "expected_date_of_arrival", "service_provider",
+		"consignee_name", "sr_no", "rfq_date_logistic", "country", "port_code", "inco_terms",
+		"package_type", "product_category", "actual_weight", "invoice_no", "invoice_value",
+		"shipment_type", "material", "quantity", "shipper_name", "rfq_date", "rfq_cutoff_date",
+		"company_name", "purchase_organization", "purchase_group", "currency", "collection_number",
+		"quotation_deadline", "validity_start_date", "validity_end_date", "requestor_name",
+		"bidding_person", "material_code", "material_category", "plant_code", "storage_location",
+		"short_text", "catalogue_number", "service_code", "service_location", "service_category",
+		"quantity_and_date_section", "rfq_quantity", "quantity_unit", "delivery_date",
+		"add_expected_budgetary_target_price_section", "estimated_price", "first_reminder",
+		"second_reminder", "third_reminder"
+	]
+
+	# Update main fields
+	for field in main_fields:
+		if field in data:
+			rfq.set(field, data.get(field))
+
+	# Update child table rows if passed
+	if data.get("rfq_items"):
+		for row in data["rfq_items"]:
+			if not row:
+				continue
+
+			child_row = None
+			if "row_id" in row:
+				child_row = next((r for r in rfq.rfq_items if r.name == row["row_id"]), None)
+
+			if child_row:
+				for key in [
+					"head_unique_field", "purchase_requisition_number", "material_code_head",
+					"delivery_date_head", "plant_head", "material_name_head", "quantity_head",
+					"uom_head", "price_head", "rate_head", "moq_head", "lead_time_head", "tax",
+					"subhead_unique_field", "material_code_subhead", "material_name_subhead",
+					"quantity_subhead", "delivery_date_subhead", "uom_subhead", "price_subhead",
+					"rate_subhead", "moq_subhead", "lead_time_subhead"
+				]:
+					if key in row:
+						child_row.set(key, row[key])
+
+	# Set status explicitly if required
+	rfq.status = "Revised RFQ"
+	rfq.save(ignore_permissions=True)
+
+	return {"status": "success", "message": "RFQ updated with revised quotation"}
+

@@ -117,9 +117,11 @@
   "vendor_name",
   "name_of_person",
   "signed_date",
+  "meril_signed_date",
   "column_break_jdgf",
   "designation_of_person",
   "person_signature",
+  "meril_signature",
   "list_of_products_in_qa_section",
   "products_in_qa",
   "mlspl_qa_section",
@@ -938,12 +940,22 @@
    "fieldname": "for_company_7000",
    "fieldtype": "Check",
    "label": "For Company 7000"
+  },
+  {
+   "fieldname": "meril_signature",
+   "fieldtype": "Signature",
+   "label": "Meril Signature"
+  },
+  {
+   "fieldname": "meril_signed_date",
+   "fieldtype": "Date",
+   "label": "Meril Signed Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-15 18:25:30.959715",
+ "modified": "2025-07-22 13:01:18.409491",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
