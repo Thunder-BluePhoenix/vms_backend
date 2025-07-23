@@ -102,8 +102,10 @@
   "vendor_details",
   "non_onboarded_vendor_details_section",
   "non_onboarded_vendor_details",
+  "tab_3_tab",
   "version_history_section",
-  "version_history"
+  "version_history",
+  "history_html"
  ],
  "fields": [
   {
@@ -615,6 +617,7 @@
   {
    "fieldname": "version_history",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Version History",
    "options": "RFQ Item History"
   },
@@ -622,12 +625,22 @@
    "fieldname": "more_info_tab",
    "fieldtype": "Tab Break",
    "label": "More Info"
+  },
+  {
+   "fieldname": "tab_3_tab",
+   "fieldtype": "Tab Break",
+   "label": "History"
+  },
+  {
+   "fieldname": "history_html",
+   "fieldtype": "HTML",
+   "label": "History"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 10:49:55.568547",
+ "modified": "2025-07-23 14:56:40.906016",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
