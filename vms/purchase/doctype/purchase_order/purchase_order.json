@@ -391,7 +391,7 @@
   },
   {
    "fieldname": "currency",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Currency",
    "options": "Currency Master"
   },
@@ -504,15 +504,13 @@
   },
   {
    "fieldname": "bill_to_company",
-   "fieldtype": "Link",
-   "label": "Bill To Company",
-   "options": "Company Master"
+   "fieldtype": "Data",
+   "label": "Bill To Company"
   },
   {
    "fieldname": "ship_to_company",
-   "fieldtype": "Link",
-   "label": "Ship To Company",
-   "options": "Company Master"
+   "fieldtype": "Data",
+   "label": "Ship To Company"
   },
   {
    "fieldname": "supplier_name",
@@ -793,7 +791,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-23 16:59:57.622769",
+ "modified": "2025-07-23 17:15:33.899685",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
@@ -835,6 +833,19 @@
    "read": 1,
    "report": 1,
    "role": "Vendor",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
    "select": 1,
    "share": 1,
    "write": 1
