@@ -94,9 +94,6 @@
   "instructions",
   "section_break_mqft",
   "po_items",
-  "section_break_oqgf",
-  "user_confirmation",
-  "payment_release",
   "tab_2_tab",
   "status",
   "reason_for_rejection",
@@ -128,7 +125,14 @@
   "rel_status",
   "approval_1",
   "approval_2",
-  "approval_3"
+  "approval_3",
+  "section_break_oqgf",
+  "user_confirmation",
+  "payment_release",
+  "goods_not_received",
+  "remarks",
+  "remarks_for_vendor",
+  "remarks_for_accounts_team"
  ],
  "fields": [
   {
@@ -369,6 +373,7 @@
    "label": "Phone/Mobile no."
   },
   {
+   "description": "This email is for the Vendor.",
    "fieldname": "email",
    "fieldtype": "Data",
    "label": "Email"
@@ -432,6 +437,7 @@
    "label": "Phone No"
   },
   {
+   "description": "This email is for the Purchase Team.",
    "fieldname": "email2",
    "fieldtype": "Data",
    "label": "Email"
@@ -498,13 +504,13 @@
   },
   {
    "fieldname": "bill_to_company",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Bill To Company",
    "options": "Company Master"
   },
   {
    "fieldname": "ship_to_company",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Ship To Company",
    "options": "Company Master"
   },
@@ -516,7 +522,6 @@
   {
    "fieldname": "po_items",
    "fieldtype": "Table",
-   "label": "Items",
    "options": "Purchase Order Item"
   },
   {
@@ -685,7 +690,7 @@
   {
    "fieldname": "section_break_oqgf",
    "fieldtype": "Section Break",
-   "label": "Checks For API"
+   "label": "More Info API"
   },
   {
    "default": "1",
@@ -762,6 +767,27 @@
    "fieldname": "approval_3",
    "fieldtype": "Data",
    "label": "Approval 3"
+  },
+  {
+   "default": "0",
+   "fieldname": "goods_not_received",
+   "fieldtype": "Check",
+   "label": "Goods Not Received"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks For User"
+  },
+  {
+   "fieldname": "remarks_for_vendor",
+   "fieldtype": "Small Text",
+   "label": "Remarks for Vendor"
+  },
+  {
+   "fieldname": "remarks_for_accounts_team",
+   "fieldtype": "Small Text",
+   "label": "Remarks for Accounts Team"
   }
  ],
  "grid_page_length": 50,
