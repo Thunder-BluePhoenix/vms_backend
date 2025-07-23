@@ -386,3 +386,18 @@ def send_thank_you_email_to_vendor(quotation):
         frappe.log_error(f"Error sending thank you email for quotation {quotation.name}: {str(e)}")
         raise e
 
+
+
+@frappe.whitelist(allow_guest=True)
+def get_quotation_details(quotation_name):
+    try:
+        quotation = frappe.get_doc("Quotation", quotation_name)
+        quotation_dict = quotation.as_dict()
+        
+        return quotation_dict
+        
+    except frappe.DoesNotExistError:
+        frappe.throw(f"Quotation '{quotation_name}' not found")
+    except Exception as e:
+        frappe.log_error(f"Error in get_quotation_details: {str(e)}")
+        frappe.throw(f"An error occurred while fetching Quotation details: {str(e)}")
