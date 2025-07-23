@@ -133,15 +133,13 @@
  "fields": [
   {
    "fieldname": "rfq_code",
-   "fieldtype": "Link",
-   "label": "RFQ Code",
-   "options": "Request For Quotation"
+   "fieldtype": "Data",
+   "label": "RFQ Code"
   },
   {
    "fieldname": "purchase_organization",
-   "fieldtype": "Link",
-   "label": "Purchase Organization",
-   "options": "Purchase Organization Master"
+   "fieldtype": "Data",
+   "label": "Purchase Organization"
   },
   {
    "fieldname": "purchase_group",
@@ -151,9 +149,8 @@
   },
   {
    "fieldname": "company_code",
-   "fieldtype": "Link",
-   "label": "Company Code",
-   "options": "Company Master"
+   "fieldtype": "Data",
+   "label": "Company Code"
   },
   {
    "fieldname": "collection_number",
@@ -246,27 +243,23 @@
   },
   {
    "fieldname": "city",
-   "fieldtype": "Link",
-   "label": "City",
-   "options": "City Master"
+   "fieldtype": "Data",
+   "label": "City"
   },
   {
    "fieldname": "district",
-   "fieldtype": "Link",
-   "label": "District",
-   "options": "District Master"
+   "fieldtype": "Data",
+   "label": "District"
   },
   {
    "fieldname": "state",
-   "fieldtype": "Link",
-   "label": "State",
-   "options": "State Master"
+   "fieldtype": "Data",
+   "label": "State"
   },
   {
    "fieldname": "country",
-   "fieldtype": "Link",
-   "label": "Country",
-   "options": "Country Master"
+   "fieldtype": "Data",
+   "label": "Country"
   },
   {
    "fieldname": "pincode",
@@ -301,27 +294,23 @@
   },
   {
    "fieldname": "shipping_city",
-   "fieldtype": "Link",
-   "label": "City",
-   "options": "City Master"
+   "fieldtype": "Data",
+   "label": "City"
   },
   {
    "fieldname": "shipping_district",
-   "fieldtype": "Link",
-   "label": "District",
-   "options": "District Master"
+   "fieldtype": "Data",
+   "label": "District"
   },
   {
    "fieldname": "shipping_state",
-   "fieldtype": "Link",
-   "label": "State",
-   "options": "State Master"
+   "fieldtype": "Data",
+   "label": "State"
   },
   {
    "fieldname": "shipping_country",
-   "fieldtype": "Link",
-   "label": "Country",
-   "options": "Country Master"
+   "fieldtype": "Data",
+   "label": "Country"
   },
   {
    "fieldname": "shipping_pincode",
@@ -532,9 +521,8 @@
   },
   {
    "fieldname": "po_plant",
-   "fieldtype": "Link",
-   "label": "PO Plant",
-   "options": "Plant Master"
+   "fieldtype": "Data",
+   "label": "PO Plant"
   },
   {
    "fieldname": "purchase_order_category",
@@ -779,7 +767,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 16:49:43.349867",
+ "modified": "2025-07-23 16:59:57.622769",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
@@ -795,6 +783,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -807,6 +796,7 @@
    "read": 1,
    "report": 1,
    "role": "Guest",
+   "select": 1,
    "share": 1,
    "write": 1
   },
