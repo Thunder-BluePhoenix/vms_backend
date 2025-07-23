@@ -359,9 +359,7 @@ def erp_to_sap_vendor_data(onb_ref):
             gst_adderss_text = ", ".join(filter(None, [
                                                             gst_city,
                                                             gst_district,
-                                                            gst_state,
-                                                            f"PIN: {gst_pin}" if gst_pin else None,
-                                                            gst_cuntry
+                                                            gst_state
                                                         ]))
 
 
