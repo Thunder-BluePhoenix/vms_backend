@@ -98,6 +98,7 @@
   "status",
   "reason_for_rejection",
   "approved_from_vendor",
+  "sent_to_vendor",
   "column_break_brva",
   "approved_by",
   "approved_by_name",
@@ -786,12 +787,18 @@
    "fieldname": "remarks_for_accounts_team",
    "fieldtype": "Small Text",
    "label": "Remarks for Accounts Team"
+  },
+  {
+   "default": "0",
+   "fieldname": "sent_to_vendor",
+   "fieldtype": "Check",
+   "label": "Sent To Vendor"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-23 17:15:33.899685",
+ "modified": "2025-07-23 18:03:26.805588",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",

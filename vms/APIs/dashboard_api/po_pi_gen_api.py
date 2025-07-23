@@ -176,6 +176,8 @@ def vendor_data_for_purchase(usr, user_roles):
                 "message": "No Employee record found for the logged-in user.",
                 "vendor_count": 0
             }
+        
+        pur_group = frappe.db.get_value("Purchase Group Master", {"team":team }, "name")
 
         user_ids = frappe.get_all(
             "Employee",
@@ -226,6 +228,12 @@ def vendor_data_for_purchase(usr, user_roles):
         approved_vendor_count = frappe.db.count(
             "Vendor Onboarding",
             filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Approved"}
+        )
+
+
+        purchase_order_count = frappe.db.count(
+            "Purchase Order",
+            filters={"purchase_group": pur_group}
         )
 
 
@@ -327,6 +335,7 @@ def vendor_data_for_purchase(usr, user_roles):
             "rejected_vendor_count": rejected_vendor_count,
             "expired_vendor_count": expired_vendor_count,
             "current_month_vendor": current_month_vendor,
+            "purchase_order_count": purchase_order_count,
             "cart_count":cart_count,
             "pr_count":pr_count,
             "all_carts":user_cart_count,

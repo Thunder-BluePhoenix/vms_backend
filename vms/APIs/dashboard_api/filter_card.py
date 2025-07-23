@@ -1232,6 +1232,8 @@ def filtering_po_details(page_no=None, page_length=None, company=None, refno=Non
                 "message": "No Employee record found for the user.",
                 "po": []
             }
+        
+        pur_grp = frappe.db.get_value("Purchase Group Master", {"team": team}, "name")
 
         user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
         if not user_ids:
@@ -1241,8 +1243,11 @@ def filtering_po_details(page_no=None, page_length=None, company=None, refno=Non
                 "po": []
             }
 
-        conditions.append("po.email IN %(user_ids)s")
-        values["user_ids"] = user_ids
+        conditions.append("po.purchase_group IN %(pur_grp)s")
+        values["purchase_group"] = pur_grp
+
+        # conditions.append("po.email IN %(user_ids)s")
+        # values["user_ids"] = user_ids
 
         # Add additional filters if provided
         if company:
