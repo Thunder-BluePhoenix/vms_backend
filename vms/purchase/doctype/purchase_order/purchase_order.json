@@ -94,9 +94,6 @@
   "instructions",
   "section_break_mqft",
   "po_items",
-  "section_break_oqgf",
-  "user_confirmation",
-  "payment_release",
   "tab_2_tab",
   "status",
   "reason_for_rejection",
@@ -128,7 +125,12 @@
   "rel_status",
   "approval_1",
   "approval_2",
-  "approval_3"
+  "approval_3",
+  "section_break_oqgf",
+  "user_confirmation",
+  "payment_release",
+  "goods_not_received",
+  "remarks"
  ],
  "fields": [
   {
@@ -380,6 +382,7 @@
    "label": "Phone/Mobile no."
   },
   {
+   "description": "This email is for the Vendor.",
    "fieldname": "email",
    "fieldtype": "Data",
    "label": "Email"
@@ -443,6 +446,7 @@
    "label": "Phone No"
   },
   {
+   "description": "This email is for the Purchase Team.",
    "fieldname": "email2",
    "fieldtype": "Data",
    "label": "Email"
@@ -527,7 +531,6 @@
   {
    "fieldname": "po_items",
    "fieldtype": "Table",
-   "label": "Items",
    "options": "Purchase Order Item"
   },
   {
@@ -697,7 +700,7 @@
   {
    "fieldname": "section_break_oqgf",
    "fieldtype": "Section Break",
-   "label": "Checks For API"
+   "label": "More Info API"
   },
   {
    "default": "1",
@@ -774,13 +777,24 @@
    "fieldname": "approval_3",
    "fieldtype": "Data",
    "label": "Approval 3"
+  },
+  {
+   "default": "0",
+   "fieldname": "goods_not_received",
+   "fieldtype": "Check",
+   "label": "Goods Not Received"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Long Text",
+   "label": "Remarks"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 16:49:43.349867",
- "modified_by": "Administrator",
+ "modified": "2025-07-23 11:28:25.392198",
+ "modified_by": "abhishek@mail.hybrowlabs.com",
  "module": "Purchase",
  "name": "Purchase Order",
  "naming_rule": "Expression",
