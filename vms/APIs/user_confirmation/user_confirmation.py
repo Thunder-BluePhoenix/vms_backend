@@ -233,7 +233,7 @@ def handle_po_confirmation(po_id, response):
             )
         else:
             po_doc.user_confirmation = 1
-            pd_doc.goods_not_received = 1
+            po_doc.goods_not_received = 1
             po_doc.save(ignore_permissions=True)
             frappe.db.commit()
 
