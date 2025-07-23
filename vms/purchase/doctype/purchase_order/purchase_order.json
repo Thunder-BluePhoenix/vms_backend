@@ -130,7 +130,9 @@
   "user_confirmation",
   "payment_release",
   "goods_not_received",
-  "remarks"
+  "remarks",
+  "remarks_for_vendor",
+  "remarks_for_accounts_team"
  ],
  "fields": [
   {
@@ -513,13 +515,13 @@
   },
   {
    "fieldname": "bill_to_company",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Bill To Company",
    "options": "Company Master"
   },
   {
    "fieldname": "ship_to_company",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Ship To Company",
    "options": "Company Master"
   },
@@ -786,14 +788,24 @@
   },
   {
    "fieldname": "remarks",
-   "fieldtype": "Long Text",
-   "label": "Remarks"
+   "fieldtype": "Small Text",
+   "label": "Remarks For User"
+  },
+  {
+   "fieldname": "remarks_for_vendor",
+   "fieldtype": "Small Text",
+   "label": "Remarks for Vendor"
+  },
+  {
+   "fieldname": "remarks_for_accounts_team",
+   "fieldtype": "Small Text",
+   "label": "Remarks for Accounts Team"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-23 11:28:25.392198",
+ "modified": "2025-07-23 15:48:12.521082",
  "modified_by": "abhishek@mail.hybrowlabs.com",
  "module": "Purchase",
  "name": "Purchase Order",

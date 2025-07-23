@@ -282,11 +282,21 @@ def handle_po_confirmation(po_id, response):
         )
 
 
-
 @frappe.whitelist(allow_guest=True)
-def send_payment_release_notification_api(po_id):
-   
+def send_payment_release_notification_api():
     try:
+        # Get data from request body (JSON or form data)
+        if frappe.request.method == "POST":
+            if frappe.request.content_type and 'application/json' in frappe.request.content_type:
+                data = frappe.request.get_json()
+            else:
+                data = frappe.form_dict
+        else:
+            data = frappe.form_dict
+        
+        po_id = data.get("po_id")
+        remark = data.get("remark", "")  # Get remark from request data
+        
         if not po_id:
             return {
                 "status": "error",
@@ -299,23 +309,29 @@ def send_payment_release_notification_api(po_id):
                 "message": f"Purchase Order '{po_id}' not found."
             }
 
-        
         po_doc = frappe.get_doc("Purchase Order", po_id)
+        
+        if remark:
+            current_remarks = po_doc.get("remarks_for_accounts_team") or ""
+            new_remark = f"{remark}"
+            
+            if current_remarks:
+                po_doc.remarks_for_accounts_team = f"{current_remarks}\n{new_remark}"
+            else:
+                po_doc.remarks_for_accounts_team = new_remark
+        
         po_doc.payment_release = 0
         po_doc.save(ignore_permissions=True)
         frappe.db.commit()
         
-        
-        company_code = po_doc.get("company_code")
+        company_code = po_doc.get("bill_to_company")
         if not company_code:
             return {
                 "status": "error",
-                "message": "Company code not found in Purchase Order."
+                "message": "Company name not found in Purchase Order."
             }
 
-        
         accounts_team_emails = []
-        
         
         employees = frappe.get_all("Employee", fields=["name", "user_id"])
         
@@ -326,10 +342,8 @@ def send_payment_release_notification_api(po_id):
             try:
                 emp_doc = frappe.get_doc("Employee", employee.name)
             
-            
                 if hasattr(emp_doc, 'company') and emp_doc.company:
                     company_code_match = False
-                    
                     
                     for company_row in emp_doc.company:
                         print(company_row.company_name)
@@ -341,7 +355,6 @@ def send_payment_release_notification_api(po_id):
                         user_roles = frappe.get_all("Has Role", 
                                                   filters={"parent": employee.user_id, "role": "Accounts Team"}, 
                                                   fields=["role"])
-                        
                         
                         if user_roles:
                             user_email = frappe.get_value("User", employee.user_id, "email")
@@ -357,14 +370,20 @@ def send_payment_release_notification_api(po_id):
                 frappe.log_error(f"Error processing employee {employee.name}: {str(emp_error)}", "Employee Processing Error")
                 continue
         
-        
         if not accounts_team_emails:
             return {
                 "status": "error",
                 "message": f"No accounts team members found for company code: {company_code}"
             }
         
-       
+        remark_section = ""
+        if remark:
+            remark_section = f"""
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
+                    <strong>Remark:</strong> {remark} by finance team
+                </div>
+            """
+        
         successful_emails = 0
         failed_emails = 0
         
@@ -380,13 +399,14 @@ def send_payment_release_notification_api(po_id):
                         
                         <p>Good news! We have received confirmation that Material have been delivered for the following purchase order. You can now proceed with payment release.</p>
                         
-                        
                         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
                             <strong>Purchase Order Details:</strong><br>
                             <strong>PO Number:</strong> {po_doc.name}<br>
                             <strong>Company Code:</strong> {company_code}<br>
                             <strong>Delivery Date:</strong> {frappe.utils.format_date(po_doc.delivery_date) if po_doc.delivery_date else 'Not specified'}<br>
                         </div>
+                        
+                        {remark_section}
                         
                         <div style="background-color: #cce5ff; border: 1px solid #99ccff; color: #004085; padding: 15px; border-radius: 5px; margin: 20px 0;">
                             <strong>Action Required:</strong> Please proceed with payment release for this purchase order as Material delivery has been confirmed.
@@ -411,11 +431,11 @@ def send_payment_release_notification_api(po_id):
                 frappe.log_error(f"Error sending email to {member['email']}: {str(email_error)}", "Accounts Team Email Error")
                 failed_emails += 1
         
-        
         if successful_emails > 0:
             return {
                 "status": "success",
                 "message": f"Payment release notification sent successfully to {successful_emails} accounts team member(s).",
+                "remark_saved": bool(remark),
                 "details": {
                     "po_id": po_id,
                     "company_code": company_code,
@@ -446,52 +466,93 @@ def send_payment_release_notification_api(po_id):
         }
 
 
-
 @frappe.whitelist(allow_guest=True)
-def send_vendor_delivery_issue_email(po_id):
+def send_vendor_delivery_issue_email():
     try:
+        
+        if frappe.request.method == "POST":
+            if frappe.request.content_type and 'application/json' in frappe.request.content_type:
+                data = frappe.request.get_json()
+            else:
+                data = frappe.form_dict
+        else:
+            data = frappe.form_dict
+        
+        po_id = data.get("po_id")
+        remark = data.get("remark", "")  
+        
+        if not po_id:
+            return {"status": "error", "message": "Missing required field: 'po_id'."}
+        
         if not frappe.db.exists("Purchase Order", po_id):
             return {"status": "error", "message": f"Purchase Order '{po_id}' not found."}
 
         po_doc = frappe.get_doc("Purchase Order", po_id)
         
+        # Store remark in PO's remarks field if provided
+        if remark:
+            current_remarks = po_doc.get("remarks_for_vendor") or ""
+            
+            new_remark = f"{remark}"
+            
+            if current_remarks:
+                po_doc.remarks_for_vendor = f"{current_remarks}\n{new_remark}"
+            else:
+                po_doc.remarks_for_vendor = new_remark
+            
+            po_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+        
         vendor_email = po_doc.get("email")
         
-
         if not vendor_email:
             return {"status": "error", "message": "No email found for vendor."}
         
-        if vendor_email:
-            try:
-                vendor_subject = f"Delivery Issue - PO: {po_doc.name}"
-                vendor_message = f"""
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #dc3545;">Delivery Issue Notification</h2>
-                        <p>Dear Vendor,</p>
-                        <p>We have received feedback that Material have <strong>NOT been delivered</strong> for the following purchase order:</p>
-                        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <strong>PO Number:</strong> {po_doc.name}<br>
-                        </div>
-                        <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <strong>Action Required:</strong> Please check the delivery status and contact us immediately to resolve this issue.
-                        </div>
-                        <p>Regards,<br>VMS Team</p>
+      
+        remark_section = ""
+        if remark:
+            remark_section = f"""
+                <div style="background-color: #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #fdcb6e;">
+                    <strong>Issue Details:</strong> {remark} by delivery team
+                </div>
+            """
+        
+        try:
+            vendor_subject = f"Delivery Issue - PO: {po_doc.name}"
+            vendor_message = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #dc3545;">Delivery Issue Notification</h2>
+                    <p>Dear Vendor,</p>
+                    <p>We have received feedback that Material have <strong>NOT been delivered</strong> for the following purchase order:</p>
+                    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                        <strong>PO Number:</strong> {po_doc.name}<br>
                     </div>
-                """
-                frappe.sendmail(
-                    recipients=[vendor_email],
-                    subject=vendor_subject,
-                    message=vendor_message,
-                    now=True
-                )
-                return {"status": "success", "message": "Vendor email sent successfully", "vendor_email": vendor_email}
-            except Exception as email_error:
-                frappe.log_error(f"Error sending vendor email: {str(email_error)}", "Vendor Email Send Error")
-                return {"status": "error", "message": "Error sending vendor email"}
-        else:
-            return {"status": "warning", "message": "Vendor email not found"}
+                    
+                    {remark_section}
+                    
+                    <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                        <strong>Action Required:</strong> Please check the delivery status and contact us immediately to resolve this issue.
+                    </div>
+                    <p>Please provide an update on the delivery status at your earliest convenience.</p>
+                    <p>Regards,<br>VMS Team</p>
+                </div>
+            """
+            frappe.sendmail(
+                recipients=[vendor_email],
+                subject=vendor_subject,
+                message=vendor_message,
+                now=True
+            )
+            return {
+                "status": "success", 
+                "message": "Vendor email sent successfully", 
+                "vendor_email": vendor_email,
+                "remark_saved": bool(remark)
+            }
+        except Exception as email_error:
+            frappe.log_error(f"Error sending vendor email: {str(email_error)}", "Vendor Email Send Error")
+            return {"status": "error", "message": "Error sending vendor email"}
             
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Send Vendor Email API Error")
         return {"status": "error", "message": "An error occurred while sending vendor email"}
-
