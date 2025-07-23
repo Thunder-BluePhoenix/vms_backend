@@ -11,7 +11,12 @@
   "esignature",
   "section_break_olrk",
   "sap_text_name",
-  "sap_signature"
+  "sign_name",
+  "sap_signature",
+  "column_break_ewkv",
+  "purchase_grp_indicator",
+  "release_strategy",
+  "po_sign_designation"
  ],
  "fields": [
   {
@@ -38,7 +43,8 @@
   },
   {
    "fieldname": "section_break_olrk",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "SAP Signature"
   },
   {
    "fieldname": "sap_text_name",
@@ -49,12 +55,36 @@
    "fieldname": "sap_signature",
    "fieldtype": "Attach",
    "label": "SAP Signature"
+  },
+  {
+   "fieldname": "sign_name",
+   "fieldtype": "Data",
+   "label": "Sign Name"
+  },
+  {
+   "fieldname": "column_break_ewkv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "purchase_grp_indicator",
+   "fieldtype": "Data",
+   "label": "Purchase Grp Indicator"
+  },
+  {
+   "fieldname": "release_strategy",
+   "fieldtype": "Data",
+   "label": "Release Strategy"
+  },
+  {
+   "fieldname": "po_sign_designation",
+   "fieldtype": "Data",
+   "label": "PO Sign Designation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 18:09:16.958518",
+ "modified": "2025-07-23 12:04:37.657748",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Signature Record",
