@@ -688,7 +688,7 @@ def handle_attachment_fields(doc, attachments_data):
 def handle_signature_fields(doc, signatures_data):
     """Handle signature fields (Signature fieldtype)"""
     signature_fields = [
-        'vendor_signature', 'person_signature', 'performer_esignature', 'ssignature'
+        'vendor_signature', 'person_signature', 'performer_esignature', 'ssignature', 'meril_signature'
     ]
     
     for field_name in signature_fields:
