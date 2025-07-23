@@ -115,7 +115,20 @@
   "column_break_ztfg",
   "dispatched",
   "section_break_tkov",
-  "dispatch_ids"
+  "dispatch_ids",
+  "approval_levels_section",
+  "approval_level1",
+  "approval_level2",
+  "approval_level3",
+  "approval_level4",
+  "approval_level5",
+  "approval_level6",
+  "column_break_glnz",
+  "release_status",
+  "rel_status",
+  "approval_1",
+  "approval_2",
+  "approval_3"
  ],
  "fields": [
   {
@@ -697,6 +710,70 @@
    "fieldname": "payment_release",
    "fieldtype": "Check",
    "label": "Payment release"
+  },
+  {
+   "fieldname": "approval_levels_section",
+   "fieldtype": "Section Break",
+   "label": "Approval Levels"
+  },
+  {
+   "fieldname": "approval_level1",
+   "fieldtype": "Data",
+   "label": "Approval Level1"
+  },
+  {
+   "fieldname": "approval_level2",
+   "fieldtype": "Data",
+   "label": "Approval Level2"
+  },
+  {
+   "fieldname": "approval_level3",
+   "fieldtype": "Data",
+   "label": "Approval Level3"
+  },
+  {
+   "fieldname": "approval_level4",
+   "fieldtype": "Data",
+   "label": "Approval Level4"
+  },
+  {
+   "fieldname": "approval_level5",
+   "fieldtype": "Data",
+   "label": "Approval Level5"
+  },
+  {
+   "fieldname": "approval_level6",
+   "fieldtype": "Data",
+   "label": "Approval Level6"
+  },
+  {
+   "fieldname": "column_break_glnz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "release_status",
+   "fieldtype": "Data",
+   "label": "Release Status"
+  },
+  {
+   "fieldname": "rel_status",
+   "fieldtype": "Data",
+   "label": "Rel. Status"
+  },
+  {
+   "fieldname": "approval_1",
+   "fieldtype": "Data",
+   "label": "Approval 1"
+  },
+  {
+   "fieldname": "approval_2",
+   "fieldtype": "Data",
+   "label": "Approval 2"
+  },
+  {
+   "fieldname": "approval_3",
+   "fieldtype": "Data",
+   "label": "Approval 3"
   }
  ],
  "grid_page_length": 50,
