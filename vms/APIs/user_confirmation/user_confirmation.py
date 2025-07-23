@@ -40,6 +40,7 @@ def send_po_user_confirmation():
                 po_doc.remarks = new_remark
         
         po_doc.user_confirmation = 0
+        po_doc.status = "Comfrimation Pending From User"
         po_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
@@ -71,7 +72,7 @@ def send_po_user_confirmation():
         if remark:
             remark_section = f"""
                 <div style="background-color: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #007bff;">
-                    <strong>Remark:</strong> {remark} by purchase team
+                    <strong>Remark:</strong> {remark} 
                 </div>
             """
         
@@ -253,6 +254,7 @@ def handle_po_confirmation(po_id, response):
 
         if response.lower() == 'yes':
             po_doc.payment_release = 1
+            po_doc.status = "Confirmed By User"
             po_doc.save(ignore_permissions=True)
             frappe.db.commit()
 
@@ -264,6 +266,7 @@ def handle_po_confirmation(po_id, response):
         else:
             po_doc.user_confirmation = 1
             po_doc.goods_not_received = 1
+            po_doc.status = "Goods Not Received"
             po_doc.save(ignore_permissions=True)
             frappe.db.commit()
 
@@ -321,15 +324,21 @@ def send_payment_release_notification_api():
                 po_doc.remarks_for_accounts_team = new_remark
         
         po_doc.payment_release = 0
+        po_doc.status = "Send to Accounts Team For Payment Release"
         po_doc.save(ignore_permissions=True)
         frappe.db.commit()
         
-        company_code = po_doc.get("bill_to_company")
+        company_code_from_po = po_doc.get("bill_to_company")
+        company_code = None
+
+        if company_code_from_po:
+            company_code = frappe.db.get_value("Company Master", {"company_name": company_code_from_po}, "name")
         if not company_code:
             return {
                 "status": "error",
                 "message": "Company name not found in Purchase Order."
             }
+        print("Company Codegggggggggggggggggg:", company_code)
 
         accounts_team_emails = []
         
@@ -346,7 +355,6 @@ def send_payment_release_notification_api():
                     company_code_match = False
                     
                     for company_row in emp_doc.company:
-                        print(company_row.company_name)
                         if hasattr(company_row, 'company_name') and company_row.company_name == company_code:
                             company_code_match = True
                             break
@@ -380,7 +388,7 @@ def send_payment_release_notification_api():
         if remark:
             remark_section = f"""
                 <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
-                    <strong>Remark:</strong> {remark} by finance team
+                    <strong>Remark:</strong> {remark}
                 </div>
             """
         
@@ -500,6 +508,9 @@ def send_vendor_delivery_issue_email():
             else:
                 po_doc.remarks_for_vendor = new_remark
             
+            po_doc.user_confirmation = 1
+            po_doc.goods_not_received = 0
+            po_doc.status = "GRN Generated"
             po_doc.save(ignore_permissions=True)
             frappe.db.commit()
         
@@ -513,7 +524,7 @@ def send_vendor_delivery_issue_email():
         if remark:
             remark_section = f"""
                 <div style="background-color: #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #fdcb6e;">
-                    <strong>Issue Details:</strong> {remark} by delivery team
+                    <strong>Issue Details:</strong> {remark}
                 </div>
             """
         
