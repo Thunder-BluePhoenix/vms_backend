@@ -13,7 +13,8 @@ def send_po_user_confirmation():
             data = frappe.form_dict
         
         po_id = data.get("po_id")
-        remark = data.get("remark", "")  # Get remark from request data
+        remark = data.get("remark", "")  
+        purchase_requisitioner = data.get("email")
         
         if not po_id:
             return {
@@ -43,29 +44,12 @@ def send_po_user_confirmation():
         po_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
-        pr_no = po_doc.get("ref_pr_no")
-        if not pr_no:
-            return {
-                "status": "error",
-                "message": "Purchase Requisition Number (ref_pr_no) not found in the PO."
-            }
         
-        
-        pr_form_name = frappe.db.get_value("Purchase Requisition Form", {"sap_pr_code": pr_no}, "name")
-        
-        if not pr_form_name:
-            return {
-                "status": "error",
-                "message": f"Purchase Requisition Form with sap_pr_code '{pr_no}' not found."
-            }
-        
-        pr_doc = frappe.get_doc("Purchase Requisition Form", pr_form_name) 
-        purchase_requisitioner = pr_doc.get("requisitioner")
 
         if not purchase_requisitioner:
             return {
                 "status": "error",
-                "message": "Purchase requisitioner not found in the PR."
+                "message": "Purchase requisitioner is not in Data."
             }
 
         requisitioner_email = purchase_requisitioner  
