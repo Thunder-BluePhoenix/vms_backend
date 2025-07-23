@@ -30,10 +30,9 @@ def send_po_user_confirmation():
 
         po_doc = frappe.get_doc("Purchase Order", po_id)
         
-        
         if remark:
             current_remarks = po_doc.get("remarks") or ""
-            new_remark = f"Remark: {remark} by purchase team - {frappe.utils.format_datetime(frappe.utils.now())}"
+            new_remark = f"{remark}"
             
             if current_remarks:
                 po_doc.remarks = f"{current_remarks}\n{new_remark}"
@@ -43,8 +42,6 @@ def send_po_user_confirmation():
         po_doc.user_confirmation = 0
         po_doc.save(ignore_permissions=True)
         frappe.db.commit()
-
-        
 
         if not purchase_requisitioner:
             return {
@@ -64,12 +61,11 @@ def send_po_user_confirmation():
         if not requisitioner_name:
             requisitioner_name = "User" 
 
-        subject = f"Goods Confirmation Required - PO: {po_doc.name}"
+        subject = f"Material Confirmation Required - PO: {po_doc.name}"
         
         base_url = frappe.utils.get_url()
         yes_url = f"{base_url}/api/method/vms.APIs.user_confirmation.user_confirmation.handle_po_confirmation?po_id={po_id}&response=yes"
         no_url = f"{base_url}/api/method/vms.APIs.user_confirmation.user_confirmation.handle_po_confirmation?po_id={po_id}&response=no"
-        
         
         remark_section = ""
         if remark:
@@ -79,10 +75,41 @@ def send_po_user_confirmation():
                 </div>
             """
         
+        items_table = ""
+        if po_doc.po_items:
+            items_rows = ""
+            for item in po_doc.po_items:
+                items_rows += f"""
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">{item.product_code or ''}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">{item.product_name or ''}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">{item.quantity or 0}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">{frappe.utils.fmt_money(item.rate or 0, currency=po_doc.currency or 'INR')}</td>
+                    </tr>
+                """
+            
+            items_table = f"""
+                <div style="margin: 20px 0;">
+                    <h4 style="color: #333; margin-bottom: 10px;">Purchase Order Items:</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                        <thead>
+                            <tr style="background-color: #f8f9fa;">
+                                <th style="padding: 12px; border: 1px solid #ddd; text-align: left; font-weight: bold;">Product Code</th>
+                                <th style="padding: 12px; border: 1px solid #ddd; text-align: left; font-weight: bold;">Product Name</th>
+                                <th style="padding: 12px; border: 1px solid #ddd; text-align: center; font-weight: bold;">Qty</th>
+                                <th style="padding: 12px; border: 1px solid #ddd; text-align: right; font-weight: bold;">Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items_rows}
+                        </tbody>
+                    </table>
+                </div>
+            """
         
         message = f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">Goods Delivery Confirmation</h2>
+            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+                <h2 style="color: #333;">Material Delivery Confirmation</h2>
                 
                 <p>Dear {requisitioner_name},</p>
                 
@@ -91,12 +118,15 @@ def send_po_user_confirmation():
                 <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <strong>Purchase Order Details:</strong><br>
                     <strong>PO Number:</strong> {po_doc.name}<br>
-                    <strong>Delivery Date:</strong> {frappe.utils.format_date(po_doc.delivery_date) if po_doc.delivery_date else 'Not specified'}<br>
+                    <strong>Delivery Date:</strong> {frappe.utils.format_date(po_doc.po_date) if po_doc.po_date else 'Not specified'}<br>
+
                 </div>
                 
                 {remark_section}
                 
-                <h3 style="color: #333;">Question: Have you received your goods?</h3>
+                {items_table}
+                
+                <h3 style="color: #333;">Question: Have you received your Material?</h3>
                 
                 <div id="button-container" style="text-align: center; margin: 30px 0;">
                     <a href="{yes_url}" onclick="handleButtonClick(this, 'yes')" style="background-color: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 0 10px; display: inline-block; font-weight: bold;">YES</a>
@@ -110,7 +140,7 @@ def send_po_user_confirmation():
                 </div>
                 
                 <p style="font-size: 12px; color: #666; margin-top: 30px;">
-                    Please click on the appropriate button above to confirm the status of your goods delivery.
+                    Please click on the appropriate button above to confirm the status of your Material delivery.
                 </p>
                 
                 <p>Regards,<br>VMS Team</p>
@@ -125,7 +155,7 @@ def send_po_user_confirmation():
                         const statusText = document.getElementById('status-text');
                         
                         if (response === 'yes') {{
-                            statusText.innerHTML = '✓ Thank you! You have confirmed that goods have been received.';
+                            statusText.innerHTML = '✓ Thank you! You have confirmed that Material have been received.';
                         }} else {{
                             statusText.innerHTML = '⚠ Thank you for reporting the issue. We will follow up on the delivery status.';
                         }}
@@ -348,7 +378,7 @@ def send_payment_release_notification_api(po_id):
                         
                         <p>Dear {member['name']},</p>
                         
-                        <p>Good news! We have received confirmation that goods have been delivered for the following purchase order. You can now proceed with payment release.</p>
+                        <p>Good news! We have received confirmation that Material have been delivered for the following purchase order. You can now proceed with payment release.</p>
                         
                         
                         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
@@ -359,7 +389,7 @@ def send_payment_release_notification_api(po_id):
                         </div>
                         
                         <div style="background-color: #cce5ff; border: 1px solid #99ccff; color: #004085; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <strong>Action Required:</strong> Please proceed with payment release for this purchase order as goods delivery has been confirmed.
+                            <strong>Action Required:</strong> Please proceed with payment release for this purchase order as Material delivery has been confirmed.
                         </div>
                         
                         <p>Please process the payment at your earliest convenience.</p>
@@ -438,7 +468,7 @@ def send_vendor_delivery_issue_email(po_id):
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2 style="color: #dc3545;">Delivery Issue Notification</h2>
                         <p>Dear Vendor,</p>
-                        <p>We have received feedback that goods have <strong>NOT been delivered</strong> for the following purchase order:</p>
+                        <p>We have received feedback that Material have <strong>NOT been delivered</strong> for the following purchase order:</p>
                         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
                             <strong>PO Number:</strong> {po_doc.name}<br>
                         </div>
