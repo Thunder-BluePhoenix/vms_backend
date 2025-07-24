@@ -85,7 +85,7 @@ def filter_purchase_group(company):
         pur_grp = frappe.get_all(
             "Purchase Group Master",
             filters={"company": company},
-            fields=["purchase_group_code", "purchase_group_name", "description"]
+            fields=["name", "purchase_group_code", "purchase_group_name", "description"]
         )
 
         return {
