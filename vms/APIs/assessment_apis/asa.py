@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 import json
 from frappe.utils.file_manager import save_file
+from frappe.utils.file_manager import get_file_url
 
 
 @frappe.whitelist(allow_guest=True)
@@ -428,19 +429,193 @@ def get_data_ann_ass_form(name):
 				"file_name": ""
 			}
 
-		# Section 3: Linked Documents
-		linked_documents = {
-			"governance_doc": ann_doc.governance_doctype,
-			"social_doc": ann_doc.social_doctype,
-			"environment_doc": ann_doc.environment_doctype
-		}
+		# linked_documents = {
+		# 	"governance_doc": ann_doc.governance_doctype,
+		# 	"social_doc": ann_doc.social_doctype,
+		# 	"environment_doc": ann_doc.environment_doctype
+		# }
+
+		env_manage_system = {}
+		energy_cons_emis = {}
+		water_cons_mang = {}
+		waste_management = {}
+		green_products = {}
+		biodiversity = {}
+		labor_rights_condi = {}
+		griv_mechanism = {}
+		emp_well_being = {}
+		health_safety = {}
+		emp_satisfaction = {}
+		governance = {}
+
+		if ann_doc.environment_doctype:
+			env_doc = frappe.get_doc("Environment Annual Supplier Assessment Questionnaire", ann_doc.environment_doctype)
+
+			# Environmental Management System section
+			env_manage_system = {
+				"environment_sustainability_policy": env_doc.environment_sustainability_policy,
+				"environmental_management_certification": env_doc.environmental_management_certification,
+				"regular_audits_conducted": env_doc.regular_audits_conducted,
+			}
+			for i in range(1, 4):
+				field = f"upload_file_{i}"
+				env_manage_system[field] = get_file_data(getattr(env_doc, field, None))
+
+			# Energy Consumption and Emissions
+			energy_cons_emis = {
+				"energy_consumption_tracking": env_doc.energy_consumption_tracking,
+				"total_energy_consumed": env_doc.total_energy_consumed,
+				"company_track_greenhouse_gas": env_doc.company_track_greenhouse_gas,
+				"scope_wise_chg_emission": env_doc.scope_wise_chg_emission,
+				"consume_renewable_energy": env_doc.consume_renewable_energy,
+				"total_renewable_energy_consumption": env_doc.total_renewable_energy_consumption,
+				"have_system_to_control_air_emission": env_doc.have_system_to_control_air_emission,
+				"details_of_system_to_control_air_emission": env_doc.details_of_system_to_control_air_emission,
+				"have_target_for_increase_renewable_share": env_doc.have_target_for_increase_renewable_share,
+				"mention_target_for_increase_renewable_share": env_doc.mention_target_for_increase_renewable_share,
+				"have_target_to_reduce_energy_consumption": env_doc.have_target_to_reduce_energy_consumption,
+				"mention_target_to_reduce_energy_consumption": env_doc.mention_target_to_reduce_energy_consumption,
+				"have_plan_to_improve_energy_efficiency": env_doc.have_plan_to_improve_energy_efficiency,
+				"list_plan_to_improve_energy_efficiency": env_doc.list_plan_to_improve_energy_efficiency,
+				"have_targets_to_reduce_emission": env_doc.have_targets_to_reduce_emission,
+				"details_of_targets_to_reduce_emission": env_doc.details_of_targets_to_reduce_emission,
+				"pcf_conducted": env_doc.pcf_conducted
+			}
+			for i in range(4, 13):
+				field = f"upload_file_{i}"
+				energy_cons_emis[field] = get_file_data(getattr(env_doc, field, None))
+
+			# Water Consumption and Management
+			water_cons_mang = {
+				"water_source_tracking": env_doc.water_source_tracking,
+				"have_permission_for_groundwater": env_doc.have_permission_for_groundwater,
+				"has_system_to_track_water_withdrawals": env_doc.has_system_to_track_water_withdrawals,
+				"have_facility_to_recycle_wastewater": env_doc.have_facility_to_recycle_wastewater,
+				"have_zld_strategy": env_doc.have_zld_strategy,
+				"have_initiatives_to_increase_water_efficiency": env_doc.have_initiatives_to_increase_water_efficiency,
+				"details_to_increase_water_efficiency": env_doc.details_to_increase_water_efficiency,
+				"have_targets_to_reduce_water_consumption": env_doc.have_targets_to_reduce_water_consumption,
+				"targets_to_reduce_water_consumption": env_doc.targets_to_reduce_water_consumption
+			}
+			for i in range(13, 20):
+				field = f"upload_file_{i}"
+				water_cons_mang[field] = get_file_data(getattr(env_doc, field, None))
+
+			# Waste Management
+			waste_management = {
+				"track_waste_generation": env_doc.track_waste_generation,
+				"handover_waste_to_authorized_vendor": env_doc.handover_waste_to_authorized_vendor,
+				"vendor_audits_for_waste_management": env_doc.vendor_audits_for_waste_management,
+				"have_epr_for_waste_management": env_doc.have_epr_for_waste_management,
+				"have_goals_to_reduce_waste": env_doc.have_goals_to_reduce_waste,
+				"details_of_goals_to_reduce_waste": env_doc.details_of_goals_to_reduce_waste
+			}
+			for i in range(20, 25):
+				field = f"upload_file_{i}"
+				waste_management[field] = get_file_data(getattr(env_doc, field, None))
+
+			# Green Products
+			green_products = {
+				"certified_green_projects": env_doc.certified_green_projects,
+				"upload_file_25": get_file_data(getattr(env_doc, "upload_file_25", None))
+			}
+
+			# Biodiversity
+			biodiversity = {
+				"have_policy_on_biodiversity": env_doc.have_policy_on_biodiversity,
+				"upload_file_26": get_file_data(getattr(env_doc, "upload_file_26", None))
+			}
+
+		if ann_doc.social_doctype:
+			social_doc = frappe.get_doc("Social Annual Supplier Assessment Questionnaire", ann_doc.social_doctype)
+
+			labor_rights_condi = {
+				"have_prohibition_policy_of_child_labor": social_doc.have_prohibition_policy_of_child_labor,
+				"age_verification_before_hiring": social_doc.age_verification_before_hiring,
+				"ensure_modern_slavery_labor_policy": social_doc.ensure_modern_slavery_labor_policy,
+				"have_non_discrimination_policy": social_doc.have_non_discrimination_policy,
+				"has_setup_safety_report_incidents": social_doc.has_setup_safety_report_incidents,
+				"pending_legal_cases_workplace_harassment": social_doc.pending_legal_cases_workplace_harassment,
+				"details_of_pending_legal_cases": social_doc.details_of_pending_legal_cases,
+				"comply_minimum_wage_law_regulation": social_doc.comply_minimum_wage_law_regulation,
+				"legal_working_hours": social_doc.legal_working_hours,
+				"work_hrs_track_by_company": social_doc.work_hrs_track_by_company,
+				"has_diversity_inclusion_policy": social_doc.has_diversity_inclusion_policy,
+				"have_target_to_promote_diversity": social_doc.have_target_to_promote_diversity,
+				"details_of_targets": social_doc.details_of_targets
+			}
+			for i in range(1, 12):
+				field = f"upload_file_{i}"
+				labor_rights_condi[field] = get_file_data(getattr(social_doc, field, None))
+
+			griv_mechanism = {
+				"have_grievance_mechanism": social_doc.have_grievance_mechanism,
+				"upload_file_12": get_file_data(getattr(social_doc, "upload_file_12", None))
+			}
+
+			emp_well_being = {
+				"any_emp_well_being_initiative": social_doc.any_emp_well_being_initiative,
+				"details_of_initiatives": social_doc.details_of_initiatives,
+				"upload_file_13": get_file_data(getattr(social_doc, "upload_file_13", None))
+			}
+
+			health_safety = {
+				"has_develop_health_safety_policy": social_doc.has_develop_health_safety_policy,
+				"have_healthy_safety_management": social_doc.have_healthy_safety_management,
+				"conduct_hira_activity": social_doc.conduct_hira_activity,
+				"certify_ohs_system": social_doc.certify_ohs_system,
+				"emp_trained_health_safety": social_doc.emp_trained_health_safety,
+				"mention_behavior_base_safety": social_doc.mention_behavior_base_safety,
+				"track_health_safety_indicators": social_doc.track_health_safety_indicators,
+				"provide_any_healthcare_services": social_doc.provide_any_healthcare_services,
+				"details_of_healthcare_services": social_doc.details_of_healthcare_services
+			}
+			for i in range(14, 21):
+				field = f"upload_file_{i}"
+				health_safety[field] = get_file_data(getattr(social_doc, field, None))
+
+			emp_satisfaction = {
+				"conduct_esat": social_doc.conduct_esat,
+				"esat_score": social_doc.esat_score,
+				"upload_file_21": get_file_data(getattr(social_doc, "upload_file_21", None))
+			}
+
+		if ann_doc.governance_doctype:
+			gov_doc = frappe.get_doc("Governance Annual Supplier Assessment Questionnaire", ann_doc.governance_doctype)
+			governance = {
+				"have_formal_governance_structure": gov_doc.have_formal_governance_structure,
+				"esg_policies_coverage": gov_doc.esg_policies_coverage,
+				"esg_risk_integration": gov_doc.esg_risk_integration,
+				"company_publish_sustainability_report": gov_doc.company_publish_sustainability_report,
+				"esg_rating_participated": gov_doc.esg_rating_participated,
+				"esg_rating_score": gov_doc.esg_rating_score,
+				"esg_incentive_for_employee": gov_doc.esg_incentive_for_employee,
+				"csat_survey_conducted": gov_doc.csat_survey_conducted,
+				"csat_score": gov_doc.csat_score,
+				"instance_of_loss_customer_data": gov_doc.instance_of_loss_customer_data,
+				"no_of_loss_data_incidents": gov_doc.no_of_loss_data_incidents
+			}
+			for i in range(1, 8):
+				field = f"upload_file_{i}"
+				governance[field] = get_file_data(getattr(gov_doc, field, None))
 
 		return {
 			"status": "success",
 			"message": "Data fetched successfully",
 			"company_information": company_information,
 			"general_disclosure": general_disclosure,
-			"linked_documents": linked_documents
+			"env_manage_system": env_manage_system,
+			"energy_cons_emis": energy_cons_emis,
+			"water_cons_mang": water_cons_mang,
+			"waste_management": waste_management,
+			"green_products": green_products,
+			"biodiversity": biodiversity,
+			"labor_rights_condi": labor_rights_condi,
+			"griv_mechanism": griv_mechanism,
+			"emp_well_being": emp_well_being,
+			"health_safety": health_safety,
+			"emp_satisfaction": emp_satisfaction,
+			"governance": governance
 		}
 
 	except Exception as e:
@@ -452,4 +627,17 @@ def get_data_ann_ass_form(name):
 		}
 
 
-
+def get_file_data(file_url):
+	if file_url:
+		file_doc = frappe.get_doc("File", {"file_url": file_url})
+		return {
+			"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+			"name": file_doc.name,
+			"file_name": file_doc.file_name
+		}
+	else:
+		return {
+			"url": "",
+			"name": "",
+			"file_name": ""
+		}
