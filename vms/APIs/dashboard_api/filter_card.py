@@ -1243,7 +1243,7 @@ def filtering_po_details(page_no=None, page_length=None, company=None, refno=Non
                 "po": []
             }
 
-        conditions.append("po.purchase_group IN %(pur_grp)s")
+        conditions.append("po.purchase_group IN %(purchase_group)s")
         values["purchase_group"] = pur_grp
 
         # conditions.append("po.email IN %(user_ids)s")
