@@ -97,18 +97,18 @@ def get_po():
         if not data or "items" not in data:
             return {"status": "error", "message": "No valid data received or 'items' key not found."}
 
-        pr_no = data.get("po_no", "")
+        po_no = data.get("po_no", "")
         field_mappings = get_po_field_mappings()
 
         if not field_mappings:
             return {"status": "error", "message": "No field mappings found for 'SAP Mapper PO'"}
 
-        po_doc = (frappe.get_doc("Purchase Order", {"po_number": pr_no})
-                  if frappe.db.exists("Purchase Order", {"po_number": pr_no})
+        po_doc = (frappe.get_doc("Purchase Order", {"po_number": po_no})
+                  if frappe.db.exists("Purchase Order", {"po_number": po_no})
                   else frappe.new_doc("Purchase Order"))
 
         meta = frappe.get_meta("Purchase Order")
-        po_doc.po_number = pr_no
+        po_doc.po_number = po_no
         po_doc.set("po_items", [])
 
         for item in data["items"]:
@@ -125,19 +125,25 @@ def get_po():
 
             po_doc.append("po_items", po_item_data)
 
+        sap_status = data.get("status", "")
+        po_doc.sap_status = sap_status
+        
         if po_doc.is_new():
-            po_doc.status = "Pending"
+            
             po_doc.insert()
 
-            po_id = po_doc.name
-            po_creation_send_mail(po_id)
+            # po_id = po_doc.name
+            # po_creation_send_mail(po_id)
 
             return {"status": "success", "message": "Purchase Order Created Successfully.", "po": po_doc.name}
         else:
             po_doc.save()
 
             po_id = po_doc.name
-            po_update_send_mail(po_id)
+            # po_update_send_mail(po_id)
+            if sap_status == "REVOKED":
+                po_doc.sent_to_vendor = 0
+                revocked_po_details_mail(po_id)
 
             return {"status": "success", "message": "Purchase Order Updated Successfully.", "po": po_doc.name}
 
@@ -319,4 +325,64 @@ def send_mail_for_po(data):
             "status": "error",
             "message": "An error occurred.",
             "error": str(e)
+        }
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def revocked_po_details_mail(po_id):
+    try:
+        if not po_id:
+            return {
+                "status": "error",
+                "message": "Missing Purchase Order ID"
+            }
+
+        po = frappe.get_doc("Purchase Order", po_id)
+
+        # Vendor's email and purchase team email
+        vendor_email = po.get("email")
+        purchase_team_email = po.get("email2")  # Ensure this field exists in your PO DocType
+
+        if not vendor_email:
+            return {
+                "status": "error",
+                "message": "No vendor email found in Purchase Order"
+            }
+
+        subject = f"Purchase Order {po.name} - Access Revoked"
+        body = f"""
+        Dear Vendor,<br><br>
+        Please note that access to your Purchase Order <strong>{po.name}</strong> has been revoked.<br>
+        If you have any questions, please contact the purchasing team.<br><br>
+        Regards,<br>
+        Purchase Department
+        """
+
+        # Send email to vendor and CC purchase team (if provided)
+        recipients = [vendor_email]
+        cc_list = [purchase_team_email] if purchase_team_email else []
+
+        frappe.sendmail(
+            recipients=recipients,
+            cc=cc_list,
+            subject=subject,
+            message=body,
+            now=True 
+        )
+
+        
+
+        return {
+            "status": "success",
+            "message": f"Revocation email sent to vendor at {vendor_email}"
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "po_details_mail")
+        return {
+            "status": "error",
+            "message": str(e)
         }
