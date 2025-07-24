@@ -72,6 +72,36 @@ def filter_subhead_email():
         }
 
 
+# filter purchase Group
+@frappe.whitelist(allow_guest=True)
+def filter_purchase_group(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        pur_grp = frappe.get_all(
+            "Purchase Group Master",
+            filters={"company": company},
+            fields=["purchase_group_code", "purchase_group_name", "description"]
+        )
+
+        return {
+            "status": "success",
+            "pur_grp": pur_grp
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering subhead email")
+        return {
+            "status": "error",
+            "message": "Failed to filter subhead emails.",
+            "error": str(e)
+        }
+    
+    
 # send cart details/ purchase inquiry
 @frappe.whitelist(allow_guest=True)
 def create_purchase_inquiry(data):
