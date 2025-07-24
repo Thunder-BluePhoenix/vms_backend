@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-07-24 14:09:24.840680",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "purchase_order_link",
+  "purchase_requisition_link",
+  "sap_to_erp_data",
+  "erp_response",
+  "total_transaction"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "PUR-SAP-DATA-.YYYY.-.MM.-"
+  },
+  {
+   "fieldname": "purchase_order_link",
+   "fieldtype": "Link",
+   "label": "Purchase Order Link",
+   "options": "Purchase Order"
+  },
+  {
+   "fieldname": "purchase_requisition_link",
+   "fieldtype": "Link",
+   "label": "Purchase Requisition Link",
+   "options": "Purchase Requisition Form"
+  },
+  {
+   "fieldname": "sap_to_erp_data",
+   "fieldtype": "JSON",
+   "label": "SAP to ERP DATA"
+  },
+  {
+   "fieldname": "erp_response",
+   "fieldtype": "JSON",
+   "label": "ERP Response"
+  },
+  {
+   "fieldname": "total_transaction",
+   "fieldtype": "Code",
+   "label": "Total Transaction"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-24 14:14:03.349241",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Purchase SAP Logs",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

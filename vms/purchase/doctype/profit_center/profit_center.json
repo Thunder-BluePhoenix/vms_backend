@@ -8,6 +8,7 @@
  "field_order": [
   "profit_center_code",
   "profit_center_name",
+  "company_code",
   "description"
  ],
  "fields": [
@@ -26,12 +27,18 @@
    "fieldname": "description",
    "fieldtype": "Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "company_code",
+   "fieldtype": "Link",
+   "label": "Company Code",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 14:41:18.378928",
+ "modified": "2025-07-24 15:52:35.892323",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Profit Center",
