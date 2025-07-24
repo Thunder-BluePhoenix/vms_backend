@@ -89,6 +89,70 @@ def get_po_field_mappings():
     return {mapping['sap_field']: mapping['erp_field'] for mapping in mappings}
 
 
+# @frappe.whitelist(allow_guest=True)
+# def get_po():
+#     try:
+#         data = frappe.request.get_json()
+
+#         if not data or "items" not in data:
+#             return {"status": "error", "message": "No valid data received or 'items' key not found."}
+
+#         po_no = data.get("po_no", "")
+#         field_mappings = get_po_field_mappings()
+
+#         if not field_mappings:
+#             return {"status": "error", "message": "No field mappings found for 'SAP Mapper PO'"}
+
+#         po_doc = (frappe.get_doc("Purchase Order", {"po_number": po_no})
+#                   if frappe.db.exists("Purchase Order", {"po_number": po_no})
+#                   else frappe.new_doc("Purchase Order"))
+
+#         meta = frappe.get_meta("Purchase Order")
+#         po_doc.po_number = po_no
+#         po_doc.set("po_items", [])
+
+#         for item in data["items"]:
+#             po_item_data = {}
+#             for sap_field, erp_field in field_mappings.items():
+#                 value = item.get(sap_field, "")
+#                 field = next((f for f in meta.fields if f.fieldname == erp_field), None)
+#                 po_item_data[erp_field] = parse_date(value) if field and field.fieldtype == 'Date' else value
+
+#             # Map top-level fields
+#             for field in meta.fields:
+#                 if field.fieldname in po_item_data:
+#                     po_doc.set(field.fieldname, po_item_data[field.fieldname])
+
+#             po_doc.append("po_items", po_item_data)
+
+#         sap_status = data.get("status", "")
+#         po_doc.sap_status = sap_status
+        
+#         if po_doc.is_new():
+            
+#             po_doc.insert()
+
+#             # po_id = po_doc.name
+#             # po_creation_send_mail(po_id)
+
+#             return {"status": "success", "message": "Purchase Order Created Successfully.", "po": po_doc.name}
+#         else:
+#             po_doc.save()
+
+#             po_id = po_doc.name
+#             # po_update_send_mail(po_id)
+#             if sap_status == "REVOKED":
+#                 po_doc.sent_to_vendor = 0
+#                 revocked_po_details_mail(po_id)
+
+#             return {"status": "success", "message": "Purchase Order Updated Successfully.", "po": po_doc.name}
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "get_po Error")
+#         return {"status": "error", "message": str(e)}
+
+
+# create po and puchase sap logs
 @frappe.whitelist(allow_guest=True)
 def get_po():
     try:
@@ -118,7 +182,6 @@ def get_po():
                 field = next((f for f in meta.fields if f.fieldname == erp_field), None)
                 po_item_data[erp_field] = parse_date(value) if field and field.fieldtype == 'Date' else value
 
-            # Map top-level fields
             for field in meta.fields:
                 if field.fieldname in po_item_data:
                     po_doc.set(field.fieldname, po_item_data[field.fieldname])
@@ -127,28 +190,56 @@ def get_po():
 
         sap_status = data.get("status", "")
         po_doc.sap_status = sap_status
-        
+
         if po_doc.is_new():
-            
             po_doc.insert()
+            frappe.db.commit() 
 
-            # po_id = po_doc.name
-            # po_creation_send_mail(po_id)
+            if not frappe.db.exists("Purchase Order", po_doc.name):
+                frappe.throw(f"Purchase Order {po_doc.name} not found in DB after insert")
 
-            return {"status": "success", "message": "Purchase Order Created Successfully.", "po": po_doc.name}
+            response = {
+                "status": "success",
+                "message": "Purchase Order Created Successfully.",
+                "po": po_doc.name
+            }
+
+            try:
+                log_doc = frappe.new_doc("Purchase SAP Logs")
+                log_doc.purchase_order_link = po_doc.name
+                frappe.log_error("SAP Log Link Debug", f"Link set to: {po_doc.name}")
+                log_doc.sap_to_erp_data = json.dumps(data, indent=2)
+                log_doc.erp_response = json.dumps(response, indent=2)
+                total_transaction = sum(
+                    item.get("NETWR", 0) for item in data["items"] if isinstance(item.get("NETWR", 0), (int, float))
+                )
+                log_doc.total_transaction = f"Total NETWR: {total_transaction}"
+                log_doc.insert(ignore_permissions=True)
+                frappe.db.commit()
+            except Exception as log_err:
+                frappe.log_error("Purchase SAP Log Creation Failed", frappe.get_traceback())
+
+            return response
+
         else:
             po_doc.save()
-
             po_id = po_doc.name
-            # po_update_send_mail(po_id)
+
             if sap_status == "REVOKED":
                 po_doc.sent_to_vendor = 0
                 revocked_po_details_mail(po_id)
 
-            return {"status": "success", "message": "Purchase Order Updated Successfully.", "po": po_doc.name}
+            return {
+                "status": "success",
+                "message": "Purchase Order Updated Successfully.",
+                "po": po_doc.name
+            }
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "get_po Error")
+        frappe.log_error(
+            title="get_po Error",
+            message=f"{frappe.get_traceback()}\n\nIncoming Data:\n{frappe.as_json(frappe.request.get_json())}"
+        )
         return {"status": "error", "message": str(e)}
 
 
