@@ -90,7 +90,8 @@ def get_version_data_universal(self, method=None):
         # Map doctype to child table doctype
         doctype_mapping = {
             "Request For Quotation": "RFQ Item History",  # Your existing child table
-            "Quotation": "RFQ Item History"  # Your quotation child table
+            "Quotation": "RFQ Item History",  # Your quotation child table
+            "Purchase Order": "Purchase Order History"
         }
         
         if self.ref_doctype in doctype_mapping and self.docname:

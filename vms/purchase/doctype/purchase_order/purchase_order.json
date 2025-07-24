@@ -134,7 +134,10 @@
   "goods_not_received",
   "remarks",
   "remarks_for_vendor",
-  "remarks_for_accounts_team"
+  "remarks_for_accounts_team",
+  "versions_tab",
+  "version_history",
+  "history_html"
  ],
  "fields": [
   {
@@ -800,12 +803,29 @@
    "fieldname": "sap_status",
    "fieldtype": "Data",
    "label": "SAP Status"
+  },
+  {
+   "fieldname": "versions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Versions"
+  },
+  {
+   "fieldname": "version_history",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Version History",
+   "options": "Purchase Order History"
+  },
+  {
+   "fieldname": "history_html",
+   "fieldtype": "HTML",
+   "label": "history"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 14:46:41.287137",
+ "modified": "2025-07-24 17:37:22.309437",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
@@ -870,5 +890,8 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "po_number"
+ "title_field": "po_number",
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
 }

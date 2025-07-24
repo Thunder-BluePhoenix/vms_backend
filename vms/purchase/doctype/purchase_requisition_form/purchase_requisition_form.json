@@ -22,6 +22,7 @@
   "valuation_area",
   "requisitioner",
   "purchase_requisition_date",
+  "requisitioner_first_name",
   "section_break_hrwl",
   "purchase_requisition_form_table"
  ],
@@ -125,12 +126,18 @@
    "fieldname": "purchase_requisition_date",
    "fieldtype": "Date",
    "label": "Requisition Date"
+  },
+  {
+   "fetch_from": "requisitioner.first_name",
+   "fieldname": "requisitioner_first_name",
+   "fieldtype": "Data",
+   "label": "Requisitioner First Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-21 15:12:16.600995",
+ "modified": "2025-07-24 17:23:04.886990",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form",
