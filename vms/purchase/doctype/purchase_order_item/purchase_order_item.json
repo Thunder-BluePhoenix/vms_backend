@@ -32,6 +32,7 @@
   "section_break_fsam",
   "early_delivery_date",
   "purchase_team_remarks",
+  "requested_for_earlydelivery",
   "column_break_gkgy",
   "approved_by_vendor",
   "rejected_by_vendor",
@@ -206,13 +207,19 @@
    "fieldname": "vendor_remarks",
    "fieldtype": "Small Text",
    "label": "Vendor Remarks"
+  },
+  {
+   "default": "0",
+   "fieldname": "requested_for_earlydelivery",
+   "fieldtype": "Check",
+   "label": "Requested For EarlyDelivery"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-22 16:07:04.895825",
+ "modified": "2025-07-24 14:44:43.737874",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order Item",

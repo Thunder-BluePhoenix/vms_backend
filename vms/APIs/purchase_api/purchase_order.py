@@ -53,6 +53,7 @@ def update_purchase_team_remarks(data):
                 # Update early delivery date
                 if "early_delivery_date" in item_update:
                     po_item.early_delivery_date = item_update.get("early_delivery_date")
+                    po_item.requested_for_earlydelivery = 1
                 
                 updated_count += 1
         
