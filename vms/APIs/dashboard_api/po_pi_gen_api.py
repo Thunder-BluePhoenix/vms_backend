@@ -177,7 +177,7 @@ def vendor_data_for_purchase(usr, user_roles):
                 "vendor_count": 0
             }
         
-        pur_group = frappe.db.get_value("Purchase Group Master", {"team":team }, "name")
+        pur_grp = frappe.get_all("Purchase Group Master", {"team": team}, pluck="purchase_group_code")
 
         user_ids = frappe.get_all(
             "Employee",
@@ -232,9 +232,10 @@ def vendor_data_for_purchase(usr, user_roles):
 
 
         purchase_order_count = frappe.db.count(
-            "Purchase Order",
-            filters={"purchase_group": pur_group}
-        )
+                                                "Purchase Order",
+                                                filters={"purchase_group": ["in", pur_grp]}
+                                            )
+
 
 
 
