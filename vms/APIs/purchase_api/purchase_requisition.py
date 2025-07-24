@@ -35,7 +35,7 @@ def filter_purchase_group(company):
 
 # company wise storage location
 @frappe.whitelist(allow_guest=True)
-def filter_storage_locatioon(company):
+def filter_store_locatioon(company):
     try:
         if not company:
             return {

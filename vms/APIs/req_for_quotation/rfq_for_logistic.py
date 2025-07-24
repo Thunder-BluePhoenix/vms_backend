@@ -2,6 +2,35 @@ import frappe
 import json
 from frappe import _
 
+# filter storage location
+@frappe.whitelist(allow_guest=True)
+def filter_storage_locatioon(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        storage = frappe.get_all(
+            "Storage Location Master",
+            filters={"company": company},
+            fields=["storage_name", "storage_location_name", "description"]
+        )
+
+        return {
+            "status": "success",
+            "storage": storage
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering storage location")
+        return {
+            "status": "error",
+            "message": "Failed to filter storage location.",
+            "error": str(e)
+        }
+
 @frappe.whitelist(allow_guest=False)
 def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=1, page_length=10):
 	if not rfq_type:
