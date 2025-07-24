@@ -244,7 +244,7 @@ def get_po_count_from_vendor_code(vendor_code=None):
 
         po_count = frappe.db.count(
             "Purchase Order",
-            filters={"vendor_code": ["in", all_vendor_codes]}
+            filters={"vendor_code": ["in", all_vendor_codes], "sent_to_vendor":1}
         )
 
         return {
@@ -314,7 +314,13 @@ def filter_po_data(vendor_code=None, page_no=None, page_length=None, company=Non
 
         if vendor_code:
             filters["vendor_code"] = vendor_code
+            filters["sent_to_vendor"] = 1
+
+        
+
+        
         else:
+            filters["sent_to_vendor"] = 1
             user_doc = frappe.get_doc("User", user)
             if "Vendor" not in frappe.get_roles(user_doc.name):
                 return {"status": "error", "message": "User does not have the Vendor role."}

@@ -145,7 +145,8 @@ fixtures = [
 doc_events = {
     "Vendor Onboarding":{"on_update": "vms.APIs.sap.sap.update_sap_vonb",
                          "before_save": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_vendor_onboarding_status"},
-    "Purchase Requisition Form":{"on_update":"vms.APIs.sap.erp_to_sap_pr.onupdate_pr"}
+    "Purchase Requisition Form":{"on_update":"vms.APIs.sap.erp_to_sap_pr.onupdate_pr"},
+    "Version":{"after_insert":"vms.overrides.versions.get_version_data_universal"}
 }
 # doc_events = {
 # 	"*": {

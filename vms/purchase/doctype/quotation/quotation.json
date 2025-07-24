@@ -102,15 +102,17 @@
   "rfq_item_list",
   "multiple_attachments_section",
   "attachments",
-  "status",
   "country",
   "more_info_tab",
-  "table_tbvu",
   "section_break_unla",
   "approved",
   "asked_to_revise",
   "column_break_bgwt",
-  "bidding_status"
+  "bidding_status",
+  "status",
+  "tab_3_tab",
+  "version_history",
+  "history_html"
  ],
  "fields": [
   {
@@ -386,12 +388,6 @@
    "label": "RFQ Date"
   },
   {
-   "fieldname": "country",
-   "fieldtype": "Link",
-   "label": "Country",
-   "options": "Country Master"
-  },
-  {
    "fieldname": "port_code",
    "fieldtype": "Link",
    "label": "Port Code",
@@ -408,12 +404,6 @@
    "fieldtype": "Link",
    "label": "Package Type",
    "options": "Package Type Master"
-  },
-  {
-   "fieldname": "product_category",
-   "fieldtype": "Link",
-   "label": "Product Category",
-   "options": "Product Category Master"
   },
   {
    "fieldname": "actual_weight",
@@ -461,11 +451,6 @@
    "fieldname": "transit_days",
    "fieldtype": "Data",
    "label": "Transit Days"
-  },
-  {
-   "fieldname": "remarks",
-   "fieldtype": "Text",
-   "label": "Remarks"
   },
   {
    "fieldname": "column_break_shjr",
@@ -657,11 +642,6 @@
    "label": "More Info"
   },
   {
-   "fieldname": "table_tbvu",
-   "fieldtype": "Table",
-   "options": "RFQ Item History"
-  },
-  {
    "fieldname": "section_break_unla",
    "fieldtype": "Section Break"
   },
@@ -686,13 +666,30 @@
   {
    "fieldname": "column_break_bgwt",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "version_history",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Versions",
+   "options": "RFQ Item History"
+  },
+  {
+   "fieldname": "tab_3_tab",
+   "fieldtype": "Tab Break",
+   "label": "History"
+  },
+  {
+   "fieldname": "history_html",
+   "fieldtype": "HTML",
+   "label": "History"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 16:06:20.201171",
- "modified_by": "abhishek@mail.hybrowlabs.com",
+ "modified": "2025-07-23 15:36:47.968074",
+ "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Quotation",
  "naming_rule": "By \"Naming Series\" field",

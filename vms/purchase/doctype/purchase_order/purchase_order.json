@@ -94,13 +94,11 @@
   "instructions",
   "section_break_mqft",
   "po_items",
-  "section_break_oqgf",
-  "user_confirmation",
-  "payment_release",
   "tab_2_tab",
   "status",
   "reason_for_rejection",
   "approved_from_vendor",
+  "sent_to_vendor",
   "column_break_brva",
   "approved_by",
   "approved_by_name",
@@ -128,20 +126,25 @@
   "rel_status",
   "approval_1",
   "approval_2",
-  "approval_3"
+  "approval_3",
+  "section_break_oqgf",
+  "user_confirmation",
+  "payment_release",
+  "goods_not_received",
+  "remarks",
+  "remarks_for_vendor",
+  "remarks_for_accounts_team"
  ],
  "fields": [
   {
    "fieldname": "rfq_code",
-   "fieldtype": "Link",
-   "label": "RFQ Code",
-   "options": "Request For Quotation"
+   "fieldtype": "Data",
+   "label": "RFQ Code"
   },
   {
    "fieldname": "purchase_organization",
-   "fieldtype": "Link",
-   "label": "Purchase Organization",
-   "options": "Purchase Organization Master"
+   "fieldtype": "Data",
+   "label": "Purchase Organization"
   },
   {
    "fieldname": "purchase_group",
@@ -151,9 +154,8 @@
   },
   {
    "fieldname": "company_code",
-   "fieldtype": "Link",
-   "label": "Company Code",
-   "options": "Company Master"
+   "fieldtype": "Data",
+   "label": "Company Code"
   },
   {
    "fieldname": "collection_number",
@@ -246,27 +248,23 @@
   },
   {
    "fieldname": "city",
-   "fieldtype": "Link",
-   "label": "City",
-   "options": "City Master"
+   "fieldtype": "Data",
+   "label": "City"
   },
   {
    "fieldname": "district",
-   "fieldtype": "Link",
-   "label": "District",
-   "options": "District Master"
+   "fieldtype": "Data",
+   "label": "District"
   },
   {
    "fieldname": "state",
-   "fieldtype": "Link",
-   "label": "State",
-   "options": "State Master"
+   "fieldtype": "Data",
+   "label": "State"
   },
   {
    "fieldname": "country",
-   "fieldtype": "Link",
-   "label": "Country",
-   "options": "Country Master"
+   "fieldtype": "Data",
+   "label": "Country"
   },
   {
    "fieldname": "pincode",
@@ -301,27 +299,23 @@
   },
   {
    "fieldname": "shipping_city",
-   "fieldtype": "Link",
-   "label": "City",
-   "options": "City Master"
+   "fieldtype": "Data",
+   "label": "City"
   },
   {
    "fieldname": "shipping_district",
-   "fieldtype": "Link",
-   "label": "District",
-   "options": "District Master"
+   "fieldtype": "Data",
+   "label": "District"
   },
   {
    "fieldname": "shipping_state",
-   "fieldtype": "Link",
-   "label": "State",
-   "options": "State Master"
+   "fieldtype": "Data",
+   "label": "State"
   },
   {
    "fieldname": "shipping_country",
-   "fieldtype": "Link",
-   "label": "Country",
-   "options": "Country Master"
+   "fieldtype": "Data",
+   "label": "Country"
   },
   {
    "fieldname": "shipping_pincode",
@@ -380,6 +374,7 @@
    "label": "Phone/Mobile no."
   },
   {
+   "description": "This email is for the Vendor.",
    "fieldname": "email",
    "fieldtype": "Data",
    "label": "Email"
@@ -397,7 +392,7 @@
   },
   {
    "fieldname": "currency",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Currency",
    "options": "Currency Master"
   },
@@ -443,6 +438,7 @@
    "label": "Phone No"
   },
   {
+   "description": "This email is for the Purchase Team.",
    "fieldname": "email2",
    "fieldtype": "Data",
    "label": "Email"
@@ -510,14 +506,12 @@
   {
    "fieldname": "bill_to_company",
    "fieldtype": "Data",
-   "label": "Bill To Company",
-   "options": "Company Master"
+   "label": "Bill To Company"
   },
   {
    "fieldname": "ship_to_company",
    "fieldtype": "Data",
-   "label": "Ship To Company",
-   "options": "Company Master"
+   "label": "Ship To Company"
   },
   {
    "fieldname": "supplier_name",
@@ -527,14 +521,12 @@
   {
    "fieldname": "po_items",
    "fieldtype": "Table",
-   "label": "Items",
    "options": "Purchase Order Item"
   },
   {
    "fieldname": "po_plant",
-   "fieldtype": "Link",
-   "label": "PO Plant",
-   "options": "Plant Master"
+   "fieldtype": "Data",
+   "label": "PO Plant"
   },
   {
    "fieldname": "purchase_order_category",
@@ -697,7 +689,7 @@
   {
    "fieldname": "section_break_oqgf",
    "fieldtype": "Section Break",
-   "label": "Checks For API"
+   "label": "More Info API"
   },
   {
    "default": "1",
@@ -774,12 +766,39 @@
    "fieldname": "approval_3",
    "fieldtype": "Data",
    "label": "Approval 3"
+  },
+  {
+   "default": "0",
+   "fieldname": "goods_not_received",
+   "fieldtype": "Check",
+   "label": "Goods Not Received"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks For User"
+  },
+  {
+   "fieldname": "remarks_for_vendor",
+   "fieldtype": "Small Text",
+   "label": "Remarks for Vendor"
+  },
+  {
+   "fieldname": "remarks_for_accounts_team",
+   "fieldtype": "Small Text",
+   "label": "Remarks for Accounts Team"
+  },
+  {
+   "default": "0",
+   "fieldname": "sent_to_vendor",
+   "fieldtype": "Check",
+   "label": "Sent To Vendor"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 16:49:43.349867",
+ "modified": "2025-07-23 18:03:26.805588",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
@@ -795,6 +814,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -807,6 +827,7 @@
    "read": 1,
    "report": 1,
    "role": "Guest",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -819,6 +840,19 @@
    "read": 1,
    "report": 1,
    "role": "Vendor",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
    "select": 1,
    "share": 1,
    "write": 1
