@@ -236,6 +236,7 @@ def update_dispatch_qty(doc, method=None):
 		# Step 3: Update PO status
 		if all((int(row.dispatch_qty or 0) >= int(row.quantity or 0)) for row in doc.po_items):
 			doc.db_set("po_dispatch_status", "Completed")
+			doc.db_set("status", "Dispatched")
 		else:
 			doc.db_set("po_dispatch_status", "Partial")
 
