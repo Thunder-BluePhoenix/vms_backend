@@ -280,3 +280,42 @@ def update_single_po_item_by_id(data):
             "status": "error",
             "message": _("Error updating purchase order item: {0}").format(str(e))
         }
+    
+
+# send mail to vendor for po details
+@frappe.whitelist(allow_guest=True)
+def po_details_mail(po_id):
+    try:
+        if not po_id:
+            return {
+                "status": "error",
+                "message": "Missing Purchase Order ID"
+            }
+
+        po = frappe.get_doc("Purchase Order", po_id)
+
+        if po.email:
+            subject = "Here is your PO details"
+            body = "Please check your PO details."
+            frappe.sendmail(
+                recipients=[po.email],
+                subject=subject,
+                message=body
+            )
+            po.sent_to_vendor = 1
+            po.save(ignore_permissions=True)
+            return {
+                "status": "success",
+                "message": f"Email sent to {po.email}"
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "No email found in Purchase Order"
+            }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "po_details_mail")
+        return {
+            "status": "error",
+            "message": str(e)
+        }

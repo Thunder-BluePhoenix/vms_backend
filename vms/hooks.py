@@ -164,9 +164,15 @@ scheduler_events = {
 	"all": [
 		"vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
 	],
-	# "daily": [
-	#     "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
-	# ],
+	"daily": [
+        "vms.APIs.req_for_quotation.rfq_reminder.send_reminder_notification"
+	    # "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
+	],
+	"cron": {
+        "*/10 * * * *": [
+            "vms.APIs.req_for_quotation.rfq_reminder.block_quotation_link"
+        ]
+    }    
 	# "hourly": [
 	# 	"vms.tasks.hourly"
 	# ],

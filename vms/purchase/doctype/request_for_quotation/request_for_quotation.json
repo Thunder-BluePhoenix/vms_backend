@@ -10,6 +10,7 @@
   "column_break_ddyd",
   "naming_series",
   "status",
+  "form_fully_submitted",
   "logistics_section",
   "company_name_logistic",
   "rfq_cutoff_date_logistic",
@@ -92,6 +93,7 @@
   "second_reminder",
   "column_break_wjmc",
   "third_reminder",
+  "quotation_rfq_deadline_pass",
   "attachments_section",
   "multiple_attachments",
   "payment_terms_section",
@@ -627,6 +629,18 @@
    "label": "More Info"
   },
   {
+   "default": "0",
+   "fieldname": "form_fully_submitted",
+   "fieldtype": "Check",
+   "label": "Form Fully Submitted"
+  },
+  {
+   "default": "0",
+   "fieldname": "quotation_rfq_deadline_pass",
+   "fieldtype": "Check",
+   "label": "Quotation/RFQ Deadline Pass"
+  },
+   {
    "fieldname": "tab_3_tab",
    "fieldtype": "Tab Break",
    "label": "History"
