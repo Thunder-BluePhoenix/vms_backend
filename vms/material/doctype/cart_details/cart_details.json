@@ -14,6 +14,8 @@
   "sender_email",
   "sub_head_transfer_status",
   "sub_head_email",
+  "purchase_requisition_form_created",
+  "purchase_requisition_form",
   "column_break_jaqb",
   "new_transfer_email",
   "transfer_reason",
@@ -339,12 +341,24 @@
    "fieldname": "mailed_to_purchase_head",
    "fieldtype": "Check",
    "label": "Mailed to Purchase Head"
+  },
+  {
+   "fieldname": "purchase_requisition_form",
+   "fieldtype": "Link",
+   "label": "Purchase Requisition Form",
+   "options": "Purchase Requisition Webform"
+  },
+  {
+   "default": "0",
+   "fieldname": "purchase_requisition_form_created",
+   "fieldtype": "Check",
+   "label": "Purchase Requisition Form Created"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-20 17:02:49.720111",
+ "modified": "2025-07-24 19:32:05.414822",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",

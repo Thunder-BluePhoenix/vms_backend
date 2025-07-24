@@ -13,6 +13,7 @@ class PurchaseRequisitionWebform(Document):
 		send_pur_req_email(self, method=None)
 
 	def on_update(self):
+		set_purchase_req_id(self)
 		field_map = [
 			"purchase_requisition_type",
 			"plant",
@@ -308,3 +309,14 @@ def set_unique_id(doc, method=None):
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "Set Unique ID Error")
 		raise
+
+
+# when purchase req is created then in cart deatils mark as purchase req created
+def set_purchase_req_id(doc):
+	if doc.cart_details_id:
+		cart_details = frappe.get_doc("Cart Details", doc.cart_details_id)
+		if not cart_details.purchase_requisition_form_created:
+			cart_details.purchase_requisition_form_created = 1
+			cart_details.purchase_requisition_form = doc.name
+			cart_details.save(ignore_permissions=True)
+			
