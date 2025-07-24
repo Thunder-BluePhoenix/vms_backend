@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "reference_to_rfq_section",
+  "sap_status",
   "supplier_name",
   "po_no",
   "bill_to_company",
@@ -793,12 +794,17 @@
    "fieldname": "sent_to_vendor",
    "fieldtype": "Check",
    "label": "Sent To Vendor"
+  },
+  {
+   "fieldname": "sap_status",
+   "fieldtype": "Data",
+   "label": "SAP Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-23 18:03:26.805588",
+ "modified": "2025-07-24 12:05:45.809240",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
