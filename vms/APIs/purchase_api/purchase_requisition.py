@@ -16,7 +16,7 @@ def filter_purchase_group(company):
         pur_grp = frappe.get_all(
             "Purchase Group Master",
             filters={"company": company},
-            fields=["purchase_group_code", "purchase_group_name", "description"]
+            fields=["name", "purchase_group_code", "purchase_group_name", "description"]
         )
 
         return {
@@ -46,7 +46,7 @@ def filter_store_location(company):
         storage = frappe.get_all(
             "Storage Location Master",
             filters={"company": company},
-            fields=["storage_name", "storage_location_name", "description"]
+            fields=["name", "storage_name", "storage_location_name", "description"]
         )
 
         return {
