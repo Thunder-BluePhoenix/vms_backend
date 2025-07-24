@@ -61,6 +61,125 @@ def filter_store_location(company):
             "message": "Failed to filter storage location.",
             "error": str(e)
         }
+	
+
+# company wise cost center
+@frappe.whitelist(allow_guest=True)
+def filter_cost_center(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        cost_center = frappe.get_all(
+            "Cost Center",
+            filters={"company_code": company},
+            fields=["name", "cost_center_code", "cost_center_name", "description", "category"]
+        )
+
+        return {
+            "status": "success",
+            "cost_center": cost_center
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering cost center")
+        return {
+            "status": "error",
+            "message": "Failed to filter cost center.",
+            "error": str(e)
+        }
+
+
+# company wise profit center
+@frappe.whitelist(allow_guest=True)
+def filter_profit_center(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        profit_center = frappe.get_all(
+            "Profit Center",
+            filters={"company_code": company},
+            fields=["name", "profit_center_code", "profit_center_name", "description"]
+        )
+
+        return {
+            "status": "success",
+            "profit_center": profit_center
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering profit center")
+        return {
+            "status": "error",
+            "message": "Failed to filter profit center.",
+            "error": str(e)
+        }
+	
+
+# company wise valuation class
+@frappe.whitelist(allow_guest=True)
+def filter_valuation_class_master(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        valuation_class = frappe.get_all(
+            "Valuation Class Master",
+            filters={"company": company},
+            fields=["name", "valuation_class_code", "valuation_class_name"]
+        )
+
+        return {
+            "status": "success",
+            "valuation_class": valuation_class
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering valuation class master")
+        return {
+            "status": "error",
+            "message": "Failed to filter valuation class master.",
+            "error": str(e)
+        }
+	
+# company wise G L Account
+@frappe.whitelist(allow_guest=True)
+def filter_gl_account(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        gl_account = frappe.get_all(
+            "GL Account",
+            filters={"company": company},
+            fields=["name", "gl_account_code", "gl_account_name", "description"]
+        )
+
+        return {
+            "status": "success",
+            "gl_account": gl_account
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering GL Account")
+        return {
+            "status": "error",
+            "message": "Failed to filter GL Account.",
+            "error": str(e)
+        }
 
 
 # Get Cart Details based on cart id
