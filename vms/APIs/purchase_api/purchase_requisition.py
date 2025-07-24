@@ -2,6 +2,67 @@ import frappe
 from frappe import _
 import json
 
+
+# filter purchase Group
+@frappe.whitelist(allow_guest=True)
+def filter_purchase_group(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        pur_grp = frappe.get_all(
+            "Purchase Group Master",
+            filters={"company": company},
+            fields=["purchase_group_code", "purchase_group_name", "description"]
+        )
+
+        return {
+            "status": "success",
+            "pur_grp": pur_grp
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering purchase group")
+        return {
+            "status": "error",
+            "message": "Failed to filter purchase group.",
+            "error": str(e)
+        }
+	
+
+# company wise storage location
+@frappe.whitelist(allow_guest=True)
+def filter_storage_locatioon(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        storage = frappe.get_all(
+            "Storage Location Master",
+            filters={"company": company},
+            fields=["storage_name", "storage_location_name", "description"]
+        )
+
+        return {
+            "status": "success",
+            "storage": storage
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering storage location")
+        return {
+            "status": "error",
+            "message": "Failed to filter storage location.",
+            "error": str(e)
+        }
+
+
 # Get Cart Details based on cart id
 @frappe.whitelist(allow_guest=True)
 def get_cart_details(cart_id):

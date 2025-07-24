@@ -9,6 +9,10 @@
   "plant_code",
   "plant_name",
   "company",
+  "purchase_organization",
+  "city",
+  "zone",
+  "plant_address",
   "description"
  ],
  "fields": [
@@ -33,12 +37,35 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "purchase_organization",
+   "fieldtype": "Link",
+   "label": "Purchase Organization",
+   "options": "Purchase Organization Master"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Link",
+   "label": "City",
+   "options": "City Master"
+  },
+  {
+   "fieldname": "zone",
+   "fieldtype": "Link",
+   "label": "Zone",
+   "options": "Zone Master"
+  },
+  {
+   "fieldname": "plant_address",
+   "fieldtype": "Small Text",
+   "label": "Plant Address"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-24 20:07:39.039584",
+ "modified": "2025-07-24 17:45:18.065684",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Plant Master",

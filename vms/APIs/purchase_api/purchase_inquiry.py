@@ -94,10 +94,10 @@ def filter_purchase_group(company):
         }
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error filtering subhead email")
+        frappe.log_error(frappe.get_traceback(), "Error filtering purchase group")
         return {
             "status": "error",
-            "message": "Failed to filter subhead emails.",
+            "message": "Failed to filter purchase group.",
             "error": str(e)
         }
     
