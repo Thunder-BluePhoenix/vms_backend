@@ -123,7 +123,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Store Location",
-   "options": "Store Location Master"
+   "options": "Storage Location Master"
   },
   {
    "fieldname": "item_category_head",
@@ -247,7 +247,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Store Location",
-   "options": "Store Location Master"
+   "options": "Storage Location Master"
   },
   {
    "fieldname": "item_category_subhead",
@@ -424,8 +424,8 @@
   {
    "fieldname": "valuation_area_head",
    "fieldtype": "Link",
-   "label": "Valuation Area",
-   "options": "Valuation Area Master"
+   "label": "Valuation Class",
+   "options": "Valuation Class Master"
   },
   {
    "fieldname": "fixed_value_head",
@@ -510,7 +510,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-14 14:28:57.583660",
+ "modified": "2025-07-24 17:34:26.325080",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform Table",

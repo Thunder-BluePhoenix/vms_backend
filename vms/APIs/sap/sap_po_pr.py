@@ -9,6 +9,63 @@ def get_field_mappings():
     return {mapping['sap_field']: mapping['erp_field'] for mapping in mappings}
 
 
+# @frappe.whitelist(allow_guest=True)
+# def get_pr():
+#     try:
+#         data = frappe.request.get_json()
+#         if not data or "items" not in data:
+#             return {"status": "error", "message": "No valid data received or 'items' key not found."}
+
+#         pr_no = data.get("pr_no", "")
+#         field_mappings = get_field_mappings()
+
+#         # Get or create PR doc
+#         if frappe.db.exists("Purchase Requisition", {"purchase_requisition_number": pr_no}):
+#             pr_doc = frappe.get_doc("Purchase Requisition", {"purchase_requisition_number": pr_no})
+#             pr_doc.set("pr_items", [])
+#         else:
+#             pr_doc = frappe.new_doc("Purchase Requisition")
+
+#         pr_doc.purchase_requisition_number = pr_no
+
+#         meta = frappe.get_meta("Purchase Requisition")
+#         pr_plant_value = None
+
+#         for item in data["items"]:
+#             pr_item_data = {}
+#             for sap_field, erp_field in field_mappings.items():
+#                 value = item.get(sap_field, "")
+#                 field_meta = next((field for field in meta.fields if field.fieldname == erp_field), None)
+
+#                 if field_meta and field_meta.fieldtype == 'Date':
+#                     pr_item_data[erp_field] = parse_date(value)
+#                 else:
+#                     pr_item_data[erp_field] = value
+
+#             pr_doc.append("pr_items", pr_item_data)
+
+#             if not pr_plant_value and "plant" in item:
+#                 pr_plant_value = item["plant"]
+
+#         if pr_plant_value:
+#             pr_doc.pr_plant = pr_plant_value
+
+#         if pr_doc.is_new():
+#             pr_doc.insert(ignore_permissions=True)
+#             frappe.db.commit()
+#             return {"status": "success", "message": "Purchase Requisition Created Successfully."}
+#         else:
+#             pr_doc.save(ignore_permissions=True)
+#             frappe.db.commit()
+#             return {"status": "success", "message": "Purchase Requisition Updated Successfully."}
+
+#     except Exception as e:
+#         frappe.db.rollback()
+#         frappe.log_error(frappe.get_traceback(), "create_purchase_requisition Error")
+#         return {"status": "error", "message": str(e)}
+
+
+# create pr and purchase sap logs
 @frappe.whitelist(allow_guest=True)
 def get_pr():
     try:
@@ -53,7 +110,50 @@ def get_pr():
         if pr_doc.is_new():
             pr_doc.insert(ignore_permissions=True)
             frappe.db.commit()
-            return {"status": "success", "message": "Purchase Requisition Created Successfully."}
+
+            response = {
+                "status": "success",
+                "message": "Purchase Requisition Created Successfully.",
+                "pr": pr_doc.name
+            }
+
+            try:
+                log_doc = frappe.new_doc("Purchase SAP Logs")
+                log_doc.purchase_requisition_link = pr_doc.name
+                log_doc.sap_to_erp_data = json.dumps(data, indent=2)
+                log_doc.erp_response = json.dumps(response, indent=2)
+                total_transaction_data = {
+                    "request_details": {
+                        "url": frappe.request.url,
+                        "headers": {k: v for k, v in frappe.request.headers.items() if k.lower() != 'authorization'},
+                        "auth_user": frappe.session.user,
+                        "payload": data
+                    },
+                    "response_details": {
+                        "status_code": 200,
+                        "headers": {},
+                        "body": response
+                    },
+                    "transaction_summary": {
+                        "status": response.get("status"),
+                        "pr_code": pr_no,
+                        "error_details": "",
+                        "timestamp": frappe.utils.now(),
+                        "sap_client_code": data.get("client_code", ""),
+                        "pr_doc_name": pr_doc.name,
+                        "pr_type": pr_doc.get("purchase_requisition_type"),
+                        "name_for_sap": pr_doc.get("company")
+                    }
+                }
+                log_doc.total_transaction = json.dumps(total_transaction_data, indent=2, default=str)
+
+                log_doc.insert(ignore_permissions=True)
+                frappe.db.commit()
+            except Exception as log_err:
+                frappe.log_error("Purchase Requisition SAP Log Creation Failed", frappe.get_traceback())
+
+            return response
+
         else:
             pr_doc.save(ignore_permissions=True)
             frappe.db.commit()
@@ -210,10 +310,31 @@ def get_po():
                 frappe.log_error("SAP Log Link Debug", f"Link set to: {po_doc.name}")
                 log_doc.sap_to_erp_data = json.dumps(data, indent=2)
                 log_doc.erp_response = json.dumps(response, indent=2)
-                total_transaction = sum(
-                    item.get("NETWR", 0) for item in data["items"] if isinstance(item.get("NETWR", 0), (int, float))
-                )
-                log_doc.total_transaction = f"Total NETWR: {total_transaction}"
+                total_transaction_data = {
+                    "request_details": {
+                        "url": frappe.request.url,
+                        "headers": {k: v for k, v in frappe.request.headers.items() if k.lower() != 'authorization'},
+                        "auth_user": frappe.session.user,
+                        "payload": data
+                    },
+                    "response_details": {
+                        "status_code": 200,
+                        "headers": {},
+                        "body": response
+                    },
+                    "transaction_summary": {
+                        "status": response.get("status"),
+                        "po_number": po_no,
+                        "error_details": "",
+                        "timestamp": frappe.utils.now(),
+                        "sap_client_code": data.get("client_code", ""),
+                        "po_doc_name": po_doc.name,
+                        "po_type": po_doc.get("purchase_order_type"),
+                        "name_for_sap": po_doc.get("supplier")
+                    }
+                }
+                log_doc.total_transaction = json.dumps(total_transaction_data, indent=2, default=str)
+
                 log_doc.insert(ignore_permissions=True)
                 frappe.db.commit()
             except Exception as log_err:
