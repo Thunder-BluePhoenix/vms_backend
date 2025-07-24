@@ -180,6 +180,36 @@ def filter_gl_account(company):
             "message": "Failed to filter GL Account.",
             "error": str(e)
         }
+	
+
+# company wise material master
+@frappe.whitelist(allow_guest=True)
+def filter_material_master(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        material_master = frappe.get_all(
+            "Material Master",
+            filters={"company": company},
+            fields=["name", "material_code", "material_name", "material_type", "material_category", "description"]
+        )
+
+        return {
+            "status": "success",
+            "material_master": material_master
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering material master")
+        return {
+            "status": "error",
+            "message": "Failed to filter material master",
+            "error": str(e)
+        }
 
 
 # Get Cart Details based on cart id
