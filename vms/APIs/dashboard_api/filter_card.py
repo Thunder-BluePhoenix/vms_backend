@@ -1233,7 +1233,7 @@ def filtering_po_details(page_no=None, page_length=None, company=None, refno=Non
                 "po": []
             }
         
-        pur_grp = frappe.db.get_value("Purchase Group Master", {"team": team}, "name")
+        pur_grp = frappe.get_all("Purchase Group Master", {"team": team}, pluck="name")
 
         user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
         if not user_ids:
