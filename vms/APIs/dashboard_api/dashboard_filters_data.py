@@ -3,7 +3,7 @@ from frappe.utils import today, get_first_day, get_last_day
 
 
 @frappe.whitelist(allow_guest=False)
-def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None):
+def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None):
     try:
         if usr is None:
             usr = frappe.session.user
@@ -74,6 +74,10 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
             conditions.append("vo.ref_no LIKE %(refno)s")
             values["refno"] = f"%{refno}%"
 
+        if vendor_name:
+            conditions.append("vo.vendor_name LIKE %(vendor_name)s")
+            values["vendor_name"] = f"%{vendor_name}%"
+
         if status:
             conditions.append("vo.onboarding_form_status = %(status)s")
             values["status"] = status
@@ -128,7 +132,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
 
 
 @frappe.whitelist(allow_guest=True)
-def approved_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None):
+def approved_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -143,7 +147,8 @@ def approved_vendor_details(page_no=None, page_length=None, company=None, refno=
             company=company,
             refno=refno,
             status=status,
-            usr=usr
+            usr=usr,
+            vendor_name=vendor_name
         )
 
         if result.get("status") != "success":
@@ -194,7 +199,7 @@ def approved_vendor_details(page_no=None, page_length=None, company=None, refno=
 
 
 @frappe.whitelist(allow_guest=False)
-def rejected_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None):
+def rejected_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -209,7 +214,8 @@ def rejected_vendor_details(page_no=None, page_length=None, company=None, refno=
             company=company,
             refno=refno,
             status=status,
-            usr=usr
+            usr=usr,
+            vendor_name=vendor_name
         )
 
         if result.get("status") != "success":
@@ -237,7 +243,7 @@ def rejected_vendor_details(page_no=None, page_length=None, company=None, refno=
 
 
 @frappe.whitelist(allow_guest=False)
-def pending_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None):
+def pending_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -252,7 +258,8 @@ def pending_vendor_details(page_no=None, page_length=None, company=None, refno=N
             company=company,
             refno=refno,
             status=status,
-            usr=usr
+            usr=usr,
+            vendor_name=vendor_name
         )
 
         if result.get("status") != "success":
@@ -280,7 +287,7 @@ def pending_vendor_details(page_no=None, page_length=None, company=None, refno=N
 
 
 @frappe.whitelist(allow_guest=False)
-def expired_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None):
+def expired_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -295,7 +302,8 @@ def expired_vendor_details(page_no=None, page_length=None, company=None, refno=N
             company=company,
             refno=refno,
             status=status,
-            usr=usr
+            usr=usr,
+            vendor_name=vendor_name
         )
 
         if result.get("status") != "success":
@@ -324,7 +332,7 @@ def expired_vendor_details(page_no=None, page_length=None, company=None, refno=N
  
 # apply a different query so cannot use the above filteration function
 @frappe.whitelist(allow_guest=False)
-def total_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None):
+def total_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -378,6 +386,10 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
         if refno:
             filters.append("ref_no LIKE %(refno)s")
             values["refno"] = f"%{refno}%"
+
+        if vendor_name:
+            filters.append("vendor_name LIKE %(vendor_name)s")
+            values["vendor_name"] = f"%{vendor_name}%"
 
         if company:
             filters.append("company = %(company)s")
@@ -440,7 +452,7 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
 # need some checking for query records are not match 
 # apply a different query so cannot use the above filteration function
 @frappe.whitelist(allow_guest=False)
-def current_month_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None):
+def current_month_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -506,6 +518,10 @@ def current_month_vendor_details(page_no=None, page_length=None, company=None, r
         if refno:
             filter_clause += " AND ref_no LIKE %(filter_refno)s"
             values["filter_refno"] = f"%{refno}%"
+
+        if vendor_name:
+            filter_clause += " AND vendor_name LIKE %(vendor_name)s"
+            values["vendor_name"] = f"%{vendor_name}%"
 
         # Pagination
         page_no = int(page_no) if page_no else 1
@@ -587,7 +603,7 @@ def current_month_vendor_details(page_no=None, page_length=None, company=None, r
 
 
 @frappe.whitelist(allow_guest=False)
-def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None):
+def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None):
     try:
         if usr is None:
             usr = frappe.session.user
@@ -657,6 +673,10 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
         if refno:
             conditions.append("vo.ref_no LIKE %(refno)s")
             values["refno"] = f"%{refno}%"
+
+        if vendor_name:
+            conditions.append("vo.vendor_name LIKE %(vendor_name)s")
+            values["vendor_name"] = f"%{vendor_name}%"
 
         if status:
             conditions.append("vo.onboarding_form_status = %(status)s")
