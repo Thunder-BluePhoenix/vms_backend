@@ -12,7 +12,7 @@ def po_approve(data):
     po.tentative_date = tentative_date
     po.approved_by = frappe.session.user
 
-    po.status = "Approved"
+    po.status = "Approved by Vendor"
 
     po.save()
     frappe.db.commit()
@@ -30,7 +30,7 @@ def po_reject(data):
     po.reason_for_rejection = reason_for_rejection
     po.rejected_by = frappe.session.user
 
-    po.status = "Rejected"
+    po.status = "Rejected by Vendor"
 
     po.save()
     frappe.db.commit()
