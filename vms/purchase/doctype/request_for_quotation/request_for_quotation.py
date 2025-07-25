@@ -14,7 +14,14 @@ class RequestForQuotation(Document):
 
 
 def send_quotation_email(doc):
+	if frappe.flags.in_update_email:
+		return
+	frappe.flags.in_update_email = True
+
 	site_url = frappe.get_site_config().get('frontend_http', 'https://saksham-v.merillife.com/')
+
+	vendor_updates = []
+	non_vendor_updates = []
 
 	# For onboarded vendors
 	for row in doc.vendor_details:
@@ -36,7 +43,7 @@ def send_quotation_email(doc):
 				message=message,
 				now=True
 			)
-			frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
+			vendor_updates.append(row.name)
 
 	# For non-onboarded vendors
 	for row in doc.non_onboarded_vendor_details:
@@ -57,7 +64,13 @@ def send_quotation_email(doc):
 				message=message,
 				now=True
 			)
-			frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)
+			non_vendor_updates.append(row.name)
+
+	for name in vendor_updates:
+		frappe.db.set_value("Vendor Details", name, "mail_sent", 1, update_modified=False)
+	for name in non_vendor_updates:
+		frappe.db.set_value("Non Onboarded Vendor Details", name, "mail_sent", 1, update_modified=False)
+
 
 
 # get version data from version doc
