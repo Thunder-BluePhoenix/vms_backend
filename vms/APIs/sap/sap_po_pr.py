@@ -290,6 +290,7 @@ def get_po():
 
         sap_status = data.get("status", "")
         po_doc.sap_status = sap_status
+        po_doc.status = sap_status
 
         if po_doc.is_new():
             po_doc.insert()
