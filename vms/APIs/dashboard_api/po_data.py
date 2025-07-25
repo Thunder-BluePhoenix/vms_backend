@@ -36,7 +36,7 @@ def get_po_details(po_name):
                     
                     requisitioner_name = frappe.get_value("User", purchase_requisitioner, "first_name") or frappe.get_value("User", purchase_requisitioner, "full_name")
                     po_dict["requisitioner_name"] = requisitioner_name
-        
+
         return po_dict
         
     except frappe.DoesNotExistError:
@@ -90,6 +90,9 @@ def get_po_details_withformat(po_name, po_format_name=None):
         # Initialize requisitioner fields
         po_dict["requisitioner_email"] = None
         po_dict["requisitioner_name"] = None
+        po_dict["sign_url1"] = None
+        po_dict["sign_url2"] = None
+        po_dict["sign_url3"] = None
         
         pr_no = po.get("ref_pr_no")
         
@@ -104,6 +107,33 @@ def get_po_details_withformat(po_name, po_format_name=None):
                     po_dict["requisitioner_email"] = purchase_requisitioner
                     requisitioner_name = frappe.get_value("User", purchase_requisitioner, "first_name") or frappe.get_value("User", purchase_requisitioner, "full_name")
                     po_dict["requisitioner_name"] = requisitioner_name
+
+
+        if po.sign_of_approval1:
+            file_doc = frappe.get_doc("File", {"file_url": po.sign_of_approval1})
+            po_dict["sign_url1"] = {
+                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                "name": file_doc.name,
+                "file_name": file_doc.file_name
+
+            }
+        if po.sign_of_approval2:
+            file_doc = frappe.get_doc("File", {"file_url": po.sign_of_approval2})
+            po_dict["sign_url2"] = {
+                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                "name": file_doc.name,
+                "file_name": file_doc.file_name
+
+            }
+        if po.sign_of_approval3:
+            file_doc = frappe.get_doc("File", {"file_url": po.sign_of_approval3})
+            po_dict["sign_url3"] = {
+                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                "name": file_doc.name,
+                "file_name": file_doc.file_name
+
+            }
+
         
         # Success response
         frappe.response["http_status_code"] = 200
