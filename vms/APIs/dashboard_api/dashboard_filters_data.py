@@ -66,9 +66,13 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
             conditions.append("vo.company_name = %(company)s")
             values["company"] = company
 
+        # if refno:
+        #     conditions.append("vo.ref_no = %(refno)s")
+        #     values["refno"] = refno
+
         if refno:
-            conditions.append("vo.ref_no = %(refno)s")
-            values["refno"] = refno
+            conditions.append("vo.ref_no LIKE %(refno)s")
+            values["refno"] = f"%{refno}%"
 
         if status:
             conditions.append("vo.onboarding_form_status = %(status)s")
@@ -367,9 +371,13 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
             filters.append("registered_by IN %(user_ids)s")
             values["user_ids"] = user_ids
 
+        # if refno:
+        #     filters.append("ref_no = %(refno)s")
+        #     values["refno"] = refno
+
         if refno:
-            filters.append("ref_no = %(refno)s")
-            values["refno"] = refno
+            filters.append("ref_no LIKE %(refno)s")
+            values["refno"] = f"%{refno}%"
 
         if company:
             filters.append("company = %(company)s")
@@ -490,9 +498,14 @@ def current_month_vendor_details(page_no=None, page_length=None, company=None, r
         if company:
             filter_clause += " AND company_name = %(filter_company)s"
             values["filter_company"] = company
+        
+        # if refno:
+        #     filter_clause += " AND ref_no = %(filter_refno)s"
+        #     values["filter_refno"] = refno
+
         if refno:
-            filter_clause += " AND ref_no = %(filter_refno)s"
-            values["filter_refno"] = refno
+            filter_clause += " AND ref_no LIKE %(filter_refno)s"
+            values["filter_refno"] = f"%{refno}%"
 
         # Pagination
         page_no = int(page_no) if page_no else 1
@@ -637,9 +650,13 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
             conditions.append("vo.company_name = %(company)s")
             values["company"] = company
 
+        # if refno:
+        #     conditions.append("vo.ref_no = %(refno)s")
+        #     values["refno"] = refno
+
         if refno:
-            conditions.append("vo.ref_no = %(refno)s")
-            values["refno"] = refno
+            conditions.append("vo.ref_no LIKE %(refno)s")
+            values["refno"] = f"%{refno}%"
 
         if status:
             conditions.append("vo.onboarding_form_status = %(status)s")
