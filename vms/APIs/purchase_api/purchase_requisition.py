@@ -210,6 +210,60 @@ def filter_material_master(company):
             "message": "Failed to filter material master",
             "error": str(e)
         }
+	
+
+# company wise material group
+@frappe.whitelist(allow_guest=True)
+def filter_material_group_master(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+        material_group = frappe.get_all(
+            "Material Group Master",
+            filters={"material_group_company": company},
+            fields=["name", "material_group_name", "material_group_description", "material_group_long_description"]
+        )
+        return {
+            "status": "success",
+            "material_group": material_group
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering material group")
+        return {
+            "status": "error",
+            "message": "Failed to filter material group",
+            "error": str(e)
+        }
+	
+
+# company wise Purchase Organisation
+@frappe.whitelist(allow_guest=True)
+def filter_purchase_organisation(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+        purchase_org = frappe.get_all(
+            "Purchase Organization Master",
+            filters={"company": company},
+            fields=["name", "purchase_organization_code", "purchase_organization_name", "description"]
+        )
+        return {
+            "status": "success",
+            "purchase_org": purchase_org
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering purchase organisation")
+        return {
+            "status": "error",
+            "message": "Failed to filter purchase organisation",
+            "error": str(e)
+        }
 
 
 # Get Cart Details based on cart id
