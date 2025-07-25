@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{print_format_name}",
+ "creation": "2025-07-25 10:32:47.099231",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "print_format_name",
+  "print_format"
+ ],
+ "fields": [
+  {
+   "fieldname": "print_format_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Print Format Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "print_format",
+   "fieldtype": "Link",
+   "label": "Print Format",
+   "options": "Print Format"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-25 10:40:24.341822",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "PO PrintFormat Master",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
