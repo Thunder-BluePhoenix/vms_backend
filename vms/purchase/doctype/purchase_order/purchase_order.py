@@ -24,6 +24,7 @@ class PurchaseOrder(Document):
 
 	def on_update(self):
 		update_dispatch_qty(self, method=None)
+		update_po_sign(self, method=None)
 		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", update_dispatch_qty(self, method=None))
 		if self.approved_from_vendor == 1 and self.sent_notification_triggered == 0 and self.po_dispatch_status != "Completed" and self.sent_notification_to_vendor == 0:
 			notf_sett_doc = frappe.get_doc("Dispatch Notification Setting")
@@ -298,3 +299,21 @@ def update_dispatch_qty(doc, method=None):
 
 
 
+def update_po_sign(doc, method=None):
+	if doc.approval_1 != None:
+		sign_rec1 = frappe.get_value("Signature Record", {"sap_text_name":doc.approval_1}, "sap_signature")
+		# print("sign_rec1")
+		# doc.sign_of_approval1 = sign_rec1
+		doc.db_set("sign_of_approval1", sign_rec1)
+
+	if doc.approval_2 != None:
+		sign_rec2 = frappe.get_value("Signature Record", {"sap_text_name":doc.approval_2}, "sap_signature")
+		# print("sign_rec2")
+		# doc.sign_of_approval2 = sign_rec2
+		doc.db_set("sign_of_approval2", sign_rec2)
+
+	if doc.approval_3 != None:
+		sign_rec3 = frappe.get_value("Signature Record", {"sap_text_name":doc.approval_3}, "sap_signature")
+		# print("sign_rec3")
+		# doc.sign_of_approval3 = sign_rec3
+		doc.db_set("sign_of_approval3", sign_rec3)

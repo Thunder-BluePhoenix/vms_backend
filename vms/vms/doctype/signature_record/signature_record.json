@@ -49,7 +49,8 @@
   {
    "fieldname": "sap_text_name",
    "fieldtype": "Data",
-   "label": "SAP Text Name"
+   "label": "SAP Text Name",
+   "unique": 1
   },
   {
    "fieldname": "sap_signature",
@@ -84,7 +85,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-23 12:04:37.657748",
+ "modified": "2025-07-25 15:51:58.722958",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Signature Record",
