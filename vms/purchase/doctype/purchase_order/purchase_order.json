@@ -6,6 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "purchase_order_format",
   "reference_to_rfq_section",
   "sap_status",
   "supplier_name",
@@ -820,12 +821,18 @@
    "fieldname": "history_html",
    "fieldtype": "HTML",
    "label": "history"
+  },
+  {
+   "fieldname": "purchase_order_format",
+   "fieldtype": "Link",
+   "label": "Purchase Order Format",
+   "options": "PO PrintFormat Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 17:37:22.309437",
+ "modified": "2025-07-25 12:54:52.236867",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
