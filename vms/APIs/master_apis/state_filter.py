@@ -14,7 +14,8 @@ def get_state_data_safely(state_name):
             "state_name": state.state_name if hasattr(state, 'state_name') else None,
             "sap_state_code": state.sap_state_code if hasattr(state, 'sap_state_code') else None,
             "custom_gst_state_code": state.custom_gst_state_code if hasattr(state, 'custom_gst_state_code') else None,
-            "country_name": state.country_name if hasattr(state, 'country_name') else None
+            "country_name": state.country_name if hasattr(state, 'country_name') else None,
+            "name": state.name
         }
     except frappe.DoesNotExistError:
         frappe.log_error(f"State Master not found: {state_name}")

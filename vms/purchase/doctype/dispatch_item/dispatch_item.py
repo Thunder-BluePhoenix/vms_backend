@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import now_datetime, get_datetime
 from frappe import _
 
 
@@ -15,6 +16,7 @@ class DispatchItem(Document):
 					continue
 
 				po = frappe.get_doc("Purchase Order", row.purchase_number)
+				current_date = now_datetime()
 
 				for item in po.po_items:
 					# Skip if item already added
@@ -36,6 +38,20 @@ class DispatchItem(Document):
 					})
 
 			# self.save(ignore_permissions=True)
+				found = False
+				for dis_id in po.dispatch_ids:
+					if dis_id.dispatch_id == self.name:
+						dis_id.dispatch_datetime = current_date
+						found = True
+						break
+				if found == False:
+					po.append("dispatch_ids", {
+						"dispatch_id" : self.name,
+						"dispatch_datetime": current_date
+					})
+				po.save()
+				
+			
 
 		except Exception as e:
 			frappe.log_error(frappe.get_traceback(), "DispatchItem after_insert Error")
