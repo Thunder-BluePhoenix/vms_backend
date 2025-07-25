@@ -129,6 +129,10 @@
   "approval_1",
   "approval_2",
   "approval_3",
+  "column_break_qtbn",
+  "sign_of_approval1",
+  "sign_of_approval2",
+  "sign_of_approval3",
   "section_break_oqgf",
   "user_confirmation",
   "payment_release",
@@ -827,12 +831,31 @@
    "fieldtype": "Link",
    "label": "Purchase Order Format",
    "options": "PO PrintFormat Master"
+  },
+  {
+   "fieldname": "column_break_qtbn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sign_of_approval1",
+   "fieldtype": "Attach",
+   "label": "Sign of Approval1"
+  },
+  {
+   "fieldname": "sign_of_approval2",
+   "fieldtype": "Attach",
+   "label": "Sign of Approval2"
+  },
+  {
+   "fieldname": "sign_of_approval3",
+   "fieldtype": "Attach",
+   "label": "Sign of Approval3"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-25 12:54:52.236867",
+ "modified": "2025-07-25 14:56:05.002195",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",

@@ -553,8 +553,9 @@ def list_purchase_order(vendor_code):
 		purchase_orders = frappe.get_all(
 			"Purchase Order",
 			filters={
-				"status": ["in", [None, "", "Partial"]],
-				"vendor_code": vendor_code
+				"po_dispatch_status": ["in", [None, "", "Partial"]],
+				"vendor_code": vendor_code,
+				"sent_to_vendor": 1
 			},
 			fields="*"
 		)
