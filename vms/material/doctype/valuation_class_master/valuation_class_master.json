@@ -31,7 +31,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-04 14:03:28.703707",
+ "modified": "2025-07-26 19:08:54.789123",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Valuation Class Master",
@@ -52,7 +52,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "valuation_class_code"
 }
