@@ -109,10 +109,10 @@
   "asked_to_revise",
   "column_break_bgwt",
   "bidding_status",
-  "status",
   "tab_3_tab",
   "version_history",
-  "history_html"
+  "history_html",
+  "status"
  ],
  "fields": [
   {
@@ -215,11 +215,6 @@
    "fieldname": "quote_amount",
    "fieldtype": "Data",
    "label": "Quote Amount"
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Data",
-   "label": "Status"
   },
   {
    "fieldname": "logistics_section",
@@ -688,7 +683,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-23 15:36:47.968074",
+ "modified": "2025-07-26 16:35:45.424756",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Quotation",

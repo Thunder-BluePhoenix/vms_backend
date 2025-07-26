@@ -145,7 +145,148 @@ def add_pr_number(data):
 			"message": str(e)
 		}
 
-    
+
+# company wise filter purchase Group
+@frappe.whitelist(allow_guest=True)
+def filter_purchase_group(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        pur_grp = frappe.get_all(
+            "Purchase Group Master",
+            filters={"company": company},
+            fields=["name", "purchase_group_code", "purchase_group_name", "description"]
+        )
+
+        return {
+            "status": "success",
+            "pur_grp": pur_grp
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering purchase group")
+        return {
+            "status": "error",
+            "message": "Failed to filter purchase group.",
+            "error": str(e)
+        }
+	
+# company wise Purchase Organisation
+@frappe.whitelist(allow_guest=True)
+def filter_purchase_organisation(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+        purchase_org = frappe.get_all(
+            "Purchase Organization Master",
+            filters={"company": company},
+            fields=["name", "purchase_organization_code", "purchase_organization_name", "description"]
+        )
+        return {
+            "status": "success",
+            "purchase_org": purchase_org
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering purchase organisation")
+        return {
+            "status": "error",
+            "message": "Failed to filter purchase organisation",
+            "error": str(e)
+        }
+	
+# company wise filter plant
+@frappe.whitelist(allow_guest=True)
+def filter_plant(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        plant = frappe.get_all(
+            "Plant Master",
+            filters={"company": company},
+            fields=["name", "plant_name", "city", "zone", "plant_address", "description"]
+        )
+
+        return {
+            "status": "success",
+            "plant": plant
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering Plant")
+        return {
+            "status": "error",
+            "message": "Failed to filter Plant.",
+            "error": str(e)
+        }
+	
+	
+# company wise material master
+@frappe.whitelist(allow_guest=True)
+def filter_material_master(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        material_master = frappe.get_all(
+            "Material Master",
+            filters={"company": company},
+            fields=["name", "material_code", "material_name", "material_type", "material_category", "description"]
+        )
+
+        return {
+            "status": "success",
+            "material_master": material_master
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering material master")
+        return {
+            "status": "error",
+            "message": "Failed to filter material master",
+            "error": str(e)
+        }
+
+
+# company wise material group
+@frappe.whitelist(allow_guest=True)
+def filter_material_group_master(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+        material_group = frappe.get_all(
+            "Material Group Master",
+            filters={"material_group_company": company},
+            fields=["name", "material_group_name", "material_group_description", "material_group_long_description"]
+        )
+        return {
+            "status": "success",
+            "material_group": material_group
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering material group")
+        return {
+            "status": "error",
+            "message": "Failed to filter material group",
+            "error": str(e)
+        }
+
 
 # create Material rfq
 @frappe.whitelist(allow_guest=False)

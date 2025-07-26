@@ -343,6 +343,7 @@ def acknowledge_purchase_inquiry(data):
                 <p>Your cart details has been <b>acknowledged</b>.</p>
                 <p><b>Cart ID:</b> {doc.name}</p>
                 <p><b>Cart Date:</b> {doc.cart_date}</p>
+                <p><b>Acknowledged Date:</b> {doc.acknowledged_date}</p>
                 <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks} </p>
                 
                 {table_html}

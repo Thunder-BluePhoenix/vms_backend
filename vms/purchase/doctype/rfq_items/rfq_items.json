@@ -53,9 +53,10 @@
   },
   {
    "fieldname": "material_code_head",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Material Code"
+   "label": "Material Code",
+   "options": "Material Master"
   },
   {
    "fieldname": "material_name_head",
@@ -95,9 +96,10 @@
   },
   {
    "fieldname": "material_code_subhead",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Material Code"
+   "label": "Material Code",
+   "options": "Material Master"
   },
   {
    "fieldname": "material_name_subhead",
@@ -188,7 +190,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-22 08:04:26.260055",
+ "modified": "2025-07-26 11:00:34.905957",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Items",

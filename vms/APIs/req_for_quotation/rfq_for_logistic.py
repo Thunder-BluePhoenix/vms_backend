@@ -519,52 +519,62 @@ def get_full_data_export_logistic_rfq(name):
 
 
 # dashboard for rfq logistic
-# take care for vendor login also now it is not hanled in the function
+
 @frappe.whitelist(allow_guest=False)
-def rfq_logistic_dashboard(company_name=None, name=None, page_no=1, page_length=5):
+def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_type=None, status=None):
 	try:
 		page_no = int(page_no) if page_no else 1
 		page_length = int(page_length) if page_length else 5
 		offset = (page_no - 1) * page_length
 
-		# Fetch broad dataset
-		rfq_list_raw = frappe.get_all(
-			"Request For Quotation",
-			fields=[
-				"name",
-				"company_name_logistic",
-				"company_name",
-				"rfq_type",
-				"rfq_date_logistic",
-				"rfq_date",
-				"status"
-			],
-			order_by="modified desc"
-		)
+		# Build dynamic filters
+		conditions = []
+		values = {}
 
-		# Apply filters manually
-		filtered = []
-		for rfq in rfq_list_raw:
-			company = rfq.company_name_logistic or rfq.company_name
-			if company_name and company_name.lower() not in company.lower():
-				continue
-			if name and name.lower() not in rfq.name.lower():
-				continue
-			filtered.append({
-				"name": rfq.name,
-				"company_name": company,
-				"rfq_type": rfq.rfq_type,
-				"rfq_date": rfq.rfq_date_logistic or rfq.rfq_date,
-				"status": rfq.status
-			})
+		if company_name:
+			conditions.append("(company_name = %(company_name)s OR company_name_logistic = %(company_name)s)")
+			values["company_name"] = company_name
 
-		total_count = len(filtered)
-		paginated_data = filtered[offset:offset + page_length]
+		if name:
+			conditions.append("name LIKE %(name)s")
+			values["name"] = f"%{name}%"
+
+		if rfq_type:
+			conditions.append("rfq_type = %(rfq_type)s")
+			values["rfq_type"] = rfq_type
+
+		if status:
+			conditions.append("status = %(status)s")
+			values["status"] = status
+
+		condition_clause = " AND ".join(conditions)
+		condition_clause = f"WHERE {condition_clause}" if condition_clause else ""
+
+		# Total count
+		total_count = frappe.db.sql(f"""
+			SELECT COUNT(*) FROM `tabRequest For Quotation`
+			{condition_clause}
+		""", values)[0][0]
+
+		# Paginated result
+		data = frappe.db.sql(f"""
+			SELECT
+				name,
+				IFNULL(company_name_logistic, company_name) AS company_name,
+				rfq_type,
+				IFNULL(rfq_date_logistic, rfq_date) AS rfq_date,
+				IFNULL(delivery_date, shipment_date) AS delivery_date,
+				status
+			FROM `tabRequest For Quotation`
+			{condition_clause}
+			ORDER BY modified DESC
+			LIMIT %(limit)s OFFSET %(offset)s
+		""", {**values, "limit": page_length, "offset": offset}, as_dict=True)
 
 		return {
 			"status": "success",
-			"message": f"{len(paginated_data)} RFQ(s) found",
-			"data": paginated_data,
+			"message": f"{len(data)} RFQ(s) found",
+			"data": data,
 			"total_count": total_count,
 			"page_no": page_no,
 			"page_length": page_length
@@ -572,5 +582,29 @@ def rfq_logistic_dashboard(company_name=None, name=None, page_no=1, page_length=
 
 	except Exception as e:
 		frappe.log_error(frappe.get_traceback(), "RFQ Dashboard Error")
-		frappe.throw(_("Error fetching RFQ list: ") + str(e))
+		return {
+			"status": "error",
+			"message": "Failed to fetch RFQ dashboard data.",
+			"error": str(e)
+		}
+
+
+# total count of rfq
+@frappe.whitelist(allow_guest=False)
+def total_rfq_count():
+	try:
+		total_rfq = frappe.db.count("Request For Quotation")
+
+		return {
+			"status": "success",
+			"total_rfq": total_rfq
+		}
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Total RFQ Count Error")
+		return {
+			"status": "error",
+			"message": "Failed to get RFQ count.",
+			"error": str(e)
+		}
+	
 		
