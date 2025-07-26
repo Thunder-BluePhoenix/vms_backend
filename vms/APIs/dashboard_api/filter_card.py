@@ -1,6 +1,7 @@
-from frappe.utils import today, get_first_day, get_last_day
 import frappe
 import json
+
+from frappe.utils import today, get_first_day, get_last_day
 
 # Not In Use
 # @frappe.whitelist(allow_guest=False)
