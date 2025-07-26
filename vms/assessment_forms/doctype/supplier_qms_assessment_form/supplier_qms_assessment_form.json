@@ -146,6 +146,9 @@
   "column_break_lwai",
   "performer_title",
   "performent_date",
+  "qa_head_approved",
+  "qa_team_approved",
+  "purchase_team_approved",
   "tab_12_tab",
   "multiselect_data_json",
   "for_company_2000",
@@ -965,12 +968,30 @@
    "fieldtype": "Link",
    "label": "Vendor Title",
    "options": "Vendor Title"
+  },
+  {
+   "default": "0",
+   "fieldname": "qa_head_approved",
+   "fieldtype": "Check",
+   "label": "QA Head Approved"
+  },
+  {
+   "default": "0",
+   "fieldname": "qa_team_approved",
+   "fieldtype": "Check",
+   "label": "QA Team Approved"
+  },
+  {
+   "default": "0",
+   "fieldname": "purchase_team_approved",
+   "fieldtype": "Check",
+   "label": "Purchase Team Approved"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 13:01:18.409491",
+ "modified": "2025-07-26 19:39:25.201314",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
