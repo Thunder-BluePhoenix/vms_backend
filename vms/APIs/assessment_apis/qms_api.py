@@ -203,6 +203,18 @@ def approve_qms_form(data):
         qms_form.performer_name = data.get("performer_name") or ""
         qms_form.performer_title = data.get("performer_title") or ""
         qms_form.performent_date = data.get("performent_date") or ""
+        
+        qa_head_approved = data.get("qa_head_approved") or ""
+        if qa_head_approved == 1:
+            qms_form.qa_head_approved = 1
+
+        qa_team_approved = data.get("qa_team_approved") or ""
+        if qa_team_approved == 1:
+            qms_form.qa_team_approved = 1
+
+        purchase_team_approved = data.get("purchase_team_approved") or ""
+        if purchase_team_approved == 1:
+            qms_form.purchase_team_approved = 1
 
         base64_signature = data.get("performer_esignature")
         if base64_signature:
