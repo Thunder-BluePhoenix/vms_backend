@@ -15,8 +15,8 @@
   "company_name_logistic",
   "rfq_cutoff_date_logistic",
   "mode_of_shipment",
-  "destination_port",
   "port_of_loading",
+  "destination_port",
   "ship_to_address",
   "no_of_pkg_units",
   "vol_weight",
@@ -640,7 +640,7 @@
    "fieldtype": "Check",
    "label": "Quotation/RFQ Deadline Pass"
   },
-   {
+  {
    "fieldname": "tab_3_tab",
    "fieldtype": "Tab Break",
    "label": "History"
@@ -654,7 +654,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-23 14:56:40.906016",
+ "modified": "2025-07-26 11:32:45.899832",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
