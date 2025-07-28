@@ -7,9 +7,14 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
-  "creation_datetime",
+  "rfq_unique_id",
   "column_break_kztx",
-  "last_modified_datetime"
+  "last_modified_datetime",
+  "creation_datetime",
+  "rfq_details_section",
+  "rfqs",
+  "qtn_details_section",
+  "table_pacf"
  ],
  "fields": [
   {
@@ -31,12 +36,38 @@
   {
    "fieldname": "column_break_kztx",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rfq_unique_id",
+   "fieldtype": "Data",
+   "label": "RFQ Unique ID"
+  },
+  {
+   "fieldname": "rfq_details_section",
+   "fieldtype": "Section Break",
+   "label": "RFQ Details"
+  },
+  {
+   "fieldname": "rfqs",
+   "fieldtype": "Table",
+   "label": "RFQs ",
+   "options": "RFQ Revision Table"
+  },
+  {
+   "fieldname": "qtn_details_section",
+   "fieldtype": "Section Break",
+   "label": "QTN Details"
+  },
+  {
+   "fieldname": "table_pacf",
+   "fieldtype": "Table",
+   "options": "RFQ Revision Quotation Table"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-28 17:18:08.360869",
+ "modified": "2025-07-28 17:49:24.189695",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Revision",

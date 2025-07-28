@@ -40,11 +40,13 @@
   {
    "fieldname": "creation_datetime",
    "fieldtype": "Datetime",
+   "in_list_view": 1,
    "label": "Creation DateTime"
   },
   {
    "fieldname": "modified_datetime",
    "fieldtype": "Datetime",
+   "in_list_view": 1,
    "label": "Modified DateTime"
   },
   {
@@ -57,7 +59,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-28 17:41:59.117701",
+ "modified": "2025-07-28 17:47:11.169561",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Revision Quotation Table",
