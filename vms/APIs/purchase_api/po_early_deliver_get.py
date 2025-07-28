@@ -539,443 +539,917 @@ def get_po_items_only(po_name, usr=None):
 
 
 
-
-
-
-
-
-
-
-
-
 import frappe
 from frappe import _
+import redis
+import json
+import hashlib
+from datetime import datetime, timedelta
 
-# Cache for user roles to avoid repeated database calls
-_user_roles_cache = {}
+# Redis connection for caching
+def get_redis_connection():
+    """Get Redis connection for caching"""
+    try:
+        return frappe.cache()
+    except:
+        return None
 
-def get_cached_user_roles(user):
-    """Cache user roles to avoid repeated database queries"""
-    if user not in _user_roles_cache:
-        _user_roles_cache[user] = set(frappe.get_roles(user))
-    return _user_roles_cache[user]
+# Advanced caching with TTL
+class AdvancedCache:
+    def __init__(self, ttl=300):  # 5 minutes default TTL
+        self.redis_conn = get_redis_connection()
+        self.ttl = ttl
+    
+    def get_cache_key(self, prefix, *args):
+        """Generate cache key from arguments"""
+        key_data = f"{prefix}:{':'.join(str(arg) for arg in args if arg is not None)}"
+        return hashlib.md5(key_data.encode()).hexdigest()[:16]
+    
+    def get(self, key):
+        """Get cached data"""
+        if not self.redis_conn:
+            return None
+        try:
+            data = self.redis_conn.get(key)
+            return json.loads(data) if data else None
+        except:
+            return None
+    
+    def set(self, key, data):
+        """Set cached data with TTL"""
+        if not self.redis_conn:
+            return
+        try:
+            self.redis_conn.setex(key, self.ttl, json.dumps(data, default=str))
+        except:
+            pass
+
+# Global cache instances
+user_cache = AdvancedCache(ttl=1800)  # 30 minutes for user data
+po_cache = AdvancedCache(ttl=60)      # 1 minute for PO data
 
 @frappe.whitelist(allow_guest=True)
-def filtering_po_details(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None):
+def filtering_po_details_ultra_fast(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None, **kwargs):
     """
-    Optimized main filtering API with pagination and comprehensive search
+    Ultra-fast filtering with aggressive caching and query optimization
     """
     try:
-        # Validate user session
+        # Validate user
         if usr is None:
             usr = frappe.session.user
         elif usr != frappe.session.user:
-            return {
-                "status": "error",
-                "message": "User mismatch or unauthorized access.",
-                "code": 404
-            }
+            return {"status": "error", "message": "Unauthorized access.", "code": 404}
 
-        # Use cached roles for better performance
-        user_roles = get_cached_user_roles(usr)
-       
-        # Route to appropriate function based on role
-        if "Vendor" in user_roles:
-            return get_po_against_all_vc_optimized(
-                page_no=page_no, 
-                page_length=page_length, 
-                company=company, 
-                refno=refno, 
-                status=status, 
-                search=search, 
-                usr=usr, 
-                early_del=early_del
-            )
+        # Check cache first for user role
+        cache_key = user_cache.get_cache_key("user_role", usr)
+        user_role_data = user_cache.get(cache_key)
+        
+        if not user_role_data:
+            # Single query to get user, roles, and team data
+            user_data = frappe.db.sql("""
+                SELECT 
+                    u.name as user_name,
+                    GROUP_CONCAT(DISTINCT r.role) as roles,
+                    e.team,
+                    GROUP_CONCAT(DISTINCT pgm.purchase_group_code) as purchase_groups
+                FROM `tabUser` u
+                LEFT JOIN `tabHas Role` r ON r.parent = u.name
+                LEFT JOIN `tabEmployee` e ON e.user_id = u.name
+                LEFT JOIN `tabPurchase Group Master` pgm ON pgm.team = e.team
+                WHERE u.name = %(user)s
+                GROUP BY u.name, e.team
+            """, {"user": usr}, as_dict=True)
+            
+            if not user_data:
+                return {"status": "error", "message": "User not found.", "code": 404}
+            
+            user_role_data = {
+                "roles": set(user_data[0].roles.split(',')) if user_data[0].roles else set(),
+                "team": user_data[0].team,
+                "purchase_groups": user_data[0].purchase_groups.split(',') if user_data[0].purchase_groups else []
+            }
+            user_cache.set(cache_key, user_role_data)
+
+        # Route based on role
+        if "Vendor" in user_role_data["roles"]:
+            return get_vendor_po_ultra_fast(page_no, page_length, company, refno, status, search, usr)
         else:
-            return filtering_po_details_pt_optimized(
-                page_no=page_no, 
-                page_length=page_length, 
-                company=company, 
-                refno=refno, 
-                status=status, 
-                search=search, 
-                usr=usr, 
-                early_del=early_del
-            )
+            return get_employee_po_ultra_fast(page_no, page_length, company, refno, status, search, usr, user_role_data)
             
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "filtering_po_details API Error")
-        return {
-            "status": "error",
-            "message": "Failed to filter PO details.",
-            "error": str(e),
-            "code": 500
-        }
+        frappe.log_error(frappe.get_traceback(), "Ultra Fast PO Filter Error")
+        return {"status": "error", "message": "System error", "error": str(e), "code": 500}
 
 
-@frappe.whitelist(allow_guest=False)
-def filtering_po_details_pt_optimized(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None):
-    """
-    Optimized version of filtering_po_details_pt with single query approach
-    """
+def get_employee_po_ultra_fast(page_no, page_length, company, refno, status, search, usr, user_role_data):
+    """Ultra-fast employee PO filtering"""
     try:
-        if usr is None:
-            usr = frappe.session.user
-        elif usr != frappe.session.user:
-            return {
-                "status": "error",
-                "message": "User mismatch or unauthorized access.",
-                "code": 404
-            }
+        if not user_role_data["purchase_groups"]:
+            return {"status": "error", "message": "No purchase groups found.", "po": []}
 
-        # Get team and purchase groups in a single optimized query
-        team_data = frappe.db.sql("""
-            SELECT 
-                e.team,
-                GROUP_CONCAT(DISTINCT pgm.purchase_group_code) as purchase_groups
-            FROM `tabEmployee` e
-            LEFT JOIN `tabPurchase Group Master` pgm ON pgm.team = e.team
-            WHERE e.user_id = %(user)s
-            GROUP BY e.team
-        """, {"user": usr}, as_dict=True)
-
-        if not team_data:
-            return {
-                "status": "error",
-                "message": "No Employee record found for the user.",
-                "po": []
-            }
-
-        team = team_data[0].team
-        purchase_groups = team_data[0].purchase_groups.split(',') if team_data[0].purchase_groups else []
-
-        if not purchase_groups:
-            return {
-                "status": "error",
-                "message": "No purchase groups found for the team.",
-                "po": []
-            }
-
-        # Build optimized query with single execution
-        conditions = ["po.purchase_group IN %(purchase_groups)s"]
-        values = {"purchase_groups": purchase_groups}
-
-        # Add filters
-        if company:
-            conditions.append("po.company_code = %(company)s")
-            values["company"] = company
-            
-        if status:
-            conditions.append("po.vendor_status = %(status)s")
-            values["status"] = status
-
-        # Optimized search with full-text indexing consideration
-        if search:
-            conditions.append("(po.name LIKE %(search)s OR po.po_no LIKE %(search)s)")
-            values["search"] = f"%{search}%"
-
-        filter_clause = " AND ".join(conditions)
-
-        # Single query to get both count and data
-        if search:
-            # With search relevance ordering
-            query = f"""
-                SELECT 
-                    po.name,
-                    po.po_no,
-                    po.company_code,
-                    po.creation,
-                    po.modified,
-                    COUNT(*) OVER() as total_count,
-                    CASE 
-                        WHEN po.name LIKE %(search_start)s THEN 1
-                        WHEN po.po_no LIKE %(search_start)s THEN 2
-                        ELSE 3
-                    END as relevance
-                FROM `tabPurchase Order` po
-                WHERE {filter_clause}
-                ORDER BY relevance, po.creation DESC
-                LIMIT %(limit)s OFFSET %(offset)s
-            """
-            values["search_start"] = f"{search}%"
-        else:
-            query = f"""
-                SELECT 
-                    po.name,
-                    po.po_no,
-                    po.company_code,
-                    po.creation,
-                    po.modified,
-                    COUNT(*) OVER() as total_count
-                FROM `tabPurchase Order` po
-                WHERE {filter_clause}
-                ORDER BY po.creation DESC
-                LIMIT %(limit)s OFFSET %(offset)s
-            """
+        # Generate cache key for this specific query
+        cache_key = po_cache.get_cache_key(
+            "employee_po", usr, page_no, page_length, company, status, search,
+            hash(tuple(user_role_data["purchase_groups"]))
+        )
+        
+        cached_result = po_cache.get(cache_key)
+        if cached_result:
+            return cached_result
 
         # Pagination setup
         page_no = int(page_no) if page_no else 1
-        page_length = int(page_length) if page_length else 5
-        values["limit"] = page_length
-        values["offset"] = (page_no - 1) * page_length
+        page_length = min(int(page_length) if page_length else 10, 100)  # Cap at 100
+        offset = (page_no - 1) * page_length
 
-        # Execute single query
-        results = frappe.db.sql(query, values, as_dict=True)
-        
-        total_count = results[0].total_count if results else 0
-        
-        # Remove total_count from individual records
-        po_docs = []
-        for result in results:
-            po_doc = {k: v for k, v in result.items() if k != 'total_count' and k != 'relevance'}
-            po_docs.append(po_doc)
-
-        return {
-            "status": "success",
-            "message": "Paginated and filtered po records fetched successfully.",
-            "total_count": total_count,
-            "page_no": page_no,
-            "page_length": page_length,
-            "total_po": po_docs,
-            "search_term": search
-        }
-
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "filtering_po_details_pt_optimized API Error")
-        return {
-            "status": "error",
-            "message": "Failed to fetch po data.",
-            "error": str(e),
-            "po": []
-        }
-
-
-@frappe.whitelist()
-def get_po_against_all_vc_optimized(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None):
-    """
-    Heavily optimized vendor PO filtering with single query approach
-    """
-    try:
-        if usr is None:
-            usr = frappe.session.user
-        elif usr != frappe.session.user:
-            return {
-                "status": "error",
-                "message": "User mismatch or unauthorized access.",
-                "code": 404
-            }
-
-        # Check vendor role using cached roles
-        user_roles = get_cached_user_roles(usr)
-        if "Vendor" not in user_roles:
-            return {"status": "error", "message": "User does not have the Vendor role."}
-
-        # Get all vendor codes in a single optimized query
-        vendor_codes_query = """
-            SELECT DISTINCT cvc_child.vendor_code
-            FROM `tabVendor Master` vm
-            JOIN `tabMultiple Company Data` mcd ON mcd.parent = vm.name
-            JOIN `tabCompany Vendor Code` cvc ON cvc.name = mcd.company_vendor_code
-            JOIN `tabVendor Code` cvc_child ON cvc_child.parent = cvc.name
-            WHERE vm.office_email_primary = %(user)s
-            AND cvc_child.vendor_code IS NOT NULL
-            AND cvc_child.vendor_code != ''
-        """
-        
-        vendor_codes_result = frappe.db.sql(vendor_codes_query, {"user": usr}, as_dict=True)
-        vendor_codes = [row.vendor_code for row in vendor_codes_result if row.vendor_code]
-
-        if not vendor_codes:
-            return {
-                "status": "success",
-                "message": "No vendor codes found for the user.",
-                "total_count": 0,
-                "page_no": int(page_no) if page_no else 1,
-                "page_length": int(page_length) if page_length else 5,
-                "total_po": [],
-                "search_term": search
-            }
-
-        # Build query conditions
-        conditions = ["po.vendor_code IN %(vendor_codes)s"]
-        values = {"vendor_codes": vendor_codes}
+        # Build dynamic WHERE clause
+        where_conditions = ["po.purchase_group IN %(purchase_groups)s"]
+        params = {"purchase_groups": user_role_data["purchase_groups"]}
 
         if company:
-            conditions.append("po.company_code = %(company)s")
-            values["company"] = company
-            
+            where_conditions.append("po.company_code = %(company)s")
+            params["company"] = company
         if status:
-            conditions.append("po.vendor_status = %(status)s")
-            values["status"] = status
+            where_conditions.append("po.vendor_status = %(status)s")
+            params["status"] = status
+        if search:
+            where_conditions.append("(po.name LIKE %(search)s OR po.po_no LIKE %(search)s)")
+            params["search"] = f"%{search}%"
+
+        where_clause = " AND ".join(where_conditions)
+
+        # Ultra-optimized single query with materialized CTE
+        query = f"""
+        WITH po_filtered AS (
+            SELECT 
+                po.name,
+                po.po_no,
+                po.company_code,
+                po.creation,
+                po.modified,
+                ROW_NUMBER() OVER (
+                    ORDER BY 
+                    {f"CASE WHEN po.name LIKE %(search_start)s THEN 1 WHEN po.po_no LIKE %(search_start)s THEN 2 ELSE 3 END," if search else ""}
+                    po.creation DESC
+                ) as row_num
+            FROM `tabPurchase Order` po
+            WHERE {where_clause}
+        )
+        SELECT 
+            *,
+            (SELECT COUNT(*) FROM po_filtered) as total_count
+        FROM po_filtered
+        WHERE row_num BETWEEN %(start_row)s AND %(end_row)s
+        """
+
+        params.update({
+            "start_row": offset + 1,
+            "end_row": offset + page_length
+        })
 
         if search:
-            conditions.append("(po.name LIKE %(search)s OR po.po_no LIKE %(search)s)")
-            values["search"] = f"%{search}%"
+            params["search_start"] = f"{search}%"
 
-        filter_clause = " AND ".join(conditions)
-
-        # Single optimized query with pagination and count
-        if search:
-            query = f"""
-                SELECT 
-                    po.name,
-                    po.po_no,
-                    po.company_code,
-                    po.vendor_code,
-                    po.creation,
-                    po.modified,
-                    COUNT(*) OVER() as total_count,
-                    CASE 
-                        WHEN po.name LIKE %(search_start)s THEN 1
-                        WHEN po.po_no LIKE %(search_start)s THEN 2
-                        ELSE 3
-                    END as relevance
-                FROM `tabPurchase Order` po
-                WHERE {filter_clause}
-                ORDER BY relevance, po.creation DESC
-                LIMIT %(limit)s OFFSET %(offset)s
-            """
-            values["search_start"] = f"{search}%"
-        else:
-            query = f"""
-                SELECT 
-                    po.name,
-                    po.po_no,
-                    po.company_code,
-                    po.vendor_code,
-                    po.creation,
-                    po.modified,
-                    COUNT(*) OVER() as total_count
-                FROM `tabPurchase Order` po
-                WHERE {filter_clause}
-                ORDER BY po.creation DESC
-                LIMIT %(limit)s OFFSET %(offset)s
-            """
-
-        # Pagination
-        page_no = int(page_no) if page_no else 1
-        page_length = int(page_length) if page_length else 5
-        values["limit"] = page_length
-        values["offset"] = (page_no - 1) * page_length
-
-        # Execute query
-        results = frappe.db.sql(query, values, as_dict=True)
+        results = frappe.db.sql(query, params, as_dict=True)
         
         total_count = results[0].total_count if results else 0
-        
-        # Clean up results
-        po_docs = []
-        for result in results:
-            po_doc = {k: v for k, v in result.items() if k not in ['total_count', 'relevance']}
-            po_docs.append(po_doc)
+        po_docs = [{k: v for k, v in r.items() if k not in ['total_count', 'row_num']} for r in results]
 
-        return {
+        response = {
             "status": "success",
-            "message": "Paginated and filtered po records fetched successfully.",
+            "message": "Ultra-fast PO fetch completed.",
             "total_count": total_count,
             "page_no": page_no,
             "page_length": page_length,
             "total_po": po_docs,
             "search_term": search,
-            "vendor_codes_count": len(vendor_codes)
+            "cached": False
         }
 
-    except frappe.DoesNotExistError:
-        return {"status": "error", "message": "Vendor Master not found for the user."}
+        # Cache the result
+        po_cache.set(cache_key, response)
+        return response
+
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "get_po_against_all_vc_optimized API Error")
-        return {
-            "status": "error",
-            "message": "Failed to fetch po data.",
-            "error": str(e),
-            "po": []
+        frappe.log_error(frappe.get_traceback(), "Employee PO Ultra Fast Error")
+        return {"status": "error", "message": "Failed to fetch employee POs", "error": str(e)}
+
+
+def get_vendor_po_ultra_fast(page_no, page_length, company, refno, status, search, usr):
+    """Ultra-fast vendor PO filtering with pre-computed vendor codes"""
+    try:
+        # Check vendor codes cache first
+        vendor_cache_key = user_cache.get_cache_key("vendor_codes", usr)
+        vendor_codes = user_cache.get(vendor_cache_key)
+        
+        if not vendor_codes:
+            # Single optimized query for vendor codes
+            vendor_codes_result = frappe.db.sql("""
+                SELECT DISTINCT vc.vendor_code
+                FROM `tabVendor Master` vm
+                STRAIGHT_JOIN `tabMultiple Company Data` mcd ON mcd.parent = vm.name
+                STRAIGHT_JOIN `tabCompany Vendor Code` cvc ON cvc.name = mcd.company_vendor_code  
+                STRAIGHT_JOIN `tabVendor Code` vc ON vc.parent = cvc.name
+                WHERE vm.office_email_primary = %(user)s
+                AND vc.vendor_code IS NOT NULL 
+                AND vc.vendor_code != ''
+            """, {"user": usr}, as_dict=True)
+            
+            vendor_codes = [r.vendor_code for r in vendor_codes_result]
+            if not vendor_codes:
+                return {
+                    "status": "success", "message": "No vendor codes found.",
+                    "total_count": 0, "page_no": int(page_no) if page_no else 1,
+                    "page_length": int(page_length) if page_length else 10,
+                    "total_po": [], "search_term": search
+                }
+            
+            user_cache.set(vendor_cache_key, vendor_codes)
+
+        # Generate cache key for this vendor query
+        cache_key = po_cache.get_cache_key(
+            "vendor_po", usr, page_no, page_length, company, status, search,
+            hash(tuple(vendor_codes))
+        )
+        
+        cached_result = po_cache.get(cache_key)
+        if cached_result:
+            return cached_result
+
+        # Pagination
+        page_no = int(page_no) if page_no else 1
+        page_length = min(int(page_length) if page_length else 10, 100)
+        offset = (page_no - 1) * page_length
+
+        # Build conditions
+        where_conditions = ["po.vendor_code IN %(vendor_codes)s"]
+        params = {"vendor_codes": vendor_codes}
+
+        if company:
+            where_conditions.append("po.company_code = %(company)s")
+            params["company"] = company
+        if status:
+            where_conditions.append("po.vendor_status = %(status)s")
+            params["status"] = status
+        if search:
+            where_conditions.append("(po.name LIKE %(search)s OR po.po_no LIKE %(search)s)")
+            params["search"] = f"%{search}%"
+
+        where_clause = " AND ".join(where_conditions)
+
+        # Use covering index query with materialized CTE
+        query = f"""
+        WITH vendor_po_filtered AS (
+            SELECT 
+                po.name,
+                po.po_no,
+                po.company_code,
+                po.vendor_code,
+                po.creation,
+                po.modified,
+                ROW_NUMBER() OVER (
+                    ORDER BY 
+                    {f"CASE WHEN po.name LIKE %(search_start)s THEN 1 WHEN po.po_no LIKE %(search_start)s THEN 2 ELSE 3 END," if search else ""}
+                    po.creation DESC
+                ) as row_num
+            FROM `tabPurchase Order` po
+            WHERE {where_clause}
+        )
+        SELECT 
+            *,
+            (SELECT COUNT(*) FROM vendor_po_filtered) as total_count
+        FROM vendor_po_filtered  
+        WHERE row_num BETWEEN %(start_row)s AND %(end_row)s
+        """
+
+        params.update({
+            "start_row": offset + 1,
+            "end_row": offset + page_length
+        })
+
+        if search:
+            params["search_start"] = f"{search}%"
+
+        results = frappe.db.sql(query, params, as_dict=True)
+        
+        total_count = results[0].total_count if results else 0
+        po_docs = [{k: v for k, v in r.items() if k not in ['total_count', 'row_num']} for r in results]
+
+        response = {
+            "status": "success",
+            "message": "Ultra-fast vendor PO fetch completed.",
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length,
+            "total_po": po_docs,
+            "search_term": search,
+            "vendor_codes_count": len(vendor_codes),
+            "cached": False
         }
 
+        po_cache.set(cache_key, response)
+        return response
 
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendor PO Ultra Fast Error")
+        return {"status": "error", "message": "Failed to fetch vendor POs", "error": str(e)}
+
+
+# Async background cache warming
 @frappe.whitelist()
-def get_all_vc_against_vendor_optimized():
+def warm_po_cache(user_list=None, **kwargs):
     """
-    Optimized function to get all vendor codes for a vendor user
-    """
-    user = frappe.session.user
-    
-    # Single query to get all vendor code data
-    vendor_data_query = """
-        SELECT 
-            cvc.company_name,
-            cvc_child.state,
-            cvc_child.gst_no,
-            cvc_child.vendor_code
-        FROM `tabVendor Master` vm
-        JOIN `tabMultiple Company Data` mcd ON mcd.parent = vm.name
-        JOIN `tabCompany Vendor Code` cvc ON cvc.name = mcd.company_vendor_code
-        JOIN `tabVendor Code` cvc_child ON cvc_child.parent = cvc.name
-        WHERE vm.office_email_primary = %(user)s
-        AND cvc_child.vendor_code IS NOT NULL
-        AND cvc_child.vendor_code != ''
-        ORDER BY cvc.company_name, cvc_child.vendor_code
-    """
-    
-    vendor_codes = frappe.db.sql(vendor_data_query, {"user": user}, as_dict=True)
-    
-    return {
-        'vendor_codes': vendor_codes,
-        'designation': 'Vendor'
-    }
-
-
-def collect_vendor_code_data_optimized(vendor_doc):
-    """
-    Optimized version using single query instead of multiple document fetches
+    Background job to pre-warm caches for active users
+    Run this via scheduler every 5 minutes
     """
     try:
-        # Single query to get all vendor code data for this vendor
-        query = """
-            SELECT 
-                cvc.company_name,
-                vc.state,
-                vc.gst_no,
-                vc.vendor_code
-            FROM `tabMultiple Company Data` mcd
-            JOIN `tabCompany Vendor Code` cvc ON cvc.name = mcd.company_vendor_code
-            JOIN `tabVendor Code` vc ON vc.parent = cvc.name
-            WHERE mcd.parent = %(vendor_name)s
-            AND vc.vendor_code IS NOT NULL
-            AND vc.vendor_code != ''
-        """
-        
-        vendor_data = frappe.db.sql(query, {"vendor_name": vendor_doc.name}, as_dict=True)
-        
-        return vendor_data
-        
+        if not user_list:
+            # Get active users from last 30 minutes
+            user_list = frappe.db.sql("""
+                SELECT DISTINCT user 
+                FROM `tabActivity Log` 
+                WHERE creation > NOW() - INTERVAL 30 MINUTE
+                AND user != 'Guest'
+            """, as_dict=True)
+            user_list = [u.user for u in user_list]
+
+        for user in user_list[:20]:  # Limit to 20 users per run
+            try:
+                # Warm user role cache
+                cache_key = user_cache.get_cache_key("user_role", user)
+                if not user_cache.get(cache_key):
+                    filtering_po_details_ultra_fast(page_no=1, page_length=10, usr=user)
+            except:
+                continue
+
+        return {"status": "success", "warmed_users": len(user_list)}
     except Exception as e:
-        frappe.logger().error(f"Error in collect_vendor_code_data_optimized: {str(e)}")
-        return []
+        frappe.log_error(str(e), "Cache Warming Error")
+        return {"status": "error", "error": str(e)}
 
 
-# Additional performance optimization utility
-def create_database_indexes():
+# Database optimization functions
+def create_advanced_indexes():
     """
-    Create database indexes for better query performance
-    Run this once during deployment
+    Create advanced covering indexes for maximum performance
+    Run once during deployment
     """
-    indexes = [
-        "CREATE INDEX IF NOT EXISTS idx_po_vendor_code ON `tabPurchase Order` (vendor_code)",
-        "CREATE INDEX IF NOT EXISTS idx_po_company_code ON `tabPurchase Order` (company_code)", 
-        "CREATE INDEX IF NOT EXISTS idx_po_vendor_status ON `tabPurchase Order` (vendor_status)",
-        "CREATE INDEX IF NOT EXISTS idx_po_purchase_group ON `tabPurchase Order` (purchase_group)",
-        "CREATE INDEX IF NOT EXISTS idx_po_creation ON `tabPurchase Order` (creation DESC)",
-        "CREATE INDEX IF NOT EXISTS idx_po_search ON `tabPurchase Order` (name, po_no)",
-        "CREATE INDEX IF NOT EXISTS idx_employee_user_team ON `tabEmployee` (user_id, team)",
-        "CREATE INDEX IF NOT EXISTS idx_vendor_master_email ON `tabVendor Master` (office_email_primary)"
+    advanced_indexes = [
+        # Covering indexes for employee queries
+        """CREATE INDEX IF NOT EXISTS idx_po_employee_covering 
+           ON `tabPurchase Order` (purchase_group, company_code, vendor_status, creation DESC, name, po_no)""",
+        
+        # Covering indexes for vendor queries  
+        """CREATE INDEX IF NOT EXISTS idx_po_vendor_covering
+           ON `tabPurchase Order` (vendor_code, company_code, vendor_status, creation DESC, name, po_no)""",
+        
+        # Full-text search index
+        """CREATE FULLTEXT INDEX IF NOT EXISTS idx_po_fulltext
+           ON `tabPurchase Order` (name, po_no)""",
+        
+        # Optimized user-team index
+        """CREATE INDEX IF NOT EXISTS idx_employee_user_team_covering
+           ON `tabEmployee` (user_id, team)""",
+        
+        # Purchase group index
+        """CREATE INDEX IF NOT EXISTS idx_purchase_group_team
+           ON `tabPurchase Group Master` (team, purchase_group_code)""",
+        
+        # Vendor master email index
+        """CREATE INDEX IF NOT EXISTS idx_vendor_master_email_covering
+           ON `tabVendor Master` (office_email_primary)""",
+        
+        # Multi-column vendor code index
+        """CREATE INDEX IF NOT EXISTS idx_vendor_code_covering
+           ON `tabVendor Code` (parent, vendor_code)""",
+        
+        # User roles index for faster role checking
+        """CREATE INDEX IF NOT EXISTS idx_has_role_covering
+           ON `tabHas Role` (parent, role)"""
     ]
     
-    for index_sql in indexes:
+    for index_sql in advanced_indexes:
         try:
             frappe.db.sql(index_sql)
             frappe.db.commit()
+            print(f"✓ Created index: {index_sql[:50]}...")
         except Exception as e:
-            frappe.logger().error(f"Error creating index: {index_sql}, Error: {str(e)}")
+            print(f"✗ Error creating index: {str(e)}")
+
+
+def optimize_mysql_config():
+    """
+    Recommended MySQL configuration optimizations
+    Add these to your MySQL config file
+    """
+    mysql_optimizations = """
+    # Add to /etc/mysql/mysql.conf.d/mysqld.cnf or equivalent
+    
+    [mysqld]
+    # Query cache (if MySQL < 8.0)
+    query_cache_type = 1
+    query_cache_size = 256M
+    query_cache_limit = 2M
+    
+    # Buffer pools
+    innodb_buffer_pool_size = 2G  # 70-80% of RAM
+    innodb_log_file_size = 512M
+    innodb_log_buffer_size = 64M
+    
+    # Connections
+    max_connections = 500
+    thread_cache_size = 50
+    
+    # Performance
+    innodb_flush_log_at_trx_commit = 2
+    innodb_flush_method = O_DIRECT
+    innodb_file_per_table = 1
+    
+    # Query optimization
+    join_buffer_size = 2M
+    sort_buffer_size = 2M
+    read_buffer_size = 1M
+    read_rnd_buffer_size = 1M
+    """
+    print(mysql_optimizations)
+
+
+# Performance monitoring
+@frappe.whitelist()
+def get_performance_stats(**kwargs):
+    """Get performance statistics for monitoring"""
+    try:
+        stats = {
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "avg_query_time": 0,
+            "active_connections": frappe.db.sql("SHOW STATUS LIKE 'Threads_connected'")[0][1],
+            "query_cache_hit_rate": 0
+        }
+        
+        # Get query cache stats (MySQL < 8.0)
+        try:
+            cache_stats = frappe.db.sql("SHOW STATUS LIKE 'Qcache_%'", as_dict=True)
+            cache_dict = {stat.Variable_name: int(stat.Value) for stat in cache_stats}
+            if cache_dict.get('Qcache_hits', 0) + cache_dict.get('Qcache_inserts', 0) > 0:
+                stats["query_cache_hit_rate"] = (
+                    cache_dict.get('Qcache_hits', 0) / 
+                    (cache_dict.get('Qcache_hits', 0) + cache_dict.get('Qcache_inserts', 0))
+                ) * 100
+        except:
+            pass
+            
+        return stats
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# Legacy function wrappers for backward compatibility
+@frappe.whitelist(allow_guest=True)
+def filtering_po_details(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None, **kwargs):
+    """Backward compatible wrapper"""
+    return filtering_po_details_ultra_fast(page_no, page_length, company, refno, status, search, usr, early_del)
+
+@frappe.whitelist()
+def get_po_against_all_vc(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None, **kwargs):
+    """Backward compatible wrapper"""
+    return get_vendor_po_ultra_fast(page_no, page_length, company, refno, status, search, usr)
+
+
+
+
+
+
+
+
+# import frappe
+# from frappe import _
+
+# # Cache for user roles to avoid repeated database calls
+# _user_roles_cache = {}
+
+# def get_cached_user_roles(user):
+#     """Cache user roles to avoid repeated database queries"""
+#     if user not in _user_roles_cache:
+#         _user_roles_cache[user] = set(frappe.get_roles(user))
+#     return _user_roles_cache[user]
+
+# @frappe.whitelist(allow_guest=True)
+# def filtering_po_details(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None):
+#     """
+#     Optimized main filtering API with pagination and comprehensive search
+#     """
+#     try:
+#         # Validate user session
+#         if usr is None:
+#             usr = frappe.session.user
+#         elif usr != frappe.session.user:
+#             return {
+#                 "status": "error",
+#                 "message": "User mismatch or unauthorized access.",
+#                 "code": 404
+#             }
+
+#         # Use cached roles for better performance
+#         user_roles = get_cached_user_roles(usr)
+       
+#         # Route to appropriate function based on role
+#         if "Vendor" in user_roles:
+#             return get_po_against_all_vc_optimized(
+#                 page_no=page_no, 
+#                 page_length=page_length, 
+#                 company=company, 
+#                 refno=refno, 
+#                 status=status, 
+#                 search=search, 
+#                 usr=usr, 
+#                 early_del=early_del
+#             )
+#         else:
+#             return filtering_po_details_pt_optimized(
+#                 page_no=page_no, 
+#                 page_length=page_length, 
+#                 company=company, 
+#                 refno=refno, 
+#                 status=status, 
+#                 search=search, 
+#                 usr=usr, 
+#                 early_del=early_del
+#             )
+            
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "filtering_po_details API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to filter PO details.",
+#             "error": str(e),
+#             "code": 500
+#         }
+
+
+# @frappe.whitelist(allow_guest=False)
+# def filtering_po_details_pt_optimized(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None):
+#     """
+#     Optimized version of filtering_po_details_pt with single query approach
+#     """
+#     try:
+#         if usr is None:
+#             usr = frappe.session.user
+#         elif usr != frappe.session.user:
+#             return {
+#                 "status": "error",
+#                 "message": "User mismatch or unauthorized access.",
+#                 "code": 404
+#             }
+
+#         # Get team and purchase groups in a single optimized query
+#         team_data = frappe.db.sql("""
+#             SELECT 
+#                 e.team,
+#                 GROUP_CONCAT(DISTINCT pgm.purchase_group_code) as purchase_groups
+#             FROM `tabEmployee` e
+#             LEFT JOIN `tabPurchase Group Master` pgm ON pgm.team = e.team
+#             WHERE e.user_id = %(user)s
+#             GROUP BY e.team
+#         """, {"user": usr}, as_dict=True)
+
+#         if not team_data:
+#             return {
+#                 "status": "error",
+#                 "message": "No Employee record found for the user.",
+#                 "po": []
+#             }
+
+#         team = team_data[0].team
+#         purchase_groups = team_data[0].purchase_groups.split(',') if team_data[0].purchase_groups else []
+
+#         if not purchase_groups:
+#             return {
+#                 "status": "error",
+#                 "message": "No purchase groups found for the team.",
+#                 "po": []
+#             }
+
+#         # Build optimized query with single execution
+#         conditions = ["po.purchase_group IN %(purchase_groups)s"]
+#         values = {"purchase_groups": purchase_groups}
+
+#         # Add filters
+#         if company:
+#             conditions.append("po.company_code = %(company)s")
+#             values["company"] = company
+            
+#         if status:
+#             conditions.append("po.vendor_status = %(status)s")
+#             values["status"] = status
+
+#         # Optimized search with full-text indexing consideration
+#         if search:
+#             conditions.append("(po.name LIKE %(search)s OR po.po_no LIKE %(search)s)")
+#             values["search"] = f"%{search}%"
+
+#         filter_clause = " AND ".join(conditions)
+
+#         # Single query to get both count and data
+#         if search:
+#             # With search relevance ordering
+#             query = f"""
+#                 SELECT 
+#                     po.name,
+#                     po.po_no,
+#                     po.company_code,
+#                     po.creation,
+#                     po.modified,
+#                     COUNT(*) OVER() as total_count,
+#                     CASE 
+#                         WHEN po.name LIKE %(search_start)s THEN 1
+#                         WHEN po.po_no LIKE %(search_start)s THEN 2
+#                         ELSE 3
+#                     END as relevance
+#                 FROM `tabPurchase Order` po
+#                 WHERE {filter_clause}
+#                 ORDER BY relevance, po.creation DESC
+#                 LIMIT %(limit)s OFFSET %(offset)s
+#             """
+#             values["search_start"] = f"{search}%"
+#         else:
+#             query = f"""
+#                 SELECT 
+#                     po.name,
+#                     po.po_no,
+#                     po.company_code,
+#                     po.creation,
+#                     po.modified,
+#                     COUNT(*) OVER() as total_count
+#                 FROM `tabPurchase Order` po
+#                 WHERE {filter_clause}
+#                 ORDER BY po.creation DESC
+#                 LIMIT %(limit)s OFFSET %(offset)s
+#             """
+
+#         # Pagination setup
+#         page_no = int(page_no) if page_no else 1
+#         page_length = int(page_length) if page_length else 5
+#         values["limit"] = page_length
+#         values["offset"] = (page_no - 1) * page_length
+
+#         # Execute single query
+#         results = frappe.db.sql(query, values, as_dict=True)
+        
+#         total_count = results[0].total_count if results else 0
+        
+#         # Remove total_count from individual records
+#         po_docs = []
+#         for result in results:
+#             po_doc = {k: v for k, v in result.items() if k != 'total_count' and k != 'relevance'}
+#             po_docs.append(po_doc)
+
+#         return {
+#             "status": "success",
+#             "message": "Paginated and filtered po records fetched successfully.",
+#             "total_count": total_count,
+#             "page_no": page_no,
+#             "page_length": page_length,
+#             "total_po": po_docs,
+#             "search_term": search
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "filtering_po_details_pt_optimized API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to fetch po data.",
+#             "error": str(e),
+#             "po": []
+#         }
+
+
+# @frappe.whitelist()
+# def get_po_against_all_vc_optimized(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None):
+#     """
+#     Heavily optimized vendor PO filtering with single query approach
+#     """
+#     try:
+#         if usr is None:
+#             usr = frappe.session.user
+#         elif usr != frappe.session.user:
+#             return {
+#                 "status": "error",
+#                 "message": "User mismatch or unauthorized access.",
+#                 "code": 404
+#             }
+
+#         # Check vendor role using cached roles
+#         user_roles = get_cached_user_roles(usr)
+#         if "Vendor" not in user_roles:
+#             return {"status": "error", "message": "User does not have the Vendor role."}
+
+#         # Get all vendor codes in a single optimized query
+#         vendor_codes_query = """
+#             SELECT DISTINCT cvc_child.vendor_code
+#             FROM `tabVendor Master` vm
+#             JOIN `tabMultiple Company Data` mcd ON mcd.parent = vm.name
+#             JOIN `tabCompany Vendor Code` cvc ON cvc.name = mcd.company_vendor_code
+#             JOIN `tabVendor Code` cvc_child ON cvc_child.parent = cvc.name
+#             WHERE vm.office_email_primary = %(user)s
+#             AND cvc_child.vendor_code IS NOT NULL
+#             AND cvc_child.vendor_code != ''
+#         """
+        
+#         vendor_codes_result = frappe.db.sql(vendor_codes_query, {"user": usr}, as_dict=True)
+#         vendor_codes = [row.vendor_code for row in vendor_codes_result if row.vendor_code]
+
+#         if not vendor_codes:
+#             return {
+#                 "status": "success",
+#                 "message": "No vendor codes found for the user.",
+#                 "total_count": 0,
+#                 "page_no": int(page_no) if page_no else 1,
+#                 "page_length": int(page_length) if page_length else 5,
+#                 "total_po": [],
+#                 "search_term": search
+#             }
+
+#         # Build query conditions
+#         conditions = ["po.vendor_code IN %(vendor_codes)s"]
+#         values = {"vendor_codes": vendor_codes}
+
+#         if company:
+#             conditions.append("po.company_code = %(company)s")
+#             values["company"] = company
+            
+#         if status:
+#             conditions.append("po.vendor_status = %(status)s")
+#             values["status"] = status
+
+#         if search:
+#             conditions.append("(po.name LIKE %(search)s OR po.po_no LIKE %(search)s)")
+#             values["search"] = f"%{search}%"
+
+#         filter_clause = " AND ".join(conditions)
+
+#         # Single optimized query with pagination and count
+#         if search:
+#             query = f"""
+#                 SELECT 
+#                     po.name,
+#                     po.po_no,
+#                     po.company_code,
+#                     po.vendor_code,
+#                     po.creation,
+#                     po.modified,
+#                     COUNT(*) OVER() as total_count,
+#                     CASE 
+#                         WHEN po.name LIKE %(search_start)s THEN 1
+#                         WHEN po.po_no LIKE %(search_start)s THEN 2
+#                         ELSE 3
+#                     END as relevance
+#                 FROM `tabPurchase Order` po
+#                 WHERE {filter_clause}
+#                 ORDER BY relevance, po.creation DESC
+#                 LIMIT %(limit)s OFFSET %(offset)s
+#             """
+#             values["search_start"] = f"{search}%"
+#         else:
+#             query = f"""
+#                 SELECT 
+#                     po.name,
+#                     po.po_no,
+#                     po.company_code,
+#                     po.vendor_code,
+#                     po.creation,
+#                     po.modified,
+#                     COUNT(*) OVER() as total_count
+#                 FROM `tabPurchase Order` po
+#                 WHERE {filter_clause}
+#                 ORDER BY po.creation DESC
+#                 LIMIT %(limit)s OFFSET %(offset)s
+#             """
+
+#         # Pagination
+#         page_no = int(page_no) if page_no else 1
+#         page_length = int(page_length) if page_length else 5
+#         values["limit"] = page_length
+#         values["offset"] = (page_no - 1) * page_length
+
+#         # Execute query
+#         results = frappe.db.sql(query, values, as_dict=True)
+        
+#         total_count = results[0].total_count if results else 0
+        
+#         # Clean up results
+#         po_docs = []
+#         for result in results:
+#             po_doc = {k: v for k, v in result.items() if k not in ['total_count', 'relevance']}
+#             po_docs.append(po_doc)
+
+#         return {
+#             "status": "success",
+#             "message": "Paginated and filtered po records fetched successfully.",
+#             "total_count": total_count,
+#             "page_no": page_no,
+#             "page_length": page_length,
+#             "total_po": po_docs,
+#             "search_term": search,
+#             "vendor_codes_count": len(vendor_codes)
+#         }
+
+#     except frappe.DoesNotExistError:
+#         return {"status": "error", "message": "Vendor Master not found for the user."}
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "get_po_against_all_vc_optimized API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to fetch po data.",
+#             "error": str(e),
+#             "po": []
+#         }
+
+
+# @frappe.whitelist()
+# def get_all_vc_against_vendor_optimized():
+#     """
+#     Optimized function to get all vendor codes for a vendor user
+#     """
+#     user = frappe.session.user
+    
+#     # Single query to get all vendor code data
+#     vendor_data_query = """
+#         SELECT 
+#             cvc.company_name,
+#             cvc_child.state,
+#             cvc_child.gst_no,
+#             cvc_child.vendor_code
+#         FROM `tabVendor Master` vm
+#         JOIN `tabMultiple Company Data` mcd ON mcd.parent = vm.name
+#         JOIN `tabCompany Vendor Code` cvc ON cvc.name = mcd.company_vendor_code
+#         JOIN `tabVendor Code` cvc_child ON cvc_child.parent = cvc.name
+#         WHERE vm.office_email_primary = %(user)s
+#         AND cvc_child.vendor_code IS NOT NULL
+#         AND cvc_child.vendor_code != ''
+#         ORDER BY cvc.company_name, cvc_child.vendor_code
+#     """
+    
+#     vendor_codes = frappe.db.sql(vendor_data_query, {"user": user}, as_dict=True)
+    
+#     return {
+#         'vendor_codes': vendor_codes,
+#         'designation': 'Vendor'
+#     }
+
+
+# def collect_vendor_code_data_optimized(vendor_doc):
+#     """
+#     Optimized version using single query instead of multiple document fetches
+#     """
+#     try:
+#         # Single query to get all vendor code data for this vendor
+#         query = """
+#             SELECT 
+#                 cvc.company_name,
+#                 vc.state,
+#                 vc.gst_no,
+#                 vc.vendor_code
+#             FROM `tabMultiple Company Data` mcd
+#             JOIN `tabCompany Vendor Code` cvc ON cvc.name = mcd.company_vendor_code
+#             JOIN `tabVendor Code` vc ON vc.parent = cvc.name
+#             WHERE mcd.parent = %(vendor_name)s
+#             AND vc.vendor_code IS NOT NULL
+#             AND vc.vendor_code != ''
+#         """
+        
+#         vendor_data = frappe.db.sql(query, {"vendor_name": vendor_doc.name}, as_dict=True)
+        
+#         return vendor_data
+        
+#     except Exception as e:
+#         frappe.logger().error(f"Error in collect_vendor_code_data_optimized: {str(e)}")
+#         return []
+
+
+# # Additional performance optimization utility
+# def create_database_indexes():
+#     """
+#     Create database indexes for better query performance
+#     Run this once during deployment
+#     """
+#     indexes = [
+#         "CREATE INDEX IF NOT EXISTS idx_po_vendor_code ON `tabPurchase Order` (vendor_code)",
+#         "CREATE INDEX IF NOT EXISTS idx_po_company_code ON `tabPurchase Order` (company_code)", 
+#         "CREATE INDEX IF NOT EXISTS idx_po_vendor_status ON `tabPurchase Order` (vendor_status)",
+#         "CREATE INDEX IF NOT EXISTS idx_po_purchase_group ON `tabPurchase Order` (purchase_group)",
+#         "CREATE INDEX IF NOT EXISTS idx_po_creation ON `tabPurchase Order` (creation DESC)",
+#         "CREATE INDEX IF NOT EXISTS idx_po_search ON `tabPurchase Order` (name, po_no)",
+#         "CREATE INDEX IF NOT EXISTS idx_employee_user_team ON `tabEmployee` (user_id, team)",
+#         "CREATE INDEX IF NOT EXISTS idx_vendor_master_email ON `tabVendor Master` (office_email_primary)"
+#     ]
+    
+#     for index_sql in indexes:
+#         try:
+#             frappe.db.sql(index_sql)
+#             frappe.db.commit()
+#         except Exception as e:
+#             frappe.logger().error(f"Error creating index: {index_sql}, Error: {str(e)}")
 
 
 
