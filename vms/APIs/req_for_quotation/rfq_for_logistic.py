@@ -1,6 +1,8 @@
 import frappe
 import json
 from frappe import _
+from datetime import datetime
+
 
 # filter storage location
 @frappe.whitelist(allow_guest=True)
@@ -128,51 +130,64 @@ def create_import_logistic_rfq(data):
 		if isinstance(data, str):
 			data = json.loads(data)
 
-		rfq = frappe.new_doc(
-		    "Request For Quotation"	
-		)
+		rfq = frappe.new_doc("Request For Quotation")
 
-		rfq.form_fully_submitted    = 1
-		rfq.rfq_type                = data.get("rfq_type")
-		rfq.company_name_logistic   = data.get("company_name_logistic")
-		rfq.service_provider        = data.get("service_provider")
-		rfq.sr_no                   = data.get("sr_no")
+		# Generate unique_id
+		now = datetime.now()
+		year_month_prefix = f"RFQ{now.strftime('%y')}{now.strftime('%m')}"
+		existing_max = frappe.db.sql(
+			"""
+			SELECT MAX(CAST(SUBSTRING(unique_id, 8) AS UNSIGNED))
+			FROM `tabRequest For Quotation`
+			WHERE unique_id LIKE %s
+			""",
+			(year_month_prefix + "%",),
+			as_list=True
+		)
+		max_count = existing_max[0][0] if existing_max and existing_max[0] and existing_max[0][0] else 0
+		new_count = max_count + 1
+		unique_id = f"{year_month_prefix}{str(new_count).zfill(5)}"
+
+		# Set fields
+		rfq.head_target = 1
+		rfq.unique_id = unique_id
+		rfq.form_fully_submitted = 1
+		rfq.rfq_type = data.get("rfq_type")
+		rfq.company_name_logistic = data.get("company_name_logistic")
+		rfq.service_provider = data.get("service_provider")
+		rfq.sr_no = data.get("sr_no")
 		rfq.rfq_cutoff_date_logistic = data.get("rfq_cutoff_date_logistic")
-		rfq.rfq_date_logistic       = data.get("rfq_date_logistic")
-		rfq.mode_of_shipment        = data.get("mode_of_shipment")
-		rfq.destination_port        = data.get("destination_port")
-		rfq.country                 = data.get("country")
-		rfq.port_code               = data.get("port_code")
-		rfq.port_of_loading         = data.get("port_of_loading")
-		rfq.inco_terms              = data.get("inco_terms")
-		rfq.shipper_name            = data.get("shipper_name")
-		rfq.ship_to_address         = data.get("ship_to_address")
-		rfq.package_type            = data.get("package_type")
-		rfq.no_of_pkg_units         = data.get("no_of_pkg_units")
-		rfq.product_category        = data.get("product_category")
-		rfq.vol_weight              = data.get("vol_weight")
-		rfq.actual_weight           = data.get("actual_weight")
-		rfq.invoice_date            = data.get("invoice_date")
-		rfq.invoice_no              = data.get("invoice_no")
-		rfq.invoice_value           = data.get("invoice_value")
-		rfq.expected_date_of_arrival  = data.get("expected_date_of_arrival")
-		rfq.remarks                 = data.get("remarks")
-		
-		# Add all vendors if "All Service Provider" is selected
+		rfq.rfq_date_logistic = data.get("rfq_date_logistic")
+		rfq.mode_of_shipment = data.get("mode_of_shipment")
+		rfq.destination_port = data.get("destination_port")
+		rfq.country = data.get("country")
+		rfq.port_code = data.get("port_code")
+		rfq.port_of_loading = data.get("port_of_loading")
+		rfq.inco_terms = data.get("inco_terms")
+		rfq.shipper_name = data.get("shipper_name")
+		rfq.ship_to_address = data.get("ship_to_address")
+		rfq.package_type = data.get("package_type")
+		rfq.no_of_pkg_units = data.get("no_of_pkg_units")
+		rfq.product_category = data.get("product_category")
+		rfq.vol_weight = data.get("vol_weight")
+		rfq.actual_weight = data.get("actual_weight")
+		rfq.invoice_date = data.get("invoice_date")
+		rfq.invoice_no = data.get("invoice_no")
+		rfq.invoice_value = data.get("invoice_value")
+		rfq.expected_date_of_arrival = data.get("expected_date_of_arrival")
+		rfq.remarks = data.get("remarks")
+
+		# Add vendors from Vendor Master (All Service Provider)
 		if data.get("service_provider") == "All Service Provider":
 			vendors = frappe.get_all(
 				"Vendor Master",
 				filters={"service_provider_type": ["in", ["Service Provider", "Premium Service Provider"]]},
-				fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country"]
-			)
+				fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country", "service_provider_type"]
+		 )
 			for vm in vendors:
 				vendor_code = []
-				company_vendor_code = frappe.get_all(
-					"Company Vendor Code",
-					filters={"vendor_ref_no": vm.name},
-					fields=["name"]
-				)
-				for row in company_vendor_code:
+				company_codes = frappe.get_all("Company Vendor Code", filters={"vendor_ref_no": vm.name}, fields=["name"])
+				for row in company_codes:
 					doc = frappe.get_doc("Company Vendor Code", row.name)
 					for code_row in doc.vendor_code:
 						vendor_code.append(code_row.vendor_code)
@@ -187,21 +202,17 @@ def create_import_logistic_rfq(data):
 					"country": vm.country
 				})
 
-		# Add all vendors if "Premium Service Provider" is selected	
-		if data.get("service_provider") == "Premium Service Provider":
+		# Premium Only
+		elif data.get("service_provider") == "Premium Service Provider":
 			vendors = frappe.get_all(
 				"Vendor Master",
-				filters={"service_provider_type": ["in", ["Premium Service Provider"]]},
-				fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country"]
+				filters={"service_provider_type": "Premium Service Provider"},
+				fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country", "service_provider_type"]
 			)
 			for vm in vendors:
 				vendor_code = []
-				company_vendor_code = frappe.get_all(
-					"Company Vendor Code",
-					filters={"vendor_ref_no": vm.name},
-					fields=["name"]
-				)
-				for row in company_vendor_code:
+				company_codes = frappe.get_all("Company Vendor Code", filters={"vendor_ref_no": vm.name}, fields=["name"])
+				for row in company_codes:
 					doc = frappe.get_doc("Company Vendor Code", row.name)
 					for code_row in doc.vendor_code:
 						vendor_code.append(code_row.vendor_code)
@@ -216,9 +227,8 @@ def create_import_logistic_rfq(data):
 					"country": vm.country
 				})
 
-        # Vendor Details Table
-		vendors = data.get("vendors", [])
-		for vendor in vendors:
+		# Manually passed onboarded vendors
+		for vendor in data.get("vendors", []):
 			rfq.append("vendor_details", {
 				"ref_no": vendor.get("refno"),
 				"vendor_name": vendor.get("vendor_name"),
@@ -228,10 +238,9 @@ def create_import_logistic_rfq(data):
 				"service_provider_type": vendor.get("service_provider_type"),
 				"country": vendor.get("country")
 			})
-			
-        # Non Onboarded Vendor Details Table
-		vendors = data.get("non_onboarded_vendors", [])
-		for vendor in vendors:
+
+		# Non-onboarded vendor table
+		for vendor in data.get("non_onboarded_vendors", []):
 			rfq.append("non_onboarded_vendor_details", {
 				"office_email_primary": vendor.get("office_email_primary"),
 				"vendor_name": vendor.get("vendor_name"),
@@ -240,17 +249,19 @@ def create_import_logistic_rfq(data):
 			})
 
 		rfq.insert(ignore_permissions=True)
-		frappe.db.commit()  
+		frappe.db.commit()
 
 		return {
 			"status": "success",
-			"message": "RFQ created successfully",
-			"rfq_name": rfq.name
+			"message": "Import Logistic RFQ created successfully",
+			"rfq_name": rfq.name,
+			"unique_id": rfq.unique_id
 		}
 
 	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "Create RFQ API Error")
-		frappe.throw(_("Error creating RFQ: ") + str(e))
+		frappe.log_error(frappe.get_traceback(), "create_import_logistic_rfq Error")
+		frappe.throw("Failed to create Import Logistic RFQ")
+
             
 
 # get full data of logistic import rfq
@@ -520,93 +531,5 @@ def get_full_data_export_logistic_rfq(name):
 		frappe.throw(_("Error fetching RFQ: ") + str(e))
 
 
-# dashboard for rfq logistic
 
-@frappe.whitelist(allow_guest=False)
-def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_type=None, status=None):
-	try:
-		page_no = int(page_no) if page_no else 1
-		page_length = int(page_length) if page_length else 5
-		offset = (page_no - 1) * page_length
-
-		# Build dynamic filters
-		conditions = []
-		values = {}
-
-		if company_name:
-			conditions.append("(company_name = %(company_name)s OR company_name_logistic = %(company_name)s)")
-			values["company_name"] = company_name
-
-		if name:
-			conditions.append("name LIKE %(name)s")
-			values["name"] = f"%{name}%"
-
-		if rfq_type:
-			conditions.append("rfq_type = %(rfq_type)s")
-			values["rfq_type"] = rfq_type
-
-		if status:
-			conditions.append("status = %(status)s")
-			values["status"] = status
-
-		condition_clause = " AND ".join(conditions)
-		condition_clause = f"WHERE {condition_clause}" if condition_clause else ""
-
-		# Total count
-		total_count = frappe.db.sql(f"""
-			SELECT COUNT(*) FROM `tabRequest For Quotation`
-			{condition_clause}
-		""", values)[0][0]
-
-		# Paginated result
-		data = frappe.db.sql(f"""
-			SELECT
-				name,
-				IFNULL(company_name_logistic, company_name) AS company_name,
-				rfq_type,
-				IFNULL(rfq_date_logistic, rfq_date) AS rfq_date,
-				IFNULL(delivery_date, shipment_date) AS delivery_date,
-				status
-			FROM `tabRequest For Quotation`
-			{condition_clause}
-			ORDER BY modified DESC
-			LIMIT %(limit)s OFFSET %(offset)s
-		""", {**values, "limit": page_length, "offset": offset}, as_dict=True)
-
-		return {
-			"status": "success",
-			"message": f"{len(data)} RFQ(s) found",
-			"data": data,
-			"total_count": total_count,
-			"page_no": page_no,
-			"page_length": page_length
-		}
-
-	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "RFQ Dashboard Error")
-		return {
-			"status": "error",
-			"message": "Failed to fetch RFQ dashboard data.",
-			"error": str(e)
-		}
-
-
-# total count of rfq
-@frappe.whitelist(allow_guest=False)
-def total_rfq_count():
-	try:
-		total_rfq = frappe.db.count("Request For Quotation")
-
-		return {
-			"status": "success",
-			"total_rfq": total_rfq
-		}
-	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "Total RFQ Count Error")
-		return {
-			"status": "error",
-			"message": "Failed to get RFQ count.",
-			"error": str(e)
-		}
-	
 		
