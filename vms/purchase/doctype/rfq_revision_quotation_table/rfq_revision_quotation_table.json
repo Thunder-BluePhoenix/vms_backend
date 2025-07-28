@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-28 17:36:41.140522",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "qtn_id",
+  "column_break_ngyn",
+  "rfq_id",
+  "section_break_wmcc",
+  "creation_datetime",
+  "modified_datetime",
+  "history_table"
+ ],
+ "fields": [
+  {
+   "fieldname": "qtn_id",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "QTN ID",
+   "options": "Quotation"
+  },
+  {
+   "fieldname": "column_break_ngyn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rfq_id",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "RFQ ID",
+   "options": "Request For Quotation"
+  },
+  {
+   "fieldname": "section_break_wmcc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "creation_datetime",
+   "fieldtype": "Datetime",
+   "label": "Creation DateTime"
+  },
+  {
+   "fieldname": "modified_datetime",
+   "fieldtype": "Datetime",
+   "label": "Modified DateTime"
+  },
+  {
+   "fieldname": "history_table",
+   "fieldtype": "Code",
+   "label": "History Table"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-28 17:41:59.117701",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "RFQ Revision Quotation Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
