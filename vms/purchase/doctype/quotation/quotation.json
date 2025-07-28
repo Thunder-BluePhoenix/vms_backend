@@ -15,6 +15,7 @@
   "office_email_primary",
   "vendor_contact",
   "rfq_number",
+  "rfq_unique_key",
   "logistics_section",
   "mode_of_shipment",
   "airlinevessel_name",
@@ -109,6 +110,7 @@
   "asked_to_revise",
   "column_break_bgwt",
   "bidding_status",
+  "rank",
   "tab_3_tab",
   "version_history",
   "history_html",
@@ -678,13 +680,23 @@
    "fieldname": "history_html",
    "fieldtype": "HTML",
    "label": "History"
+  },
+  {
+   "fieldname": "rank",
+   "fieldtype": "Data",
+   "label": "Rank"
+  },
+  {
+   "fieldname": "rfq_unique_key",
+   "fieldtype": "Data",
+   "label": "RFQ Unique Key"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-26 16:35:45.424756",
- "modified_by": "Administrator",
+ "modified": "2025-07-28 16:41:30.490802",
+ "modified_by": "abhishek@mail.hybrowlabs.com",
  "module": "Purchase",
  "name": "Quotation",
  "naming_rule": "By \"Naming Series\" field",
