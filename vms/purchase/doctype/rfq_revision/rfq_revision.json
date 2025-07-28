@@ -8,6 +8,7 @@
  "field_order": [
   "naming_series",
   "creation_datetime",
+  "column_break_kztx",
   "last_modified_datetime"
  ],
  "fields": [
@@ -26,12 +27,16 @@
    "fieldname": "last_modified_datetime",
    "fieldtype": "Datetime",
    "label": "Last Modified DateTime"
+  },
+  {
+   "fieldname": "column_break_kztx",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-28 17:00:08.919917",
+ "modified": "2025-07-28 17:18:08.360869",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Revision",

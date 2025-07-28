@@ -1,0 +1,46 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-28 17:19:46.864782",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "rfq_id",
+  "creation_datetime",
+  "history_table"
+ ],
+ "fields": [
+  {
+   "fieldname": "rfq_id",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "RFQ ID",
+   "options": "Request For Quotation"
+  },
+  {
+   "fieldname": "creation_datetime",
+   "fieldtype": "Datetime",
+   "label": "Creation DateTime"
+  },
+  {
+   "fieldname": "history_table",
+   "fieldtype": "Code",
+   "label": "History Table"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-28 17:28:37.094941",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "RFQ Revision Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
