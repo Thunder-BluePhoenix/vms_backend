@@ -1,5 +1,3 @@
-# http://127.0.0.1:8003/api/method/vms.APIs.req_for_quotation.rfq.get_full_rfq_data
-# apps/vms/vms/APIs/req_for_quotation/rfq.py
 import frappe
 
 @frappe.whitelist(allow_guest=False)
@@ -140,3 +138,144 @@ def get_full_rfq_data(name):
 	except Exception as e:
 		frappe.log_error(frappe.get_traceback(), "get_full_rfq_data failed")
 		frappe.throw("Could not fetch RFQ details.")
+
+
+# get quotation data if vendor has fill the data
+
+@frappe.whitelist(allow_guest=False)
+def get_quotation_data(name):
+	try:
+		doc = frappe.get_doc("Request For Quotation", name)
+		quotations = []
+
+		def get_rfq_item_list(quotation):
+			items = []
+			for item in quotation.rfq_item_list:
+				items.append({
+					"head_unique_field": item.head_unique_field,
+					"purchase_requisition_number": item.purchase_requisition_number,
+					"material_code_head": item.material_code_head,
+					"delivery_date_head": item.delivery_date_head,
+					"plant_head": item.plant_head,
+					"material_name_head": item.material_name_head,
+					"quantity_head": item.quantity_head,
+					"uom_head": item.uom_head,
+					"price_head": item.price_head,
+					"subhead_unique_field": item.subhead_unique_field,
+					"material_code_subhead": item.material_code_subhead,
+					"material_name_subhead": item.material_name_subhead,
+					"quantity_subhead": item.quantity_subhead,
+					"uom_subhead": item.uom_subhead,
+					"price_subhead": item.price_subhead,
+					"delivery_date_subhead": item.delivery_date_subhead
+				})
+			return items
+
+		def build_quotation_data(quotation):
+			return {
+				"quotation_name": quotation.name,
+				"ref_no": quotation.ref_no,
+				"vendor_name": quotation.vendor_name,
+				"office_email_primary": quotation.office_email_primary,
+
+				# Logistic
+				"mode_of_shipment": quotation.mode_of_shipment,
+				"airlinevessel_name": quotation.airlinevessel_name,
+				"chargeable_weight": quotation.chargeable_weight,
+				"ratekg": quotation.ratekg,
+				"fuel_surcharge": quotation.fuel_surcharge,
+				"surcharge": quotation.surcharge,
+				"sc": quotation.sc,
+				"xray": quotation.xray,
+				"pickuporigin": quotation.pickuporigin,
+				"ex_works": quotation.ex_works,
+				"transit_days": quotation.transit_days,
+				"total_freight": quotation.total_freight,
+				"from_currency": quotation.from_currency,
+				"to_currency": quotation.to_currency,
+				"exchange_rate": quotation.exchange_rate,
+				"total_freightinr": quotation.total_freightinr,
+				"destination_charge": quotation.destination_charge,
+				"shipping_line_charge": quotation.shipping_line_charge,
+				"cfs_charge": quotation.cfs_charge,
+				"total_landing_price": quotation.total_landing_price,
+				"remarks": quotation.remarks,
+				"material": quotation.material,
+				"company_name_logistic": quotation.company_name_logistic,
+				"sr_no": quotation.sr_no,
+				"rfq_date_logistic": quotation.rfq_date_logistic,
+				"rfq_cutoff_date": quotation.rfq_cutoff_date,
+				"destination_port": quotation.destination_port,
+				"port_code": quotation.port_code,
+				"port_of_loading": quotation.port_of_loading,
+				"inco_terms": quotation.inco_terms,
+				"shipper_name": quotation.shipper_name,
+				"package_type": quotation.package_type,
+				"no_of_pkg_units": quotation.no_of_pkg_units,
+				"product_category_logistic": quotation.product_category_logistic,
+				"vol_weight": quotation.vol_weight,
+				"actual_weight": quotation.actual_weight,
+				"invoice_date": quotation.invoice_date,
+				"invoice_no": quotation.invoice_no,
+				"invoice_value": quotation.invoice_value,
+				"expected_date_of_arrival": quotation.expected_date_of_arrival,
+				"consignee_name": quotation.consignee_name,
+				"shipment_date": quotation.shipment_date,
+				"shipment_type": quotation.shipment_type,
+				"quantity": quotation.quantity,
+				"ship_to_address": quotation.ship_to_address,
+
+				# Material / Service
+				"rfq_date": quotation.rfq_date,
+				"quotation_deadline": quotation.quotation_deadline,
+				"company_name": quotation.company_name,
+				"purchase_organization": quotation.purchase_organization,
+				"purchase_group": quotation.purchase_group,
+				"currency": quotation.currency,
+				"collection_number": quotation.collection_number,
+				"validity_start_date": quotation.validity_start_date,
+				"validity_end_date": quotation.validity_end_date,
+				"contact_person": quotation.contact_person,
+				"bidding_person": quotation.bidding_person,
+				"storage_location": quotation.storage_location,
+				"product_code": quotation.product_code,
+				"product_category": quotation.product_category,
+				"material_code": quotation.material_code,
+				"material_category": quotation.material_category,
+				"material_name": quotation.material_name,
+
+				# Service
+				"service_location": quotation.service_location,
+				"service_code": quotation.service_code,
+				"service_category": quotation.service_category,
+
+				# Financials
+				"rfq_quantity": quotation.rfq_quantity,
+				"quantity_unit": quotation.quantity_unit,
+				"delivery_date": quotation.delivery_date,
+				"quote_amount": quotation.quote_amount,
+				"negotiable": quotation.negotiable,
+				"non_negotiable": quotation.non_negotiable,
+				"payment_terms": quotation.payment_terms,
+
+				# Child table
+				"rfq_item_list": get_rfq_item_list(quotation)
+			}
+
+		# Process onboarded vendors
+		for row in doc.vendor_details:
+			if row.quotation:
+				quotation = frappe.get_doc("Quotation", row.quotation)
+				quotations.append(build_quotation_data(quotation))
+
+		# Process non-onboarded vendors
+		for row in doc.non_onboarded_vendor_details:
+			if row.quotation:
+				quotation = frappe.get_doc("Quotation", row.quotation)
+				quotations.append(build_quotation_data(quotation))
+
+		return {"quotations": quotations}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "get_quotation_data failed")
+		frappe.throw("Could not fetch quotation details.")
