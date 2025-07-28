@@ -259,187 +259,6 @@ def get_po_search_suggestions(query="", limit=10, company=None, status=None, usr
 
 
 
-@frappe.whitelist(allow_guest=True)
-def filtering_po_details(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None):
-    """
-    Main filtering API with pagination and comprehensive search
-    """
-    try:
-        if usr is None:
-            usr = frappe.session.user
-        elif usr != frappe.session.user:
-            return {
-                "status": "error",
-                "message": "User mismatch or unauthorized access.",
-                "code": 404
-            }
-
-        user_doc = frappe.get_doc('User', usr)
-        user_roles = frappe.get_roles(user_doc.name)
-       
-        # Check if user has Vendor role and route accordingly
-        if "Vendor" in user_roles:
-            return get_po_against_all_vc(
-                page_no=page_no, 
-                page_length=page_length, 
-                company=company, 
-                refno=refno, 
-                status=status, 
-                search=search, 
-                usr=usr, 
-                early_del=early_del
-            )
-        else:
-            return filtering_po_details_pt(
-                page_no=page_no, 
-                page_length=page_length, 
-                company=company, 
-                refno=refno, 
-                status=status, 
-                search=search, 
-                usr=usr, 
-                early_del=early_del
-            )
-            
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "filtering_po_details API Error")
-        return {
-            "status": "error",
-            "message": "Failed to filter PO details.",
-            "error": str(e),
-            "code": 500
-        }
-
-
-
-
-
-@frappe.whitelist(allow_guest=False)
-def filtering_po_details_pt(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del = None):
-    """
-    Main filtering API with pagination and comprehensive search
-    """
-    try:
-        if usr is None:
-            usr = frappe.session.user
-        elif usr != frappe.session.user:
-            return {
-                "status": "error",
-                "message": "User mismatch or unauthorized access.",
-                "code": 404
-            }
-
-        # Base filters
-        conditions = []
-        values = {}
-
-        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
-        if not team:
-            return {
-                "status": "error",
-                "message": "No Employee record found for the user.",
-                "po": []
-            }
-
-        pur_grp = frappe.get_all("Purchase Group Master", {"team": team}, pluck="purchase_group_code")
-       
-        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
-        if not user_ids:
-            return {
-                "status": "error",
-                "message": "No users found in the same team.",
-                "po": []
-            }
-
-        conditions.append("po.purchase_group IN %(purchase_group)s")
-        values["purchase_group"] = pur_grp
-
-        # Add additional filters if provided
-        if company:
-            conditions.append("po.company_code = %(company)s")
-            values["company"] = company
-            
-      
-            
-        if status:
-            conditions.append("po.vendor_status = %(status)s")
-            values["status"] = status
-
-        # Add search filter with relevance scoring
-        if search:
-            search_condition = """(
-                po.name LIKE %(search)s OR
-           
-                po.po_no LIKE %(search)s
-            )"""
-            conditions.append(search_condition)
-            values["search"] = f"%{search}%"
-
-        filter_clause = " AND ".join(conditions)
-
-        # Total count for pagination
-        total_count = frappe.db.sql(f"""
-            SELECT COUNT(*) AS count
-            FROM `tabPurchase Order` po
-            WHERE {filter_clause}
-        """, values)[0][0]
-
-        # Pagination
-        page_no = int(page_no) if page_no else 1
-        page_length = int(page_length) if page_length else 5
-        offset = (page_no - 1) * page_length
-        values["limit"] = page_length
-        values["offset"] = offset
-
-        # Order by relevance if search is provided
-        order_clause = "po.creation DESC"
-        if search:
-            # Use parameterized query for security
-            order_clause = """
-                CASE 
-                    WHEN po.name LIKE %(search_start)s THEN 1
-                  
-                    ELSE 4
-                END,
-                po.creation DESC
-            """
-            values["search_start"] = f"{search}%"
-
-        # Final query - Get all required fields
-        po_docs = frappe.db.sql(f"""
-            SELECT 
-                po.name,
-                po.po_no,
-                po.company_code,
-                po.creation,
-                po.modified
-            FROM `tabPurchase Order` po
-            WHERE {filter_clause}
-            ORDER BY {order_clause}
-            LIMIT %(limit)s OFFSET %(offset)s
-        """, values, as_dict=True)
-
-        return {
-            "status": "success",
-            "message": "Paginated and filtered po records fetched successfully.",
-            "total_count": total_count,
-            "page_no": page_no,
-            "page_length": page_length,
-            "total_po": po_docs,
-            "search_term": search
-        }
-
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Total po Details API Error")
-        return {
-            "status": "error",
-            "message": "Failed to fetch po onboarding data.",
-            "error": str(e),
-            "po": []
-        }
-    
-
-
 
 
 
@@ -722,6 +541,187 @@ def get_po_items_only(po_name, usr=None):
 
 
 
+
+
+@frappe.whitelist(allow_guest=True)
+def filtering_po_details(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del=None):
+    """
+    Main filtering API with pagination and comprehensive search
+    """
+    try:
+        if usr is None:
+            usr = frappe.session.user
+        elif usr != frappe.session.user:
+            return {
+                "status": "error",
+                "message": "User mismatch or unauthorized access.",
+                "code": 404
+            }
+
+        user_doc = frappe.get_doc('User', usr)
+        user_roles = frappe.get_roles(user_doc.name)
+       
+        # Check if user has Vendor role and route accordingly
+        if "Vendor" in user_roles:
+            return get_po_against_all_vc(
+                page_no=page_no, 
+                page_length=page_length, 
+                company=company, 
+                refno=refno, 
+                status=status, 
+                search=search, 
+                usr=usr, 
+                early_del=early_del
+            )
+        else:
+            return filtering_po_details_pt(
+                page_no=page_no, 
+                page_length=page_length, 
+                company=company, 
+                refno=refno, 
+                status=status, 
+                search=search, 
+                usr=usr, 
+                early_del=early_del
+            )
+            
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "filtering_po_details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to filter PO details.",
+            "error": str(e),
+            "code": 500
+        }
+
+
+
+
+
+@frappe.whitelist(allow_guest=False)
+def filtering_po_details_pt(page_no=None, page_length=None, company=None, refno=None, status=None, search=None, usr=None, early_del = None):
+    """
+    Main filtering API with pagination and comprehensive search
+    """
+    try:
+        if usr is None:
+            usr = frappe.session.user
+        elif usr != frappe.session.user:
+            return {
+                "status": "error",
+                "message": "User mismatch or unauthorized access.",
+                "code": 404
+            }
+
+        # Base filters
+        conditions = []
+        values = {}
+
+        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+        if not team:
+            return {
+                "status": "error",
+                "message": "No Employee record found for the user.",
+                "po": []
+            }
+
+        pur_grp = frappe.get_all("Purchase Group Master", {"team": team}, pluck="purchase_group_code")
+       
+        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+        if not user_ids:
+            return {
+                "status": "error",
+                "message": "No users found in the same team.",
+                "po": []
+            }
+
+        conditions.append("po.purchase_group IN %(purchase_group)s")
+        values["purchase_group"] = pur_grp
+
+        # Add additional filters if provided
+        if company:
+            conditions.append("po.company_code = %(company)s")
+            values["company"] = company
+            
+      
+            
+        if status:
+            conditions.append("po.vendor_status = %(status)s")
+            values["status"] = status
+
+        # Add search filter with relevance scoring
+        if search:
+            search_condition = """(
+                po.name LIKE %(search)s OR
+           
+                po.po_no LIKE %(search)s
+            )"""
+            conditions.append(search_condition)
+            values["search"] = f"%{search}%"
+
+        filter_clause = " AND ".join(conditions)
+
+        # Total count for pagination
+        total_count = frappe.db.sql(f"""
+            SELECT COUNT(*) AS count
+            FROM `tabPurchase Order` po
+            WHERE {filter_clause}
+        """, values)[0][0]
+
+        # Pagination
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        offset = (page_no - 1) * page_length
+        values["limit"] = page_length
+        values["offset"] = offset
+
+        # Order by relevance if search is provided
+        order_clause = "po.creation DESC"
+        if search:
+            # Use parameterized query for security
+            order_clause = """
+                CASE 
+                    WHEN po.name LIKE %(search_start)s THEN 1
+                  
+                    ELSE 4
+                END,
+                po.creation DESC
+            """
+            values["search_start"] = f"{search}%"
+
+        # Final query - Get all required fields
+        po_docs = frappe.db.sql(f"""
+            SELECT 
+                po.name,
+                po.po_no,
+                po.company_code,
+                po.creation,
+                po.modified
+            FROM `tabPurchase Order` po
+            WHERE {filter_clause}
+            ORDER BY {order_clause}
+            LIMIT %(limit)s OFFSET %(offset)s
+        """, values, as_dict=True)
+
+        return {
+            "status": "success",
+            "message": "Paginated and filtered po records fetched successfully.",
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length,
+            "total_po": po_docs,
+            "search_term": search
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Total po Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch po onboarding data.",
+            "error": str(e),
+            "po": []
+        }
+    
 
 
 
