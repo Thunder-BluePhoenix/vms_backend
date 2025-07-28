@@ -21,6 +21,7 @@
   {
    "fieldname": "creation_datetime",
    "fieldtype": "Datetime",
+   "in_list_view": 1,
    "label": "Creation DateTime"
   },
   {
@@ -33,7 +34,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-28 17:28:37.094941",
+ "modified": "2025-07-28 17:47:28.649609",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Revision Table",
