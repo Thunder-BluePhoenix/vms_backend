@@ -13,6 +13,7 @@ def po_approve(data):
     po.approved_by = frappe.session.user
 
     po.status = "Approved by Vendor"
+    po.approved_from_vendor = 1
 
     po.save()
     frappe.db.commit()
@@ -29,6 +30,7 @@ def po_reject(data):
 
     po.reason_for_rejection = reason_for_rejection
     po.rejected_by = frappe.session.user
+    po.approved_from_vendor = 1
 
     po.status = "Rejected by Vendor"
 
