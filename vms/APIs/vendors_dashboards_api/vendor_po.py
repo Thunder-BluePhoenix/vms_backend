@@ -140,16 +140,12 @@ def get_po_against_all_vc(page_no=None, page_length=None, company=None, refno=No
             }
 
         # Base filters
-        user_doc = frappe.get_doc('User', usr)
-        user_roles = frappe.get_roles(user_doc.name)
+        
         conditions = []
         values = {}
 
         # Check if user has Vendor role
-        if "Vendor" not in user_roles:
-            return {"status": "error", "message": "User does not have the Vendor role."}
-
-        # Get vendor codes for the current user
+        
         try:
             vendor_master = frappe.get_doc("Vendor Master", {"office_email_primary": usr})
             vendor_code_data = collect_vendor_code_data(vendor_master, method=None)
