@@ -401,3 +401,92 @@ def get_quotation_details(quotation_name):
     except Exception as e:
         frappe.log_error(f"Error in get_quotation_details: {str(e)}")
         frappe.throw(f"An error occurred while fetching Quotation details: {str(e)}")
+
+@frappe.whitelist(allow_guest=True)
+def get_quotations_by_rfq(rfq_number):
+    try:
+        
+        if not rfq_number:
+            frappe.throw(_("RFQ Number is required"))
+        
+       
+        if not frappe.db.exists("Request For Quotation", rfq_number):
+            frappe.throw(_("RFQ Number {0} does not exist").format(rfq_number))
+        
+        
+        fields = [
+            "name",
+            "vendor_name",
+            "rfq_number", 
+            "quote_amount",
+            "rank",
+            "office_email_primary",
+        ]
+        
+        
+        quotations = frappe.get_all(
+            "Quotation",
+            filters={
+                "rfq_number": rfq_number,
+            },
+            fields=fields
+        )
+        
+        if not quotations:
+            return {
+                "success": True,
+                "message": _("No quotations found for RFQ {0}").format(rfq_number),
+                "data": [],
+                "total_count": 0
+            }
+        
+        def get_sort_key(quotation):
+            try:
+                rank = quotation.get('rank')
+                if rank and str(rank).strip():
+                    return int(str(rank).strip())
+                else:
+                    return 999999
+            except (ValueError, TypeError):
+                return 999999
+        
+        quotations.sort(key=get_sort_key)
+    
+        formatted_quotations = []
+        for quotation in quotations:
+            quote_amount_display = None
+            if quotation.get('quote_amount'):
+                try:
+                    quote_amount_display = float(str(quotation['quote_amount']).replace(',', ''))
+                except (ValueError, TypeError):
+                    quote_amount_display = quotation['quote_amount']
+            
+            formatted_quotation = {
+                "name": quotation.get('name'),
+                "rfq_number": quotation.get('rfq_number'),
+                "quote_amount": quote_amount_display,
+                # "quote_amount_formatted": quotation.get('quote_amount'), 
+                "rank": quotation.get('rank'),
+                "office_email_primary": quotation.get('office_email_primary'),
+            }
+            formatted_quotations.append(formatted_quotation)
+        
+        rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
+        
+        return {
+            "success": True,
+            "message": _("Quotations retrieved successfully"),
+            "data": formatted_quotations,
+            "total_count": len(formatted_quotations),
+            "rfq_details": {
+                "name": rfq_doc.name
+            }
+        }
+        
+    except frappe.DoesNotExistError:
+        frappe.throw(_("RFQ Number {0} does not exist").format(rfq_number))
+    except Exception as e:
+        frappe.log_error(f"Error in get_quotations_by_rfq API: {str(e)}", "Quotation API Error")
+        frappe.throw(_("An error occurred while fetching quotations: {0}").format(str(e)))
+
+
