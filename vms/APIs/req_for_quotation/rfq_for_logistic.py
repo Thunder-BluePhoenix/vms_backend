@@ -132,6 +132,7 @@ def create_import_logistic_rfq(data):
 		    "Request For Quotation"	
 		)
 
+		rfq.form_fully_submitted    = 1
 		rfq.rfq_type                = data.get("rfq_type")
 		rfq.company_name_logistic   = data.get("company_name_logistic")
 		rfq.service_provider        = data.get("service_provider")
@@ -332,6 +333,7 @@ def create_export_logistic_rfq(data):
 		    "Request For Quotation"	
 		)
 
+		rfq.form_fully_submitted    = 1
 		rfq.rfq_type                = data.get("rfq_type")
 		rfq.company_name_logistic   = data.get("company_name_logistic")
 		rfq.service_provider        = data.get("service_provider")

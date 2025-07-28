@@ -42,7 +42,8 @@ def send_reminder_notification():
                 frappe.sendmail(
                     recipients=row.office_email_primary,
                     subject=subject,
-                    message=body
+                    message=body,
+                    now=True
                 )
                 frappe.logger().info(f"Sent {reminder_type} reminder to {row.office_email_primary}")
                 sent = True
@@ -52,7 +53,8 @@ def send_reminder_notification():
                 frappe.sendmail(
                     recipients=row.office_email_primary,
                     subject=subject,
-                    message=body
+                    message=body,
+                    now=True
                 )
                 frappe.logger().info(f"Sent {reminder_type} reminder to {row.office_email_primary}")
                 sent = True

@@ -3,6 +3,8 @@
 
 import frappe
 from frappe.model.document import Document
+import jwt 
+from datetime import datetime, timedelta
 
 
 class RequestForQuotation(Document):
@@ -14,18 +16,11 @@ class RequestForQuotation(Document):
 
 
 def send_quotation_email(doc):
-	if frappe.flags.in_update_email:
-		return
-	frappe.flags.in_update_email = True
-
 	site_url = frappe.get_site_config().get('frontend_http', 'https://saksham-v.merillife.com/')
-
-	vendor_updates = []
-	non_vendor_updates = []
 
 	# For onboarded vendors
 	for row in doc.vendor_details:
-		if row.office_email_primary and not row.mail_sent:
+		if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
 			ref_no = row.ref_no
 			link = f"{site_url}/quotation-form?name={doc.name}&ref_no={ref_no}"
 
@@ -43,11 +38,11 @@ def send_quotation_email(doc):
 				message=message,
 				now=True
 			)
-			vendor_updates.append(row.name)
+			frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
 
 	# For non-onboarded vendors
 	for row in doc.non_onboarded_vendor_details:
-		if row.office_email_primary and not row.mail_sent:
+		if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
 			link = f"{site_url}/quotation-form?name={doc.name}&office_email_primary={row.office_email_primary}"
 
 			subject = "Request for Quotation - Action Required"
@@ -64,12 +59,7 @@ def send_quotation_email(doc):
 				message=message,
 				now=True
 			)
-			non_vendor_updates.append(row.name)
-
-	for name in vendor_updates:
-		frappe.db.set_value("Vendor Details", name, "mail_sent", 1, update_modified=False)
-	for name in non_vendor_updates:
-		frappe.db.set_value("Non Onboarded Vendor Details", name, "mail_sent", 1, update_modified=False)
+			frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)
 
 
 

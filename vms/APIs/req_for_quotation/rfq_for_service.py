@@ -12,6 +12,7 @@ def create_rfq_service(data):
         rfq = frappe.new_doc("Request For Quotation")
 
         # RFQ Basic Fields
+        rfq.form_fully_submitted = 1
         rfq.rfq_type = data.get("rfq_type")
         rfq.rfq_date = data.get("rfq_date")
         rfq.company_name = data.get("company_name")
