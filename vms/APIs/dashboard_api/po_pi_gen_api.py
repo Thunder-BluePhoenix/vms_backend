@@ -655,10 +655,70 @@ def get_pi_details(pi_name):
         frappe.throw(_("An unexpected error occurred while fetching PI details."))
 
 
-@frappe.whitelist(allow_guest = True)
-def get_pr_w():
-    pr_w = frappe.get_all("Purchase Requisition Webform", fields ="*", order_by = "modified desc")
-    return pr_w
+@frappe.whitelist(allow_guest=True)
+def get_pr_w(page_no=None, page_length=None):
+    try:
+        user = frappe.session.user
+        emp_team = frappe.get_value("Employee", {"user_id": user}, "team") 
+        pur_grp = frappe.get_all("Purchase Group Master", {"team": emp_team}, "*")
+        print("dfgv@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@hbjk", pur_grp)
+        
+        # Set pagination parameters
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        
+        # Get purchase group names
+        pur_grp_names = [grp.name for grp in pur_grp]
+        
+        if not pur_grp_names:
+            return {
+                "status": "success",
+                "message": "No purchase groups found for the user's team.",
+                "data": [],
+                "total_count": 0,
+                "page_no": page_no,
+                "page_length": page_length,
+                "total_pages": 0
+            }
+        
+        # Get total count
+        total_count = frappe.db.count("Purchase Requisition Webform", 
+                                     filters={"purchase_group": ("in", pur_grp_names)})
+        
+        # Calculate pagination
+        start = (page_no - 1) * page_length
+        total_pages = (total_count + page_length - 1) // page_length
+        
+        # Get paginated records
+        pr_w = frappe.get_all("Purchase Requisition Webform", 
+                             filters={"purchase_group": ("in", pur_grp_names)},
+                             fields="*", 
+                             order_by="modified desc",
+                             start=start,
+                             page_length=page_length)
+        
+        return {
+            "status": "success",
+            "message": "Purchase Requisitions fetched successfully.",
+            "data": pr_w,
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length,
+            "total_pages": total_pages
+        }
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_pr_w Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch Purchase Requisitions.",
+            "error": str(e),
+            "data": [],
+            "total_count": 0,
+            "page_no": page_no if page_no else 1,
+            "page_length": page_length if page_length else 20,
+            "total_pages": 0
+        }
 
 
 
