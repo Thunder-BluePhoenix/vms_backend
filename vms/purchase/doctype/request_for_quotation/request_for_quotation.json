@@ -105,6 +105,12 @@
   "non_onboarded_vendor_details_section",
   "non_onboarded_vendor_details",
   "tab_3_tab",
+  "revised_quotation_data_section",
+  "head_target",
+  "unique_id",
+  "column_break_zdgg",
+  "revised_quotation",
+  "prev_rfq",
   "version_history_section",
   "version_history",
   "history_html"
@@ -649,12 +655,43 @@
    "fieldname": "history_html",
    "fieldtype": "HTML",
    "label": "History"
+  },
+  {
+   "fieldname": "revised_quotation_data_section",
+   "fieldtype": "Section Break",
+   "label": "Revised Quotation Data"
+  },
+  {
+   "default": "0",
+   "fieldname": "head_target",
+   "fieldtype": "Check",
+   "label": "Head Target"
+  },
+  {
+   "default": "0",
+   "fieldname": "revised_quotation",
+   "fieldtype": "Check",
+   "label": "Revised Quotation"
+  },
+  {
+   "fieldname": "unique_id",
+   "fieldtype": "Data",
+   "label": "Unique ID"
+  },
+  {
+   "fieldname": "column_break_zdgg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "prev_rfq",
+   "fieldtype": "Data",
+   "label": "Prev RFQ"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-26 11:32:45.899832",
+ "modified": "2025-07-28 15:59:54.019888",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
