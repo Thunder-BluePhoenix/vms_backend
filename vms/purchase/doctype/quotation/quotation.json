@@ -17,6 +17,7 @@
   "rfq_number",
   "rfq_unique_key",
   "logistics_section",
+  "logistic_type",
   "mode_of_shipment",
   "airlinevessel_name",
   "chargeable_weight",
@@ -690,6 +691,12 @@
    "fieldname": "rfq_unique_key",
    "fieldtype": "Data",
    "label": "RFQ Unique Key"
+  },
+  {
+   "fieldname": "logistic_type",
+   "fieldtype": "Select",
+   "label": "Logistic Type",
+   "options": "\nImport\nExport"
   }
  ],
  "grid_page_length": 50,
