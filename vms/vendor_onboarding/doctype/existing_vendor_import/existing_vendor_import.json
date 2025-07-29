@@ -1,0 +1,115 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-07-29 13:54:47.853902",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "csv_xl",
+  "naming_series",
+  "column_break_uzzc",
+  "existing_vendor_initialized",
+  "initiate",
+  "section_break_opjc",
+  "success_fail_rate_html",
+  "section_break_oqia",
+  "vendor_data",
+  "success_fail_rate",
+  "view_tab",
+  "section_break_tmzh",
+  "vendor_html"
+ ],
+ "fields": [
+  {
+   "fieldname": "csv_xl",
+   "fieldtype": "Attach",
+   "label": "CSV/XL FIle"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "EVI-.DD.-.MM.-.YY.-"
+  },
+  {
+   "fieldname": "section_break_tmzh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "vendor_html",
+   "fieldtype": "HTML",
+   "label": "Vendors"
+  },
+  {
+   "fieldname": "view_tab",
+   "fieldtype": "Tab Break",
+   "label": "View"
+  },
+  {
+   "fieldname": "column_break_uzzc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "existing_vendor_initialized",
+   "fieldtype": "Check",
+   "label": "Existing Vendor Initialized"
+  },
+  {
+   "fieldname": "initiate",
+   "fieldtype": "Button",
+   "label": "Initiate"
+  },
+  {
+   "fieldname": "section_break_opjc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "success_fail_rate_html",
+   "fieldtype": "HTML",
+   "label": "Success Fail Rate"
+  },
+  {
+   "fieldname": "section_break_oqia",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "vendor_data",
+   "fieldtype": "Code",
+   "label": "Vendor Data"
+  },
+  {
+   "fieldname": "success_fail_rate",
+   "fieldtype": "Code",
+   "label": "Success Fail Rate"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-29 14:28:40.583913",
+ "modified_by": "Administrator",
+ "module": "Vendor Onboarding",
+ "name": "Existing Vendor Import",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
