@@ -795,6 +795,8 @@ def get_vendor_po_ultra_fast(page_no, page_length, company, refno, status, searc
             where_conditions.append("(po.name LIKE %(search)s OR po.po_no LIKE %(search)s)")
             params["search"] = f"%{search}%"
 
+        where_conditions.append("po.sent_to_vendor = True")
+
         where_clause = " AND ".join(where_conditions)
 
         # Use covering index query with materialized CTE
