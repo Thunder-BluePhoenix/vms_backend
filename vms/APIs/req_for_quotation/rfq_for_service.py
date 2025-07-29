@@ -113,7 +113,9 @@ def create_rfq_service(data):
                 "office_email_primary": vendor.get("office_email_primary"),
                 "vendor_name": vendor.get("vendor_name"),
                 "mobile_number": vendor.get("mobile_number"),
-                "country": vendor.get("country")
+                "country": vendor.get("country"),
+                "company_pan": vendor.get("company_pan") or "",
+				"gst_number": vendor.get("gst_number") or ""
             })
 
         rfq.insert(ignore_permissions=True)

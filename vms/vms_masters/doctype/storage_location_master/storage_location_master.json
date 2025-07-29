@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:storage_name",
+ "autoname": "field:storage_name",
  "creation": "2025-07-04 12:25:58.150430",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -62,11 +62,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-04 14:05:17.430012",
+ "modified": "2025-07-29 17:05:45.871147",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Storage Location Master",
- "naming_rule": "Expression",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

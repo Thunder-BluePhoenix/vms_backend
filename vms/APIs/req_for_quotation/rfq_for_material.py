@@ -370,7 +370,9 @@ def create_rfq_material(data):
 				"office_email_primary": vendor.get("office_email_primary") or "",
 				"vendor_name": vendor.get("vendor_name") or "",
 				"mobile_number": vendor.get("mobile_number") or "",
-				"country": vendor.get("country") or ""
+				"country": vendor.get("country") or "",
+				"company_pan": vendor.get("company_pan") or  "",
+				"gst_number": vendor.get("gst_number") or ""
 			})
 
 		rfq.insert(ignore_permissions=True)

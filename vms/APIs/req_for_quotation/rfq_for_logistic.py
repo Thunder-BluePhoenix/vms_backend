@@ -176,6 +176,7 @@ def create_import_logistic_rfq(data):
 		rfq.invoice_no = data.get("invoice_no")
 		rfq.invoice_value = data.get("invoice_value")
 		rfq.expected_date_of_arrival = data.get("expected_date_of_arrival")
+		rfq.raised_by = data.get("raised_by")
 		rfq.remarks = data.get("remarks")
 
 		# Add vendors from Vendor Master (All Service Provider)
@@ -246,7 +247,9 @@ def create_import_logistic_rfq(data):
 				"office_email_primary": vendor.get("office_email_primary"),
 				"vendor_name": vendor.get("vendor_name"),
 				"mobile_number": vendor.get("mobile_number"),
-				"country": vendor.get("country")
+				"country": vendor.get("country"),
+				"company_pan": vendor.get("company_pan"),
+				"gst_number": vendor.get("gst_number")
 			})
 
 		rfq.insert(ignore_permissions=True)
@@ -368,6 +371,7 @@ def create_export_logistic_rfq(data):
 		rfq.invoice_no        = data.get("invoice_no")
 		rfq.consignee_name        = data.get("consignee_name")
 		rfq.shipment_date        = data.get("shipment_date")
+		rfq.raised_by = data.get("raised_by")
 		rfq.remarks        = data.get("remarks")
 
 		# Add all vendors if "All Service Provider" is selected
@@ -448,7 +452,9 @@ def create_export_logistic_rfq(data):
 				"office_email_primary": vendor.get("office_email_primary"),
 				"vendor_name": vendor.get("vendor_name"),
 				"mobile_number": vendor.get("mobile_number"),
-				"country": vendor.get("country")
+				"country": vendor.get("country"),
+				"company_pan": vendor.get("company_pan"),
+				"gst_number": vendor.get("gst_number")
 			})
 
 		rfq.insert(ignore_permissions=True)

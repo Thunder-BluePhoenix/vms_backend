@@ -266,6 +266,93 @@ def filter_purchase_organisation(company):
         }
 
 
+@frappe.whitelist(allow_guest=True)
+def filter_masters(company):
+    try:
+        if not company:
+            return {
+                "status": "error",
+                "message": "Company is required"
+            }
+
+        # Fetch all master data in one go
+        pur_grp = frappe.get_all(
+            "Purchase Group Master",
+            filters={"company": company},
+            fields=["name", "purchase_group_code", "purchase_group_name", "description"]
+        )
+
+        storage = frappe.get_all(
+            "Storage Location Master",
+            filters={"company": company},
+            fields=["name", "storage_name", "storage_location_name", "description"]
+        )
+
+        cost_center = frappe.get_all(
+            "Cost Center",
+            filters={"company_code": company},
+            fields=["name", "cost_center_code", "cost_center_name", "description", "category"]
+        )
+
+        profit_center = frappe.get_all(
+            "Profit Center",
+            filters={"company_code": company},
+            fields=["name", "profit_center_code", "profit_center_name", "description"]
+        )
+
+        valuation_class = frappe.get_all(
+            "Valuation Class Master",
+            filters={"company": company},
+            fields=["name", "valuation_class_code", "valuation_class_name"]
+        )
+
+        gl_account = frappe.get_all(
+            "GL Account",
+            filters={"company": company},
+            fields=["name", "gl_account_code", "gl_account_name", "description"]
+        )
+
+        material_master = frappe.get_all(
+            "Material Master",
+            filters={"company": company},
+            fields=["name", "material_code", "material_name", "material_type", "material_category", "description"]
+        )
+
+        material_group = frappe.get_all(
+            "Material Group Master",
+            filters={"material_group_company": company},
+            fields=["name", "material_group_name", "material_group_description", "material_group_long_description"]
+        )
+
+        purchase_org = frappe.get_all(
+            "Purchase Organization Master",
+            filters={"company": company},
+            fields=["name", "purchase_organization_code", "purchase_organization_name", "description"]
+        )
+
+        # Return all data with original keys
+        return {
+            "status": "success",
+            "pur_grp": pur_grp,
+            "storage": storage,
+            "cost_center": cost_center,
+            "profit_center": profit_center,
+            "valuation_class": valuation_class,
+            "gl_account": gl_account,
+            "material_master": material_master,
+            "material_group": material_group,
+            "purchase_org": purchase_org
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error filtering company masters")
+        return {
+            "status": "error",
+            "message": "Failed to filter company master data",
+            "error": str(e)
+        }
+
+
 # Get Cart Details based on cart id
 @frappe.whitelist(allow_guest=True)
 def get_cart_details(cart_id):
