@@ -126,6 +126,7 @@ def send_mail_hod(doc, method=None):
 							<th>Product Price</th>
 							<th>Lead Time</th>
 							<th>User Specifications</th>
+							<th>Final Price</th>
 						</tr>
 				"""
 
@@ -139,6 +140,7 @@ def send_mail_hod(doc, method=None):
 							<td>{row.product_price or ''}</td>
 							<td>{row.lead_time or ''}</td> 
 							<td>{row.user_specifications or ''}</td>
+							<td>{row.final_price_by_purchase_team or ''}</td>
 						</tr>
 					"""
 
