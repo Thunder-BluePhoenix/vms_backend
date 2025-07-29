@@ -159,6 +159,7 @@ def create_import_logistic_rfq(data):
 		rfq.rfq_cutoff_date_logistic = data.get("rfq_cutoff_date_logistic")
 		rfq.rfq_date_logistic = data.get("rfq_date_logistic")
 		rfq.mode_of_shipment = data.get("mode_of_shipment")
+		rfq.shipment_type = data.get("shipment_type")
 		rfq.destination_port = data.get("destination_port")
 		rfq.country = data.get("country")
 		rfq.port_code = data.get("port_code")

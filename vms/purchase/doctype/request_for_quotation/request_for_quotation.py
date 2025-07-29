@@ -3,8 +3,9 @@
 
 import frappe
 from frappe.model.document import Document
-import jwt 
-from datetime import datetime, timedelta
+import jwt
+from frappe.utils import get_datetime
+from datetime import datetime
 
 
 class RequestForQuotation(Document):
@@ -15,51 +16,51 @@ class RequestForQuotation(Document):
 		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  send_quotation_email")
 
 
-def send_quotation_email(doc):
-	site_url = frappe.get_site_config().get('frontend_http', 'https://saksham-v.merillife.com/')
+# def send_quotation_email(doc):
+# 	site_url = frappe.get_site_config().get('frontend_http', 'https://saksham-v.merillife.com/')
 
-	# For onboarded vendors
-	for row in doc.vendor_details:
-		if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
-			ref_no = row.ref_no
-			link = f"{site_url}/quotation-form?name={doc.name}&ref_no={ref_no}"
+# 	# For onboarded vendors
+# 	for row in doc.vendor_details:
+# 		if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
+# 			ref_no = row.ref_no
+# 			link = f"{site_url}/quotation-form?name={doc.name}&ref_no={ref_no}"
 
-			subject = "Request for Quotation - Action Required"
-			message = f"""
-				<p>Dear {row.vendor_name},</p>
-				<p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
-				<p>Please log in to the portal and create your quotation at the earliest.</p>
-				<p>Thank you,<br>VMS Team</p><br>
-				<a href="{link}" target="_blank">Click here to fill quotation</a>
-			"""
-			frappe.sendmail(
-				recipients=row.office_email_primary,
-				subject=subject,
-				message=message,
-				now=True
-			)
-			frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
+# 			subject = "Request for Quotation - Action Required"
+# 			message = f"""
+# 				<p>Dear {row.vendor_name},</p>
+# 				<p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
+# 				<p>Please log in to the portal and create your quotation at the earliest.</p>
+# 				<p>Thank you,<br>VMS Team</p><br>
+# 				<a href="{link}" target="_blank">Click here to fill quotation</a>
+# 			"""
+# 			frappe.sendmail(
+# 				recipients=row.office_email_primary,
+# 				subject=subject,
+# 				message=message,
+# 				now=True
+# 			)
+# 			frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
 
-	# For non-onboarded vendors
-	for row in doc.non_onboarded_vendor_details:
-		if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
-			link = f"{site_url}/quotation-form?name={doc.name}&office_email_primary={row.office_email_primary}"
+# 	# For non-onboarded vendors
+# 	for row in doc.non_onboarded_vendor_details:
+# 		if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
+# 			link = f"{site_url}/quotation-form?name={doc.name}&office_email_primary={row.office_email_primary}"
 
-			subject = "Request for Quotation - Action Required"
-			message = f"""
-				<p>Dear {row.vendor_name},</p>
-				<p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
-				<p>Please get in touch with our procurement team to complete the onboarding process before submitting your quotation.</p>
-				<p>Thank you,<br>VMS Team</p><br>
-				<a href="{link}" target="_blank">Click here to fill quotation</a>
-			"""
-			frappe.sendmail(
-				recipients=row.office_email_primary,
-				subject=subject,
-				message=message,
-				now=True
-			)
-			frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)
+# 			subject = "Request for Quotation - Action Required"
+# 			message = f"""
+# 				<p>Dear {row.vendor_name},</p>
+# 				<p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
+# 				<p>Please get in touch with our procurement team to complete the onboarding process before submitting your quotation.</p>
+# 				<p>Thank you,<br>VMS Team</p><br>
+# 				<a href="{link}" target="_blank">Click here to fill quotation</a>
+# 			"""
+# 			frappe.sendmail(
+# 				recipients=row.office_email_primary,
+# 				subject=subject,
+# 				message=message,
+# 				now=True
+# 			)
+# 			frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)
 
 
 
@@ -250,3 +251,103 @@ def send_mail_on_revised_quotation(doc):
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "send_mail_on_revised_quotation Error")
 
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+def send_quotation_email(doc):
+	site_url = frappe.get_site_config().get('frontend_http', 'https://saksham-v.merillife.com/')
+
+	# For onboarded vendors
+	for row in doc.vendor_details:
+		if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
+			token = generate_secure_token(
+				row.office_email_primary,
+				doc.name,
+				row.name,
+				doc.rfq_cutoff_date_logistic  # <-- used here
+			)
+
+			link = f"{site_url}/quotation-form?token={token}"
+
+			subject = "Request for Quotation - Action Required"
+			message = f"""
+				<p>Dear {row.vendor_name},</p>
+				<p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
+				<p>Please log in to the portal and create your quotation using the secure link below. This link will expire on <strong>{doc.rfq_cutoff_date_logistic}</strong>.</p>
+				<a href="{link}" target="_blank">Click here to fill quotation</a>
+				<p>Thank you,<br>VMS Team</p>
+			"""
+
+			frappe.sendmail(
+				recipients=row.office_email_primary,
+				subject=subject,
+				message=message,
+				now=True
+			)
+			frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
+
+
+	# For non-onboarded vendors
+	for row in doc.non_onboarded_vendor_details:
+		if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
+			token = generate_secure_token(
+				row.office_email_primary,
+				doc.name,
+				row.name,
+				doc.rfq_cutoff_date_logistic  # <-- used here
+			)
+			link = f"{site_url}/quotation-form?name={token}"
+
+			subject = "Request for Quotation - Action Required"
+			message = f"""
+				<p>Dear {row.vendor_name},</p>
+				<p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
+				<p>Please get in touch with our procurement team to complete the onboarding process before submitting your quotation.</p>
+				<p>Thank you,<br>VMS Team</p><br>
+				<a href="{link}" target="_blank">Click here to fill quotation</a>
+			"""
+			frappe.sendmail(
+				recipients=row.office_email_primary,
+				subject=subject,
+				message=message,
+				now=True
+			)
+			frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)
+
+
+SECRET_KEY = frappe.conf.get("secret_key")
+
+def generate_secure_token(email, rfq_name, vendor_row_name, cutoff_date):
+    expiry = get_datetime(cutoff_date)
+    payload = {
+        "email": email,
+        "rfq": rfq_name,
+        "vendor_row": vendor_row_name,
+        "exp": expiry
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+
+@frappe.whitelist(allow_guest=True)
+def process_token(token):
+    try:
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return {
+            "status": "valid",
+            "email": decoded.get("email"),
+            "rfq": decoded.get("rfq"),
+            "vendor_row": decoded.get("vendor_row")
+        }
+    except jwt.ExpiredSignatureError:
+        frappe.local.response["http_status_code"] = 410  
+        frappe.throw(_("This secure link has expired."))
+
+    except jwt.InvalidTokenError:
+        frappe.local.response["http_status_code"] = 401  
+        frappe.throw(_("Invalid or tampered token."))
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "RFQ Token Processing Error")
+        frappe.local.response["http_status_code"] = 500  
+        frappe.throw(_("Something went wrong while processing the link."))
