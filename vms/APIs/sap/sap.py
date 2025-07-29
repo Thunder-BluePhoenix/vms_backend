@@ -317,187 +317,317 @@ from requests.exceptions import RequestException, JSONDecodeError
 
 @frappe.whitelist(allow_guest=True)
 def erp_to_sap_vendor_data(onb_ref):
-    onb = frappe.get_doc("Vendor Onboarding", onb_ref)
-    onb_vm = frappe.get_doc("Vendor Master", onb.ref_no)
-    onb_pmd = frappe.get_doc("Vendor Onboarding Payment Details", onb.payment_detail)
-    pur_org = frappe.get_doc("Purchase Organization Master", onb.purchase_organization)
-    pur_grp = frappe.get_doc("Purchase Group Master", onb.purchase_group)
-    acc_grp = frappe.get_doc("Account Group Master", onb.account_group)
-    onb_reco = frappe.get_doc("Reconciliation Account", onb.reconciliation_account)
-    onb_pm_term = frappe.get_doc("Terms of Payment Master", onb.terms_of_payment)
-    onb_inco = frappe.get_doc("Incoterm Master", onb.incoterms)
-    onb_bank = frappe.get_doc("Bank Master", onb_pmd.bank_name)
+    """
+    Fixed version of the main SAP vendor data sending function with proper multi-row support
+    """
+    print("=" * 80)
+    print("ERP TO SAP VENDOR DATA - STARTING")
+    print(f"Vendor Onboarding Reference: {onb_ref}")
+    print("=" * 80)
+    
+    try:
+        # Get main documents
+        onb = frappe.get_doc("Vendor Onboarding", onb_ref)
+        onb_vm = frappe.get_doc("Vendor Master", onb.ref_no)
+        onb_pmd = frappe.get_doc("Vendor Onboarding Payment Details", onb.payment_detail)
+        pur_org = frappe.get_doc("Purchase Organization Master", onb.purchase_organization)
+        pur_grp = frappe.get_doc("Purchase Group Master", onb.purchase_group)
+        acc_grp = frappe.get_doc("Account Group Master", onb.account_group)
+        onb_reco = frappe.get_doc("Reconciliation Account", onb.reconciliation_account)
+        onb_pm_term = frappe.get_doc("Terms of Payment Master", onb.terms_of_payment)
+        onb_inco = frappe.get_doc("Incoterm Master", onb.incoterms)
+        onb_bank = frappe.get_doc("Bank Master", onb_pmd.bank_name)
 
-    payee = 'X' if onb.payee_in_document == 1 else ''
-    gr_based_inv_ver = 'X' if onb.gr_based_inv_ver == 1 else ''
-    service_based_inv_ver = 'X' if onb.service_based_inv_ver == 1 else ''
-    check_double_invoice = 'X' if onb.check_double_invoice == 1 else ''
+        # Boolean flags
+        payee = 'X' if onb.payee_in_document == 1 else ''
+        gr_based_inv_ver = 'X' if onb.gr_based_inv_ver == 1 else ''
+        service_based_inv_ver = 'X' if onb.service_based_inv_ver == 1 else ''
+        check_double_invoice = 'X' if onb.check_double_invoice == 1 else ''
 
-    vendor_type_names = []
-    for row in onb_vm.vendor_types:
-        if row.vendor_type:
-            vendor_type_doc = frappe.get_doc("Vendor Type Master", row.vendor_type)
-            vendor_type_names.append(vendor_type_doc.vendor_type_name)
+        # Get vendor types
+        vendor_type_names = []
+        for row in onb_vm.vendor_types:
+            if row.vendor_type:
+                vendor_type_doc = frappe.get_doc("Vendor Type Master", row.vendor_type)
+                vendor_type_names.append(vendor_type_doc.vendor_type_name)
 
-    data_list = []
-    for company in onb.vendor_company_details:
-        vcd = frappe.get_doc("Vendor Onboarding Company Details", company.vendor_company_details)
-        country_doc = frappe.get_doc("Country Master", vcd.country)
-        country_code = country_doc.country_code
-        com_vcd = frappe.get_doc("Company Master", vcd.company_name)
-        sap_client_code = com_vcd.sap_client_code
-        vcd_state = frappe.get_doc("State Master", vcd.state)
-        for gst_table in vcd.comp_gst_table:
-            gst_state = gst_table.gst_state
-            gst_state_doc = frappe.get_doc("State Master", gst_state)
-            gst_num = gst_table.gst_number
-            gst_pin = gst_table.pincode
-            gst_addrs = frappe.get_doc("Pincode Master", gst_pin)
-            gst_city = gst_addrs.city
-            gst_cuntry = gst_addrs.country
-            gst_district = gst_addrs.district
-            gst_adderss_text = ", ".join(filter(None, [
-                                                            gst_city,
-                                                            gst_district,
-                                                            gst_state
-                                                        ]))
-
-
-            data = {
-                "Bukrs": com_vcd.company_code,
-                "Ekorg": pur_org.purchase_organization_code,
-                "Ktokk": acc_grp.account_group_code,
-                "Title": "",
-                "Name1": onb_vm.vendor_name,
-                "Name2": "",
-                "Sort1": onb_vm.search_term,
-                "Street": vcd.address_line_1,
-                "StrSuppl1": gst_adderss_text or "",  # Convert None to empty string
-                "StrSuppl2": "",
-                "StrSuppl3": "",
-                "PostCode1": gst_pin,
-                "City1": gst_city,
-                "Country": country_code,
-                "J1kftind": "",
-                "Region": gst_state_doc.sap_state_code,
-                "TelNumber": "",
-                "MobNumber": onb_vm.mobile_number,
-                "SmtpAddr": onb_vm.office_email_primary,
-                "SmtpAddr1": onb_vm.office_email_secondary or "",
-                "Zuawa": "",
-                "Akont": onb_reco.reconcil_account_code,
-                "Waers": onb_pmd.currency_code,
-                "Zterm": onb_pm_term.terms_of_payment_code,
-                "Inco1": onb_inco.incoterm_code,
-                "Inco2": onb_inco.incoterm_name,
-                "Kalsk": "",
-                "Ekgrp": pur_grp.purchase_group_code,
-                "Xzemp": payee,
-                "Reprf": check_double_invoice,
-                "Webre": gr_based_inv_ver,
-                "Lebre": service_based_inv_ver,
-                "Stcd3": gst_num or "",
-                "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
-                "J1ipanno": vcd.company_pan_number,
-                "J1ipanref": onb_vm.vendor_name,
-                "Namev": safe_get(onb, "contact_details", 0, "first_name"),
-                "Name11": safe_get(onb, "contact_details", 0, "last_name"),
-                "Bankl": onb_bank.bank_code,
-                "Bankn": onb_pmd.account_number,
-                "Bkref": onb_bank.bank_name,
-                "Banka": onb_pmd.ifsc_code,
-                "Xezer": "",
-                "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
-                "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
-                "ZZBEN_ACCT_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_account_no"),
-                "ZZBENF_IBAN": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_iban_no"),
-                "ZZBENF_BANKADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_address"),
-                "ZZBENF_SHFTADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_swift_code"),
-                "ZZBENF_ACH_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_ach_no"),
-                "ZZBENF_ABA_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_aba_no"),
-                "ZZBENF_ROUTING": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_routing_no"),
-                "ZZINTR_ACCT_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_account_no"),
-                "ZZINTR_IBAN": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_iban_no"),
-                "ZZINTR_BANK_NM": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_name"),
-                "ZZINTR_BANKADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_address"),
-                "ZZINTR_SHFTADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_swift_code"),
-                "ZZINTR_ACH_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_ach_no"),
-                "ZZINTR_ABA_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_aba_no"),
-                "ZZINTR_ROUTING": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_routing_no"),
-                "Refno": onb.ref_no,
-                "Vedno": "",
-                "Zmsg": ""
-            }
-            data_list.append(data)
-
-        # Get CSRF token and session with proper session handling
-            csrf_result = get_csrf_token_and_session(sap_client_code)
+        # **MAIN LOOP: Process each company**
+        print(f"📊 Processing {len(onb.vendor_company_details)} companies...")
+        
+        company_counter = 0
+        total_gst_rows_processed = 0
+        
+        for company in onb.vendor_company_details:
+            company_counter += 1
+            print(f"\n🏢 COMPANY {company_counter}: Processing company entry...")
             
-            if csrf_result["success"]:
-                try:
-                    # Send details to SAP with proper session
-                    result = send_detail(
-                        csrf_result["csrf_token"], 
-                        data, 
-                        csrf_result["session_cookies"],
-                        onb.ref_no, 
-                        sap_client_code, 
-                        gst_state, 
-                        gst_num, 
-                        vcd.company_name, 
-                        onb.name
-                    )
+            try:
+                # Get company details
+                vcd = frappe.get_doc("Vendor Onboarding Company Details", company.vendor_company_details)
+                country_doc = frappe.get_doc("Country Master", vcd.country)
+                country_code = country_doc.country_code
+                com_vcd = frappe.get_doc("Company Master", vcd.company_name)
+                sap_client_code = com_vcd.sap_client_code
+                vcd_state = frappe.get_doc("State Master", vcd.state)
+                
+                print(f"   📋 Company: {vcd.company_name}")
+                print(f"   📋 SAP Client Code: {sap_client_code}")
+                print(f"   📋 GST Tables to process: {len(vcd.comp_gst_table)}")
+                
+                # **SECOND LOOP: Process each GST entry for this company**
+                gst_counter = 0
+                for gst_table in vcd.comp_gst_table:
+                    gst_counter += 1
+                    total_gst_rows_processed += 1
                     
-                    # Check if send_detail failed or returned error
-                    if not result or "error" in result:
-                        send_failure_notification(
-                            onb.name, 
-                            "SAP API Call Failed", 
-                            f"The SAP integration API call failed. Error: {result.get('error', 'Unknown error') if result else 'No response from send_detail function'}"
-                        )
-                    # Check if Vedno is 'E' or empty
-                    elif result and isinstance(result, dict):
-                        vedno = result.get('d', {}).get('Vedno', '') if 'd' in result else result.get('Vedno', '')
-                        zmsg = result.get('d', {}).get('Zmsg', '') if 'd' in result else result.get('Zmsg', '')
+                    print(f"\n   🔄 GST ENTRY {gst_counter} (Global #{total_gst_rows_processed}): Processing...")
+                    
+                    try:
+                        # Get GST-specific data
+                        gst_state = gst_table.gst_state
+                        gst_state_doc = frappe.get_doc("State Master", gst_state)
+                        gst_num = gst_table.gst_number
+                        gst_pin = gst_table.pincode
+                        gst_addrs = frappe.get_doc("Pincode Master", gst_pin)
+                        gst_city = gst_addrs.city
+                        gst_cuntry = gst_addrs.country
+                        gst_district = gst_addrs.district
                         
-                        if vedno == 'E' or vedno == '' or not vedno:
+                        # Build address text
+                        gst_adderss_text = ", ".join(filter(None, [
+                            gst_city,
+                            gst_district,
+                            gst_state
+                        ]))
+
+                        print(f"      📍 GST State: {gst_state}")
+                        print(f"      📍 GST Number: {gst_num}")
+                        print(f"      📍 Address: {gst_adderss_text}")
+
+                        # **BUILD SAP PAYLOAD DATA**
+                        data = {
+                                "Bukrs": com_vcd.company_code,
+                                "Ekorg": pur_org.purchase_organization_code,
+                                "Ktokk": acc_grp.account_group_code,
+                                "Title": "",
+                                "Name1": onb_vm.vendor_name,
+                                "Name2": "",
+                                "Sort1": onb_vm.search_term,
+                                "Street": vcd.address_line_1,
+                                "StrSuppl1": gst_adderss_text or "",  # Convert None to empty string
+                                "StrSuppl2": "",
+                                "StrSuppl3": "",
+                                "PostCode1": gst_pin,
+                                "City1": gst_city,
+                                "Country": country_code,
+                                "J1kftind": "",
+                                "Region": gst_state_doc.sap_state_code,
+                                "TelNumber": "",
+                                "MobNumber": onb_vm.mobile_number,
+                                "SmtpAddr": onb_vm.office_email_primary,
+                                "SmtpAddr1": onb_vm.office_email_secondary or "",
+                                "Zuawa": "",
+                                "Akont": onb_reco.reconcil_account_code,
+                                "Waers": onb_pmd.currency_code,
+                                "Zterm": onb_pm_term.terms_of_payment_code,
+                                "Inco1": onb_inco.incoterm_code,
+                                "Inco2": onb_inco.incoterm_name,
+                                "Kalsk": "",
+                                "Ekgrp": pur_grp.purchase_group_code,
+                                "Xzemp": payee,
+                                "Reprf": check_double_invoice,
+                                "Webre": gr_based_inv_ver,
+                                "Lebre": service_based_inv_ver,
+                                "Stcd3": gst_num or "",
+                                "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
+                                "J1ipanno": vcd.company_pan_number,
+                                "J1ipanref": onb_vm.vendor_name,
+                                "Namev": safe_get(onb, "contact_details", 0, "first_name"),
+                                "Name11": safe_get(onb, "contact_details", 0, "last_name"),
+                                "Bankl": onb_bank.bank_code,
+                                "Bankn": onb_pmd.account_number,
+                                "Bkref": onb_bank.bank_name,
+                                "Banka": onb_pmd.ifsc_code,
+                                "Xezer": "",
+                                "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
+                                "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
+                                "ZZBEN_ACCT_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_account_no"),
+                                "ZZBENF_IBAN": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_iban_no"),
+                                "ZZBENF_BANKADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_address"),
+                                "ZZBENF_SHFTADDR": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_swift_code"),
+                                "ZZBENF_ACH_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_ach_no"),
+                                "ZZBENF_ABA_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_aba_no"),
+                                "ZZBENF_ROUTING": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_routing_no"),
+                                "ZZINTR_ACCT_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_account_no"),
+                                "ZZINTR_IBAN": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_iban_no"),
+                                "ZZINTR_BANK_NM": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_name"),
+                                "ZZINTR_BANKADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_bank_address"),
+                                "ZZINTR_SHFTADDR": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_swift_code"),
+                                "ZZINTR_ACH_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_ach_no"),
+                                "ZZINTR_ABA_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_aba_no"),
+                                "ZZINTR_ROUTING": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_routing_no"),
+                                "Refno": onb.ref_no,
+                                "Vedno": "",
+                                "Zmsg": ""
+                            }
+                        print(f"      🚀 Sending data to SAP for GST {gst_num}...")
+                        
+                        # **GET CSRF TOKEN AND SESSION**
+                        csrf_result = get_csrf_token_and_session(sap_client_code)
+                        
+                        if csrf_result["success"]:
+                            try:
+                                # **SEND DATA TO SAP**
+                                result = send_detail(
+                                    csrf_result["csrf_token"], 
+                                    data, 
+                                    csrf_result["session_cookies"],
+                                    onb.ref_no, 
+                                    sap_client_code, 
+                                    gst_state, 
+                                    gst_num, 
+                                    vcd.company_name, 
+                                    onb.name
+                                )
+                                
+                                print(f"      📊 SAP Response: {result}")
+                                
+                                # **CHECK RESULT AND HANDLE RESPONSE**
+                                if not result or "error" in result:
+                                    error_msg = result.get('error', 'Unknown error') if result else 'No response from send_detail function'
+                                    print(f"      ❌ SAP API Call Failed: {error_msg}")
+                                    send_failure_notification(
+                                        onb.name, 
+                                        "SAP API Call Failed", 
+                                        f"The SAP integration API call failed for GST {gst_num}. Error: {error_msg}"
+                                    )
+                                elif result and isinstance(result, dict):
+                                    # Extract vendor code from response
+                                    vedno = result.get('d', {}).get('Vedno', '') if 'd' in result else result.get('Vedno', '')
+                                    zmsg = result.get('d', {}).get('Zmsg', '') if 'd' in result else result.get('Zmsg', '')
+                                    
+                                    if vedno == 'E' or vedno == '' or not vedno:
+                                        error_msg = f"SAP returned error or empty vendor code. Vedno: '{vedno}', Zmsg: '{zmsg}'"
+                                        print(f"      ❌ SAP Error: {error_msg}")
+                                        send_failure_notification(
+                                            onb.name, 
+                                            "SAP Vendor Creation Failed", 
+                                            error_msg
+                                        )
+                                    else:
+                                        print(f"      ✅ SUCCESS: Vendor code {vedno} created for GST {gst_num}")
+                                        
+                                        # **UPDATE VENDOR MASTER WITH VENDOR CODE**
+                                        try:
+                                            update_result = update_vendor_master(
+                                                onb.ref_no, 
+                                                vcd.company_name, 
+                                                sap_client_code, 
+                                                vedno, 
+                                                gst_num, 
+                                                gst_state
+                                            )
+                                            print(f"      📝 Vendor Master Update: {update_result['status']}")
+                                        except Exception as update_err:
+                                            error_msg = f"Failed to update vendor master: {str(update_err)}"
+                                            print(f"      ❌ Update Error: {error_msg}")
+                                            frappe.log_error(error_msg, "Vendor Master Update Error")
+                                
+                            except Exception as send_err:
+                                error_msg = f"Error in send_detail function: {str(send_err)}"
+                                print(f"      ❌ Send Detail Error: {error_msg}")
+                                frappe.log_error(error_msg, "Send Detail Error")
+                                send_failure_notification(
+                                    onb.name, 
+                                    "SAP Send Detail Error", 
+                                    error_msg
+                                )
+                        else:
+                            error_msg = f"Failed to get CSRF token: {csrf_result.get('error', 'Unknown error')}"
+                            print(f"      ❌ CSRF Error: {error_msg}")
                             send_failure_notification(
                                 onb.name, 
-                                "SAP Vendor Creation Failed", 
-                                f"SAP returned an error or empty vendor code. Vendor Code (Vedno): '{vedno}'. SAP Message (Zmsg): '{zmsg}'"
+                                "SAP CSRF Token Error", 
+                                error_msg
                             )
                     
-                    return result
-                    
-                except Exception as send_detail_err:
-                    error_msg = f"Exception in send_detail function: {str(send_detail_err)}"
-                    frappe.log_error(error_msg)
-                    send_failure_notification(
-                        onb.name, 
-                        "SAP Integration Exception", 
-                        error_msg
-                    )
-                    return {"error": error_msg}
-            else:
-                error_msg = f"Failed to get CSRF token: {csrf_result['error']}"
-                frappe.log_error(error_msg)
-                send_failure_notification(
-                    onb.name, 
-                    "SAP CSRF Token Failed", 
-                    error_msg
-                )
-                return {"error": error_msg}
+                    except Exception as gst_err:
+                        error_msg = f"Error processing GST entry {gst_counter}: {str(gst_err)}"
+                        print(f"      ❌ GST Processing Error: {error_msg}")
+                        frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "GST Processing Error")
+                        continue  # Continue with next GST entry
+                
+                print(f"   ✅ Company {company_counter} completed: {gst_counter} GST entries processed")
+                
+            except Exception as company_err:
+                error_msg = f"Error processing company {company_counter}: {str(company_err)}"
+                print(f"   ❌ Company Processing Error: {error_msg}")
+                frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "Company Processing Error")
+                continue  # Continue with next company
+        
+        # **FINAL SUMMARY**
+        print("=" * 80)
+        print("ERP TO SAP VENDOR DATA - COMPLETED")
+        print(f"✅ Total Companies Processed: {company_counter}")
+        print(f"✅ Total GST Rows Processed: {total_gst_rows_processed}")
+        print("=" * 80)
+        
+        return {
+            "status": "success",
+            "message": f"Processed {company_counter} companies with {total_gst_rows_processed} GST entries",
+            "companies_processed": company_counter,
+            "gst_rows_processed": total_gst_rows_processed
+        }
+        
+    except Exception as e:
+        error_msg = f"Main function error in erp_to_sap_vendor_data: {str(e)}"
+        print(f"❌ MAIN ERROR: {error_msg}")
+        frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "ERP to SAP Vendor Data Error")
+        
+        # Send notification for main error
+        try:
+            send_failure_notification(
+                onb_ref, 
+                "ERP to SAP Main Function Error", 
+                error_msg
+            )
+        except Exception as notif_err:
+            print(f"⚠️ Failed to send notification: {str(notif_err)}")
+        
+        return {
+            "status": "error",
+            "message": error_msg,
+            "companies_processed": 0,
+            "gst_rows_processed": 0
+        }
 
 
 def safe_get(obj, list_name, index, attr, default=""):
+    """Helper function to safely get nested attributes"""
     try:
         return getattr(getattr(obj, list_name)[index], attr) or default
     except (AttributeError, IndexError, TypeError):
         return default
 
 
+# def send_failure_notification(onb_name, subject, message):
+#     """Send failure notification - placeholder function"""
+#     try:
+#         # Create error log entry
+#         error_log = frappe.new_doc("Error Log")
+#         error_log.method = "erp_to_sap_vendor_data"
+#         error_log.error = f"{subject}: {message}"
+#         error_log.save(ignore_permissions=True)
+#         print(f"📝 Failure notification logged: {subject}")
+#     except Exception as e:
+#         print(f"❌ Failed to log notification: {str(e)}")
+
+
 def get_csrf_token_and_session(sap_client_code):
-    """Get CSRF token and session cookies with proper session handling"""
+    """
+    Get CSRF token and session cookies for SAP API calls
+    Returns: {"success": True/False, "csrf_token": "", "session_cookies": {}, "error": ""}
+    """
     try:
         sap_settings = frappe.get_doc("SAP Settings")
         erp_to_sap_url = sap_settings.url
@@ -507,57 +637,50 @@ def get_csrf_token_and_session(sap_client_code):
         user = sap_settings.auth_user_name
         password = sap_settings.auth_user_pass
 
-        # Create a session to maintain cookies
-        session = requests.Session()
-        auth = HTTPBasicAuth(user, password)
-
         headers = {
             'X-CSRF-TOKEN': 'Fetch',
             'Authorization': f"{header_auth_type} {header_auth_key}",
             'Content-Type': 'application/json'
         }
 
-        print("=" * 80)
-        print("FETCHING CSRF TOKEN")
-        print("=" * 80)
-        print(f"URL: {url}")
-        print(f"User: {user}")
-        print("=" * 80)
-
-        response = session.get(url, headers=headers, auth=auth, timeout=30)
+        auth = HTTPBasicAuth(user, password)
+        response = requests.get(url, headers=headers, auth=auth, timeout=30)
         
-        print(f"CSRF Response Status: {response.status_code}")
-        print(f"CSRF Response Headers: {dict(response.headers)}")
-        print(f"CSRF Response Cookies: {dict(response.cookies)}")
-        print("=" * 80)
+        print(f"🔑 CSRF Token Request: Status {response.status_code}")
         
         if response.status_code == 200:
             csrf_token = response.headers.get('x-csrf-token')
+            session_cookies = {
+                f'SAP_SESSIONID_BHD_{sap_client_code}': response.cookies.get(f'SAP_SESSIONID_BHD_{sap_client_code}'),
+                'sap-usercontext': response.cookies.get('sap-usercontext')
+            }
             
-            # Get all session cookies properly
-            session_cookies = {}
-            for cookie in response.cookies:
-                session_cookies[cookie.name] = cookie.value
-            
-            print(f"✅ CSRF Token obtained: {csrf_token}")
-            print(f"✅ Session cookies: {session_cookies}")
-            
+            print(f"🔑 CSRF Token obtained successfully")
             return {
                 "success": True,
                 "csrf_token": csrf_token,
                 "session_cookies": session_cookies,
-                "session": session
+                "error": ""
             }
         else:
-            error_msg = f"Failed to fetch CSRF token. Status: {response.status_code}, Response: {response.text}"
+            error_msg = f"Failed to fetch CSRF token: HTTP {response.status_code}"
             print(f"❌ {error_msg}")
-            return {"success": False, "error": error_msg}
+            return {
+                "success": False,
+                "csrf_token": "",
+                "session_cookies": {},
+                "error": error_msg
+            }
             
     except Exception as e:
-        error_msg = f"Exception while fetching CSRF token: {str(e)}"
+        error_msg = f"CSRF token request failed: {str(e)}"
         print(f"❌ {error_msg}")
-        return {"success": False, "error": error_msg}
-
+        return {
+            "success": False,
+            "csrf_token": "",
+            "session_cookies": {},
+            "error": error_msg
+        }
 
 @frappe.whitelist(allow_guest=True)
 def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, company_name, onb_name):
@@ -1132,40 +1255,182 @@ def get_vendor_details_for_email(onb_doc):
 #     cvc.save(ignore_permissions=True)
 #     ref_vm.db_update()
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state):
-    """Update vendor master with company vendor code"""
-    ref_vm = frappe.get_doc("Vendor Master", name)
-    
-    cvc_name = frappe.db.exists("Company Vendor Code", {
-        "sap_client_code": sap_code, 
-        "vendor_ref_no": ref_vm.name
-    })
-    
-    if cvc_name:
-        cvc = frappe.get_doc("Company Vendor Code", cvc_name)
-    else:
-        cvc = frappe.new_doc("Company Vendor Code")
-        cvc.vendor_ref_no = ref_vm.name
-        cvc.company_name = company_name
-        cvc.sap_client_code = sap_code
-
-    # Update or add vendor code
-    found = False
-    for vc in cvc.vendor_code:
-        if vc.gst_no == gst and vc.state == state:
-            vc.vendor_code = vendor_code
-            found = True
-            break
-
-    if not found:
-        cvc.append("vendor_code", {
-            "vendor_code": vendor_code,
-            "gst_no": gst,
-            "state": state
+    """
+    Fixed function to properly handle multiple vendor code rows for a single company
+    """
+    try:
+        # Get vendor master document
+        ref_vm = frappe.get_doc("Vendor Master", name)
+        
+        # Look for existing Company Vendor Code document
+        cvc_name = frappe.db.exists("Company Vendor Code", {
+            "sap_client_code": sap_code, 
+            "vendor_ref_no": ref_vm.name
         })
+        
+        if cvc_name:
+            # Load existing Company Vendor Code document
+            cvc = frappe.get_doc("Company Vendor Code", cvc_name)
+        else:
+            # Create new Company Vendor Code document
+            cvc = frappe.new_doc("Company Vendor Code")
+            cvc.vendor_ref_no = ref_vm.name
+            cvc.company_name = company_name
+            cvc.sap_client_code = sap_code
+            
+        # **FIX: Handle multiple vendor codes for same company**
+        # Check if this exact combination already exists
+        found_existing = False
+        
+        if hasattr(cvc, 'vendor_code') and cvc.vendor_code:
+            for vc in cvc.vendor_code:
+                # Match based on GST and State combination
+                if (getattr(vc, 'gst_no', '') == gst and 
+                    getattr(vc, 'state', '') == state):
+                    # Update existing record
+                    vc.vendor_code = vendor_code
+                    vc.gst_no = gst
+                    vc.state = state
+                    found_existing = True
+                    print(f"✅ Updated existing vendor code row: GST={gst}, State={state}, Vendor Code={vendor_code}")
+                    break
+        
+        # If no matching record found, add new row
+        if not found_existing:
+            new_vendor_code_row = {
+                "vendor_code": vendor_code,
+                "gst_no": gst,
+                "state": state
+            }
+            cvc.append("vendor_code", new_vendor_code_row)
+            print(f"✅ Added new vendor code row: GST={gst}, State={state}, Vendor Code={vendor_code}")
+        
+        # Save the Company Vendor Code document
+        cvc.save(ignore_permissions=True)
+        print(f"✅ Saved Company Vendor Code document: {cvc.name}")
+        
+        # **FIX: Update Multiple Company Data in Vendor Master**
+        # Find and update the corresponding multiple_company_data row
+        mcd_updated = False
+        
+        if hasattr(ref_vm, 'multiple_company_data') and ref_vm.multiple_company_data:
+            for mcd_row in ref_vm.multiple_company_data:
+                # Match by SAP client code or company name
+                if (getattr(mcd_row, 'sap_client_code', '') == sap_code or 
+                    getattr(mcd_row, 'company_name', '') == company_name):
+                    mcd_row.company_vendor_code = cvc.name
+                    mcd_updated = True
+                    print(f"✅ Updated existing multiple_company_data row with CVC: {cvc.name}")
+                    break
+        
+        # If no matching multiple_company_data row found, create new one
+        if not mcd_updated:
+            ref_vm.append("multiple_company_data", {
+                "company_name": company_name,
+                "sap_client_code": sap_code,
+                "company_vendor_code": cvc.name
+            })
+            print(f"✅ Added new multiple_company_data row with CVC: {cvc.name}")
+        
+        # Save vendor master document
+        ref_vm.save(ignore_permissions=True)
+        print(f"✅ Updated Vendor Master: {ref_vm.name}")
+        
+        # Commit the transaction
+        frappe.db.commit()
+        print(f"✅ Transaction committed successfully")
+        
+        return {
+            "status": "success",
+            "message": f"Vendor master updated with vendor code: {vendor_code}",
+            "vendor_code": vendor_code,
+            "company_vendor_code": cvc.name,
+            "action_taken": "updated" if found_existing else "added_new"
+        }
+        
+    except Exception as e:
+        # Rollback on error
+        frappe.db.rollback()
+        error_msg = f"Failed to update vendor master: {str(e)}"
+        frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "Update Vendor Master Error")
+        print(f"❌ Error updating vendor master: {error_msg}")
+        
+        return {
+            "status": "error", 
+            "message": error_msg,
+            "vendor_code": vendor_code,
+            "error_details": str(e)
+        }
 
-    cvc.save(ignore_permissions=True)
-    ref_vm.db_update()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state):
+#     """Update vendor master with company vendor code"""
+#     ref_vm = frappe.get_doc("Vendor Master", name)
+    
+#     cvc_name = frappe.db.exists("Company Vendor Code", {
+#         "sap_client_code": sap_code, 
+#         "vendor_ref_no": ref_vm.name
+#     })
+    
+#     if cvc_name:
+#         cvc = frappe.get_doc("Company Vendor Code", cvc_name)
+#     else:
+#         cvc = frappe.new_doc("Company Vendor Code")
+#         cvc.vendor_ref_no = ref_vm.name
+#         cvc.company_name = company_name
+#         cvc.sap_client_code = sap_code
+
+#     # Update or add vendor code
+#     found = False
+#     for vc in cvc.vendor_code:
+#         if vc.gst_no == gst and vc.state == state:
+#             vc.vendor_code = vendor_code
+#             found = True
+#             break
+
+#     if not found:
+#         cvc.append("vendor_code", {
+#             "vendor_code": vendor_code,
+#             "gst_no": gst,
+#             "state": state
+#         })
+
+#     cvc.save(ignore_permissions=True)
+#     ref_vm.db_update()
 
 # data = {
 #     "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
