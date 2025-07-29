@@ -65,6 +65,7 @@
   "quantity",
   "ship_to_address",
   "other_charges_in_total",
+  "expected_delivery_in_no_of_days",
   "quotation_data_section",
   "rfq_date",
   "quotation_deadline",
@@ -703,12 +704,17 @@
    "fieldname": "other_charges_in_total",
    "fieldtype": "Data",
    "label": "Other Charges in Total"
+  },
+  {
+   "fieldname": "expected_delivery_in_no_of_days",
+   "fieldtype": "Data",
+   "label": "Expected Delivery in No of Days"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-29 15:10:41.424368",
+ "modified": "2025-07-29 15:55:58.113063",
  "modified_by": "abhishek@mail.hybrowlabs.com",
  "module": "Purchase",
  "name": "Quotation",
