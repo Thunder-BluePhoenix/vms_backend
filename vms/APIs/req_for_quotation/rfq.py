@@ -73,6 +73,19 @@ def get_full_rfq_data(name):
 					"name": "",
 					"file_name": ""
 				})
+		# total_rfq_sent =[
+		# frappe.db.count(for row in doc.vendor_details total idx number)
+		# frappe.db.count(for row in doc.non_onboarded_vendor_details total idx number)
+		# ]
+
+		# total_rfq_sent =[
+		# frappe.db.count(for row in doc.vendor_details total 
+		# 		  if row.quotation: (is present then include in count else not)
+		# 		  )
+		# frappe.db.count(for row in doc.non_onboarded_vendor_details total 
+		# 		  if row.quotation: (is present then include in count else not)
+		# 		  )
+		# ]		
 
 		data = {
 			# logistic import rfq data / logistic export rfq data
@@ -541,6 +554,7 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 				rfq.name,
 				IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
 				rfq.rfq_type,
+				rfq.logistic_type,
 				IFNULL(rfq.rfq_date_logistic, rfq.quotation_deadline) AS rfq_date,
 				IFNULL(rfq.delivery_date, rfq.shipment_date) AS delivery_date,
 				rfq.status
@@ -616,6 +630,7 @@ def purchase_team_rfq_dashboard(company_name, name, page_no, page_length, rfq_ty
 				rfq.name,
 				IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
 				rfq.rfq_type,
+				rfq.logistic_type,
 				IFNULL(rfq.rfq_date_logistic, rfq.quotation_deadline) AS rfq_date,
 				IFNULL(rfq.delivery_date, rfq.shipment_date) AS delivery_date,
 				rfq.status
