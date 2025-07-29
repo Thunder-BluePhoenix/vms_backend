@@ -482,7 +482,9 @@ def get_quotations_by_rfq(rfq_number):
                 "cfs_charge": quotation.get('cfs_charge'),
                 "total_landing_price": quotation.get('total_landing_price'),
                 "invoice_no": quotation.get('invoice_no'),
-                "transit_days": quotation.get('transit_days')
+                "transit_days": quotation.get('transit_days'),
+                "remarks": quotation.get('remarks'),
+                "logistic_type": quotation.get('logistic_type')
             }
             formatted_quotations.append(formatted_quotation)
         
