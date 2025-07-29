@@ -51,7 +51,9 @@ def get_full_rfq_data(name):
 				"office_email_primary": row.office_email_primary,
 				"vendor_name": row.vendor_name,
 				"mobile_number": row.mobile_number,
-				"country": row.country
+				"country": row.country,
+				"company_pan": row.company_pan,
+				"gst_number": row.gst_number
 			})
 
 		# File Attachments Section
@@ -104,7 +106,7 @@ def get_full_rfq_data(name):
 			"shipper_name": doc.shipper_name,
 			"invoice_value": doc.invoice_value,
 
-			# logistic/service rfq common data
+			# Material/service rfq common data
 			"rfq_date": doc.rfq_date,
 			"company_name": doc.company_name,
 			"purchase_organization": doc.purchase_organization,
