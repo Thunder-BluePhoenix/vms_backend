@@ -40,7 +40,6 @@
   "invoice_value",
   "shipment_type",
   "raised_by",
-  "material",
   "quantity",
   "required_by",
   "shipper_name",
@@ -59,20 +58,13 @@
   "requestor_name",
   "bidding_person",
   "materialitem_details_section",
-  "item_code",
-  "item_category",
-  "item_description",
-  "item_dimension",
+  "plant_code",
+  "storage_location",
   "add_special_remarksif_any",
   "column_break_ynfu",
   "material_code",
   "material_category",
-  "plant_code",
-  "storage_location",
   "short_text",
-  "catalogue_number",
-  "make",
-  "pack_size",
   "services_section",
   "service_code",
   "service_location",
@@ -236,12 +228,6 @@
    "label": "Status"
   },
   {
-   "fieldname": "material",
-   "fieldtype": "Link",
-   "label": "Material",
-   "options": "Material Master"
-  },
-  {
    "fieldname": "quantity",
    "fieldtype": "Data",
    "label": "Quantity"
@@ -311,29 +297,7 @@
   {
    "fieldname": "materialitem_details_section",
    "fieldtype": "Section Break",
-   "label": "Material/Item Details"
-  },
-  {
-   "fieldname": "item_code",
-   "fieldtype": "Link",
-   "label": "Item Code",
-   "options": "Product Master"
-  },
-  {
-   "fieldname": "item_category",
-   "fieldtype": "Link",
-   "label": "Item Category",
-   "options": "Product Category Master"
-  },
-  {
-   "fieldname": "item_description",
-   "fieldtype": "Text",
-   "label": "Item Description"
-  },
-  {
-   "fieldname": "item_dimension",
-   "fieldtype": "Data",
-   "label": "Item Dimension"
+   "label": "Material Details"
   },
   {
    "fieldname": "material_category",
@@ -351,21 +315,6 @@
    "fieldname": "short_text",
    "fieldtype": "Small Text",
    "label": "Short Text"
-  },
-  {
-   "fieldname": "catalogue_number",
-   "fieldtype": "Data",
-   "label": "Catalogue Number"
-  },
-  {
-   "fieldname": "make",
-   "fieldtype": "Data",
-   "label": "Make"
-  },
-  {
-   "fieldname": "pack_size",
-   "fieldtype": "Data",
-   "label": "Pack Size"
   },
   {
    "fieldname": "add_special_remarksif_any",
@@ -698,7 +647,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-29 12:03:31.463511",
+ "modified": "2025-07-29 14:56:19.299089",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",

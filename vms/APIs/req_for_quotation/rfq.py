@@ -73,36 +73,36 @@ def get_full_rfq_data(name):
 				})
 
 		data = {
-			# logistic import rfq data
+			# logistic import rfq data / logistic export rfq data
 			"name": doc.name,
 			"rfq_type": doc.rfq_type,
+			"logistic_type": doc.logistic_type,
 			"company_name_logistic": doc.company_name_logistic,
-			"service_provider": doc.service_provider,
-			"sr_no": doc.sr_no,
 			"rfq_cutoff_date_logistic": doc.rfq_cutoff_date_logistic,
-			"rfq_date_logistic": doc.rfq_date_logistic,
 			"mode_of_shipment": doc.mode_of_shipment,
+			"port_of_loading": doc.port_of_loading,
 			"destination_port": doc.destination_port,
+			"ship_to_address": doc.ship_to_address,
+			"no_of_pkg_units": doc.no_of_pkg_units,
+			"vol_weight": doc.vol_weight,
+			"invoice_date": doc.invoice_date,
+			"shipment_date": doc.shipment_date,
+			"remarks": doc.remarks,
+			"expected_date_of_arrival": doc.expected_date_of_arrival,
+			"service_provider": doc.service_provider,
+			"consignee_name": doc.consignee_name,
+			"sr_no": doc.sr_no,
+			"rfq_date_logistic": doc.rfq_date_logistic,
 			"country": doc.country,
 			"port_code": doc.port_code,
-			"port_of_loading": doc.port_of_loading,
 			"inco_terms": doc.inco_terms,
-			"shipper_name": doc.shipper_name,
-			"ship_to_address": doc.ship_to_address,
 			"package_type": doc.package_type,
-			"no_of_pkg_units": doc.no_of_pkg_units,
 			"product_category": doc.product_category,
-			"vol_weight": doc.vol_weight,
 			"actual_weight": doc.actual_weight,
-			"invoice_date": doc.invoice_date,
 			"invoice_no": doc.invoice_no,
+			"shipment_type": doc.shipment_type,
+			"shipper_name": doc.shipper_name,
 			"invoice_value": doc.invoice_value,
-			"expected_date_of_arrival": doc.expected_date_of_arrival,
-			"remarks": doc.remarks,
-
-			# logistic export rfq data
-			"consignee_name": doc.consignee_name,
-			"shipment_date": doc.shipment_date,
 
 			# logistic/service rfq common data
 			"rfq_date": doc.rfq_date,
@@ -298,10 +298,8 @@ def send_revised_rfq(data):
 
 	old_rfq = frappe.get_doc("Request For Quotation", data.get("name"))
 
-	# Mark old RFQ as revised
 	frappe.db.set_value("Request For Quotation", old_rfq.name, "revised_quotation", 1)
 
-	# Create new RFQ based on old
 	new_rfq = frappe.new_doc("Request For Quotation")
 	old_rfq_data = old_rfq.as_dict()
 	for unwanted in ["name", "creation", "modified", "owner", "head_target", "revised_rfq"]:
@@ -313,10 +311,8 @@ def send_revised_rfq(data):
 	new_rfq.prev_rfq = old_rfq.name
 	new_rfq.status = "Pending"
 
-	# Excluded fields from comparison
 	excluded_fields = ["head_target", "revised_rfq"]
 
-	# Fields to consider for comparison and update
 	main_fields = [
 		"status", "company_name_logistic", "rfq_cutoff_date_logistic", "mode_of_shipment",
 		"destination_port", "port_of_loading", "ship_to_address", "no_of_pkg_units", "vol_weight",
@@ -342,17 +338,13 @@ def send_revised_rfq(data):
 			new_rfq.set(field, old_rfq.get(field)) 
 
 
-	# Step 1: Create map of old rows by name
 	old_child_rows = {row.name: row for row in old_rfq.get("rfq_items", [])}
 
-	# Step 2: Collect updated row IDs
 	updated_data = data.get("rfq_items", [])
 	updated_row_ids = set(row.get("row_id") for row in updated_data if row.get("row_id"))
 
-	# Step 3: Start new item list
 	new_items = []
 
-	# Step 4: Process updated rows
 	for row in updated_data:
 		row_id = row.get("row_id")
 		old_child = old_child_rows.get(row_id)
@@ -363,15 +355,12 @@ def send_revised_rfq(data):
 					old_child.set(key, value)
 			new_items.append(old_child)
 
-	# Step 5: Add untouched rows
 	for name, old_row in old_child_rows.items():
 		if name not in updated_row_ids:
 			new_items.append(old_row)
 
-	# Step 6: Set child table in new RFQ
 	new_rfq.set("rfq_items", new_items)
 
-	# --- END CHILD TABLE LOGIC ---
 
 	# Save new RFQ
 	new_rfq.insert(ignore_permissions=True)
@@ -386,14 +375,209 @@ def send_revised_rfq(data):
 
 # dashboard for rfq logistic
 
+# @frappe.whitelist(allow_guest=False)
+# def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_type=None, status=None):
+# 	try:
+# 		page_no = int(page_no) if page_no else 1
+# 		page_length = int(page_length) if page_length else 5
+# 		offset = (page_no - 1) * page_length
+
+# 		# Build dynamic filters
+# 		conditions = []
+# 		values = {}
+
+# 		if company_name:
+# 			conditions.append("(company_name = %(company_name)s OR company_name_logistic = %(company_name)s)")
+# 			values["company_name"] = company_name
+
+# 		if name:
+# 			conditions.append("name LIKE %(name)s")
+# 			values["name"] = f"%{name}%"
+
+# 		if rfq_type:
+# 			conditions.append("rfq_type = %(rfq_type)s")
+# 			values["rfq_type"] = rfq_type
+
+# 		if status:
+# 			conditions.append("status = %(status)s")
+# 			values["status"] = status
+
+# 		condition_clause = " AND ".join(conditions)
+# 		condition_clause = f"WHERE {condition_clause}" if condition_clause else ""
+
+# 		# Total count
+# 		total_count = frappe.db.sql(f"""
+#             SELECT COUNT(*) FROM (
+#                 SELECT 1
+#                 FROM `tabRequest For Quotation`
+#                 {condition_clause}
+#                 GROUP BY unique_id
+#             ) AS grouped
+#         """, values)[0][0]
+
+# 		# Paginated result
+# 		data = frappe.db.sql(f"""
+#             SELECT
+#                 rfq.name,
+#                 IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
+#                 rfq.rfq_type,
+#                 IFNULL(rfq.rfq_date_logistic, rfq.rfq_date) AS rfq_date,
+#                 IFNULL(rfq.delivery_date, rfq.shipment_date) AS delivery_date,
+#                 rfq.status
+#             FROM `tabRequest For Quotation` rfq
+#             INNER JOIN (
+#                 SELECT MAX(name) AS name
+#                 FROM `tabRequest For Quotation`
+#                 {condition_clause}
+#                 GROUP BY unique_id
+#             ) latest_rfq ON rfq.name = latest_rfq.name
+#             ORDER BY rfq.creation DESC
+#             LIMIT %(limit)s OFFSET %(offset)s
+#         """, {**values, "limit": page_length, "offset": offset}, as_dict=True)
+
+# 		return {
+# 			"status": "success",
+# 			"message": f"{len(data)} RFQ(s) found",
+# 			"data": data,
+# 			"total_count": total_count,
+# 			"page_no": page_no,
+# 			"page_length": page_length
+# 		}
+
+# 	except Exception as e:
+# 		frappe.log_error(frappe.get_traceback(), "RFQ Dashboard Error")
+# 		return {
+# 			"status": "error",
+# 			"message": "Failed to fetch RFQ dashboard data.",
+# 			"error": str(e)
+# 		}
+
+
 @frappe.whitelist(allow_guest=False)
 def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_type=None, status=None):
+	try:
+		usr = frappe.session.user
+		user_roles = frappe.get_roles(usr)
+
+		if "Vendor" in user_roles:
+			return vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr)
+
+		if "Purchase Team" in user_roles:
+			return purchase_team_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status)
+
+		return {
+			"status": "error",
+			"message": "You do not have permission to access this dashboard."
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "RFQ Dashboard Error")
+		return {
+			"status": "error",
+			"message": "Failed to fetch RFQ dashboard data.",
+			"error": str(e)
+		}
+
+
+# Dashboard for Vendors
+def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr):
 	try:
 		page_no = int(page_no) if page_no else 1
 		page_length = int(page_length) if page_length else 5
 		offset = (page_no - 1) * page_length
 
-		# Build dynamic filters
+		conditions = []
+		values = {}
+
+		if company_name:
+			conditions.append("(company_name = %(company_name)s OR company_name_logistic = %(company_name)s)")
+			values["company_name"] = company_name
+
+		if name:
+			conditions.append("name LIKE %(name)s")
+			values["name"] = f"%{name}%"
+
+		if rfq_type:
+			conditions.append("rfq_type = %(rfq_type)s")
+			values["rfq_type"] = rfq_type
+
+		if status:
+			conditions.append("status = %(status)s")
+			values["status"] = status
+
+		condition_clause = " AND ".join(conditions)
+		condition_clause = f"WHERE {condition_clause}" if condition_clause else ""
+
+		# Filter RFQs by vendor email
+		rfq_names = frappe.db.sql_list(f"""
+			SELECT parent FROM `tabVendor Details`
+			WHERE office_email_primary = %s
+		""", usr)
+
+		if not rfq_names:
+			return {
+				"status": "success",
+				"message": "No RFQs found for vendor",
+				"data": [],
+				"total_count": 0
+			}
+
+		values["rfq_names"] = tuple(rfq_names)
+
+		# Total count
+		total_count = frappe.db.sql(f"""
+			SELECT COUNT(*) FROM (
+				SELECT 1 FROM `tabRequest For Quotation`
+				WHERE name IN %(rfq_names)s
+				{f"AND {condition_clause}" if condition_clause else ""}
+				GROUP BY unique_id
+			) AS grouped
+		""", values)[0][0]
+
+		data = frappe.db.sql(f"""
+			SELECT
+				rfq.name,
+				IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
+				rfq.rfq_type,
+				IFNULL(rfq.rfq_date_logistic, rfq.quotation_deadline) AS rfq_date,
+				IFNULL(rfq.delivery_date, rfq.shipment_date) AS delivery_date,
+				rfq.status
+			FROM `tabRequest For Quotation` rfq
+			INNER JOIN (
+				SELECT MAX(name) AS name FROM `tabRequest For Quotation`
+				WHERE name IN %(rfq_names)s
+				{f"AND {condition_clause}" if condition_clause else ""}
+				GROUP BY unique_id
+			) latest_rfq ON rfq.name = latest_rfq.name
+			ORDER BY rfq.creation DESC
+			LIMIT %(limit)s OFFSET %(offset)s
+		""", {**values, "limit": page_length, "offset": offset}, as_dict=True)
+
+		return {
+			"status": "success",
+			"message": f"{len(data)} RFQ(s) found",
+			"data": data,
+			"total_count": total_count,
+			"page_no": page_no,
+			"page_length": page_length
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Vendor RFQ Dashboard Error")
+		return {
+			"status": "error",
+			"message": "Failed to fetch vendor RFQ dashboard.",
+			"error": str(e)
+		}
+
+
+# Dashboard for Purchase Team
+def purchase_team_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status):
+	try:
+		page_no = int(page_no) if page_no else 1
+		page_length = int(page_length) if page_length else 5
+		offset = (page_no - 1) * page_length
+
 		conditions = []
 		values = {}
 
@@ -418,33 +602,30 @@ def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_ty
 
 		# Total count
 		total_count = frappe.db.sql(f"""
-            SELECT COUNT(*) FROM (
-                SELECT 1
-                FROM `tabRequest For Quotation`
-                {condition_clause}
-                GROUP BY unique_id
-            ) AS grouped
-        """, values)[0][0]
+			SELECT COUNT(*) FROM (
+				SELECT 1 FROM `tabRequest For Quotation`
+				{condition_clause}
+				GROUP BY unique_id
+			) AS grouped
+		""", values)[0][0]
 
-		# Paginated result
 		data = frappe.db.sql(f"""
-            SELECT
-                rfq.name,
-                IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
-                rfq.rfq_type,
-                IFNULL(rfq.rfq_date_logistic, rfq.rfq_date) AS rfq_date,
-                IFNULL(rfq.delivery_date, rfq.shipment_date) AS delivery_date,
-                rfq.status
-            FROM `tabRequest For Quotation` rfq
-            INNER JOIN (
-                SELECT MAX(name) AS name
-                FROM `tabRequest For Quotation`
-                {condition_clause}
-                GROUP BY unique_id
-            ) latest_rfq ON rfq.name = latest_rfq.name
-            ORDER BY rfq.creation DESC
-            LIMIT %(limit)s OFFSET %(offset)s
-        """, {**values, "limit": page_length, "offset": offset}, as_dict=True)
+			SELECT
+				rfq.name,
+				IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
+				rfq.rfq_type,
+				IFNULL(rfq.rfq_date_logistic, rfq.quotation_deadline) AS rfq_date,
+				IFNULL(rfq.delivery_date, rfq.shipment_date) AS delivery_date,
+				rfq.status
+			FROM `tabRequest For Quotation` rfq
+			INNER JOIN (
+				SELECT MAX(name) AS name FROM `tabRequest For Quotation`
+				{condition_clause}
+				GROUP BY unique_id
+			) latest_rfq ON rfq.name = latest_rfq.name
+			ORDER BY rfq.creation DESC
+			LIMIT %(limit)s OFFSET %(offset)s
+		""", {**values, "limit": page_length, "offset": offset}, as_dict=True)
 
 		return {
 			"status": "success",
@@ -456,30 +637,79 @@ def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_ty
 		}
 
 	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "RFQ Dashboard Error")
+		frappe.log_error(frappe.get_traceback(), "Purchase Team RFQ Dashboard Error")
 		return {
 			"status": "error",
-			"message": "Failed to fetch RFQ dashboard data.",
+			"message": "Failed to fetch purchase team RFQ dashboard.",
 			"error": str(e)
 		}
 
 
 # total count of rfq
+# @frappe.whitelist(allow_guest=False)
+# def total_rfq_count():
+# 	try:
+# 		total_rfq = frappe.db.sql("""
+# 			SELECT COUNT(*) FROM (
+# 				SELECT 1
+# 				FROM `tabRequest For Quotation`
+# 				GROUP BY unique_id
+# 			) AS grouped
+# 		""")[0][0]
+
+# 		return {
+# 			"status": "success",
+# 			"total_rfq": total_rfq
+# 		}
+# 	except Exception as e:
+# 		frappe.log_error(frappe.get_traceback(), "Total RFQ Count Error")
+# 		return {
+# 			"status": "error",
+# 			"message": "Failed to get RFQ count.",
+# 			"error": str(e)
+# 		}
+   
 @frappe.whitelist(allow_guest=False)
 def total_rfq_count():
 	try:
-		total_rfq = frappe.db.sql("""
-			SELECT COUNT(*) FROM (
-				SELECT 1
-				FROM `tabRequest For Quotation`
-				GROUP BY unique_id
-			) AS grouped
-		""")[0][0]
+		user = frappe.session.user
+		user_email = frappe.db.get_value("User", user, "email")
+
+		roles = frappe.get_roles(user)
+
+		is_vendor = "Vendor" in roles
+
+		if is_vendor:
+			total_rfq = frappe.db.sql("""
+				SELECT COUNT(*) FROM (
+					SELECT DISTINCT parent
+					FROM (
+						SELECT parent FROM `tabVendor Details`
+						WHERE office_email_primary = %(email)s
+						UNION
+						SELECT parent FROM `tabNon Onboarded Vendor Details`
+						WHERE office_email_primary = %(email)s
+					) AS combined
+					JOIN `tabRequest For Quotation` rfq ON rfq.name = combined.parent
+					GROUP BY rfq.unique_id
+				) AS grouped
+			""", {"email": user_email})[0][0]
+
+		else:
+			# For Purchase team or any other internal user
+			total_rfq = frappe.db.sql("""
+				SELECT COUNT(*) FROM (
+					SELECT 1
+					FROM `tabRequest For Quotation`
+					GROUP BY unique_id
+				) AS grouped
+			""")[0][0]
 
 		return {
 			"status": "success",
 			"total_rfq": total_rfq
 		}
+	
 	except Exception as e:
 		frappe.log_error(frappe.get_traceback(), "Total RFQ Count Error")
 		return {
@@ -487,4 +717,4 @@ def total_rfq_count():
 			"message": "Failed to get RFQ count.",
 			"error": str(e)
 		}
-   
+
