@@ -718,3 +718,87 @@ def total_rfq_count():
 			"error": str(e)
 		}
 
+   
+
+
+@frappe.whitelist(allow_guest=True)
+def check_duplicate_vendor():
+    try:
+        data = frappe.local.form_dict
+        
+        if isinstance(data.get('data'), str):
+            try:
+                data = json.loads(data.get('data'))
+            except json.JSONDecodeError:
+                data = frappe.local.form_dict
+        
+        mobile_number = data.get('mobile_number', '').strip()
+        email = data.get('email', '').strip().lower()
+        
+        if not mobile_number and not email:
+            return {
+                "status": "error",
+                "message": "Please provide either mobile number or email to check for duplicates",
+                "error_type": "validation"
+            }
+        
+        duplicate_records = []
+        duplicate_fields = []
+        
+        if mobile_number:
+            mobile_duplicates = frappe.db.sql("""
+                SELECT name, mobile_number,vendor_name, office_email_primary
+                FROM `tabVendor Master`
+                WHERE mobile_number = %s
+            """, (mobile_number,), as_dict=True)
+            
+            if mobile_duplicates:
+                duplicate_records.extend(mobile_duplicates)
+                duplicate_fields.append("mobile number")
+        
+        if email:
+            email_duplicates = frappe.db.sql("""
+                SELECT name,vendor_name, mobile_number, office_email_primary
+                FROM `tabVendor Master`
+                WHERE LOWER(office_email_primary) = %s
+            """, (email,), as_dict=True)
+            
+            if email_duplicates:
+                for email_dup in email_duplicates:
+                    if not any(rec['name'] == email_dup['name'] for rec in duplicate_records):
+                        duplicate_records.append(email_dup)
+                duplicate_fields.append("email")
+        
+        duplicate_fields = list(set(duplicate_fields))
+        
+        if duplicate_records:
+            formatted_records = []
+            for record in duplicate_records:
+                formatted_records.append({
+                    "vendor_id": record.get('name'),
+                    "vendor_name": record.get('vendor_name'),
+                    "mobile_number": record.get('mobile_number'),
+                    "email": record.get('office_email_primary')
+                })
+            
+            return {
+                "status": "duplicate_found",
+                "message": f"Duplicate entry found! There is already a vendor with this {' and '.join(duplicate_fields)}",
+                # "duplicate_count": len(duplicate_records),
+                "existing_vendors": formatted_records
+            }
+        else:
+            return {
+                "status": "no_duplicate",
+                "message": "No duplicate entry found. No vendor exists with this mobile number or email",
+                "duplicate_count": 0
+            }
+    
+    except Exception as e:
+        frappe.log_error(f"Vendor Duplicate Check API Error: {str(e)}", "vendor_duplicate_check_error")
+        return {
+            "status": "error",
+            "message": f"An error occurred while checking for duplicates: {str(e)}",
+            "error_type": "general"
+        }
+

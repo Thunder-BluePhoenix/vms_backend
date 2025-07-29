@@ -414,14 +414,6 @@ def get_quotations_by_rfq(rfq_number):
             frappe.throw(_("RFQ Number {0} does not exist").format(rfq_number))
         
         
-        fields = [
-            "name",
-            "vendor_name",
-            "rfq_number", 
-            "quote_amount",
-            "rank",
-            "office_email_primary",
-        ]
         
         
         quotations = frappe.get_all(
@@ -429,7 +421,7 @@ def get_quotations_by_rfq(rfq_number):
             filters={
                 "rfq_number": rfq_number,
             },
-            fields=fields
+            fields=['*']
         )
         
         if not quotations:
@@ -464,10 +456,33 @@ def get_quotations_by_rfq(rfq_number):
             formatted_quotation = {
                 "name": quotation.get('name'),
                 "rfq_number": quotation.get('rfq_number'),
+                "vendor_code": quotation.get('vendor_code'),
                 "quote_amount": quote_amount_display,
                 # "quote_amount_formatted": quotation.get('quote_amount'), 
                 "rank": quotation.get('rank'),
+                "mode_of_shipment": quotation.get('mode_of_shipment'),
                 "office_email_primary": quotation.get('office_email_primary'),
+                "airlinevessel_name": quotation.get('airlinevessel_name'),
+                "chargeable_weight": quotation.get('chargeable_weight'),
+                "ratekg": quotation.get('ratekg'),
+                "fuel_surcharge": quotation.get('fuel_surcharge'),
+                "destination_port": quotation.get('destination_port'),
+                "actual_weight": quotation.get('actual_weight'),
+                "sc": quotation.get('sc'),
+                "xray": quotation.get('xray'),
+                "pickuporigin": quotation.get('pickuporigin'),
+                "ex_works": quotation.get('ex_works'),
+                "total_freight": quotation.get('total_freight'),
+                "from_currency": quotation.get('from_currency'),
+                "to_currency": quotation.get('to_currency'),
+                "exchange_rate": quotation.get('exchange_rate'),
+                "total_freightinr": quotation.get('total_freightinr'),
+                "destination_charge": quotation.get('destination_charge'),
+                "shipping_line_charge": quotation.get('shipping_line_charge'),
+                "cfs_charge": quotation.get('cfs_charge'),
+                "total_landing_price": quotation.get('total_landing_price'),
+                "invoice_no": quotation.get('invoice_no'),
+                "transit_days": quotation.get('transit_days')
             }
             formatted_quotations.append(formatted_quotation)
         

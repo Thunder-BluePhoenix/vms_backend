@@ -17,6 +17,7 @@
   "rfq_number",
   "rfq_unique_key",
   "logistics_section",
+  "logistic_type",
   "mode_of_shipment",
   "airlinevessel_name",
   "chargeable_weight",
@@ -63,6 +64,7 @@
   "shipment_type",
   "quantity",
   "ship_to_address",
+  "other_charges_in_total",
   "quotation_data_section",
   "rfq_date",
   "quotation_deadline",
@@ -690,12 +692,23 @@
    "fieldname": "rfq_unique_key",
    "fieldtype": "Data",
    "label": "RFQ Unique Key"
+  },
+  {
+   "fieldname": "logistic_type",
+   "fieldtype": "Select",
+   "label": "Logistic Type",
+   "options": "\nImport\nExport"
+  },
+  {
+   "fieldname": "other_charges_in_total",
+   "fieldtype": "Data",
+   "label": "Other Charges in Total"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-28 16:41:30.490802",
+ "modified": "2025-07-29 15:10:41.424368",
  "modified_by": "abhishek@mail.hybrowlabs.com",
  "module": "Purchase",
  "name": "Quotation",
