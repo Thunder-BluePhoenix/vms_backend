@@ -6,45 +6,47 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "file_upload_section",
   "csv_xl",
   "naming_series",
   "column_break_uzzc",
   "existing_vendor_initialized",
   "initiate",
-  "section_break_opjc",
+  "field_mapping_section",
+  "field_mapping_html",
+  "field_mapping_tab",
+  "field_mapping",
+  "original_headers",
+  "column_break_mapping",
+  "mapping_statistics",
+  "validation_section",
   "success_fail_rate_html",
   "section_break_oqia",
   "vendor_data",
   "success_fail_rate",
   "view_tab",
   "section_break_tmzh",
-  "vendor_html"
+  "vendor_html",
+  "download_section",
+  "download_options_html"
  ],
  "fields": [
   {
+   "fieldname": "file_upload_section",
+   "fieldtype": "Section Break",
+   "label": "File Upload"
+  },
+  {
    "fieldname": "csv_xl",
    "fieldtype": "Attach",
-   "label": "CSV/XL FIle"
+   "label": "CSV/Excel File",
+   "reqd": 1
   },
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "EVI-.DD.-.MM.-.YY.-"
-  },
-  {
-   "fieldname": "section_break_tmzh",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "vendor_html",
-   "fieldtype": "HTML",
-   "label": "Vendors"
-  },
-  {
-   "fieldname": "view_tab",
-   "fieldtype": "Tab Break",
-   "label": "View"
   },
   {
    "fieldname": "column_break_uzzc",
@@ -54,41 +56,110 @@
    "default": "0",
    "fieldname": "existing_vendor_initialized",
    "fieldtype": "Check",
-   "label": "Existing Vendor Initialized"
+   "label": "Import Completed",
+   "read_only": 1
   },
   {
    "fieldname": "initiate",
    "fieldtype": "Button",
-   "label": "Initiate"
+   "label": "Process Vendors"
   },
   {
-   "fieldname": "section_break_opjc",
-   "fieldtype": "Section Break"
+   "fieldname": "field_mapping_section",
+   "fieldtype": "Section Break",
+   "label": "Field Mapping Configuration",
+   "description": "Map your CSV columns to system fields. Auto-mapping is applied based on header similarity."
+  },
+  {
+   "fieldname": "field_mapping_html",
+   "fieldtype": "HTML",
+   "label": "Field Mapping Interface"
+  },
+  {
+   "fieldname": "field_mapping_tab",
+   "fieldtype": "Tab Break",
+   "label": "Field Mapping"
+  },
+  {
+   "fieldname": "field_mapping",
+   "fieldtype": "Code",
+   "label": "Field Mapping JSON",
+   "description": "JSON mapping of CSV headers to system fields"
+  },
+  {
+   "fieldname": "original_headers",
+   "fieldtype": "Code",
+   "label": "Original CSV Headers",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "column_break_mapping",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mapping_statistics",
+   "fieldtype": "HTML",
+   "label": "Mapping Statistics"
+  },
+  {
+   "fieldname": "validation_section",
+   "fieldtype": "Section Break",
+   "label": "Validation Results"
   },
   {
    "fieldname": "success_fail_rate_html",
    "fieldtype": "HTML",
-   "label": "Success Fail Rate"
+   "label": "Import Summary"
   },
   {
    "fieldname": "section_break_oqia",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Raw Data"
   },
   {
    "fieldname": "vendor_data",
    "fieldtype": "Code",
-   "label": "Vendor Data"
+   "label": "Parsed Vendor Data",
+   "read_only": 1
   },
   {
    "fieldname": "success_fail_rate",
    "fieldtype": "Code",
-   "label": "Success Fail Rate"
+   "label": "Validation Results",
+   "read_only": 1
+  },
+  {
+   "fieldname": "view_tab",
+   "fieldtype": "Tab Break",
+   "label": "Data Preview"
+  },
+  {
+   "fieldname": "section_break_tmzh",
+   "fieldtype": "Section Break",
+   "label": "Vendor Data Preview"
+  },
+  {
+   "fieldname": "vendor_html",
+   "fieldtype": "HTML",
+   "label": "Vendor Data Table"
+  },
+  {
+   "fieldname": "download_section",
+   "fieldtype": "Section Break",
+   "label": "Download Options"
+  },
+  {
+   "fieldname": "download_options_html",
+   "fieldtype": "HTML",
+   "label": "Download Options",
+   "options": "<div class='alert alert-info'><strong>Download Options:</strong><br>• Use the Actions menu to download processed data<br>• Download field mapping template for reference<br>• Export validation results and error reports</div>"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-29 14:28:40.583913",
+ "modified": "2025-07-30 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Existing Vendor Import",
@@ -106,10 +177,33 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Purchase Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
