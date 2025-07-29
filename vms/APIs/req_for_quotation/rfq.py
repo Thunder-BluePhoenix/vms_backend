@@ -33,7 +33,10 @@ def get_full_rfq_data(name):
 
 		# Onboarded Vendor Details Table
 		vendor_details_data = []
+		vendor_with_quotation = 0
 		for row in doc.vendor_details:
+			if row.quotation:
+				vendor_with_quotation += 1	
 			vendor_details_data.append({
 				"refno": row.ref_no,
 				"vendor_name": row.vendor_name,
@@ -46,7 +49,10 @@ def get_full_rfq_data(name):
 
 		# Non-Onboarded Vendor Details Table
 		non_onboarded_vendor_details_data = []
+		non_onboarded_with_quotation = 0
 		for row in doc.non_onboarded_vendor_details:
+			if row.quotation:
+				non_onboarded_with_quotation += 1
 			non_onboarded_vendor_details_data.append({
 				"office_email_primary": row.office_email_primary,
 				"vendor_name": row.vendor_name,
@@ -73,19 +79,10 @@ def get_full_rfq_data(name):
 					"name": "",
 					"file_name": ""
 				})
-		# total_rfq_sent =[
-		# frappe.db.count(for row in doc.vendor_details total idx number)
-		# frappe.db.count(for row in doc.non_onboarded_vendor_details total idx number)
-		# ]
 
-		# total_rfq_sent =[
-		# frappe.db.count(for row in doc.vendor_details total 
-		# 		  if row.quotation: (is present then include in count else not)
-		# 		  )
-		# frappe.db.count(for row in doc.non_onboarded_vendor_details total 
-		# 		  if row.quotation: (is present then include in count else not)
-		# 		  )
-		# ]		
+		# Total RFQs Sent and Quotations Received
+		total_rfq_sent = len(doc.vendor_details) + len(doc.non_onboarded_vendor_details)
+		total_quotation_received = vendor_with_quotation + non_onboarded_with_quotation
 
 		data = {
 			# logistic import rfq data / logistic export rfq data
@@ -150,7 +147,11 @@ def get_full_rfq_data(name):
 			"pr_items": pr_items,
 			"vendor_details": vendor_details_data,
 			"non_onboarded_vendors": non_onboarded_vendor_details_data,
-			"attachments": attachments
+			"attachments": attachments,
+
+			# Counts
+			"total_rfq_sent": total_rfq_sent,
+			"total_quotation_received": total_quotation_received
 		}
 
 		return data
