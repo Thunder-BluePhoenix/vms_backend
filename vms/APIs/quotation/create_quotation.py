@@ -260,7 +260,6 @@ def create_or_update_quotation():
             if key != 'file':  
                 data[key] = value
         
-      
         if isinstance(data.get('data'), str):
             try:
                 json_data = json.loads(data.get('data'))
@@ -270,9 +269,11 @@ def create_or_update_quotation():
                 pass
         
         quotation_name = data.get('name')
+        action = "updated"
+        email_sent = False
         
-       
         if quotation_name and frappe.db.exists('Quotation', quotation_name):
+           
             quotation = frappe.get_doc('Quotation', quotation_name)
             
             
@@ -281,25 +282,17 @@ def create_or_update_quotation():
                     setattr(quotation, key, value)
             
             quotation.asked_to_revise = 0
-            quotation.save()
+            quotation.flags.ignore_version = True
+            quotation.flags.ignore_links = True
+            quotation.save(ignore_version=True)
             
-           
             handle_quotation_files(quotation, files)
-            
-            quotation.save()
+            quotation.save(ignore_version=True)
             frappe.db.commit()
             
-            return {
-                "status": "success",
-                "message": "Quotation updated successfully",
-                "data": {
-                    "name": quotation.name,
-                    "action": "updated",
-                    "attachments_count": len(quotation.attachments) if quotation.attachments else 0
-                }
-            }
+            action = "updated"
         
-        
+            
         else:
             data.pop('name', None)  
             
@@ -311,29 +304,48 @@ def create_or_update_quotation():
             if not data.get('rfq_date_logistic'):
                 data['rfq_date_logistic'] = nowdate()
             
-           
             for key, value in data.items():
                 if hasattr(quotation, key):
                     setattr(quotation, key, value)
             
             quotation.asked_to_revise = 0
-            quotation.insert()
+            quotation.flags.ignore_version = True
+            quotation.flags.ignore_links = True
+            quotation.insert(ignore_permissions=True)
             
-        
             handle_quotation_files(quotation, files)
-            
-            quotation.save()
+            quotation.save(ignore_version=True)
             frappe.db.commit()
             
-            return {
-                "status": "success",
-                "message": "Quotation created successfully",
-                "data": {
-                    "name": quotation.name,
-                    "action": "created",
-                    "attachments_count": len(quotation.attachments) if quotation.attachments else 0
-                }
+            action = "created"
+            
+            if quotation.rfq_number:
+                try:
+                    frappe.enqueue(
+                        'vms.APIs.quotation.create_quotation.send_quotation_notification_email',
+                        quotation_name=quotation.name,
+                        rfq_number=quotation.rfq_number,
+                        action=action,
+                        queue='short',
+                        timeout=600,
+                        is_async=True
+                    )
+                    email_sent = True
+                    frappe.log_error(f"Email notification queued for NEW quotation {quotation.name}", "Email Queue Success")
+                except Exception as email_error:
+                    frappe.log_error(f"Failed to queue email for quotation {quotation.name}: {str(email_error)}", "Email Queue Error")
+                
+        
+        return {
+            "status": "success",
+            "message": f"Quotation {action} successfully",
+            "data": {
+                "name": quotation.name,
+                "action": action,
+                "attachments_count": len(quotation.attachments) if quotation.attachments else 0,
+                "email_sent": email_sent
             }
+        }
         
     except frappe.ValidationError as e:
         frappe.db.rollback()
@@ -359,7 +371,144 @@ def create_or_update_quotation():
             "message": f"An error occurred: {str(e)}",
             "error_type": "general"
         }
+def send_quotation_notification_email(quotation_name, rfq_number, action):
+    try:
+        
+        quotation = frappe.get_doc("Quotation", quotation_name)
+        
 
+        rfq = frappe.get_doc("Request For Quotation", rfq_number)
+        
+        if not rfq.raised_by:
+            frappe.log_error(f"No raised_by user found for RFQ {rfq_number}", "Email Notification Error")
+            return
+        
+        employee = frappe.db.get_value(
+            "Employee", 
+            {"user_id": rfq.raised_by}, 
+            ["name", "team", "first_name"]
+        )
+        
+        if not employee:
+            frappe.log_error(f"No employee found for user {rfq.raised_by}", "Email Notification Error")
+            return
+        
+        employee_name, team, employee_full_name = employee
+        
+        if not team:
+            frappe.log_error(f"No team found for employee {employee_name} (user: {rfq.raised_by})", "Email Notification Error")
+            return
+        
+        team_employees = frappe.get_all(
+            "Employee",
+            filters={
+                "team": team,
+                "status": "Active"
+            },
+            fields=["user_id", "first_name", "name"]
+        )
+        
+        if not team_employees:
+            frappe.log_error(f"No team members found for team {team}", "Email Notification Error")
+            return
+        
+        
+        recipients = []
+        valid_team_members = []
+        
+        for emp in team_employees:
+            if emp.user_id:  
+                user_email = frappe.db.get_value("User", emp.user_id, "email")
+                if user_email and frappe.db.get_value("User", emp.user_id, "enabled"):
+                    recipients.append(user_email)
+                    valid_team_members.append({
+                        "name": emp.first_name,
+                        "email": user_email,
+                        "employee_id": emp.name
+                    })
+        
+        if not recipients:
+            frappe.log_error(f"No valid email addresses found for team {team} members", "Email Notification Error")
+            return
+        
+        email_subject = f"New Quotation Created - RFQ: {rfq_number}"
+        
+        email_template = get_quotation_email_template(quotation, rfq, action, team, employee_full_name)
+        
+    
+        frappe.sendmail(
+            recipients=recipients,
+            subject=email_subject,
+            message=email_template,
+            header="New Quotation Created",
+            delayed=False  
+        )
+        
+        
+        frappe.log_error(
+            f"Email sent successfully for quotation {quotation_name} to {len(recipients)} team members from team '{team}': {recipients}",
+            "Email Notification Success"
+        )
+        
+        
+        frappe.log_error(
+            f"Team members notified: {valid_team_members}",
+            "Email Team Members Debug"
+        )
+        
+    except Exception as e:
+        frappe.log_error(
+            f"Failed to send email notification for quotation {quotation_name}: {str(e)}",
+            "Email Notification Error"
+        )
+        import traceback
+        frappe.log_error(traceback.format_exc(), "Email Notification Traceback")
+
+
+def get_quotation_email_template(quotation, rfq, action, team_name, raised_by_name):
+
+    
+    quotation_url = f"{frappe.utils.get_url()}/app/quotation/{quotation.name}"
+    rfq_url = f"{frappe.utils.get_url()}/app/request-for-quotation/{rfq.name}"
+    
+    template = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2e7d32;">🎉 New Quotation Created</h2>
+        
+        <p>Dear {team_name} Team,</p>
+        
+        <p>A new quotation has been submitted for the RFQ raised by <strong>{raised_by_name}</strong>:</p>
+        
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #1976d2;">📋 Quotation Details:</h3>
+            <ul style="list-style-type: none; padding: 0;">
+                <li><strong>Quotation ID:</strong> {quotation.name}</li>
+                <li><strong>RFQ Number:</strong> {rfq.name}</li>
+                <li><strong>Quote Amount:</strong> {quotation.get('quote_amount', 'N/A')}</li>
+                <li><strong>Rank:</strong> {quotation.get('rank')}</li>
+            </ul>
+        </div>
+        
+        <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #1976d2;">📄 RFQ Details:</h3>
+            <ul style="list-style-type: none; padding: 0;">
+                <li><strong>RFQ Title:</strong> {rfq.get('title', 'N/A')}</li>
+                <li><strong>Raised By:</strong> {raised_by_name} ({rfq.raised_by})</li>
+              
+            </ul>
+        </div>
+        
+    
+        
+        
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">
+            This is an automated notification sent to the {team_name} team when new quotations are created. 
+            Please do not reply to this email.
+        </p>
+    </div>
+    """
+    
+    return template
 
 def handle_quotation_files(quotation, files):
     
@@ -444,45 +593,3 @@ def handle_quotation_files(quotation, files):
             frappe.log_error(traceback.format_exc(), "file_attachment_traceback")
             continue
 
-
-def handle_quotation_files_alternative(quotation, form_data):
-  
-    if not form_data:
-        return
-    
-    
-    if quotation.get('attachments'):
-        quotation.set('attachments', [])
-    
-   
-    file_keys = [key for key in form_data.keys() if key.startswith('file')]
-    
-    for file_key in file_keys:
-        files = form_data.getlist(file_key) 
-        
-        for file_obj in files:
-            try:
-                if hasattr(file_obj, 'filename') and hasattr(file_obj, 'read'):
-                    file_name = file_obj.filename
-                    file_content = file_obj.read()
-                    
-                    
-                    file_doc = frappe.get_doc({
-                        "doctype": "File",
-                        "file_name": file_name,
-                        "content": file_content,
-                        "decode": False,
-                        "is_private": 0,
-                        "attached_to_doctype": "Quotation",
-                        "attached_to_name": quotation.name
-                    })
-                    file_doc.insert()
-                    
-                    
-                    attachment_row = quotation.append('attachments', {})
-                    attachment_row.attachment_name = file_doc.file_url
-                    attachment_row.name1 = file_name
-                    
-            except Exception as e:
-                frappe.log_error(f"Error handling file {file_key}: {str(e)}", "file_handling_error")
-                continue
