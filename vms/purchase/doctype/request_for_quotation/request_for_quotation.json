@@ -12,6 +12,7 @@
   "status",
   "form_fully_submitted",
   "logistics_section",
+  "logistic_type",
   "company_name_logistic",
   "rfq_cutoff_date_logistic",
   "mode_of_shipment",
@@ -686,12 +687,18 @@
    "fieldname": "revised_rfq",
    "fieldtype": "Check",
    "label": "Revised RFQ"
+  },
+  {
+   "fieldname": "logistic_type",
+   "fieldtype": "Select",
+   "label": "Logistic Type",
+   "options": "\nImport\nExport"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-28 17:16:57.087648",
+ "modified": "2025-07-29 12:03:31.463511",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
