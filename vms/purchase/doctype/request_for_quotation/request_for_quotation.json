@@ -109,7 +109,7 @@
   "head_target",
   "unique_id",
   "column_break_zdgg",
-  "revised_quotation",
+  "revised_rfq",
   "prev_rfq",
   "version_history_section",
   "version_history",
@@ -668,12 +668,6 @@
    "label": "Head Target"
   },
   {
-   "default": "0",
-   "fieldname": "revised_quotation",
-   "fieldtype": "Check",
-   "label": "Revised Quotation"
-  },
-  {
    "fieldname": "unique_id",
    "fieldtype": "Data",
    "label": "Unique ID"
@@ -686,12 +680,18 @@
    "fieldname": "prev_rfq",
    "fieldtype": "Data",
    "label": "Prev RFQ"
+  },
+  {
+   "default": "0",
+   "fieldname": "revised_rfq",
+   "fieldtype": "Check",
+   "label": "Revised RFQ"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-28 15:59:54.019888",
+ "modified": "2025-07-28 17:16:57.087648",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
