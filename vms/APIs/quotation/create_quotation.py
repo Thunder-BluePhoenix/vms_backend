@@ -222,103 +222,135 @@ def fetch_rfq_data(name, ref_no):
 
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def create_or_update_quotation():
     try:
         form_data = frappe.local.form_dict
+        user = frappe.session.user
+
+        rfq = form_data.get('rfq_number')
+        if not rfq:
+            return {
+                "status": "error",
+                "message": "RFQ Number is required",
+                "error": "RFQ Number is required"
+            }
+
+        if not frappe.db.exists("Request For Quotation", rfq):
+            return {
+                "status": "error",
+                "message": f"RFQ {rfq} does not exist",
+                "error": "RFQ Not Found"
+            }
         
+        rfq_doc = frappe.get_doc("Request For Quotation", rfq)
+        
+    
+        vendor_details = None
+        user_authorized = False
+        
+        for vendor in rfq_doc.vendor_details:
+            if vendor.get('office_email_primary') == user:
+                user_authorized = True
+                vendor_details = vendor
+                break
+        
+        if not user_authorized:
+            return {
+                "status": "error",
+                "message": "You are not allowed to fill this quotation",
+                "error": "Unauthorized Access"
+            }
+
         files = []
-        
+
         if hasattr(frappe, 'request') and hasattr(frappe.request, 'files'):
             request_files = frappe.request.files
             if 'file' in request_files:
                 file_list = request_files.getlist('file')
                 files.extend(file_list)
-        
-      
+
         if hasattr(frappe.local, 'uploaded_files') and frappe.local.uploaded_files:
             uploaded_files = frappe.local.uploaded_files
             if isinstance(uploaded_files, list):
                 files.extend(uploaded_files)
             else:
                 files.append(uploaded_files)
-        
-      
+
         if 'file' in form_data:
             file_data = form_data.get('file')
-            if hasattr(file_data, 'filename'): 
+            if hasattr(file_data, 'filename'):
                 files.append(file_data)
             elif isinstance(file_data, list):
                 files.extend([f for f in file_data if hasattr(f, 'filename')])
-        
-       
+
         frappe.log_error(f"Found {len(files)} files", "file_debug")
-        
-       
+
         data = {}
         for key, value in form_data.items():
-            if key != 'file':  
+            if key != 'file':
                 data[key] = value
-        
+
         if isinstance(data.get('data'), str):
             try:
                 json_data = json.loads(data.get('data'))
                 data.update(json_data)
-                data.pop('data', None)  
+                data.pop('data', None)
             except json.JSONDecodeError:
                 pass
-        
+
+        if vendor_details:
+            data['ref_no'] = vendor_details.get('ref_no')
+            data['vendor_name'] = vendor_details.get('vendor_name')
+            data['vendor_code'] = vendor_details.get('vendor_code')
+
         quotation_name = data.get('name')
         action = "updated"
         email_sent = False
-        
+
         if quotation_name and frappe.db.exists('Quotation', quotation_name):
-           
             quotation = frappe.get_doc('Quotation', quotation_name)
-            
-            
+
             for key, value in data.items():
                 if hasattr(quotation, key) and key != 'name':
                     setattr(quotation, key, value)
-            
+
             quotation.asked_to_revise = 0
             quotation.flags.ignore_version = True
             quotation.flags.ignore_links = True
             quotation.save(ignore_version=True)
-            
+
             handle_quotation_files(quotation, files)
             quotation.save(ignore_version=True)
             frappe.db.commit()
-            
+
             action = "updated"
-        
-            
+
         else:
-            data.pop('name', None)  
-            
+            data.pop('name', None)
+
             quotation = frappe.new_doc('Quotation')
-            
-            
+
             if not data.get('rfq_date'):
                 data['rfq_date'] = nowdate()
             if not data.get('rfq_date_logistic'):
                 data['rfq_date_logistic'] = nowdate()
-            
+
             for key, value in data.items():
                 if hasattr(quotation, key):
                     setattr(quotation, key, value)
-            
+
             quotation.asked_to_revise = 0
             quotation.flags.ignore_version = True
             quotation.flags.ignore_links = True
             quotation.insert(ignore_permissions=True)
-            
+
             handle_quotation_files(quotation, files)
             quotation.save(ignore_version=True)
             frappe.db.commit()
-            
+
             action = "created"
-            
+
             if quotation.rfq_number:
                 try:
                     frappe.enqueue(
@@ -334,8 +366,7 @@ def create_or_update_quotation():
                     frappe.log_error(f"Email notification queued for NEW quotation {quotation.name}", "Email Queue Success")
                 except Exception as email_error:
                     frappe.log_error(f"Failed to queue email for quotation {quotation.name}: {str(email_error)}", "Email Queue Error")
-                
-        
+
         return {
             "status": "success",
             "message": f"Quotation {action} successfully",
@@ -346,7 +377,7 @@ def create_or_update_quotation():
                 "email_sent": email_sent
             }
         }
-        
+
     except frappe.ValidationError as e:
         frappe.db.rollback()
         return {
@@ -354,7 +385,7 @@ def create_or_update_quotation():
             "message": f"Validation Error: {str(e)}",
             "error_type": "validation"
         }
-    
+
     except frappe.DuplicateEntryError as e:
         frappe.db.rollback()
         return {
@@ -362,7 +393,7 @@ def create_or_update_quotation():
             "message": f"Duplicate Entry: {str(e)}",
             "error_type": "duplicate"
         }
-    
+
     except Exception as e:
         frappe.db.rollback()
         frappe.log_error(f"Quotation API Error: {str(e)}", "quotation_api_error")
@@ -371,6 +402,8 @@ def create_or_update_quotation():
             "message": f"An error occurred: {str(e)}",
             "error_type": "general"
         }
+
+
 def send_quotation_notification_email(quotation_name, rfq_number, action):
     try:
         
