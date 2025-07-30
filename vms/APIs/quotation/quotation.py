@@ -453,9 +453,30 @@ def get_quotations_by_rfq(rfq_number):
                 except (ValueError, TypeError):
                     quote_amount_display = quotation['quote_amount']
             
+        
+            attachments = frappe.get_all(
+                "Multiple Attachment",  
+                filters={
+                    "parent": quotation.get('name'),
+                    "parenttype": "Quotation"
+                },
+                fields=['name1', 'attachment_name']
+            )
+            
+        
+            formatted_attachments = []
+            for attachment in attachments:
+                attachment_data = {
+                    "document_name": attachment.get('name1'),
+                    "attach": attachment.get('attachment_name'),
+                    "file_url": frappe.utils.get_url() + attachment.get('attachment_name') if attachment.get('attachment_name') else None
+                }
+                formatted_attachments.append(attachment_data)
+            
             formatted_quotation = {
                 "name": quotation.get('name'),
                 "rfq_number": quotation.get('rfq_number'),
+                "vendor_name": quotation.get('vendor_name'),
                 "vendor_code": quotation.get('vendor_code'),
                 "quote_amount": quote_amount_display,
                 # "quote_amount_formatted": quotation.get('quote_amount'), 
@@ -484,7 +505,8 @@ def get_quotations_by_rfq(rfq_number):
                 "invoice_no": quotation.get('invoice_no'),
                 "transit_days": quotation.get('transit_days'),
                 "remarks": quotation.get('remarks'),
-                "logistic_type": quotation.get('logistic_type')
+                "logistic_type": quotation.get('logistic_type'),
+                "attachments": formatted_attachments
             }
             formatted_quotations.append(formatted_quotation)
         
@@ -505,5 +527,4 @@ def get_quotations_by_rfq(rfq_number):
     except Exception as e:
         frappe.log_error(f"Error in get_quotations_by_rfq API: {str(e)}", "Quotation API Error")
         frappe.throw(_("An error occurred while fetching quotations: {0}").format(str(e)))
-
 
