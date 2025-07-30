@@ -97,27 +97,64 @@ def background_update_rankings(quotation_name, rfq_number):
 
 
 
+# def set_quotation_id_in_rfq(doc):
+#     if not doc.rfq_number:
+#         return
+
+#     try:
+   
+#         if doc.ref_no or doc.office_email_primary:
+#             frappe.db.sql("""
+#                 UPDATE `tabVendor Details` 
+#                 SET quotation = %s 
+#                 WHERE parent = %s AND ref_no = %s AND (quotation IS NULL OR quotation = '')
+#             """, (doc.name, doc.rfq_number, doc.ref_no))
+
+#         if doc.office_email_primary:
+#             frappe.db.sql("""
+#                 UPDATE `tabNon Onboarded Vendor Details` 
+#                 SET quotation = %s 
+#                 WHERE parent = %s AND office_email_primary = %s AND (quotation IS NULL OR quotation = '')
+#             """, (doc.name, doc.rfq_number, doc.office_email_primary))
+            
+#         frappe.db.commit()
+        
+#     except Exception as e:
+#         frappe.log_error(f"Error setting quotation ID in RFQ {doc.rfq_number}: {str(e)}", "RFQ Update Error")
+
 def set_quotation_id_in_rfq(doc):
     if not doc.rfq_number:
         return
 
     try:
-   
+        conditions = []
+        values = []
+
+        # Build dynamic condition for Vendor Details
         if doc.ref_no:
-            frappe.db.sql("""
+            conditions.append("(ref_no = %s)")
+            values.append(doc.ref_no)
+        if doc.office_email_primary:
+            conditions.append("(office_email_primary = %s)")
+            values.append(doc.office_email_primary)
+
+        if conditions:
+            condition_clause = " OR ".join(conditions)
+            frappe.db.sql(f"""
                 UPDATE `tabVendor Details` 
                 SET quotation = %s 
-                WHERE parent = %s AND ref_no = %s AND (quotation IS NULL OR quotation = '')
-            """, (doc.name, doc.rfq_number, doc.ref_no))
+                WHERE parent = %s AND ({condition_clause}) AND (quotation IS NULL OR quotation = '')
+            """, tuple([doc.name, doc.rfq_number] + values))
 
+        # Non-Onboarded Vendor: Only use office_email_primary
         if doc.office_email_primary:
             frappe.db.sql("""
                 UPDATE `tabNon Onboarded Vendor Details` 
                 SET quotation = %s 
                 WHERE parent = %s AND office_email_primary = %s AND (quotation IS NULL OR quotation = '')
             """, (doc.name, doc.rfq_number, doc.office_email_primary))
-            
+
         frappe.db.commit()
-        
+
     except Exception as e:
         frappe.log_error(f"Error setting quotation ID in RFQ {doc.rfq_number}: {str(e)}", "RFQ Update Error")

@@ -10,7 +10,7 @@ from datetime import datetime
 
 class RequestForQuotation(Document):
 	def on_update(self, method=None):
-		# send_quotation_email(self)
+		send_quotation_email(self)
 		update_quotation(self)
 		send_mail_on_revised_quotation(self)
 		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  send_quotation_email")
@@ -262,17 +262,18 @@ def send_quotation_email(doc):
 	for row in doc.vendor_details:
 		if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
 			token = generate_secure_token(
+				row.ref_no,
 				row.office_email_primary,
 				doc.name,
 				row.name,
-				doc.rfq_cutoff_date_logistic  # <-- used here
+				doc.rfq_cutoff_date_logistic,
 			)
 
-			link = f"{site_url}/quotation-form?token={token}"
+			link = f"{site_url}/quatation-form?token={token}"
 
 			subject = "Request for Quotation - Action Required"
 			message = f"""
-				<p>Dear {row.vendor_name},</p>
+				<p>Dear {row.vendor_name}</p>
 				<p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
 				<p>Please log in to the portal and create your quotation using the secure link below. This link will expire on <strong>{doc.rfq_cutoff_date_logistic}</strong>.</p>
 				<a href="{link}" target="_blank">Click here to fill quotation</a>
@@ -297,7 +298,7 @@ def send_quotation_email(doc):
 				row.name,
 				doc.rfq_cutoff_date_logistic  # <-- used here
 			)
-			link = f"{site_url}/quotation-form?name={token}"
+			link = f"{site_url}/create-rfq?name={token}"
 
 			subject = "Request for Quotation - Action Required"
 			message = f"""
@@ -318,14 +319,18 @@ def send_quotation_email(doc):
 
 SECRET_KEY = frappe.conf.get("secret_key")
 
-def generate_secure_token(email, rfq_name, vendor_row_name, cutoff_date):
+def generate_secure_token(ref_no, email, rfq_name, vendor_row_name, cutoff_date):
     expiry = get_datetime(cutoff_date)
+    expiry_ts = int(expiry.timestamp())
+
     payload = {
+        "ref_no": ref_no,              # Optional: only for onboarded
         "email": email,
         "rfq": rfq_name,
         "vendor_row": vendor_row_name,
-        "exp": expiry
+        "exp": expiry_ts
     }
+
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
 
@@ -333,21 +338,133 @@ def generate_secure_token(email, rfq_name, vendor_row_name, cutoff_date):
 def process_token(token):
     try:
         decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return {
-            "status": "valid",
-            "email": decoded.get("email"),
-            "rfq": decoded.get("rfq"),
-            "vendor_row": decoded.get("vendor_row")
-        }
+
+        ref_no = decoded.get("ref_no")    # For onboarded
+        email = decoded.get("email")      # For both
+        rfq_id = decoded.get("rfq")
+        vendor_row_id = decoded.get("vendor_row")
+
+        if not rfq_id or not email:
+            frappe.throw(_("Missing required info in token."))
+
+        rfq = frappe.get_doc("Request For Quotation", rfq_id)
+        if not rfq:
+            frappe.throw(_("Invalid RFQ"))
+
+        # -------------------- Get Vendor Details --------------------
+        if ref_no:
+            vendor_master = frappe.get_doc("Vendor Master", ref_no)
+            company_vendor_code = frappe.get_all(
+                "Company Vendor Code",
+                filters={"vendor_ref_no": ref_no},
+                fields=["name"]
+            )
+
+            vendor_code_list = []
+            for row in company_vendor_code:
+                doc = frappe.get_doc("Company Vendor Code", row.name)
+                for code_row in doc.vendor_code:
+                    vendor_code_list.append(code_row.vendor_code)
+
+            vendor_details = {
+                "vendor_name": vendor_master.vendor_name,
+                "office_email_primary": vendor_master.office_email_primary,
+                "mobile_number": vendor_master.mobile_number,
+                "country": vendor_master.country,
+                "vendor_code": vendor_code_list
+            }
+        else:
+            # For non-onboarded: fallback minimal data
+            vendor_details = {
+                "vendor_name": "",
+                "office_email_primary": email,
+                "mobile_number": "",
+                "country": "",
+                "vendor_code": []
+            }
+
+        # -------------------- Attachments --------------------
+        attachments = []
+        for row in rfq.multiple_attachments:
+            file_url = row.get("attachment_name")
+            if file_url:
+                file_doc = frappe.get_doc("File", {"file_url": file_url})
+                attachments.append({
+                    "url": f"{frappe.get_site_config().get('backend_http', '')}{file_doc.file_url}",
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                })
+
+        # -------------------- Return Based on RFQ Type --------------------
+        if rfq.rfq_type == "Logistic Vendor":
+            return {
+                "status": "success",
+                "vendor_details": vendor_details,
+                "rfq_type": "Logistic Vendor",
+                "data": {
+                    "company_name_logistic": rfq.company_name_logistic,
+                    "rfq_cutoff_date_logistic": rfq.rfq_cutoff_date_logistic,
+                    "mode_of_shipment": rfq.mode_of_shipment,
+                    "destination_port": rfq.destination_port,
+                    "port_of_loading": rfq.port_of_loading,
+                    "ship_to_address": rfq.ship_to_address,
+                    "remarks": rfq.remarks,
+                    "attachments": attachments
+                }
+            }
+
+        elif rfq.rfq_type == "Material Vendor":
+            pr_items = [{
+                "row_id": row.name,
+                "material_name_head": row.material_name_head,
+                "quantity_head": row.quantity_head,
+                "price_head": row.price_head
+            } for row in rfq.rfq_items]
+
+            return {
+                "status": "success",
+                "vendor_details": vendor_details,
+                "rfq_type": "Material Vendor",
+                "data": {
+                    "company_name": rfq.company_name,
+                    "quotation_deadline": rfq.quotation_deadline,
+                    "pr_items": pr_items,
+                    "attachments": attachments
+                }
+            }
+
+        elif rfq.rfq_type == "Service Vendor":
+            pr_items = [{
+                "row_id": row.name,
+                "material_name_subhead": row.material_name_subhead,
+                "quantity_subhead": row.quantity_subhead,
+                "price_subhead": row.price_subhead
+            } for row in rfq.rfq_items]
+
+            return {
+                "status": "success",
+                "vendor_details": vendor_details,
+                "rfq_type": "Service Vendor",
+                "data": {
+                    "company_name": rfq.company_name,
+                    "quotation_deadline": rfq.quotation_deadline,
+                    "pr_items": pr_items,
+                    "attachments": attachments
+                }
+            }
+
+        else:
+            frappe.throw(_("Invalid RFQ Type"))
+
     except jwt.ExpiredSignatureError:
-        frappe.local.response["http_status_code"] = 410  
+        frappe.local.response["http_status_code"] = 410
         frappe.throw(_("This secure link has expired."))
 
     except jwt.InvalidTokenError:
-        frappe.local.response["http_status_code"] = 401  
-        frappe.throw(_("Invalid or tampered token."))
+        frappe.local.response["http_status_code"] = 401
+        frappe.throw(_("Invalid or tampered link."))
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "RFQ Token Processing Error")
-        frappe.local.response["http_status_code"] = 500  
+        frappe.local.response["http_status_code"] = 500
         frappe.throw(_("Something went wrong while processing the link."))

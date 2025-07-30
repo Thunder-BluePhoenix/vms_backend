@@ -286,6 +286,64 @@ def filter_material_group_master(company):
             "message": "Failed to filter material group",
             "error": str(e)
         }
+	
+# filter the company wise master fields for material and services 
+@frappe.whitelist(allow_guest=True)
+def filter_master_fields(company):
+	try:
+		if not company:
+			return {
+				"status": "error",
+				"message": "Company is required"
+			}
+
+		pur_grp = frappe.get_all(
+			"Purchase Group Master",
+			filters={"company": company},
+			fields=["name", "purchase_group_code", "purchase_group_name", "description"]
+		)
+
+		purchase_org = frappe.get_all(
+			"Purchase Organization Master",
+			filters={"company": company},
+			fields=["name", "purchase_organization_code", "purchase_organization_name", "description"]
+		)
+
+		plant = frappe.get_all(
+			"Plant Master",
+			filters={"company": company},
+			fields=["name", "plant_name", "city", "zone", "plant_address", "description"]
+		)
+
+		material_master = frappe.get_all(
+			"Material Master",
+			filters={"company": company},
+			fields=["name", "material_code", "material_name", "material_type", "material_category", "description"]
+		)
+
+		material_group = frappe.get_all(
+			"Material Group Master",
+			filters={"material_group_company": company},
+			fields=["name", "material_group_name", "material_group_description", "material_group_long_description"]
+		)
+
+		return {
+			"status": "success",
+			"purchase_group": pur_grp,
+			"purchase_organisation": purchase_org,
+			"plant": plant,
+			"material_master": material_master,
+			"material_group_master": material_group
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Error in consolidated company master fetch")
+		return {
+			"status": "error",
+			"message": "Failed to fetch master data",
+			"error": str(e)
+		}
+
 
 
 # create Material rfq
@@ -300,6 +358,7 @@ def create_rfq_material(data):
 		# RFQ Basic Fields
 		rfq.form_fully_submitted = 1
 		rfq.rfq_type = data.get("rfq_type") or ""
+		rfq.raised_by = frappe.local.session.user
 		rfq.rfq_date = data.get("rfq_date") or None
 		rfq.company_name = data.get("company_name") or ""
 		rfq.purchase_organization = data.get("purchase_organization") or ""
