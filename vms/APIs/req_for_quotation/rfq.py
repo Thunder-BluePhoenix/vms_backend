@@ -88,6 +88,7 @@ def get_full_rfq_data(name):
 			# logistic import rfq data / logistic export rfq data
 			"name": doc.name,
 			"rfq_type": doc.rfq_type,
+			"raised_by": doc.raised_by,
 			"logistic_type": doc.logistic_type,
 			"company_name_logistic": doc.company_name_logistic,
 			"rfq_cutoff_date_logistic": doc.rfq_cutoff_date_logistic,

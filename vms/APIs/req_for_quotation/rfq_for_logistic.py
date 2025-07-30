@@ -153,6 +153,7 @@ def create_import_logistic_rfq(data):
 		rfq.unique_id = unique_id
 		rfq.form_fully_submitted = 1
 		rfq.rfq_type = data.get("rfq_type")
+		rfq.raised_by = frappe.local.session.user
 		rfq.logistic_type = data.get("logistic_type")
 		rfq.company_name_logistic = data.get("company_name_logistic")
 		rfq.service_provider = data.get("service_provider")
@@ -177,7 +178,6 @@ def create_import_logistic_rfq(data):
 		rfq.invoice_no = data.get("invoice_no")
 		rfq.invoice_value = data.get("invoice_value")
 		rfq.expected_date_of_arrival = data.get("expected_date_of_arrival")
-		rfq.raised_by = data.get("raised_by")
 		rfq.remarks = data.get("remarks")
 
 		# Add vendors from Vendor Master (All Service Provider)
@@ -351,6 +351,7 @@ def create_export_logistic_rfq(data):
 
 		rfq.form_fully_submitted    = 1
 		rfq.rfq_type                = data.get("rfq_type")
+		rfq.raised_by               = frappe.local.session.user
 		rfq.company_name_logistic   = data.get("company_name_logistic")
 		rfq.service_provider        = data.get("service_provider")
 		rfq.sr_no                   = data.get("sr_no")
@@ -372,7 +373,6 @@ def create_export_logistic_rfq(data):
 		rfq.invoice_no        = data.get("invoice_no")
 		rfq.consignee_name        = data.get("consignee_name")
 		rfq.shipment_date        = data.get("shipment_date")
-		rfq.raised_by = data.get("raised_by")
 		rfq.remarks        = data.get("remarks")
 
 		# Add all vendors if "All Service Provider" is selected
