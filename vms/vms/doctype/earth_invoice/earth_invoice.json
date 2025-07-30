@@ -1,0 +1,428 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "creation": "2025-07-30 18:09:29.277975",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_ivj4",
+  "amended_from",
+  "type",
+  "employee_code",
+  "billing_company",
+  "column_break_bqok",
+  "booking_date",
+  "doc_no_req_by",
+  "section_break_pqir",
+  "name_of_passengers",
+  "from_origin",
+  "no_of_passengers",
+  "bus_operator_name",
+  "column_break_smqc",
+  "travel_date_onward",
+  "to_destination",
+  "pnrticket_number",
+  "section_break_wyqu",
+  "travel_type",
+  "travel_date_return",
+  "flight_no_onward",
+  "class_of_booking",
+  "column_break_paoi",
+  "ticket_number",
+  "flight_no_return",
+  "airline_name",
+  "international_air_section",
+  "return_from_origin",
+  "column_break_bxhw",
+  "return_to_destination",
+  "train_section",
+  "train_no",
+  "quota",
+  "column_break_vlrr",
+  "class",
+  "section_break_avyb",
+  "no_of_guest",
+  "city_name",
+  "name_of_guest",
+  "hotel_name",
+  "booking_reference_no",
+  "column_break_eird",
+  "location_type",
+  "check_in_date",
+  "check_out_date",
+  "no_of_nights",
+  "section_break_jquz",
+  "confirmation_voucher",
+  "column_break_hksy",
+  "invoice_attachment",
+  "debit_note_attachment",
+  "section_break_jlsu",
+  "basic_amount",
+  "net_amount",
+  "cgst_amount",
+  "igst_amount",
+  "remarks",
+  "dn_no",
+  "column_break_upqt",
+  "gst_amount",
+  "service_charges",
+  "sgst_amount",
+  "grand_total",
+  "inv_no",
+  "inv_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_ivj4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Invoice",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "TYPE",
+   "options": "\nBus Booking\nHotel Booking\nDomestic Air Booking\nInternational Air Booking\nRailway Booking",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_bqok",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "booking_date",
+   "fieldtype": "Data",
+   "label": "BOOKING DATE"
+  },
+  {
+   "fieldname": "no_of_passengers",
+   "fieldtype": "Data",
+   "label": "NO. OF PASSENGERS"
+  },
+  {
+   "fieldname": "name_of_passengers",
+   "fieldtype": "Data",
+   "label": "NAME OF PASSENGERS"
+  },
+  {
+   "fieldname": "employee_code",
+   "fieldtype": "Data",
+   "label": "EMPLOYEE CODE"
+  },
+  {
+   "fieldname": "billing_company",
+   "fieldtype": "Data",
+   "label": "BILLING COMPANY"
+  },
+  {
+   "fieldname": "doc_no_req_by",
+   "fieldtype": "Data",
+   "label": "DOC NO/ REQ BY"
+  },
+  {
+   "fieldname": "from_origin",
+   "fieldtype": "Data",
+   "label": "FROM ORIGIN"
+  },
+  {
+   "fieldname": "to_destination",
+   "fieldtype": "Data",
+   "label": "TO DESTINATION"
+  },
+  {
+   "depends_on": "eval: doc.type == \"Hotel Booking\"",
+   "fieldname": "section_break_avyb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "no_of_guest",
+   "fieldtype": "Data",
+   "label": "NO. OF GUEST"
+  },
+  {
+   "fieldname": "city_name",
+   "fieldtype": "Data",
+   "label": "CITY NAME"
+  },
+  {
+   "fieldname": "name_of_guest",
+   "fieldtype": "Data",
+   "label": "NAME OF GUEST"
+  },
+  {
+   "fieldname": "column_break_eird",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "location_type",
+   "fieldtype": "Data",
+   "label": "LOCATION TYPE"
+  },
+  {
+   "fieldname": "check_in_date",
+   "fieldtype": "Data",
+   "label": "CHECK IN DATE"
+  },
+  {
+   "fieldname": "check_out_date",
+   "fieldtype": "Data",
+   "label": "CHECK OUT DATE"
+  },
+  {
+   "fieldname": "no_of_nights",
+   "fieldtype": "Data",
+   "label": "NO. OF NIGHTS"
+  },
+  {
+   "fieldname": "booking_reference_no",
+   "fieldtype": "Data",
+   "label": "BOOKING REFERENCE NO."
+  },
+  {
+   "fieldname": "hotel_name",
+   "fieldtype": "Data",
+   "label": "HOTEL NAME"
+  },
+  {
+   "fieldname": "section_break_jlsu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "basic_amount",
+   "fieldtype": "Data",
+   "label": "BASIC AMOUNT"
+  },
+  {
+   "fieldname": "column_break_upqt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gst_amount",
+   "fieldtype": "Data",
+   "label": "GST AMOUNT"
+  },
+  {
+   "fieldname": "net_amount",
+   "fieldtype": "Data",
+   "label": "NET AMOUNT"
+  },
+  {
+   "fieldname": "service_charges",
+   "fieldtype": "Data",
+   "label": "SERVICE CHARGES"
+  },
+  {
+   "fieldname": "cgst_amount",
+   "fieldtype": "Data",
+   "label": "CGST AMOUNT"
+  },
+  {
+   "fieldname": "sgst_amount",
+   "fieldtype": "Data",
+   "label": "SGST AMOUNT"
+  },
+  {
+   "fieldname": "igst_amount",
+   "fieldtype": "Data",
+   "label": "IGST AMOUNT"
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Data",
+   "label": "GRAND TOTAL"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Data",
+   "label": "REMARKS"
+  },
+  {
+   "fieldname": "inv_no",
+   "fieldtype": "Data",
+   "label": "INV NO"
+  },
+  {
+   "fieldname": "dn_no",
+   "fieldtype": "Data",
+   "label": "DN NO"
+  },
+  {
+   "fieldname": "inv_date",
+   "fieldtype": "Data",
+   "label": "INV DATE"
+  },
+  {
+   "fieldname": "travel_date_onward",
+   "fieldtype": "Data",
+   "label": "TRAVEL DATE ONWARD"
+  },
+  {
+   "depends_on": "eval:doc.type != \"Hotel Booking\"",
+   "fieldname": "section_break_pqir",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_smqc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pnrticket_number",
+   "fieldtype": "Data",
+   "label": "PNR/TICKET NUMBER"
+  },
+  {
+   "depends_on": "eval: doc.type == \"Bus Booking\"",
+   "fieldname": "bus_operator_name",
+   "fieldtype": "Data",
+   "label": "BUS OPERATOR NAME"
+  },
+  {
+   "fieldname": "travel_date_return",
+   "fieldtype": "Data",
+   "label": "TRAVEL DATE RETURN"
+  },
+  {
+   "depends_on": "eval: doc.type == \"International Air Booking\" || doc.type == \"Domestic Air Booking\"",
+   "fieldname": "section_break_wyqu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "ticket_number",
+   "fieldtype": "Data",
+   "label": "TICKET NUMBER"
+  },
+  {
+   "fieldname": "column_break_paoi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "flight_no_onward",
+   "fieldtype": "Data",
+   "label": "FLIGHT NO. ONWARD"
+  },
+  {
+   "fieldname": "flight_no_return",
+   "fieldtype": "Data",
+   "label": "FLIGHT NO. RETURN"
+  },
+  {
+   "fieldname": "class_of_booking",
+   "fieldtype": "Data",
+   "label": "CLASS OF BOOKING"
+  },
+  {
+   "fieldname": "airline_name",
+   "fieldtype": "Data",
+   "label": "AIRLINE NAME"
+  },
+  {
+   "fieldname": "travel_type",
+   "fieldtype": "Data",
+   "label": "TRAVEL TYPE"
+  },
+  {
+   "depends_on": "eval: doc.type == \"International Air Booking\"",
+   "fieldname": "international_air_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "return_from_origin",
+   "fieldtype": "Data",
+   "label": "RETURN FROM ORIGIN"
+  },
+  {
+   "fieldname": "column_break_bxhw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "return_to_destination",
+   "fieldtype": "Data",
+   "label": "RETURN TO DESTINATION"
+  },
+  {
+   "depends_on": "eval: doc.type == \"Railway Booking\"",
+   "fieldname": "train_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "train_no",
+   "fieldtype": "Data",
+   "label": "TRAIN No."
+  },
+  {
+   "fieldname": "class",
+   "fieldtype": "Data",
+   "label": "CLASS"
+  },
+  {
+   "fieldname": "quota",
+   "fieldtype": "Data",
+   "label": "QUOTA"
+  },
+  {
+   "fieldname": "column_break_vlrr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_jquz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "confirmation_voucher",
+   "fieldtype": "Attach",
+   "label": "CONFIRMATION VOUCHER"
+  },
+  {
+   "fieldname": "invoice_attachment",
+   "fieldtype": "Attach",
+   "label": "INVOICE ATTACHMENT"
+  },
+  {
+   "fieldname": "column_break_hksy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "debit_note_attachment",
+   "fieldtype": "Attach",
+   "label": "DEBIT NOTE ATTACHMENT"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-07-30 23:33:43.619670",
+ "modified_by": "abhishek@mail.hybrowlabs.com",
+ "module": "Vms",
+ "name": "Earth Invoice",
+ "owner": "abhishek@mail.hybrowlabs.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
