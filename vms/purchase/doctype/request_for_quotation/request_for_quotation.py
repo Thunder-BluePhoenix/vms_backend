@@ -298,7 +298,7 @@ def send_quotation_email(doc):
 				row.name,
 				doc.rfq_cutoff_date_logistic  # <-- used here
 			)
-			link = f"{site_url}/create-rfq?name={token}"
+			link = f"{site_url}/quatation-form?token={token}"
 
 			subject = "Request for Quotation - Action Required"
 			message = f"""
