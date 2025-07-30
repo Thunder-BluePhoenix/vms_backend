@@ -10,7 +10,7 @@ from datetime import datetime
 
 class RequestForQuotation(Document):
 	def on_update(self, method=None):
-		send_quotation_email(self)
+		# send_quotation_email(self)
 		update_quotation(self)
 		send_mail_on_revised_quotation(self)
 		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  send_quotation_email")

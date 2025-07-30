@@ -153,6 +153,7 @@ def create_import_logistic_rfq(data):
 		rfq.unique_id = unique_id
 		rfq.form_fully_submitted = 1
 		rfq.rfq_type = data.get("rfq_type")
+		rfq.logistic_type = data.get("logistic_type")
 		rfq.company_name_logistic = data.get("company_name_logistic")
 		rfq.service_provider = data.get("service_provider")
 		rfq.sr_no = data.get("sr_no")

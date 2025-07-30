@@ -479,6 +479,9 @@ def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_ty
 			return vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr)
 
 		if "Purchase Team" in user_roles:
+			# team = frappe.get_value("Employee", filters={"user_id": usr}, fields=["team"])
+			# employees = frappe.get_all("Employee", filters={"team": team}, pluck=["user_id"])
+			# if session user belongs to this employees list 
 			return purchase_team_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status)
 
 		return {
