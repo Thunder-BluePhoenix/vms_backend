@@ -1,5 +1,4 @@
-# Enhanced version with detailed error reporting
-# File: vms/APIs/import_api/import_api.py
+
 
 import frappe
 import pandas as pd
@@ -9,7 +8,7 @@ from frappe.utils import get_files_path, get_site_path, now
 from frappe import _
 
 def create_field_mapping():
-    """Create comprehensive mapping between Excel columns and Earth Invoice fields"""
+    
     
     field_mapping = {
         # Common fields across all booking types
@@ -73,14 +72,14 @@ def create_field_mapping():
     return field_mapping
 
 def clean_excel_columns(df):
-    """Clean Excel column names to remove line breaks and extra spaces"""
+   
     
     cleaned_columns = []
     for col in df.columns:
         if isinstance(col, str):
-            # Remove various types of line breaks and normalize
+            
             cleaned_col = col.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
-            # Remove extra spaces and strip
+            
             cleaned_col = ' '.join(cleaned_col.split())
             cleaned_columns.append(cleaned_col)
         else:
@@ -90,21 +89,21 @@ def clean_excel_columns(df):
     return df
 
 def validate_record_data(row, row_index, sheet_name):
-    """Validate individual record data and return validation errors"""
+    
     
     errors = []
     
-    # Check mandatory TYPE field
+    
     booking_type = row.get('TYPE')
     if pd.isna(booking_type) or str(booking_type).strip() == "":
         errors.append("TYPE field is mandatory and cannot be empty")
     else:
-        # Validate booking type values
+       
         valid_types = ['Bus Booking', 'Hotel Booking', 'Domestic Air Booking', 'International Air Booking', 'Railway Booking']
         if str(booking_type).strip() not in valid_types:
             errors.append(f"Invalid TYPE value: '{booking_type}'. Must be one of: {', '.join(valid_types)}")
     
-    # Check other mandatory fields
+    
     mandatory_fields = {
         'EMPLOYEE CODE': 'Employee Code is required',
         'BILLING COMPANY': 'Billing Company is required',
@@ -116,7 +115,7 @@ def validate_record_data(row, row_index, sheet_name):
         if pd.isna(value) or str(value).strip() == "":
             errors.append(error_msg)
     
-    # Type-specific validations
+   
     booking_type_str = str(booking_type).strip() if not pd.isna(booking_type) else ""
     
     if booking_type_str == 'Bus Booking':
@@ -155,7 +154,7 @@ def validate_record_data(row, row_index, sheet_name):
         if pd.isna(row.get('TRAIN No.')) or str(row.get('TRAIN No.')).strip() == "":
             errors.append("Train Number is required for Railway Booking")
     
-    # Validate numeric fields
+  
     numeric_fields = ['BASIC AMOUNT', 'GST AMOUNT', 'NET AMOUNT', 'SERVICE CHARGES', 'CGST AMOUNT', 
                      'SGST AMOUNT', 'IGST AMOUNT', 'GRAND TOTAL']
     
@@ -170,7 +169,7 @@ def validate_record_data(row, row_index, sheet_name):
     return errors
 
 def get_record_preview(row, field_mapping):
-    """Get a preview of the record data for error reporting"""
+  
     
     preview = {}
     key_fields = ['TYPE', 'EMPLOYEE CODE', 'BILLING COMPANY', 'BOOKING DATE', 'NO. OF PASSENGERS', 
@@ -185,18 +184,18 @@ def get_record_preview(row, field_mapping):
     return preview
 
 def get_file_path_from_url(file_url):
-    """Get the actual file path from file URL - FIXED FILE PATH RESOLUTION"""
+  
     
     try:
-        # Method 1: Try to get file document
+       
         file_doc = frappe.get_doc("File", {"file_url": file_url})
         
-        # Get the file path using multiple methods
+        
         if file_doc.is_private:
-            # Private file
+            
             file_path = frappe.get_site_path("private", "files", file_doc.file_name)
         else:
-            # Public file - try multiple locations
+           
             possible_paths = [
                 frappe.get_site_path("public", "files", file_doc.file_name),
                 get_files_path(file_doc.file_name),
@@ -204,13 +203,13 @@ def get_file_path_from_url(file_url):
                 os.path.join(".", frappe.local.site, "public", "files", file_doc.file_name)
             ]
             
-            # Find the first path that exists
+            
             for path in possible_paths:
                 if os.path.exists(path):
                     file_path = path
                     break
             else:
-                # If no path found, use the first one and let it fail gracefully
+                
                 file_path = possible_paths[0]
         
         frappe.logger().info(f"File path resolved: {file_path}")
@@ -218,7 +217,7 @@ def get_file_path_from_url(file_url):
         
     except Exception as e:
         frappe.logger().error(f"Error resolving file path for {file_url}: {str(e)}")
-        # Fallback: try to construct path from URL
+      
         if "/files/" in file_url:
             filename = file_url.split("/files/")[-1]
             return frappe.get_site_path("public", "files", filename)
