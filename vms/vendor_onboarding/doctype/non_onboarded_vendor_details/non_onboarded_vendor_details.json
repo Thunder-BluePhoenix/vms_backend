@@ -15,7 +15,9 @@
   "company_pan",
   "gst_number",
   "more_info_section",
-  "quotation"
+  "quotation",
+  "json_field",
+  "html"
  ],
  "fields": [
   {
@@ -73,13 +75,23 @@
    "fieldname": "gst_number",
    "fieldtype": "Data",
    "label": "GST Number"
+  },
+  {
+   "fieldname": "json_field",
+   "fieldtype": "JSON",
+   "label": "JSON Field"
+  },
+  {
+   "fieldname": "html",
+   "fieldtype": "HTML",
+   "label": "HTML"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-29 17:29:00.600492",
+ "modified": "2025-07-31 14:02:28.711463",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Non Onboarded Vendor Details",

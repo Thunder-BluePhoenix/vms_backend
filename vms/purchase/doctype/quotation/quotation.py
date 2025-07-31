@@ -218,13 +218,13 @@ def set_multi_quot_id_in_rfq(doc):
         # Non-Onboarded Vendor: Add only if office_email_primary matches
         if doc.office_email_primary:
             non_onboarded_rows = frappe.db.sql("""
-                SELECT name, quotation_json
+                SELECT name, json_field
                 FROM `tabNon Onboarded Vendor Details` 
                 WHERE parent = %s AND office_email_primary = %s
             """, (doc.rfq_number, doc.office_email_primary), as_dict=True)
 
             for row in non_onboarded_rows:
-                existing_json = row.quotation_json or "[]"
+                existing_json = row.json_field or "[]"
                 try:
                     json_data = json.loads(existing_json)
                     if not isinstance(json_data, list):
@@ -239,7 +239,7 @@ def set_multi_quot_id_in_rfq(doc):
                     })
 
                     frappe.db.set_value(
-                        "Non Onboarded Vendor Details", row.name, "quotation_json", json.dumps(json_data)
+                        "Non Onboarded Vendor Details", row.name, "json_field", json.dumps(json_data)
                     )
 
         frappe.db.commit()

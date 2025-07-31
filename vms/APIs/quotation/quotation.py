@@ -149,9 +149,12 @@ def send_revision_email_to_vendor(quotation):
 
 #API Function for the approval of quotation
 @frappe.whitelist(allow_guest=True)
-def approve_quotation(name):
+def approve_quotation(data):
     try:
-        quotation_name = name
+        if isinstance(data, str):
+            data = json.loads(data)
+            
+        quotation_name = data.get("name")
         
         if not quotation_name:
             return {
@@ -170,6 +173,26 @@ def approve_quotation(name):
         
         quotation = frappe.get_doc('Quotation', quotation_name)
         
+        quotation.final_ffn = data.get("final_ffn") or ""
+        quotation.final_rate_kg = data.get("final_rate_kg") or ""
+        quotation.final_chargeable_weight = data.get("final_chargeable_weight") or ""
+        quotation.final_freight_fcr = data.get("final_freight_fcr") or ""
+        quotation.final_fsc = data.get("final_fsc") or ""
+        quotation.final_sc = data.get("final_sc") or ""
+        quotation.final_xcr = data.get("final_xcr") or ""
+        quotation.final_pickup = data.get("final_pickup") or ""
+        quotation.final_xray = data.get("final_xray") or ""
+        quotation.final_sum_freight_inr = data.get("final_sum_freight_inr") or ""
+        quotation.final_gst_amount = data.get("final_gst_amount") or ""
+        quotation.final_total = data.get("final_total") or ""
+        quotation.final_others = data.get("final_others") or ""
+        quotation.final_airline = data.get("final_airline") or ""
+        quotation.final_landing_price = data.get("final_landing_price") or ""
+        quotation.final_dc = data.get("final_dc") or ""
+        quotation.final_transit_days = data.get("final_transit_days") or ""
+        quotation.final_freight_total = data.get("final_freight_total") or ""
+        quotation.final_remarks = data.get("final_remarks") or ""
+        quotation.final_tat = data.get("final_tat") or ""
         
         rfq_number = quotation.get('rfq_number') 
         
