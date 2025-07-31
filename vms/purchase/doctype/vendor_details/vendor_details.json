@@ -16,7 +16,9 @@
   "country",
   "mail_sent",
   "more_info_section",
-  "quotation"
+  "quotation",
+  "json_field",
+  "html"
  ],
  "fields": [
   {
@@ -84,13 +86,23 @@
    "fieldtype": "Link",
    "label": "Quotation",
    "options": "Quotation"
+  },
+  {
+   "fieldname": "json_field",
+   "fieldtype": "JSON",
+   "label": "JSON Field"
+  },
+  {
+   "fieldname": "html",
+   "fieldtype": "HTML",
+   "label": "HTML"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-22 08:06:19.717824",
+ "modified": "2025-07-31 01:26:25.661090",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Vendor Details",

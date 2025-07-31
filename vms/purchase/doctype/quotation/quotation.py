@@ -16,6 +16,7 @@ class Quotation(Document):
         
         if not self.flags.get('skip_rfq_update'):
             set_quotation_id_in_rfq(self)
+            set_multi_quot_id_in_rfq(self)
     
     def update_quotation_rankings(self):
         try:
@@ -158,3 +159,90 @@ def set_quotation_id_in_rfq(doc):
 
     except Exception as e:
         frappe.log_error(f"Error setting quotation ID in RFQ {doc.rfq_number}: {str(e)}", "RFQ Update Error")
+
+
+
+import json
+import frappe
+from frappe.utils import now
+
+def set_multi_quot_id_in_rfq(doc):
+    if not doc.rfq_number:
+        return
+
+    try:
+        conditions = []
+        values = []
+
+        # Build dynamic condition for Vendor Details
+        if doc.ref_no:
+            conditions.append("(ref_no = %s)")
+            values.append(doc.ref_no)
+        if doc.office_email_primary:
+            conditions.append("(office_email_primary = %s)")
+            values.append(doc.office_email_primary)
+
+        if not conditions:
+            return
+
+        condition_clause = " OR ".join(conditions)
+
+        # Fetch matching Vendor Details rows
+        vendor_details = frappe.db.sql(f"""
+            SELECT name, json_field 
+            FROM `tabVendor Details` 
+            WHERE parent = %s AND ({condition_clause})
+        """, tuple([doc.rfq_number] + values), as_dict=True)
+
+        for row in vendor_details:
+            existing_json = row.json_field or "[]"
+            try:
+                json_data = json.loads(existing_json)
+                if not isinstance(json_data, list):
+                    json_data = []
+            except:
+                json_data = []
+
+            # Check if already added
+            already_exists = any(q["quotation"] == doc.name for q in json_data)
+            if not already_exists:
+                json_data.append({
+                    "quotation": doc.name,
+                    "creation": now()
+                })
+
+                frappe.db.set_value(
+                    "Vendor Details", row.name, "json_field", json.dumps(json_data)
+                )
+
+        # Non-Onboarded Vendor: Add only if office_email_primary matches
+        if doc.office_email_primary:
+            non_onboarded_rows = frappe.db.sql("""
+                SELECT name, quotation_json
+                FROM `tabNon Onboarded Vendor Details` 
+                WHERE parent = %s AND office_email_primary = %s
+            """, (doc.rfq_number, doc.office_email_primary), as_dict=True)
+
+            for row in non_onboarded_rows:
+                existing_json = row.quotation_json or "[]"
+                try:
+                    json_data = json.loads(existing_json)
+                    if not isinstance(json_data, list):
+                        json_data = []
+                except:
+                    json_data = []
+
+                if not any(q["quotation"] == doc.name for q in json_data):
+                    json_data.append({
+                        "quotation": doc.name,
+                        "creation": now()
+                    })
+
+                    frappe.db.set_value(
+                        "Non Onboarded Vendor Details", row.name, "quotation_json", json.dumps(json_data)
+                    )
+
+        frappe.db.commit()
+
+    except Exception as e:
+        frappe.log_error(f"Error setting multiple quotation IDs in RFQ {doc.rfq_number}: {str(e)}", "RFQ Multi Quotation Update Error")
