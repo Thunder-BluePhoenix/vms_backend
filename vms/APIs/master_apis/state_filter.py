@@ -59,30 +59,27 @@ def get_states_for_gst(ref_no=None, vendor_onboarding=None):
             )
             if company_details:
                 company.append(company_details)
-            
-            all_states.append(company_details)
-            
-
+                            
         # Iterate through vendor company details
         for vend_comp in vend_onboarding.vendor_company_details:
             try:
-                company = frappe.get_doc("Vendor Onboarding Company Details", vend_comp.vendor_company_details)
+                comp_doc = frappe.get_doc("Vendor Onboarding Company Details", vend_comp.vendor_company_details)
                 
                 # Handle office state with pincode
-                if hasattr(company, 'state') and company.state:
-                    office_state_data = get_state_data_safely(company.state, company.pincode if hasattr(company, 'pincode') else None)
+                if hasattr(comp_doc, 'state') and comp_doc.state:
+                    office_state_data = get_state_data_safely(comp_doc.state, getattr(comp_doc, 'pincode', None))
                     add_state_to_list(office_state_data, all_states)
                 
                 # Handle manufacturing state with pincode
-                if hasattr(company, 'manufacturing_state') and company.manufacturing_state:
-                    manu_state_data = get_state_data_safely(company.manufacturing_state, company.manufacturing_pincode if hasattr(company, 'manufacturing_pincode') else None)
+                if hasattr(comp_doc, 'manufacturing_state') and comp_doc.manufacturing_state:
+                    manu_state_data = get_state_data_safely(comp_doc.manufacturing_state, getattr(comp_doc, 'manufacturing_pincode', None))
                     add_state_to_list(manu_state_data, all_states)
                 
                 # Iterate through multiple location table
-                if hasattr(company, 'multiple_location_table') and company.multiple_location_table:
-                    for comp_add in company.multiple_location_table:
+                if hasattr(comp_doc, 'multiple_location_table') and comp_doc.multiple_location_table:
+                    for comp_add in comp_doc.multiple_location_table:
                         if hasattr(comp_add, 'ma_state') and comp_add.ma_state:
-                            state_data = get_state_data_safely(comp_add.ma_state, comp_add.ma_pincode if hasattr(comp_add, 'ma_pincode') else None)
+                            state_data = get_state_data_safely(comp_add.ma_state, getattr(comp_add, 'ma_pincode', None))
                             add_state_to_list(state_data, all_states)
                             
             except frappe.DoesNotExistError:
@@ -92,18 +89,20 @@ def get_states_for_gst(ref_no=None, vendor_onboarding=None):
                 frappe.log_error(f"Error processing company details {vend_comp.vendor_company_details}: {str(e)}")
                 continue
         
-        # Success response
+        # ✅ FIX: Proper dictionary instead of set
         frappe.response["http_status_code"] = 200
         return {
             "success": True,
             "message": "States data retrieved successfully",
-            "data": all_states,
+            "data": {
+                "states": all_states,
+                "company": company
+            },
             "count": len(all_states)
         }
         
     except Exception as e:
-        return handle_api_exception(e, "Get States for GST API")
-    
+        return handle_api_exception(e, "Get States for GST API")   
 
 
 
