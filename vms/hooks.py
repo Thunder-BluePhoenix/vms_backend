@@ -73,6 +73,7 @@ fixtures = [
     {"dt": "QMS Prior Notification"},
     {"dt": "QMS Batch Record Details"},
     {"dt": "QMS Inspection Reports"},
+    # {"dt": "Workflow","filters": {"name": ["in", ["Earth Invoice Workflow"]]}},
 ]
 # Generators
 # ----------
