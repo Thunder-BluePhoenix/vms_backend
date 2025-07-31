@@ -459,6 +459,7 @@ def update_vendor_onboarding_gst_details(data):
 					gst_registration_date = (row.get("gst_registration_date") or "").strip()
 					gst_ven_type = (row.get("gst_ven_type") or "").strip()
 					pincode = (row.get("pincode") or "").strip()
+					company = (row.get("company") or "").strip()
 
 					if row_name:
 						# Update existing row by name (row ID).pincode
@@ -469,6 +470,7 @@ def update_vendor_onboarding_gst_details(data):
 							existing_row.gst_registration_date = gst_registration_date
 							existing_row.gst_ven_type = gst_ven_type
 							existing_row.pincode = pincode
+							existing_row.company = company
 							
 							# Set file URL if available
 							if uploaded_file_url:
@@ -493,7 +495,8 @@ def update_vendor_onboarding_gst_details(data):
 								"gst_number": gst_number,
 								"gst_registration_date": gst_registration_date,
 								"gst_ven_type": gst_ven_type,
-								"pincode":pincode
+								"pincode":pincode,
+								"company":company
 							})
 
 							# Set file URL explicitly if available
@@ -518,6 +521,7 @@ def update_vendor_onboarding_gst_details(data):
 				gst_registration_date = (row.get("gst_registration_date") or "").strip()
 				gst_ven_type = (row.get("gst_ven_type") or "").strip()
 				pincode = (row.get("pincode") or "").strip()
+				company = (row.get("company") or "").strip()
 
 				if row_name:
 					# Update existing row by name (row ID)
@@ -552,7 +556,8 @@ def update_vendor_onboarding_gst_details(data):
 							"gst_number": gst_number,
 							"gst_registration_date": gst_registration_date,
 							"gst_ven_type": gst_ven_type,
-							"pincode": pincode
+							"pincode": pincode,
+							"company": company
 						})
 
 						# Set file URL explicitly if available
@@ -672,3 +677,32 @@ def delete_vendor_onboarding_gst_row(row_name, ref_no, vendor_onboarding):
 			"message": "Failed to delete GST entry.",
 			"error": str(e)
 		}
+	
+
+# @frappe.whitelist(allow_guest=True)
+# def return_multiple_company(name):
+#     try:
+#         doc = frappe.get_doc("Vendor Onboarding", name)
+#         multi_company = []
+
+#         for row in doc.multiple_company:
+#             company_details = frappe.db.get_value(
+#                 "Company Master",
+#                 row.company,
+#                 ["name", "company_code", "company_name", "description"],
+#                 as_dict=True
+#             )
+#             if company_details:
+#                 multi_company.append(company_details)
+
+#         return {
+#             "status": "success",
+#             "data": multi_company
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Return Multiple Company API Error")
+#         return {
+#             "status": "error",
+#             "message": str(e)
+#         }
