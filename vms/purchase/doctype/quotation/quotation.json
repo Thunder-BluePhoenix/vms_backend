@@ -111,13 +111,36 @@
   "section_break_unla",
   "approved",
   "asked_to_revise",
+  "status",
   "column_break_bgwt",
   "bidding_status",
   "rank",
+  "final_negotiated_rate_section",
+  "final_ffn",
+  "final_freight_fcr",
+  "final_xcr",
+  "final_sum_freight_inr",
+  "final_others",
+  "final_dc",
+  "final_remarks",
+  "column_break_dpyk",
+  "final_rate_kg",
+  "final_fsc",
+  "final_pickup",
+  "final_gst_amount",
+  "final_airline",
+  "final_transit_days",
+  "final_tat",
+  "column_break_seze",
+  "final_chargeable_weight",
+  "final_sc",
+  "final_xray",
+  "final_total",
+  "final_landing_price",
+  "final_freight_total",
   "tab_3_tab",
   "version_history",
-  "history_html",
-  "status"
+  "history_html"
  ],
  "fields": [
   {
@@ -709,13 +732,126 @@
    "fieldname": "expected_delivery_in_no_of_days",
    "fieldtype": "Data",
    "label": "Expected Delivery in No of Days"
+  },
+  {
+   "fieldname": "final_negotiated_rate_section",
+   "fieldtype": "Section Break",
+   "label": "Final Negotiated Rate"
+  },
+  {
+   "fieldname": "final_ffn",
+   "fieldtype": "Data",
+   "label": "FFN"
+  },
+  {
+   "fieldname": "final_freight_fcr",
+   "fieldtype": "Data",
+   "label": "Freight FCR"
+  },
+  {
+   "fieldname": "final_xcr",
+   "fieldtype": "Data",
+   "label": "XCR"
+  },
+  {
+   "fieldname": "final_sum_freight_inr",
+   "fieldtype": "Data",
+   "label": "Sum Freight INR"
+  },
+  {
+   "fieldname": "final_others",
+   "fieldtype": "Data",
+   "label": "Others"
+  },
+  {
+   "fieldname": "final_dc",
+   "fieldtype": "Data",
+   "label": "DC"
+  },
+  {
+   "fieldname": "final_remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "column_break_dpyk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "final_rate_kg",
+   "fieldtype": "Data",
+   "label": "Rate Per KG"
+  },
+  {
+   "fieldname": "final_fsc",
+   "fieldtype": "Data",
+   "label": "FSC"
+  },
+  {
+   "fieldname": "final_pickup",
+   "fieldtype": "Data",
+   "label": "Pick Up"
+  },
+  {
+   "fieldname": "final_gst_amount",
+   "fieldtype": "Data",
+   "label": "GST in Amount"
+  },
+  {
+   "fieldname": "final_airline",
+   "fieldtype": "Data",
+   "label": "Airline"
+  },
+  {
+   "fieldname": "final_transit_days",
+   "fieldtype": "Data",
+   "label": "Transit Days"
+  },
+  {
+   "fieldname": "final_tat",
+   "fieldtype": "Data",
+   "label": "TAT"
+  },
+  {
+   "fieldname": "column_break_seze",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "final_chargeable_weight",
+   "fieldtype": "Data",
+   "label": "Chargeable Weight"
+  },
+  {
+   "fieldname": "final_sc",
+   "fieldtype": "Data",
+   "label": "SC"
+  },
+  {
+   "fieldname": "final_xray",
+   "fieldtype": "Data",
+   "label": "XRAY"
+  },
+  {
+   "fieldname": "final_total",
+   "fieldtype": "Data",
+   "label": "Total"
+  },
+  {
+   "fieldname": "final_landing_price",
+   "fieldtype": "Data",
+   "label": "Landing Price"
+  },
+  {
+   "fieldname": "final_freight_total",
+   "fieldtype": "Data",
+   "label": "Freight Total"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-29 15:55:58.113063",
- "modified_by": "abhishek@mail.hybrowlabs.com",
+ "modified": "2025-07-31 15:22:18.761594",
+ "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Quotation",
  "naming_rule": "By \"Naming Series\" field",

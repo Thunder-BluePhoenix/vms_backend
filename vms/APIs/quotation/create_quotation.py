@@ -416,11 +416,11 @@ def create_or_update_quotation_non_onboarded():
         form_data = frappe.local.form_dict
         token = form_data.get('token')
         decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"], options={"verify_exp": False})
-        email = decoded.get("email")
-        rfq = decoded.get("rfq")
+        vendor_email = decoded.get("email")
+        rfq_number = decoded.get("rfq")
 
-        if rfq:
-            rfq_doc = frappe.get_doc("Request For Quotation", rfq)
+        if rfq_number:
+            rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
 
             # Check real-time cutoff first
             cutoff = get_datetime(rfq_doc.rfq_cutoff_date_logistic)
@@ -430,7 +430,6 @@ def create_or_update_quotation_non_onboarded():
                 frappe.throw(_("This secure link has expired due to cutoff date."))
         
         
-        vendor_email = email
         if not vendor_email:
             return {
                 "status": "error",
@@ -439,21 +438,21 @@ def create_or_update_quotation_non_onboarded():
             }
 
         # rfq = form_data.get('rfq_number')
-        if not rfq:
+        if not rfq_number:
             return {
                 "status": "error",
                 "message": "RFQ Number is required",
                 "error": "RFQ Number is required"
             }
 
-        if not frappe.db.exists("Request For Quotation", rfq):
+        if not frappe.db.exists("Request For Quotation", rfq_number):
             return {
                 "status": "error",
-                "message": f"RFQ {rfq} does not exist",
+                "message": f"RFQ {rfq_number} does not exist",
                 "error": "RFQ Not Found"
             }
         
-        rfq_doc = frappe.get_doc("Request For Quotation", rfq)
+        rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
         
         user_authorized = False
         
@@ -509,6 +508,9 @@ def create_or_update_quotation_non_onboarded():
         
         if vendor_email:
             data['office_email_primary'] = vendor_email
+
+        if rfq_number:
+             data["rfq_number"] = rfq_number
 
         quotation_name = data.get('name')
         action = "updated"

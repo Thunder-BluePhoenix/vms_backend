@@ -36,7 +36,14 @@ def get_full_rfq_data(name):
 		vendor_with_quotation = 0
 		for row in doc.vendor_details:
 			if row.quotation:
-				vendor_with_quotation += 1	
+				vendor_with_quotation += 1    
+
+			# Parse json_field if present, otherwise return []
+			try:
+				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
+			except Exception:
+				parsed_json = []
+
 			vendor_details_data.append({
 				"refno": row.ref_no,
 				"vendor_name": row.vendor_name,
@@ -45,22 +52,30 @@ def get_full_rfq_data(name):
 				"mobile_number": row.mobile_number,
 				"service_provider_type": row.service_provider_type,
 				"country": row.country,
-				"json_field": row.json_field
+				"quotations": parsed_json   
 			})
 
 		# Non-Onboarded Vendor Details Table
-		non_onboarded_vendor_details_data = []
+		# non_onboarded_vendor_details_data = []
 		non_onboarded_with_quotation = 0
 		for row in doc.non_onboarded_vendor_details:
 			if row.quotation:
 				non_onboarded_with_quotation += 1
-			non_onboarded_vendor_details_data.append({
+
+			# Parse json_field if present, otherwise return []
+			try:
+				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
+			except Exception:
+				parsed_json = []
+
+			vendor_details_data.append({
 				"office_email_primary": row.office_email_primary,
 				"vendor_name": row.vendor_name,
 				"mobile_number": row.mobile_number,
 				"country": row.country,
 				"company_pan": row.company_pan,
-				"gst_number": row.gst_number
+				"gst_number": row.gst_number,
+				"quotations": parsed_json 
 			})
 
 		# File Attachments Section
@@ -148,7 +163,7 @@ def get_full_rfq_data(name):
 			# Tables
 			"pr_items": pr_items,
 			"vendor_details": vendor_details_data,
-			"non_onboarded_vendors": non_onboarded_vendor_details_data,
+			# "non_onboarded_vendors": non_onboarded_vendor_details_data,
 			"attachments": attachments,
 
 			# Counts
