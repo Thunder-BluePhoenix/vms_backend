@@ -2,6 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
+ "autoname": "format:INV-{MM}-{YYYY}-{#####}",
  "creation": "2025-07-30 18:09:29.277975",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -38,7 +39,6 @@
   "return_to_destination",
   "train_section",
   "train_no",
-  "quota",
   "column_break_vlrr",
   "class",
   "section_break_avyb",
@@ -52,25 +52,23 @@
   "check_in_date",
   "check_out_date",
   "no_of_nights",
-  "section_break_jquz",
-  "confirmation_voucher",
-  "column_break_hksy",
-  "invoice_attachment",
-  "debit_note_attachment",
   "section_break_jlsu",
   "basic_amount",
   "net_amount",
   "cgst_amount",
   "igst_amount",
-  "remarks",
+  "inv_date",
+  "inv_no",
   "dn_no",
   "column_break_upqt",
   "gst_amount",
   "service_charges",
   "sgst_amount",
   "grand_total",
-  "inv_no",
-  "inv_date"
+  "confirmation_voucher",
+  "invoice_attachment",
+  "debit_note_attachment",
+  "remarks"
  ],
  "fields": [
   {
@@ -82,7 +80,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Invoice",
+   "options": "Earth Invoice",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
@@ -365,17 +363,8 @@
    "label": "CLASS"
   },
   {
-   "fieldname": "quota",
-   "fieldtype": "Data",
-   "label": "QUOTA"
-  },
-  {
    "fieldname": "column_break_vlrr",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_jquz",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "confirmation_voucher",
@@ -388,10 +377,6 @@
    "label": "INVOICE ATTACHMENT"
   },
   {
-   "fieldname": "column_break_hksy",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "debit_note_attachment",
    "fieldtype": "Attach",
    "label": "DEBIT NOTE ATTACHMENT"
@@ -401,10 +386,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-30 23:33:43.619670",
- "modified_by": "abhishek@mail.hybrowlabs.com",
+ "modified": "2025-07-31 10:39:23.231910",
+ "modified_by": "Administrator",
  "module": "Vms",
  "name": "Earth Invoice",
+ "naming_rule": "Expression",
  "owner": "abhishek@mail.hybrowlabs.com",
  "permissions": [
   {
