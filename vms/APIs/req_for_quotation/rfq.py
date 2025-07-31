@@ -44,7 +44,8 @@ def get_full_rfq_data(name):
 				"office_email_primary": row.office_email_primary,
 				"mobile_number": row.mobile_number,
 				"service_provider_type": row.service_provider_type,
-				"country": row.country
+				"country": row.country,
+				"json_field": row.json_field
 			})
 
 		# Non-Onboarded Vendor Details Table
@@ -87,6 +88,7 @@ def get_full_rfq_data(name):
 		data = {
 			# logistic import rfq data / logistic export rfq data
 			"name": doc.name,
+			"unique_id": doc.unique_id,
 			"rfq_type": doc.rfq_type,
 			"raised_by": doc.raised_by,
 			"logistic_type": doc.logistic_type,
@@ -142,7 +144,6 @@ def get_full_rfq_data(name):
 			"first_reminder": doc.first_reminder,
 			"second_reminder": doc.second_reminder,
 			"third_reminder": doc.third_reminder,
-			"unique_id": doc.unique_id,
 
 			# Tables
 			"pr_items": pr_items,

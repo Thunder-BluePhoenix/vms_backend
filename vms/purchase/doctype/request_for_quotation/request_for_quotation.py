@@ -315,7 +315,7 @@ def send_quotation_email(doc):
             frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)
 
 
-SECRET_KEY = frappe.conf.get("secret_key")
+SECRET_KEY = str(frappe.conf.get("secret_key", ""))
 
 def generate_secure_token(ref_no=None, email=None, rfq_name=None):
     payload = {
@@ -381,6 +381,7 @@ def process_token(token):
             if rfq_doc.rfq_type == "Logistic Vendor":
                 return {
                     "status": "success",
+                    "rfq_type": rfq_doc.rfq_type,
                     "logistic_type": rfq_doc.logistic_type,
                     "company_name_logistic": rfq_doc.company_name_logistic,
                     "rfq_cutoff_date_logistic": rfq_doc.rfq_cutoff_date_logistic,
@@ -434,6 +435,7 @@ def process_token(token):
 
                 return {
                     "status": "success",
+					"rfq_type": rfq_doc.rfq_type,
                     "rfq_date": rfq_doc.rfq_date,
                     "company_name": rfq_doc.company_name,
                     "purchase_organization": rfq_doc.purchase_organization,
@@ -485,6 +487,7 @@ def process_token(token):
 
                 return {
                     "status": "success",
+					"rfq_type": rfq_doc.rfq_type,
                     "rfq_date": rfq_doc.rfq_date,
                     "company_name": rfq_doc.company_name,
                     "purchase_organization": rfq_doc.purchase_organization,
