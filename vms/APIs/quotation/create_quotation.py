@@ -4,6 +4,11 @@ from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, now
 from frappe import _
 import base64
+import jwt
+from frappe.utils import get_datetime, now_datetime
+from datetime import datetime
+from frappe import _
+from datetime import datetime, timedelta
 
 @frappe.whitelist(allow_guest=True)
 def fetch_rfq_data(name, ref_no):
@@ -403,13 +408,29 @@ def create_or_update_quotation():
             "error_type": "general"
         }
 
+SECRET_KEY = str(frappe.conf.get("secret_key", ""))
 
 @frappe.whitelist(allow_guest=True)
 def create_or_update_quotation_non_onboarded():
     try:
         form_data = frappe.local.form_dict
+        token = form_data.get('token')
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"], options={"verify_exp": False})
+        email = decoded.get("email")
+        rfq = decoded.get("rfq")
+
+        if rfq:
+            rfq_doc = frappe.get_doc("Request For Quotation", rfq)
+
+            # Check real-time cutoff first
+            cutoff = get_datetime(rfq_doc.rfq_cutoff_date_logistic)
+            now = now_datetime()
+            if now > cutoff:
+                frappe.local.response["http_status_code"] = 410  # GONE
+                frappe.throw(_("This secure link has expired due to cutoff date."))
         
-        vendor_email = form_data.get('email')
+        
+        vendor_email = email
         if not vendor_email:
             return {
                 "status": "error",
@@ -417,7 +438,7 @@ def create_or_update_quotation_non_onboarded():
                 "error": "Email is required"
             }
 
-        rfq = form_data.get('rfq_number')
+        # rfq = form_data.get('rfq_number')
         if not rfq:
             return {
                 "status": "error",
