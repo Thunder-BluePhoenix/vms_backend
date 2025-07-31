@@ -39,6 +39,7 @@
   "return_to_destination",
   "train_section",
   "train_no",
+  "quota",
   "column_break_vlrr",
   "class",
   "section_break_avyb",
@@ -380,13 +381,18 @@
    "fieldname": "debit_note_attachment",
    "fieldtype": "Attach",
    "label": "DEBIT NOTE ATTACHMENT"
+  },
+  {
+   "fieldname": "quota",
+   "fieldtype": "Data",
+   "label": "QUOTA"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-31 10:39:23.231910",
+ "modified": "2025-07-31 11:13:33.292459",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Earth Invoice",
