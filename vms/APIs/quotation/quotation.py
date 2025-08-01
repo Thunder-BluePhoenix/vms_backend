@@ -215,6 +215,8 @@ def approve_quotation(data):
                 update_losing_quotations(rfq_number, quotation_name)
 
                 rfq = frappe.get_doc("Request For Quotation", rfq_number)
+                frappe.db.set_value("Request For Quotation", rfq.name, "status", "Approved")
+
                  # Mark 'Won' in Vendor Details table if ref_no or email matches
                 for row in rfq.vendor_details:
                     if (quotation.ref_no and quotation.ref_no == row.ref_no) or \
@@ -553,6 +555,8 @@ def get_quotations_by_rfq(rfq_number):
                 "transit_days": quotation.get('transit_days'),
                 "remarks": quotation.get('remarks'),
                 "logistic_type": quotation.get('logistic_type'),
+                "bidding_status": quotation.get('bidding_status'),
+                "status": quotation.get('status'),
                 "attachments": formatted_attachments
             }
             formatted_quotations.append(formatted_quotation)

@@ -888,10 +888,10 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 		condition_clause = f"WHERE {condition_clause}" if condition_clause else ""
 
 		# Filter RFQs by vendor email
-		rfq_names = frappe.db.sql_list(f"""
+		rfq_names = [r[0] for r in frappe.db.sql("""
 			SELECT parent FROM `tabVendor Details`
 			WHERE office_email_primary = %s
-		""", usr)
+		""", usr)]
 
 		if not rfq_names:
 			return {
@@ -913,10 +913,27 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 			) AS grouped
 		""", values)[0][0]
 
+		# Overall total RFQ count for vendor (merged from total_rfq_count logic)
+		overall_total_rfq = frappe.db.sql("""
+			SELECT COUNT(*) FROM (
+				SELECT DISTINCT parent
+				FROM (
+					SELECT parent FROM `tabVendor Details`
+					WHERE office_email_primary = %(email)s
+					UNION
+					SELECT parent FROM `tabNon Onboarded Vendor Details`
+					WHERE office_email_primary = %(email)s
+				) AS combined
+				JOIN `tabRequest For Quotation` rfq ON rfq.name = combined.parent
+				GROUP BY rfq.unique_id
+			) AS grouped
+		""", {"email": usr})[0][0]
+
 		data = frappe.db.sql(f"""
 			SELECT
 				rfq.name,
 				IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
+				rfq.creation,
 				rfq.rfq_type,
 				rfq.logistic_type,
 				rfq.unique_id,
@@ -938,7 +955,8 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 			"status": "success",
 			"message": f"{len(data)} RFQ(s) found",
 			"data": data,
-			"total_count": total_count,
+			"total_count": total_count or 0,
+			"overall_total_rfq": overall_total_rfq,
 			"page_no": page_no,
 			"page_length": page_length
 		}
@@ -990,10 +1008,20 @@ def purchase_team_rfq_dashboard(company_name, name, page_no, page_length, rfq_ty
 			) AS grouped
 		""", values)[0][0]
 
+		# Overall total RFQ count for purchase team (merged from total_rfq_count logic)
+		overall_total_rfq = frappe.db.sql("""
+			SELECT COUNT(*) FROM (
+				SELECT 1
+				FROM `tabRequest For Quotation`
+				GROUP BY unique_id
+			) AS grouped
+		""")[0][0]
+
 		data = frappe.db.sql(f"""
 			SELECT
 				rfq.name,
 				IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
+				rfq.creation,
 				rfq.rfq_type,
 				rfq.logistic_type,
 				rfq.unique_id,
@@ -1014,7 +1042,8 @@ def purchase_team_rfq_dashboard(company_name, name, page_no, page_length, rfq_ty
 			"status": "success",
 			"message": f"{len(data)} RFQ(s) found",
 			"data": data,
-			"total_count": total_count,
+			"total_count": total_count or 0,
+			"overall_total_rfq": overall_total_rfq,
 			"page_no": page_no,
 			"page_length": page_length
 		}
