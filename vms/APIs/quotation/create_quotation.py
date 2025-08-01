@@ -413,32 +413,41 @@ SECRET_KEY = str(frappe.conf.get("secret_key", ""))
 @frappe.whitelist(allow_guest=True)
 def create_or_update_quotation_non_onboarded():
     try:
+        print("=== Starting create_or_update_quotation_non_onboarded ===")
         form_data = frappe.local.form_dict
         token = form_data.get('token')
+        print(f"Token received: {token}")
+        
         decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"], options={"verify_exp": False})
         vendor_email = decoded.get("email")
         rfq_number = decoded.get("rfq")
+        print(f"Decoded vendor_email: {vendor_email}")
+        print(f"Decoded rfq_number: {rfq_number}")
 
         if rfq_number:
+            print(f"Fetching RFQ document: {rfq_number}")
             rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
 
             # Check real-time cutoff first
             cutoff = get_datetime(rfq_doc.rfq_cutoff_date_logistic)
             now = now_datetime()
+            print(f"RFQ cutoff: {cutoff}, Current time: {now}")
+            
             if now > cutoff:
+                print("RFQ has expired due to cutoff date")
                 frappe.local.response["http_status_code"] = 410  # GONE
                 frappe.throw(_("This secure link has expired due to cutoff date."))
-        
-        
+
         if not vendor_email:
+            print("Error: Email is required")
             return {
                 "status": "error",
                 "message": "Email is required",
                 "error": "Email is required"
             }
 
-        # rfq = form_data.get('rfq_number')
         if not rfq_number:
+            print("Error: RFQ Number is required")
             return {
                 "status": "error",
                 "message": "RFQ Number is required",
@@ -446,28 +455,50 @@ def create_or_update_quotation_non_onboarded():
             }
 
         if not frappe.db.exists("Request For Quotation", rfq_number):
+            print(f"Error: RFQ {rfq_number} does not exist")
             return {
                 "status": "error",
                 "message": f"RFQ {rfq_number} does not exist",
                 "error": "RFQ Not Found"
             }
-        
+
         rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
-        
+        print(f"RFQ document loaded successfully: {rfq_number}")
+
         user_authorized = False
-        
-        for vendor in rfq_doc.non_onboarded_vendor_details:
+        vendor_details = None
+        is_onboarded_vendor = False
+
+        # Check in onboarded vendor_details first
+        print("Checking onboarded vendor details...")
+        for vendor in rfq_doc.vendor_details:
+            print(f"Checking onboarded vendor email: {vendor.get('office_email_primary')}")
             if vendor.get('office_email_primary') == vendor_email:
+                print("Found matching onboarded vendor")
                 user_authorized = True
+                vendor_details = vendor
+                is_onboarded_vendor = True
                 break
-        
+
+        # If not found in onboarded vendors, check non_onboarded_vendor_details
         if not user_authorized:
+            print("Checking non-onboarded vendor details...")
+            for vendor in rfq_doc.non_onboarded_vendor_details:
+                print(f"Checking non-onboarded vendor email: {vendor.get('office_email_primary')}")
+                if vendor.get('office_email_primary') == vendor_email:
+                    print("Found matching non-onboarded vendor")
+                    user_authorized = True
+                    break
+
+        if not user_authorized:
+            print(f"Error: Vendor {vendor_email} is not authorized")
             return {
                 "status": "error",
                 "message": "You are not allowed to fill this quotation",
                 "error": "Unauthorized Access"
             }
 
+        print("Processing files...")
         files = []
 
         if hasattr(frappe, 'request') and hasattr(frappe.request, 'files'):
@@ -475,48 +506,69 @@ def create_or_update_quotation_non_onboarded():
             if 'file' in request_files:
                 file_list = request_files.getlist('file')
                 files.extend(file_list)
+                print(f"Found {len(file_list)} files in request.files")
 
         if hasattr(frappe.local, 'uploaded_files') and frappe.local.uploaded_files:
             uploaded_files = frappe.local.uploaded_files
             if isinstance(uploaded_files, list):
                 files.extend(uploaded_files)
+                print(f"Found {len(uploaded_files)} files in uploaded_files (list)")
             else:
                 files.append(uploaded_files)
+                print("Found 1 file in uploaded_files (single file)")
 
         if 'file' in form_data:
             file_data = form_data.get('file')
             if hasattr(file_data, 'filename'):
                 files.append(file_data)
+                print("Found 1 file in form_data (single file)")
             elif isinstance(file_data, list):
                 files.extend([f for f in file_data if hasattr(f, 'filename')])
+                print(f"Found {len([f for f in file_data if hasattr(f, 'filename')])} files in form_data (list)")
 
-        frappe.log_error(f"Found {len(files)} files", "file_debug")
+        print(f"Total files found: {len(files)}")
 
+        print("Processing form data...")
         data = {}
         for key, value in form_data.items():
             if key != 'file':
                 data[key] = value
 
         if isinstance(data.get('data'), str):
+            print("Parsing JSON data from 'data' field")
             try:
                 json_data = json.loads(data.get('data'))
                 data.update(json_data)
                 data.pop('data', None)
+                print("JSON data parsed successfully")
             except json.JSONDecodeError:
+                print("Failed to parse JSON data")
                 pass
 
-        
         if vendor_email:
             data['office_email_primary'] = vendor_email
+            print(f"Set office_email_primary: {vendor_email}")
 
         if rfq_number:
-             data["rfq_number"] = rfq_number
+            data["rfq_number"] = rfq_number
+            print(f"Set rfq_number: {rfq_number}")
+
+        # Set additional vendor details if found in onboarded vendor table
+        if vendor_details and is_onboarded_vendor:
+            print("Setting additional vendor details from onboarded vendor")
+            data['ref_no'] = vendor_details.get('ref_no')
+            data['vendor_name'] = vendor_details.get('vendor_name')
+            data['vendor_code'] = vendor_details.get('vendor_code')
+            print(f"Set ref_no: {data.get('ref_no')}, vendor_name: {data.get('vendor_name')}, vendor_code: {data.get('vendor_code')}")
 
         quotation_name = data.get('name')
         action = "updated"
         email_sent = False
 
+        print(f"Quotation name from data: {quotation_name}")
+
         if quotation_name and frappe.db.exists('Quotation', quotation_name):
+            print(f"Updating existing quotation: {quotation_name}")
             quotation = frappe.get_doc('Quotation', quotation_name)
 
             for key, value in data.items():
@@ -527,22 +579,28 @@ def create_or_update_quotation_non_onboarded():
             quotation.flags.ignore_version = True
             quotation.flags.ignore_links = True
             quotation.save(ignore_version=True)
+            print("Quotation updated successfully")
 
+            print("Handling quotation files...")
             handle_quotation_files(quotation, files)
             quotation.save(ignore_version=True)
             frappe.db.commit()
+            print("Quotation files handled and committed")
 
             action = "updated"
 
         else:
+            print("Creating new quotation...")
             data.pop('name', None)
 
             quotation = frappe.new_doc('Quotation')
 
             if not data.get('rfq_date'):
                 data['rfq_date'] = nowdate()
+                print(f"Set rfq_date to: {data['rfq_date']}")
             if not data.get('rfq_date_logistic'):
                 data['rfq_date_logistic'] = nowdate()
+                print(f"Set rfq_date_logistic to: {data['rfq_date_logistic']}")
 
             for key, value in data.items():
                 if hasattr(quotation, key):
@@ -552,14 +610,18 @@ def create_or_update_quotation_non_onboarded():
             quotation.flags.ignore_version = True
             quotation.flags.ignore_links = True
             quotation.insert(ignore_permissions=True)
+            print(f"New quotation created with name: {quotation.name}")
 
+            print("Handling quotation files...")
             handle_quotation_files(quotation, files)
             quotation.save(ignore_version=True)
             frappe.db.commit()
+            print("Quotation files handled and committed")
 
             action = "created"
 
             if quotation.rfq_number:
+                print(f"Queuing email notification for quotation: {quotation.name}")
                 try:
                     frappe.enqueue(
                         'vms.APIs.quotation.create_quotation.send_quotation_notification_email',
@@ -571,10 +633,11 @@ def create_or_update_quotation_non_onboarded():
                         is_async=True
                     )
                     email_sent = True
-                    frappe.log_error(f"Email notification queued for NEW quotation {quotation.name}", "Email Queue Success")
+                    print(f"Email notification queued successfully for quotation {quotation.name}")
                 except Exception as email_error:
-                    frappe.log_error(f"Failed to queue email for quotation {quotation.name}: {str(email_error)}", "Email Queue Error")
+                    print(f"Failed to queue email for quotation {quotation.name}: {str(email_error)}")
 
+        print(f"=== Completed successfully - Action: {action} ===")
         return {
             "status": "success",
             "message": f"Quotation {action} successfully",
@@ -583,12 +646,13 @@ def create_or_update_quotation_non_onboarded():
                 "action": action,
                 "attachments_count": len(quotation.attachments) if quotation.attachments else 0,
                 "email_sent": email_sent,
-                "vendor_type": "non_onboarded",
+                "vendor_type": "onboarded" if is_onboarded_vendor else "non_onboarded",
                 "vendor_email": vendor_email
             }
         }
 
     except frappe.ValidationError as e:
+        print(f"ValidationError occurred: {str(e)}")
         frappe.db.rollback()
         return {
             "status": "error",
@@ -597,6 +661,7 @@ def create_or_update_quotation_non_onboarded():
         }
 
     except frappe.DuplicateEntryError as e:
+        print(f"DuplicateEntryError occurred: {str(e)}")
         frappe.db.rollback()
         return {
             "status": "error",
@@ -605,14 +670,15 @@ def create_or_update_quotation_non_onboarded():
         }
 
     except Exception as e:
+        print(f"General Exception occurred: {str(e)}")
         frappe.db.rollback()
-        frappe.log_error(f"Quotation API Error: {str(e)}", "quotation_api_error")
         return {
             "status": "error",
             "message": f"An error occurred: {str(e)}",
             "error_type": "general"
         }
 
+		
 def send_quotation_notification_email(quotation_name, rfq_number, action):
     try:
         
