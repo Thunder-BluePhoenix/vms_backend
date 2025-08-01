@@ -6,9 +6,19 @@ from frappe.utils.file_manager import save_file
 
 
 @frappe.whitelist(allow_guest=False)
-def get_full_rfq_data(name):
+def get_full_rfq_data(unique_id):
 	try:
-		doc = frappe.get_doc("Request For Quotation", name)
+		latest_name = frappe.db.sql("""
+			SELECT MAX(name) AS name
+			FROM `tabRequest For Quotation`
+			WHERE unique_id = %s
+		""", unique_id, as_dict=True)
+
+		if not latest_name or not latest_name[0].name:
+			frappe.throw("Could not find latest RFQ version.")
+
+		rfq_name = latest_name[0].name
+		doc = frappe.get_doc("Request For Quotation", rfq_name)
 
 		# Child Tables
 		pr_items = []
@@ -78,6 +88,29 @@ def get_full_rfq_data(name):
 					"company_pan": row.company_pan,
 					"gst_number": row.gst_number,
 					"quotations": parsed_json 
+				})
+
+		all_vendors = []
+
+		for row in doc.vendor_details:
+				all_vendors.append({
+					"refno": row.ref_no,
+					"vendor_name": row.vendor_name,
+					"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
+					"office_email_primary": row.office_email_primary,
+					"mobile_number": row.mobile_number,
+					"service_provider_type": row.service_provider_type,
+					"country": row.country
+				})
+
+		for row in doc.non_onboarded_vendor_details:
+				all_vendors.append({
+					"office_email_primary": row.office_email_primary,
+					"vendor_name": row.vendor_name,
+					"mobile_number": row.mobile_number,
+					"country": row.country,
+					"company_pan": row.company_pan,
+					"gst_number": row.gst_number
 				})
 
 		# File Attachments Section
@@ -166,6 +199,7 @@ def get_full_rfq_data(name):
 			# Tables
 			"pr_items": pr_items,
 			"vendor_details": vendor_details_data,
+			"all_vendors": all_vendors,
 			"attachments": attachments,
 
 			# Counts
@@ -885,6 +919,7 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 				IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
 				rfq.rfq_type,
 				rfq.logistic_type,
+				rfq.unique_id,
 				IFNULL(rfq.rfq_date_logistic, rfq.quotation_deadline) AS rfq_date,
 				IFNULL(rfq.delivery_date, rfq.shipment_date) AS delivery_date,
 				rfq.status
@@ -961,6 +996,7 @@ def purchase_team_rfq_dashboard(company_name, name, page_no, page_length, rfq_ty
 				IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
 				rfq.rfq_type,
 				rfq.logistic_type,
+				rfq.unique_id,
 				IFNULL(rfq.rfq_date_logistic, rfq.quotation_deadline) AS rfq_date,
 				IFNULL(rfq.delivery_date, rfq.shipment_date) AS delivery_date,
 				rfq.status
