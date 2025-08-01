@@ -372,11 +372,26 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
 
         multi_company_name = []
+        company_data_to_show = []
+        
         registered_for_multi_companies =  ven_onb_doc.registered_for_multi_companies
         if ven_onb_doc.registered_for_multi_companies == 1:
 
             multi_company = [row.as_dict() for row in ven_onb_doc.multiple_company]
             multi_company_name.extend(multi_company)
+
+        if ven_onb_doc.vendor_company_details:
+            vendor_company_detail = ven_onb_doc.vendor_company_details[0]
+            
+            if vendor_company_detail.vendor_company_details:
+                company_detail_doc = frappe.get_doc("Vendor Onboarding Company Details", vendor_company_detail.vendor_company_details)
+                target_company = company_detail_doc.company_name
+                
+                if target_company and ven_onb_doc.registered_for_multi_companies == 1:
+                    for row in ven_onb_doc.multiple_company:
+                        if row.company == target_company:
+                            company_data_to_show.append(row.as_dict())
+                            break  
 
 
         #------------Manufacturing details tab------------------
@@ -549,7 +564,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "purchasing_details": purchasing_details,
             "validation_check": validation_check,
             "is_multi_company":registered_for_multi_companies,
-            "multi_company_data": multi_company_name
+            "multi_company_data": multi_company_name,
+            "company_data_to_show": company_data_to_show
         }
 
     except Exception as e:
