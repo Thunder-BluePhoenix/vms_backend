@@ -152,6 +152,7 @@ def create_import_logistic_rfq(data):
 		rfq.head_target = 1
 		rfq.unique_id = unique_id
 		rfq.form_fully_submitted = 1
+		rfq.status = "Pending"
 		rfq.rfq_type = data.get("rfq_type")
 		rfq.raised_by = frappe.local.session.user
 		rfq.logistic_type = data.get("logistic_type")
@@ -268,75 +269,6 @@ def create_import_logistic_rfq(data):
 		frappe.throw("Failed to create Import Logistic RFQ")
 
             
-
-# get full data of logistic import rfq
-@frappe.whitelist(allow_guest=False)
-def get_full_data_import_logistic_rfq(name):
-	try:
-		doc = frappe.get_doc("Request For Quotation", name)
-
-		vendor_details_data = []
-		for row in doc.vendor_details:
-			vendor_details_data.append({
-				"refno": row.ref_no,
-				"vendor_name": row.vendor_name,
-        		"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
-				"office_email_primary": row.office_email_primary,
-				"mobile_number": row.mobile_number,
-				"service_provider_type": row.service_provider_type,
-				"country": row.country
-			})
-
-		non_onboarded_vendor_details_data = []
-		for row in doc.non_onboarded_vendor_details:
-			non_onboarded_vendor_details_data.append({
-				"office_email_primary": row.office_email_primary,
-				"vendor_name": row.vendor_name,
-				"mobile_number": row.mobile_number,
-				"country": row.country
-			})
-
-		data = {
-			"rfq_type": doc.rfq_type,
-			"company_name_logistic": doc.company_name_logistic,
-			"service_provider": doc.service_provider,
-			"sr_no": doc.sr_no,
-			"rfq_cutoff_date_logistic": doc.rfq_cutoff_date_logistic,
-			"rfq_date_logistic": doc.rfq_date_logistic,
-			"mode_of_shipment": doc.mode_of_shipment,
-			"destination_port": doc.destination_port,
-			"country": doc.country,
-			"port_code": doc.port_code,
-			"port_of_loading": doc.port_of_loading,
-			"inco_terms": doc.inco_terms,
-			"shipper_name": doc.shipper_name,
-			"ship_to_address": doc.ship_to_address,
-			"package_type": doc.package_type,
-			"no_of_pkg_units": doc.no_of_pkg_units,
-			"product_category": doc.product_category,
-			"vol_weight": doc.vol_weight,
-			"actual_weight": doc.actual_weight,
-			"invoice_date": doc.invoice_date,
-			"invoice_no": doc.invoice_no,
-			"invoice_value": doc.invoice_value,
-			"expected_date_of_arrival": doc.expected_date_of_arrival,
-			"remarks": doc.remarks,
-			"vendor_details": vendor_details_data,
-			"non_onboarded_vendor_details": non_onboarded_vendor_details_data
-		}
-
-		return {
-			"status": "success",
-			"rfq_name": name,
-			"data": data
-		}
-
-	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "Fetch Import Logistic RFQ Error")
-		frappe.throw(_("Error fetching RFQ: ") + str(e))
-
-
-
  # create logistic export rfq data  -----------------------------------------------------------------------------------------------
 
 @frappe.whitelist(allow_guest=False)
@@ -349,9 +281,30 @@ def create_export_logistic_rfq(data):
 		    "Request For Quotation"	
 		)
 
+		# Generate unique_id
+		now = datetime.now()
+		year_month_prefix = f"RFQ{now.strftime('%y')}{now.strftime('%m')}"
+		existing_max = frappe.db.sql(
+			"""
+			SELECT MAX(CAST(SUBSTRING(unique_id, 8) AS UNSIGNED))
+			FROM `tabRequest For Quotation`
+			WHERE unique_id LIKE %s
+			""",
+			(year_month_prefix + "%",),
+			as_list=True
+		)
+		max_count = existing_max[0][0] if existing_max and existing_max[0] and existing_max[0][0] else 0
+		new_count = max_count + 1
+		unique_id = f"{year_month_prefix}{str(new_count).zfill(5)}"
+
+		# Set fields
+		rfq.head_target             = 1
+		rfq.unique_id               = unique_id
 		rfq.form_fully_submitted    = 1
+		rfq.status                  = "Pending"
 		rfq.rfq_type                = data.get("rfq_type")
 		rfq.raised_by               = frappe.local.session.user
+		rfq.logistic_type           = data.get("logistic_type")
 		rfq.company_name_logistic   = data.get("company_name_logistic")
 		rfq.service_provider        = data.get("service_provider")
 		rfq.sr_no                   = data.get("sr_no")
@@ -472,71 +425,6 @@ def create_export_logistic_rfq(data):
 		frappe.throw(_("Error creating RFQ: ") + str(e))
 
                    
-# get full data of logistic export rfq
-
-@frappe.whitelist(allow_guest=False)
-def get_full_data_export_logistic_rfq(name):
-	try:
-		doc = frappe.get_doc("Request For Quotation", name)
-
-		vendor_details_data = []
-		for row in doc.vendor_details:
-			vendor_details_data.append({
-				"refno": row.ref_no,
-				"vendor_name": row.vendor_name,
-        		"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
-				"office_email_primary": row.office_email_primary,
-				"mobile_number": row.mobile_number,
-				"service_provider_type": row.service_provider_type,
-				"country": row.country
-			})
-
-		non_onboarded_vendor_details_data = []
-		for row in doc.non_onboarded_vendor_details:
-			non_onboarded_vendor_details_data.append({
-				"office_email_primary": row.office_email_primary,
-				"vendor_name": row.vendor_name,
-				"mobile_number": row.mobile_number,
-				"country": row.country
-			})
-
-		data = {
-			"rfq_type": doc.rfq_type,
-			"company_name_logistic": doc.company_name_logistic,
-			"service_provider": doc.service_provider,
-			"sr_no": doc.sr_no,
-			"rfq_cutoff_date_logistic": doc.rfq_cutoff_date_logistic,
-			"rfq_date_logistic": doc.rfq_date_logistic,
-			"mode_of_shipment": doc.mode_of_shipment,
-			"destination_port": doc.destination_port,
-			"country": doc.country,
-			"port_code": doc.port_code,
-			"port_of_loading": doc.port_of_loading,
-			"inco_terms": doc.inco_terms,
-			"ship_to_address": doc.ship_to_address,
-			"package_type": doc.package_type,
-			"no_of_pkg_units": doc.no_of_pkg_units,
-			"product_category": doc.product_category,
-			"vol_weight": doc.vol_weight,
-			"actual_weight": doc.actual_weight,
-			"invoice_date": doc.invoice_date,
-			"invoice_no": doc.invoice_no,
-			"consignee_name": doc.consignee_name,
-			"shipment_date": doc.shipment_date,
-			"remarks": doc.remarks,
-			"vendor_details": vendor_details_data,
-			"non_onboarded_vendor_details": non_onboarded_vendor_details_data
-		}
-
-		return {
-			"status": "success",
-			"rfq_name": name,
-			"data": data
-		}
-
-	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "Fetch Export Logistic RFQ Error")
-		frappe.throw(_("Error fetching RFQ: ") + str(e))
 
 
 

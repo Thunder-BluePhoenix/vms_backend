@@ -15,32 +15,42 @@
   "name_of_product",
   "labor_rights_and_working_conditions_section",
   "have_prohibition_policy_of_child_labor",
+  "details_1",
   "upload_file_1",
   "age_verification_before_hiring",
+  "details_2",
   "upload_file_2",
   "ensure_modern_slavery_labor_policy",
+  "details_3",
   "upload_file_3",
   "have_non_discrimination_policy",
+  "details_4",
   "upload_file_4",
   "has_setup_safety_report_incidents",
+  "details_5",
   "upload_file_5",
   "pending_legal_cases_workplace_harassment",
   "details_of_pending_legal_cases",
   "upload_file_6",
   "column_break_apaq",
   "comply_minimum_wage_law_regulation",
+  "details_7",
   "upload_file_7",
   "legal_working_hours",
+  "details_8",
   "upload_file_8",
   "work_hrs_track_by_company",
+  "details_9",
   "upload_file_9",
   "has_diversity_inclusion_policy",
+  "details_10",
   "upload_file_10",
   "have_target_to_promote_diversity",
   "details_of_targets",
   "upload_file_11",
   "grievance_mechanism_section",
   "have_grievance_mechanism",
+  "details_12",
   "upload_file_12",
   "employee_well_being_section",
   "any_emp_well_being_initiative",
@@ -48,18 +58,24 @@
   "upload_file_13",
   "health_and_safety_section",
   "has_develop_health_safety_policy",
+  "details_14",
   "upload_file_14",
   "have_healthy_safety_management",
+  "details_15",
   "upload_file_15",
   "conduct_hira_activity",
+  "details_16",
   "upload_file_16",
   "certify_ohs_system",
+  "details_17",
   "upload_file_17",
   "emp_trained_health_safety",
+  "details_18",
   "upload_file_18",
   "mention_behavior_base_safety",
   "column_break_wspw",
   "track_health_safety_indicators",
+  "details_19",
   "upload_file_19",
   "provide_any_healthcare_services",
   "details_of_healthcare_services",
@@ -454,12 +470,92 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "SOC-ASAQ-.YYYY.-"
+  },
+  {
+   "fieldname": "details_1",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_2",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_3",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_4",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_5",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_7",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_8",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_9",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_10",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_12",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_14",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_15",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_16",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_17",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_18",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_19",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-12 09:36:27.293264",
+ "modified": "2025-08-01 00:58:14.385786",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Social Annual Supplier Assessment Questionnaire",

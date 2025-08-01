@@ -16,10 +16,15 @@
   "environmental_management_system_section",
   "does_company_have",
   "environment_sustainability_policy",
+  "details_1",
   "upload_file_1",
+  "column_break_ajvm",
   "environmental_management_certification",
+  "details_2",
   "upload_file_2",
+  "column_break_agpd",
   "regular_audits_conducted",
+  "details_3",
   "upload_file_3",
   "section_break_bfse",
   "energy_consumption_tracking",
@@ -48,17 +53,23 @@
   "details_of_targets_to_reduce_emission",
   "upload_file_11",
   "pcf_conducted",
+  "details_12",
   "upload_file_12",
   "water_consumption_and_management_section",
   "water_source_tracking",
+  "details_13",
   "upload_file_13",
   "have_permission_for_groundwater",
+  "details_14",
   "upload_file_14",
   "has_system_to_track_water_withdrawals",
+  "details_15",
   "upload_file_15",
   "have_facility_to_recycle_wastewater",
+  "details_16",
   "upload_file_16",
   "have_zld_strategy",
+  "details_17",
   "upload_file_17",
   "column_break_yzjy",
   "have_initiatives_to_increase_water_efficiency",
@@ -69,12 +80,16 @@
   "upload_file_19",
   "waste_management_section",
   "track_waste_generation",
+  "details_20",
   "upload_file_20",
   "handover_waste_to_authorized_vendor",
+  "details_21",
   "upload_file_21",
   "vendor_audits_for_waste_management",
+  "details_22",
   "upload_file_22",
   "have_epr_for_waste_management",
+  "details_23",
   "upload_file_23",
   "column_break_rtqy",
   "have_goals_to_reduce_waste",
@@ -82,9 +97,11 @@
   "upload_file_24",
   "green_products_section",
   "certified_green_projects",
+  "details_25",
   "upload_file_25",
   "biodiversity_section",
   "have_policy_on_biodiversity",
+  "details_26",
   "upload_file_26"
  ],
  "fields": [
@@ -578,12 +595,95 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "ENV-ASAQ-.YYYY.-"
+  },
+  {
+   "fieldname": "details_1",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "column_break_ajvm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "details_2",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "column_break_agpd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "details_3",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_12",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_13",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_14",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_15",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_16",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_17",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_20",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_21",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_22",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_23",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_25",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_26",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-12 09:37:06.262622",
+ "modified": "2025-08-01 01:10:17.470727",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Environment Annual Supplier Assessment Questionnaire",
