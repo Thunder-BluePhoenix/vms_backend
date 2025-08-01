@@ -189,10 +189,15 @@ def create_env_asa_form(data):
 		annual_ass = frappe.get_doc("Annual Supplier Assessment Questionnaire", data.get("name"))
 		env_doc = frappe.get_doc("Environment Annual Supplier Assessment Questionnaire", annual_ass.environment_doctype)
 
+		env_doc.annual_supplier_assessment_questionnaire = annual_ass.name
+
 		# Does your company have:
 		env_doc.environment_sustainability_policy = data.get("environment_sustainability_policy")
+		env_doc.details_1 = data.get("details_1")
 		env_doc.environmental_management_certification = data.get("environmental_management_certification")
+		env_doc.details_2 = data.get("details_2")
 		env_doc.regular_audits_conducted = data.get("regular_audits_conducted")
+		env_doc.details_3 = data.get("details_3")
 
 		# Energy Consumption and Emissions
 		env_doc.energy_consumption_tracking = data.get("energy_consumption_tracking")
@@ -218,13 +223,19 @@ def create_env_asa_form(data):
 		env_doc.details_of_targets_to_reduce_emission = data.get("details_of_targets_to_reduce_emission")
 
 		env_doc.pcf_conducted = data.get("pcf_conducted")
+		env_doc.details_12 = data.get("details_12")
 
 		# Water Consumption and Management
 		env_doc.water_source_tracking = data.get("water_source_tracking")
+		env_doc.details_13 = data.get("details_13")
 		env_doc.have_permission_for_groundwater = data.get("have_permission_for_groundwater")
+		env_doc.details_14 = data.get("details_14")
 		env_doc.has_system_to_track_water_withdrawals = data.get("has_system_to_track_water_withdrawals")
+		env_doc.details_15 = data.get("details_15")
 		env_doc.have_facility_to_recycle_wastewater = data.get("have_facility_to_recycle_wastewater")
+		env_doc.details_16 = data.get("details_16")
 		env_doc.have_zld_strategy = data.get("have_zld_strategy")
+		env_doc.details_17 = data.get("details_17")
 
 		env_doc.have_initiatives_to_increase_water_efficiency = data.get("have_initiatives_to_increase_water_efficiency")
 		env_doc.details_to_increase_water_efficiency = data.get("details_to_increase_water_efficiency")
@@ -234,17 +245,23 @@ def create_env_asa_form(data):
 
 		# Waste Management
 		env_doc.track_waste_generation = data.get("track_waste_generation")
+		env_doc.details_20 = data.get("details_20")
 		env_doc.handover_waste_to_authorized_vendor = data.get("handover_waste_to_authorized_vendor")
+		env_doc.details_21 = data.get("details_21")
 		env_doc.vendor_audits_for_waste_management = data.get("vendor_audits_for_waste_management")
+		env_doc.details_22 = data.get("details_22")
 		env_doc.have_epr_for_waste_management = data.get("have_epr_for_waste_management")
+		env_doc.details_23 = data.get("details_23")
 		env_doc.have_goals_to_reduce_waste = data.get("have_goals_to_reduce_waste")
 		env_doc.details_of_goals_to_reduce_waste = data.get("details_of_goals_to_reduce_waste")
 
 		# Green Products
 		env_doc.certified_green_projects = data.get("certified_green_projects")
+		env_doc.details_25 = data.get("details_25")
 
 		# Biodiversity
 		env_doc.have_policy_on_biodiversity = data.get("have_policy_on_biodiversity")
+		env_doc.details_26 = data.get("details_26")
 
 		# Attachments
 		attach_fields = [
@@ -287,23 +304,35 @@ def create_social_asa_form(data):
 		annual_ass = frappe.get_doc("Annual Supplier Assessment Questionnaire", data.get("name"))
 		social_doc = frappe.get_doc("Social Annual Supplier Assessment Questionnaire", annual_ass.social_doctype)
 
+		social_doc.annual_supplier_assessment_questionnaire = annual_ass.name
+
 		# Labor Rights and Working Conditions
 		social_doc.have_prohibition_policy_of_child_labor = data.get("have_prohibition_policy_of_child_labor")
+		social_doc.details_1 = data.get("details_1")
 		social_doc.age_verification_before_hiring = data.get("age_verification_before_hiring")
+		social_doc.details_2 = data.get("details_2")
 		social_doc.ensure_modern_slavery_labor_policy = data.get("ensure_modern_slavery_labor_policy")
+		social_doc.details_3 = data.get("details_3")
 		social_doc.have_non_discrimination_policy = data.get("have_non_discrimination_policy")
+		social_doc.details_4 = data.get("details_4")
 		social_doc.has_setup_safety_report_incidents = data.get("has_setup_safety_report_incidents")
+		social_doc.details_5 = data.get("details_5")
 		social_doc.pending_legal_cases_workplace_harassment = data.get("pending_legal_cases_workplace_harassment")
 		social_doc.details_of_pending_legal_cases = data.get("details_of_pending_legal_cases")
 		social_doc.comply_minimum_wage_law_regulation = data.get("comply_minimum_wage_law_regulation")
+		social_doc.details_7 = data.get("details_7")
 		social_doc.legal_working_hours = data.get("legal_working_hours")
+		social_doc.details_8 = data.get("details_8")
 		social_doc.work_hrs_track_by_company = data.get("work_hrs_track_by_company")
+		social_doc.details_9 = data.get("details_9")
 		social_doc.has_diversity_inclusion_policy = data.get("has_diversity_inclusion_policy")
+		social_doc.details_10 = data.get("details_10")
 		social_doc.have_target_to_promote_diversity = data.get("have_target_to_promote_diversity")
 		social_doc.details_of_targets = data.get("details_of_targets")
 
 		# Grievance Mechanism
 		social_doc.have_grievance_mechanism = data.get("have_grievance_mechanism")
+		social_doc.details_12 = data.get("details_12")
 
 		# Employee Well Being
 		social_doc.any_emp_well_being_initiative = data.get("any_emp_well_being_initiative")
@@ -311,12 +340,18 @@ def create_social_asa_form(data):
 
 		# Health and Safety
 		social_doc.has_develop_health_safety_policy = data.get("has_develop_health_safety_policy")
+		social_doc.details_14 = data.get("details_14")
 		social_doc.have_healthy_safety_management = data.get("have_healthy_safety_management")
+		social_doc.details_15 = data.get("details_15")
 		social_doc.conduct_hira_activity = data.get("conduct_hira_activity")
+		social_doc.details_16 = data.get("details_16")
 		social_doc.certify_ohs_system = data.get("certify_ohs_system")
+		social_doc.details_17 = data.get("details_17")
 		social_doc.emp_trained_health_safety = data.get("emp_trained_health_safety")
+		social_doc.details_18 = data.get("details_18")
 		social_doc.mention_behavior_base_safety = data.get("mention_behavior_base_safety")
 		social_doc.track_health_safety_indicators = data.get("track_health_safety_indicators")
+		social_doc.details_19 = data.get("details_19")
 		social_doc.provide_any_healthcare_services = data.get("provide_any_healthcare_services")
 		social_doc.details_of_healthcare_services = data.get("details_of_healthcare_services")
 
@@ -364,14 +399,21 @@ def create_gov_asa_form(data):
 		annual_ass = frappe.get_doc("Annual Supplier Assessment Questionnaire", data.get("name"))
 		gov_doc = frappe.get_doc("Governance Annual Supplier Assessment Questionnaire", annual_ass.governance_doctype)
 
+		gov_doc.annual_supplier_assessment_questionnaire = annual_ass.name
+
 		# Governance Section
 		gov_doc.have_formal_governance_structure = data.get("have_formal_governance_structure")
+		gov_doc.details_1 = data.get("details_1")
 		gov_doc.esg_policies_coverage = data.get("esg_policies_coverage")
+		gov_doc.details_2 = data.get("details_2")
 		gov_doc.esg_risk_integration = data.get("esg_risk_integration")
+		gov_doc.details_3 = data.get("details_3")
 		gov_doc.company_publish_sustainability_report = data.get("company_publish_sustainability_report")
+		gov_doc.details_4 = data.get("details_4")
 		gov_doc.esg_rating_participated = data.get("esg_rating_participated")
 		gov_doc.esg_rating_score = data.get("esg_rating_score")
 		gov_doc.esg_incentive_for_employee = data.get("esg_incentive_for_employee")
+		gov_doc.details_6 = data.get("details_6")
 		gov_doc.csat_survey_conducted = data.get("csat_survey_conducted")
 		gov_doc.csat_score = data.get("csat_score")
 		gov_doc.instance_of_loss_customer_data = data.get("instance_of_loss_customer_data")
