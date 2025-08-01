@@ -159,25 +159,33 @@ def approved_vendor_details(page_no=None, page_length=None, company=None, refno=
         # Enrich with company vendor codes
         for doc in onboarding_docs:
             ref_no = doc.get("ref_no")
+            main_company = doc.get("company_name")
+
+            # Fetch all company vendor codes for this ref_no
             company_vendor = frappe.get_all(
                 "Company Vendor Code",
                 filters={"vendor_ref_no": ref_no},
-                fields=["name", "company_code"]
+                fields=["name", "company_name", "company_code"]
             )
 
-            enriched_codes = []
+            # Prepare only matching company vendor codes
+            filtered_codes = []
             for cvc in company_vendor:
-                vendor_code_children = frappe.get_all(
-                    "Vendor Code",
-                    filters={"parent": cvc.name},
-                    fields=["state", "gst_no", "vendor_code"]
-                )
-                enriched_codes.append({
-                    "company_code": cvc.company_code,
-                    "vendor_codes": vendor_code_children
-                })
+                if cvc.company_name == main_company:
+                    vendor_code_children = frappe.get_all(
+                        "Vendor Code",
+                        filters={"parent": cvc.name},
+                        fields=["state", "gst_no", "vendor_code"]
+                    )
 
-            doc["company_vendor_codes"] = enriched_codes
+                    filtered_codes.append({
+                        "company_name": cvc.company_name,
+                        "company_code": cvc.company_code,
+                        "vendor_codes": vendor_code_children
+                    })
+
+            # Assign only the filtered codes for this doc
+            doc["company_vendor_codes"] = filtered_codes
 
         return {
             "status": "success",
