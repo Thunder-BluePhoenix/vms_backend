@@ -40,19 +40,22 @@ class LegalDocuments(Document):
 		vonb_comp.comp_gst_table = []
 		
 		if self.gst_table and len(self.gst_table) > 0:
-			vonb_comp.gst = self.gst_table[0].gst_number
+			matching_gst_records = [gst_d for gst_d in self.gst_table if gst_d.company == vonb_comp.company_name]
 			
-			for gst_d in self.gst_table:
-				gst_row = vonb_comp.append("comp_gst_table", {})
-			
-			
-				# Copy specific GST fields
-				gst_row.gst_state = gst_d.gst_state
-				gst_row.gst_number = gst_d.gst_number
-				gst_row.gst_registration_date = gst_d.gst_registration_date
-				gst_row.gst_ven_type = gst_d.gst_ven_type
-				gst_row.gst_document = gst_d.gst_document
-				gst_row.pincode = gst_d.pincode
+			if matching_gst_records:
+				vonb_comp.gst = matching_gst_records[0].gst_number
+				
+				for gst_d in matching_gst_records:
+					gst_row = vonb_comp.append("comp_gst_table", {})
+				
+					gst_row.gst_state = gst_d.gst_state
+					gst_row.gst_number = gst_d.gst_number
+					gst_row.gst_registration_date = gst_d.gst_registration_date
+					gst_row.gst_ven_type = gst_d.gst_ven_type
+					gst_row.gst_document = gst_d.gst_document
+					gst_row.pincode = gst_d.pincode
+			else:
+				frappe.log_error(f"No GST records found matching company: {vonb_comp.company_name}", "on_update")
 		else:
 			frappe.log_error("GST table is empty or missing in Legal Documents", "on_update")
 		
