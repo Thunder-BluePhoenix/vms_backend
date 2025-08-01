@@ -69,7 +69,9 @@
   "confirmation_voucher",
   "invoice_attachment",
   "debit_note_attachment",
-  "remarks"
+  "remarks",
+  "section_break_derz",
+  "doc_upload_status"
  ],
  "fields": [
   {
@@ -386,13 +388,27 @@
    "fieldname": "quota",
    "fieldtype": "Data",
    "label": "QUOTA"
+  },
+  {
+   "fieldname": "section_break_derz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Not Uploaded",
+   "fieldname": "doc_upload_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Doc Upload Status",
+   "options": "\nFully Uploaded\nPartially Uploaded\nNot Uploaded",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-31 11:13:33.292459",
+ "modified": "2025-08-01 15:24:41.875833",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Earth Invoice",
