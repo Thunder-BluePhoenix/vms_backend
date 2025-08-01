@@ -407,9 +407,9 @@ def create_gov_asa_form(data):
 
 # send full data of asa form
 @frappe.whitelist(allow_guest=True)
-def get_data_ann_ass_form(name):
+def get_data_ann_ass_form(vendor_ref_no):
 	try:
-		ann_doc = frappe.get_doc("Annual Supplier Assessment Questionnaire", name)
+		ann_doc = frappe.get_doc("Annual Supplier Assessment Questionnaire", {"vendor_ref_no": vendor_ref_no})
 
 		# Section 1: Company Information
 		company_information = {
