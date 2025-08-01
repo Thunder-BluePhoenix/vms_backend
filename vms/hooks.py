@@ -76,7 +76,9 @@ fixtures = [
     {"dt": "QMS Prior Notification"},
     {"dt": "QMS Batch Record Details"},
     {"dt": "QMS Inspection Reports"},
-    # {"dt": "Workflow","filters": {"name": ["in", ["Earth Invoice Workflow"]]}},
+    {"dt": "Workflow","filters": {"name": ["in", ["Earth Invoice Workflow"]]}},
+    {"dt": "Role","filters": {"name": ["in", ["Panjikar","Tyab"]]}},
+    {"dt": "Workflow State","filters": {"name": ["in", ["Approve By Travel Desk","Reject By Travel Desk","Reject By Tyab Sir","Reject By Panjikar Sir","Approve By Panjikar Sir","Approve By Tyab Sir"]]}},
 ]
 # Generators
 # ----------
@@ -146,11 +148,20 @@ fixtures = [
 # ---------------
 # Hook on document methods and events
 
+
+permission_query_conditions = {
+    "Earth Invoice": "vms.APIs.import_api.premission_api.get_permission_query_conditions"
+}
+
+
 doc_events = {
     "Vendor Onboarding":{"on_update": "vms.APIs.sap.sap.update_sap_vonb",
                          "before_save": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_vendor_onboarding_status"},
     "Purchase Requisition Form":{"on_update":"vms.APIs.sap.erp_to_sap_pr.onupdate_pr"},
-    "Version":{"after_insert":"vms.overrides.versions.get_version_data_universal"}
+    "Version":{"after_insert":"vms.overrides.versions.get_version_data_universal"},
+    "Earth Invoice": {
+        "has_permission": "vms.APIs.import_api.premission_api.has_permission"
+    }
 }
 # doc_events = {
 # 	"*": {
