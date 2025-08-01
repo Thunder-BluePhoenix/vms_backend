@@ -16,18 +16,23 @@
   "name_of_product",
   "governance_section",
   "have_formal_governance_structure",
+  "details_1",
   "upload_file_1",
   "esg_policies_coverage",
+  "details_2",
   "upload_file_2",
   "esg_risk_integration",
+  "details_3",
   "upload_file_3",
   "company_publish_sustainability_report",
+  "details_4",
   "upload_file_4",
   "esg_rating_participated",
   "esg_rating_score",
   "upload_file_5",
   "column_break_ccqm",
   "esg_incentive_for_employee",
+  "details_6",
   "upload_file_6",
   "csat_survey_conducted",
   "csat_score",
@@ -211,12 +216,37 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "GOV-ASAQ-.YYYY.-"
+  },
+  {
+   "fieldname": "details_1",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_2",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_3",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_4",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
+  },
+  {
+   "fieldname": "details_6",
+   "fieldtype": "Data",
+   "label": "If Yes, Provide the Details"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-12 09:35:47.132197",
+ "modified": "2025-08-01 01:01:51.974125",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Governance Annual Supplier Assessment Questionnaire",

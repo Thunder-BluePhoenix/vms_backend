@@ -110,10 +110,12 @@ def create_annual_ass_form(data):
 		annual_ass.name_of_the_company = data.get("name_of_the_company")
 		annual_ass.location = data.get("location")
 		annual_ass.name_of_product = data.get("name_of_product")
-		annual_ass.plans_for_recycle_materials = data.get("plans_for_recycle_materials")
 		annual_ass.valid_consent_from_pollution_control = data.get("valid_consent_from_pollution_control")
 		annual_ass.expiry_date_of_consent = data.get("expiry_date_of_consent")
-		annual_ass.recycle_plastic_package_material = data.get("recycle_plastic_package_materials")
+		annual_ass.recycle_plastic_package_material = data.get("recycle_plastic_package_material")
+		annual_ass.recycle_plastic_details = data.get("recycle_plastic_details")
+		annual_ass.plans_for_recycle_materials = data.get("plans_for_recycle_materials")
+		annual_ass.details_to_increase_recycle_material = data.get("details_to_increase_recycle_material")
 
 		# Save and get name
 		annual_ass.insert(ignore_permissions=True)
@@ -121,6 +123,18 @@ def create_annual_ass_form(data):
 
 		# Handle file upload for valid_consent
 		if "valid_consent" in frappe.request.files:
+			file = frappe.request.files["valid_consent"]
+			saved = save_file(file.filename, file.stream.read(), annual_ass.doctype, annual_ass.name, is_private=0)
+			annual_ass.valid_consent = saved.file_url
+			annual_ass.save(ignore_permissions=True)
+
+		if "upload_file_2" in frappe.request.files:
+			file = frappe.request.files["valid_consent"]
+			saved = save_file(file.filename, file.stream.read(), annual_ass.doctype, annual_ass.name, is_private=0)
+			annual_ass.valid_consent = saved.file_url
+			annual_ass.save(ignore_permissions=True)
+
+		if "upload_file_3" in frappe.request.files:
 			file = frappe.request.files["valid_consent"]
 			saved = save_file(file.filename, file.stream.read(), annual_ass.doctype, annual_ass.name, is_private=0)
 			annual_ass.valid_consent = saved.file_url

@@ -1,6 +1,8 @@
 import frappe
 import json
 from frappe.utils.file_manager import save_file
+from frappe import _
+from datetime import datetime
 
 # PR Numbers list
 @frappe.whitelist(allow_guest=False)
@@ -145,147 +147,6 @@ def add_pr_number(data):
 			"message": str(e)
 		}
 
-
-# company wise filter purchase Group
-@frappe.whitelist(allow_guest=True)
-def filter_purchase_group(company):
-    try:
-        if not company:
-            return {
-                "status": "error",
-                "message": "Company is required"
-            }
-
-        pur_grp = frappe.get_all(
-            "Purchase Group Master",
-            filters={"company": company},
-            fields=["name", "purchase_group_code", "purchase_group_name", "description"]
-        )
-
-        return {
-            "status": "success",
-            "pur_grp": pur_grp
-        }
-
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error filtering purchase group")
-        return {
-            "status": "error",
-            "message": "Failed to filter purchase group.",
-            "error": str(e)
-        }
-	
-# company wise Purchase Organisation
-@frappe.whitelist(allow_guest=True)
-def filter_purchase_organisation(company):
-    try:
-        if not company:
-            return {
-                "status": "error",
-                "message": "Company is required"
-            }
-        purchase_org = frappe.get_all(
-            "Purchase Organization Master",
-            filters={"company": company},
-            fields=["name", "purchase_organization_code", "purchase_organization_name", "description"]
-        )
-        return {
-            "status": "success",
-            "purchase_org": purchase_org
-        }
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error filtering purchase organisation")
-        return {
-            "status": "error",
-            "message": "Failed to filter purchase organisation",
-            "error": str(e)
-        }
-	
-# company wise filter plant
-@frappe.whitelist(allow_guest=True)
-def filter_plant(company):
-    try:
-        if not company:
-            return {
-                "status": "error",
-                "message": "Company is required"
-            }
-
-        plant = frappe.get_all(
-            "Plant Master",
-            filters={"company": company},
-            fields=["name", "plant_name", "city", "zone", "plant_address", "description"]
-        )
-
-        return {
-            "status": "success",
-            "plant": plant
-        }
-
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error filtering Plant")
-        return {
-            "status": "error",
-            "message": "Failed to filter Plant.",
-            "error": str(e)
-        }
-	
-	
-# company wise material master
-@frappe.whitelist(allow_guest=True)
-def filter_material_master(company):
-    try:
-        if not company:
-            return {
-                "status": "error",
-                "message": "Company is required"
-            }
-
-        material_master = frappe.get_all(
-            "Material Master",
-            filters={"company": company},
-            fields=["name", "material_code", "material_name", "material_type", "material_category", "description"]
-        )
-
-        return {
-            "status": "success",
-            "material_master": material_master
-        }
-
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error filtering material master")
-        return {
-            "status": "error",
-            "message": "Failed to filter material master",
-            "error": str(e)
-        }
-
-
-# company wise material group
-@frappe.whitelist(allow_guest=True)
-def filter_material_group_master(company):
-    try:
-        if not company:
-            return {
-                "status": "error",
-                "message": "Company is required"
-            }
-        material_group = frappe.get_all(
-            "Material Group Master",
-            filters={"material_group_company": company},
-            fields=["name", "material_group_name", "material_group_description", "material_group_long_description"]
-        )
-        return {
-            "status": "success",
-            "material_group": material_group
-        }
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error filtering material group")
-        return {
-            "status": "error",
-            "message": "Failed to filter material group",
-            "error": str(e)
-        }
 	
 # filter the company wise master fields for material and services 
 @frappe.whitelist(allow_guest=True)
@@ -355,8 +216,29 @@ def create_rfq_material(data):
 
 		rfq = frappe.new_doc("Request For Quotation")
 
+		# Generate unique_id
+		now = datetime.now()
+		year_month_prefix = f"RFQ{now.strftime('%y')}{now.strftime('%m')}"
+		existing_max = frappe.db.sql(
+			"""
+			SELECT MAX(CAST(SUBSTRING(unique_id, 8) AS UNSIGNED))
+			FROM `tabRequest For Quotation`
+			WHERE unique_id LIKE %s
+			""",
+			(year_month_prefix + "%",),
+			as_list=True
+		)
+		max_count = existing_max[0][0] if existing_max and existing_max[0] and existing_max[0][0] else 0
+		new_count = max_count + 1
+		unique_id = f"{year_month_prefix}{str(new_count).zfill(5)}"
+
+		# Set fields
+		rfq.head_target = 1
+		rfq.unique_id = unique_id
+
 		# RFQ Basic Fields
 		rfq.form_fully_submitted = 1
+		rfq.status = "Pending"
 		rfq.rfq_type = data.get("rfq_type") or ""
 		rfq.raised_by = frappe.local.session.user
 		rfq.rfq_date = data.get("rfq_date") or None
@@ -461,122 +343,7 @@ def create_rfq_material(data):
 		}
 
 
-@frappe.whitelist(allow_guest=False)
-def get_full_data_material_rfq(name):
-	try:
-		doc = frappe.get_doc("Request For Quotation", name)
 
-		# RFQ Items Table
-		pr_items = []
-		for row in doc.rfq_items:
-			pr_items.append({
-				"row_id": row.name,
-				"head_unique_field": row.head_unique_field,
-				"purchase_requisition_number": row.purchase_requisition_number,
-				"material_code_head": row.material_code_head,
-				"delivery_date_head": row.delivery_date_head,
-				"plant_head": row.plant_head,
-				"material_name_head": row.material_name_head,
-				"quantity_head": row.quantity_head,
-				"uom_head": row.uom_head,
-				"price_head": row.price_head
-			})
-
-		# Onboarded Vendor Details Table
-		vendor_details_data = []
-		for row in doc.vendor_details:
-			vendor_details_data.append({
-				"refno": row.ref_no,
-				"vendor_name": row.vendor_name,
-				"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
-				"office_email_primary": row.office_email_primary,
-				"mobile_number": row.mobile_number,
-				"service_provider_type": row.service_provider_type,
-				"country": row.country
-			})
-
-		# Non-Onboarded Vendor Details Table
-		non_onboarded_vendor_details_data = []
-		for row in doc.non_onboarded_vendor_details:
-			non_onboarded_vendor_details_data.append({
-				"office_email_primary": row.office_email_primary,
-				"vendor_name": row.vendor_name,
-				"mobile_number": row.mobile_number,
-				"country": row.country
-			})
-
-		# File Attachments Section
-		attachments = []
-		for row in doc.multiple_attachments:
-			file_url = row.get("attachment_name")
-			if file_url:
-				file_doc = frappe.get_doc("File", {"file_url": file_url})
-				attachments.append({
-					"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-					"name": file_doc.name,
-					"file_name": file_doc.file_name
-				})
-			else:
-				attachments.append({
-					"url": "",
-					"name": "",
-					"file_name": ""
-				})
-
-		# RFQ Basic Fields
-		data = {
-			"rfq_type": doc.rfq_type,
-			"rfq_date": doc.rfq_date,
-			"company_name": doc.company_name,
-			"purchase_organization": doc.purchase_organization,
-			"purchase_group": doc.purchase_group,
-			"currency": doc.currency,
-
-			# Administrative Fields
-			"collection_number": doc.collection_number,
-			"quotation_deadline": doc.quotation_deadline,
-			"validity_start_date": doc.validity_start_date,
-			"validity_end_date": doc.validity_end_date,
-			"bidding_person": doc.bidding_person,
-
-			# Material/Service Details
-			"service_code": doc.service_code,
-			"service_category": doc.service_category,
-			"material_code": doc.material_code,
-			"material_category": doc.material_category,
-			"plant_code": doc.plant_code,
-			"storage_location": doc.storage_location,
-			"short_text": doc.short_text,
-
-			# Quantity & Dates
-			"rfq_quantity": doc.rfq_quantity,
-			"quantity_unit": doc.quantity_unit,
-			"delivery_date": doc.delivery_date,
-
-			# Target Price
-			"estimated_price": doc.estimated_price,
-
-			# Reminders
-			"first_reminder": doc.first_reminder,
-			"second_reminder": doc.second_reminder,
-			"third_reminder": doc.third_reminder,
-
-			# Child Tables
-			"pr_items": pr_items,
-			"vendor_details": vendor_details_data,
-			"non_onboarded_vendors": non_onboarded_vendor_details_data,
-			"attachments": attachments
-		}
-
-		return {
-			"status": "success",
-			"rfq_name": name,
-			"data": data
-		}
-
-	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "Fetch Material RFQ Error")
-		frappe.throw(_("Error fetching RFQ: ") + str(e))
 
 
 

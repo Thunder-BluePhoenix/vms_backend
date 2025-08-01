@@ -2,6 +2,8 @@ import frappe
 import json
 from frappe.utils import now_datetime
 from datetime import datetime
+from frappe.utils.file_manager import save_file
+
 
 @frappe.whitelist(allow_guest=False)
 def get_full_rfq_data(name):
@@ -38,45 +40,45 @@ def get_full_rfq_data(name):
 			if row.quotation:
 				vendor_with_quotation += 1    
 
-			# Parse json_field if present, otherwise return []
+			# Parse json_field if present
 			try:
 				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
 			except Exception:
 				parsed_json = []
 
-			vendor_details_data.append({
-				"refno": row.ref_no,
-				"vendor_name": row.vendor_name,
-				"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
-				"office_email_primary": row.office_email_primary,
-				"mobile_number": row.mobile_number,
-				"service_provider_type": row.service_provider_type,
-				"country": row.country,
-				"quotations": parsed_json   
-			})
+			if parsed_json:
+				vendor_details_data.append({
+					"refno": row.ref_no,
+					"vendor_name": row.vendor_name,
+					"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
+					"office_email_primary": row.office_email_primary,
+					"mobile_number": row.mobile_number,
+					"service_provider_type": row.service_provider_type,
+					"country": row.country,
+					"quotations": parsed_json   
+				})
 
 		# Non-Onboarded Vendor Details Table
-		# non_onboarded_vendor_details_data = []
 		non_onboarded_with_quotation = 0
 		for row in doc.non_onboarded_vendor_details:
 			if row.quotation:
 				non_onboarded_with_quotation += 1
 
-			# Parse json_field if present, otherwise return []
 			try:
 				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
 			except Exception:
 				parsed_json = []
 
-			vendor_details_data.append({
-				"office_email_primary": row.office_email_primary,
-				"vendor_name": row.vendor_name,
-				"mobile_number": row.mobile_number,
-				"country": row.country,
-				"company_pan": row.company_pan,
-				"gst_number": row.gst_number,
-				"quotations": parsed_json 
-			})
+			if parsed_json:
+				vendor_details_data.append({
+					"office_email_primary": row.office_email_primary,
+					"vendor_name": row.vendor_name,
+					"mobile_number": row.mobile_number,
+					"country": row.country,
+					"company_pan": row.company_pan,
+					"gst_number": row.gst_number,
+					"quotations": parsed_json 
+				})
 
 		# File Attachments Section
 		attachments = []
@@ -103,6 +105,7 @@ def get_full_rfq_data(name):
 		data = {
 			# logistic import rfq data / logistic export rfq data
 			"name": doc.name,
+			"status": doc.status,
 			"unique_id": doc.unique_id,
 			"rfq_type": doc.rfq_type,
 			"raised_by": doc.raised_by,
@@ -163,7 +166,6 @@ def get_full_rfq_data(name):
 			# Tables
 			"pr_items": pr_items,
 			"vendor_details": vendor_details_data,
-			# "non_onboarded_vendors": non_onboarded_vendor_details_data,
 			"attachments": attachments,
 
 			# Counts
@@ -321,89 +323,396 @@ def get_quotation_data(name):
 
 # send revised rfq
 
+# @frappe.whitelist(allow_guest=False)
+# def send_revised_rfq(data):
+# 	if isinstance(data, str):
+# 		data = json.loads(data)
+
+# 	if not data.get("name"):
+# 		frappe.throw("Missing RFQ name")
+
+# 	old_rfq = frappe.get_doc("Request For Quotation", data.get("name"))
+
+# 	frappe.db.set_value("Request For Quotation", old_rfq.name, "revised_quotation", 1)
+
+# 	new_rfq = frappe.new_doc("Request For Quotation")
+# 	old_rfq_data = old_rfq.as_dict()
+# 	for unwanted in ["name", "creation", "modified", "owner", "head_target", "revised_rfq"]:
+# 		old_rfq_data.pop(unwanted, None)
+
+# 	new_rfq.update(old_rfq_data)
+
+# 	new_rfq.name = None
+# 	new_rfq.prev_rfq = old_rfq.name
+# 	new_rfq.status = "Pending"
+
+# 	excluded_fields = ["head_target", "revised_rfq"]
+
+# 	main_fields = [
+# 		"status", "company_name_logistic", "rfq_cutoff_date_logistic", "mode_of_shipment",
+# 		"destination_port", "port_of_loading", "ship_to_address", "no_of_pkg_units", "vol_weight",
+# 		"invoice_date", "shipment_date", "remarks", "expected_date_of_arrival", "service_provider",
+# 		"consignee_name", "sr_no", "rfq_date_logistic", "country", "port_code", "inco_terms",
+# 		"package_type", "product_category", "actual_weight", "invoice_no", "invoice_value",
+# 		"shipment_type", "material", "quantity", "shipper_name", "rfq_date", "rfq_cutoff_date",
+# 		"company_name", "purchase_organization", "purchase_group", "currency", "collection_number",
+# 		"quotation_deadline", "validity_start_date", "validity_end_date", "requestor_name",
+# 		"bidding_person", "material_code", "material_category", "plant_code", "storage_location",
+# 		"short_text", "catalogue_number", "service_code", "service_location", "service_category",
+# 		"quantity_and_date_section", "rfq_quantity", "quantity_unit", "delivery_date",
+# 		"add_expected_budgetary_target_price_section", "estimated_price", "first_reminder",
+# 		"second_reminder", "third_reminder"
+# 	]
+
+# 	for field in main_fields:
+# 		if field in excluded_fields:
+# 			continue
+# 		if field in data and data.get(field) != old_rfq.get(field):
+# 			new_rfq.set(field, data.get(field))
+# 		else:
+# 			new_rfq.set(field, old_rfq.get(field)) 
+
+
+# 	old_child_rows = {row.name: row for row in old_rfq.get("rfq_items", [])}
+
+# 	updated_data = data.get("rfq_items", [])
+# 	updated_row_ids = set(row.get("row_id") for row in updated_data if row.get("row_id"))
+
+# 	new_items = []
+
+# 	for row in updated_data:
+# 		row_id = row.get("row_id")
+# 		old_child = old_child_rows.get(row_id)
+
+# 		if old_child:
+# 			for key, value in row.items():
+# 				if key != "row_id" and value != old_child.get(key):
+# 					old_child.set(key, value)
+# 			new_items.append(old_child)
+
+# 	for name, old_row in old_child_rows.items():
+# 		if name not in updated_row_ids:
+# 			new_items.append(old_row)
+
+# 	new_rfq.set("rfq_items", new_items)
+
+
+# 	# Save new RFQ
+# 	new_rfq.insert(ignore_permissions=True)
+# 	frappe.db.commit()
+
+# 	return {
+# 		"status": "success",
+# 		"message": "Revised RFQ created successfully",
+# 		"new_rfq": new_rfq.name
+# 	}
+
+
 @frappe.whitelist(allow_guest=False)
-def send_revised_rfq(data):
-	if isinstance(data, str):
-		data = json.loads(data)
+def send_revised_rfq(data): 
+    if isinstance(data, str):
+        data = json.loads(data)
 
-	if not data.get("name"):
-		frappe.throw("Missing RFQ name")
+    if not data.get("name"):
+        frappe.throw("Missing RFQ name")
 
-	old_rfq = frappe.get_doc("Request For Quotation", data.get("name"))
+    # Get old RFQ and mark it as revised
+    old_rfq = frappe.get_doc("Request For Quotation", data.get("name"))
+    frappe.db.set_value("Request For Quotation", old_rfq.name, "revised_rfq", 1)
 
-	frappe.db.set_value("Request For Quotation", old_rfq.name, "revised_quotation", 1)
+    # Create new RFQ document
+    rfq = frappe.new_doc("Request For Quotation")
+    rfq.unique_id = old_rfq.unique_id
+    rfq.prev_rfq = old_rfq.name
+    rfq.raised_by = frappe.local.session.user
+    rfq.form_fully_submitted = 1
+    rfq.status = "Pending"
+    rfq.rfq_type = data.get("rfq_type")
 
-	new_rfq = frappe.new_doc("Request For Quotation")
-	old_rfq_data = old_rfq.as_dict()
-	for unwanted in ["name", "creation", "modified", "owner", "head_target", "revised_rfq"]:
-		old_rfq_data.pop(unwanted, None)
+    # Logistic Vendor RFQ
+    if data.get("rfq_type") == "Logistic Vendor":
+        rfq.logistic_type = data.get("logistic_type")
+        rfq.company_name_logistic = data.get("company_name_logistic")
+        rfq.service_provider = data.get("service_provider")
+        rfq.sr_no = data.get("sr_no")
+        rfq.rfq_cutoff_date_logistic = data.get("rfq_cutoff_date_logistic")
+        rfq.rfq_date_logistic = data.get("rfq_date_logistic")
+        rfq.mode_of_shipment = data.get("mode_of_shipment")
+        rfq.shipment_type = data.get("shipment_type")
+        rfq.destination_port = data.get("destination_port")
+        rfq.country = data.get("country")
+        rfq.port_code = data.get("port_code")
+        rfq.port_of_loading = data.get("port_of_loading")
+        rfq.inco_terms = data.get("inco_terms")
+        rfq.shipper_name = data.get("shipper_name")
+        rfq.ship_to_address = data.get("ship_to_address")
+        rfq.package_type = data.get("package_type")
+        rfq.no_of_pkg_units = data.get("no_of_pkg_units")
+        rfq.product_category = data.get("product_category")
+        rfq.vol_weight = data.get("vol_weight")
+        rfq.actual_weight = data.get("actual_weight")
+        rfq.invoice_date = data.get("invoice_date")
+        rfq.invoice_no = data.get("invoice_no")
+        rfq.invoice_value = data.get("invoice_value")
+        rfq.expected_date_of_arrival = data.get("expected_date_of_arrival")
+        rfq.consignee_name = data.get("consignee_name")
+        rfq.shipment_date = data.get("shipment_date")
+        rfq.remarks = data.get("remarks")
 
-	new_rfq.update(old_rfq_data)
+        # Add vendors from Vendor Master (All Service Provider)
+        if data.get("service_provider") == "All Service Provider":
+            vendors = frappe.get_all(
+                "Vendor Master",
+                filters={"service_provider_type": ["in", ["Service Provider", "Premium Service Provider"]]},
+                fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country", "service_provider_type"]
+            )
+            for vm in vendors:
+                vendor_code = []
+                company_codes = frappe.get_all("Company Vendor Code", filters={"vendor_ref_no": vm.name}, fields=["name"])
+                for row in company_codes:
+                    doc = frappe.get_doc("Company Vendor Code", row.name)
+                    for code_row in doc.vendor_code:
+                        vendor_code.append(code_row.vendor_code)
 
-	new_rfq.name = None
-	new_rfq.prev_rfq = old_rfq.name
-	new_rfq.status = "Pending"
+                rfq.append("vendor_details", {
+                    "ref_no": vm.name,
+                    "vendor_name": vm.vendor_name,
+                    "office_email_primary": vm.office_email_primary,
+                    "vendor_code": ", ".join(vendor_code),
+                    "mobile_number": vm.mobile_number,
+                    "service_provider_type": vm.service_provider_type,
+                    "country": vm.country
+                })
 
-	excluded_fields = ["head_target", "revised_rfq"]
+        # Premium Only
+        elif data.get("service_provider") == "Premium Service Provider":
+            vendors = frappe.get_all(
+                "Vendor Master",
+                filters={"service_provider_type": "Premium Service Provider"},
+                fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country", "service_provider_type"]
+            )
+            for vm in vendors:
+                vendor_code = []
+                company_codes = frappe.get_all("Company Vendor Code", filters={"vendor_ref_no": vm.name}, fields=["name"])
+                for row in company_codes:
+                    doc = frappe.get_doc("Company Vendor Code", row.name)
+                    for code_row in doc.vendor_code:
+                        vendor_code.append(code_row.vendor_code)
 
-	main_fields = [
-		"status", "company_name_logistic", "rfq_cutoff_date_logistic", "mode_of_shipment",
-		"destination_port", "port_of_loading", "ship_to_address", "no_of_pkg_units", "vol_weight",
-		"invoice_date", "shipment_date", "remarks", "expected_date_of_arrival", "service_provider",
-		"consignee_name", "sr_no", "rfq_date_logistic", "country", "port_code", "inco_terms",
-		"package_type", "product_category", "actual_weight", "invoice_no", "invoice_value",
-		"shipment_type", "material", "quantity", "shipper_name", "rfq_date", "rfq_cutoff_date",
-		"company_name", "purchase_organization", "purchase_group", "currency", "collection_number",
-		"quotation_deadline", "validity_start_date", "validity_end_date", "requestor_name",
-		"bidding_person", "material_code", "material_category", "plant_code", "storage_location",
-		"short_text", "catalogue_number", "service_code", "service_location", "service_category",
-		"quantity_and_date_section", "rfq_quantity", "quantity_unit", "delivery_date",
-		"add_expected_budgetary_target_price_section", "estimated_price", "first_reminder",
-		"second_reminder", "third_reminder"
-	]
+                rfq.append("vendor_details", {
+                    "ref_no": vm.name,
+                    "vendor_name": vm.vendor_name,
+                    "office_email_primary": vm.office_email_primary,
+                    "vendor_code": ", ".join(vendor_code),
+                    "mobile_number": vm.mobile_number,
+                    "service_provider_type": vm.service_provider_type,
+                    "country": vm.country
+                })
 
-	for field in main_fields:
-		if field in excluded_fields:
-			continue
-		if field in data and data.get(field) != old_rfq.get(field):
-			new_rfq.set(field, data.get(field))
-		else:
-			new_rfq.set(field, old_rfq.get(field)) 
+        # Manually passed onboarded vendors
+        for vendor in data.get("vendors", []):
+            rfq.append("vendor_details", {
+                "ref_no": vendor.get("refno"),
+                "vendor_name": vendor.get("vendor_name"),
+                "vendor_code": ", ".join(vendor.get("vendor_code", [])),
+                "office_email_primary": vendor.get("office_email_primary"),
+                "mobile_number": vendor.get("mobile_number"),
+                "service_provider_type": vendor.get("service_provider_type"),
+                "country": vendor.get("country")
+            })
 
+        # Non-onboarded vendor table
+        for vendor in data.get("non_onboarded_vendors", []):
+            rfq.append("non_onboarded_vendor_details", {
+                "office_email_primary": vendor.get("office_email_primary"),
+                "vendor_name": vendor.get("vendor_name"),
+                "mobile_number": vendor.get("mobile_number"),
+                "country": vendor.get("country"),
+                "company_pan": vendor.get("company_pan"),
+                "gst_number": vendor.get("gst_number")
+            })
 
-	old_child_rows = {row.name: row for row in old_rfq.get("rfq_items", [])}
+    # Material Vendor RFQ
+    elif data.get("rfq_type") == "Material Vendor":
+        rfq.rfq_date = data.get("rfq_date")
+        rfq.company_name = data.get("company_name")
+        rfq.purchase_organization = data.get("purchase_organization")
+        rfq.purchase_group = data.get("purchase_group")
+        rfq.currency = data.get("currency") or "INR"
 
-	updated_data = data.get("rfq_items", [])
-	updated_row_ids = set(row.get("row_id") for row in updated_data if row.get("row_id"))
+        # Administrative Fields
+        rfq.collection_number = data.get("collection_number")
+        rfq.quotation_deadline = data.get("quotation_deadline")
+        rfq.validity_start_date = data.get("validity_start_date")
+        rfq.validity_end_date = data.get("validity_end_date")
+        rfq.bidding_person = data.get("bidding_person")
 
-	new_items = []
+        # Material/Service Details
+        rfq.service_code = data.get("service_code")
+        rfq.service_category = data.get("service_category")
+        rfq.material_code = data.get("material_code")
+        rfq.material_category = data.get("material_category")
+        rfq.plant_code = data.get("plant_code")
+        rfq.storage_location = data.get("storage_location")
+        rfq.short_text = data.get("short_text")
 
-	for row in updated_data:
-		row_id = row.get("row_id")
-		old_child = old_child_rows.get(row_id)
+        # Quantity & Dates
+        rfq.rfq_quantity = data.get("rfq_quantity")
+        rfq.quantity_unit = data.get("quantity_unit")
+        rfq.delivery_date = data.get("delivery_date")
 
-		if old_child:
-			for key, value in row.items():
-				if key != "row_id" and value != old_child.get(key):
-					old_child.set(key, value)
-			new_items.append(old_child)
+        # Target Price
+        rfq.estimated_price = data.get("estimated_price")
 
-	for name, old_row in old_child_rows.items():
-		if name not in updated_row_ids:
-			new_items.append(old_row)
+        # RFQ Items Table
+        for item in data.get("pr_items", []):
+            rfq.append("rfq_items", {
+                "head_unique_field": item.get("head_unique_field"),
+                "purchase_requisition_number": item.get("requisition_no"),
+                "material_code_head": item.get("material_code_head"),
+                "delivery_date_head": item.get("delivery_date_head"),
+                "plant_head": item.get("plant_head"),
+                "material_name_head": item.get("material_name_head"),
+                "quantity_head": item.get("quantity_head"),
+                "uom_head": item.get("uom_head"),
+                "price_head": item.get("price_head")
+            })
 
-	new_rfq.set("rfq_items", new_items)
+        # Vendor Details Table
+        for vendor in data.get("vendors", []):
+            rfq.append("vendor_details", {
+                "ref_no": vendor.get("refno"),
+                "vendor_name": vendor.get("vendor_name"),
+                "vendor_code": ", ".join(vendor.get("vendor_code", [])),
+                "office_email_primary": vendor.get("office_email_primary"),
+                "mobile_number": vendor.get("mobile_number"),
+                "service_provider_type": vendor.get("service_provider_type"),
+                "country": vendor.get("country")
+            })
 
+        # Non-Onboarded Vendor Table
+        for vendor in data.get("non_onboarded_vendors", []):
+            rfq.append("non_onboarded_vendor_details", {
+                "office_email_primary": vendor.get("office_email_primary"),
+                "vendor_name": vendor.get("vendor_name"),
+                "mobile_number": vendor.get("mobile_number"),
+                "country": vendor.get("country"),
+                "company_pan": vendor.get("company_pan"),
+                "gst_number": vendor.get("gst_number")
+            })
 
-	# Save new RFQ
-	new_rfq.insert(ignore_permissions=True)
-	frappe.db.commit()
+    # Service Vendor RFQ
+    elif data.get("rfq_type") == "Service Vendor":
+        rfq.rfq_date = data.get("rfq_date")
+        rfq.company_name = data.get("company_name")
+        rfq.purchase_organization = data.get("purchase_organization")
+        rfq.purchase_group = data.get("purchase_group")
+        rfq.currency = data.get("currency")
 
-	return {
-		"status": "success",
-		"message": "Revised RFQ created successfully",
-		"new_rfq": new_rfq.name
-	}
+        # Administrative Fields
+        rfq.collection_number = data.get("collection_number")
+        rfq.quotation_deadline = data.get("quotation_deadline")
+        rfq.validity_start_date = data.get("validity_start_date")
+        rfq.validity_end_date = data.get("validity_end_date")
+        rfq.bidding_person = data.get("bidding_person")
+
+        # Material/Service Details
+        rfq.service_code = data.get("service_code")
+        rfq.service_category = data.get("service_category")
+        rfq.service_location = data.get("service_location")
+        rfq.material_code = data.get("material_code")
+        rfq.material_category = data.get("material_category")
+        rfq.plant_code = data.get("plant_code")
+        rfq.storage_location = data.get("storage_location")
+        rfq.short_text = data.get("short_text")
+
+        # Quantity & Dates
+        rfq.rfq_quantity = data.get("rfq_quantity")
+        rfq.quantity_unit = data.get("quantity_unit")
+        rfq.delivery_date = data.get("delivery_date")
+
+        # Target Price
+        rfq.estimated_price = data.get("estimated_price")
+
+        # Group RFQ items head-wise and subhead-wise
+        for item in data.get("pr_items", []):
+            head_fields = {
+                "head_unique_field": item.get("head_unique_field"),
+                "purchase_requisition_number": item.get("requisition_no"),
+                "material_code_head": item.get("material_code_head"),
+                "delivery_date_head": item.get("delivery_date_head"),
+                "plant_head": item.get("plant_head"),
+                "material_name_head": item.get("material_name_head"),
+                "quantity_head": item.get("quantity_head"),
+                "uom_head": item.get("uom_head"),
+                "price_head": item.get("price_head")
+            }
+
+            subheads = item.get("subhead_fields", [])
+            if subheads:
+                for sub in subheads:
+                    rfq.append("rfq_items", {**head_fields, **{
+                        "is_subhead": 1,
+                        "subhead_unique_field": sub.get("subhead_unique_field"),
+                        "material_code_subhead": sub.get("material_code_subhead"),
+                        "material_name_subhead": sub.get("material_name_subhead"),
+                        "quantity_subhead": sub.get("quantity_subhead"),
+                        "uom_subhead": sub.get("uom_subhead"),
+                        "price_subhead": sub.get("price_subhead"),
+                        "delivery_date_subhead": sub.get("delivery_date_subhead")
+                    }})
+            else:
+                rfq.append("rfq_items", {
+                    **head_fields,
+                    "is_subhead": 0,
+                    "subhead_unique_field": "",
+                    "material_code_subhead": "",
+                    "material_name_subhead": "",
+                    "quantity_subhead": "",
+                    "uom_subhead": "",
+                    "price_subhead": "",
+                    "delivery_date_subhead": ""
+                })
+
+        # Vendor Details Table
+        for vendor in data.get("vendors", []):
+            rfq.append("vendor_details", {
+                "ref_no": vendor.get("refno"),
+                "vendor_name": vendor.get("vendor_name"),
+                "vendor_code": ", ".join(vendor.get("vendor_code", [])),
+                "office_email_primary": vendor.get("office_email_primary"),
+                "mobile_number": vendor.get("mobile_number"),
+                "service_provider_type": vendor.get("service_provider_type"),
+                "country": vendor.get("country")
+            })
+
+        # Non-Onboarded Vendor Table
+        for vendor in data.get("non_onboarded_vendors", []):
+            rfq.append("non_onboarded_vendor_details", {
+                "office_email_primary": vendor.get("office_email_primary"),
+                "vendor_name": vendor.get("vendor_name"),
+                "mobile_number": vendor.get("mobile_number"),
+                "country": vendor.get("country"),
+                "company_pan": vendor.get("company_pan"),
+                "gst_number": vendor.get("gst_number")
+            })
+
+    rfq.insert(ignore_permissions=True)
+
+    files = frappe.request.files.getlist("file")
+    for file in files:
+        saved = save_file(file.filename, file.stream.read(), rfq.doctype, rfq.name, is_private=0)
+        rfq.append("multiple_attachments", {
+            "attachment_name": saved.file_url
+        })
+		
+    frappe.db.commit()
+
+    return {
+        "status": "success",
+        "message": "Revised RFQ created successfully",
+        "new_rfq": rfq.name
+    }
 
 
 # dashboard for rfq logistic

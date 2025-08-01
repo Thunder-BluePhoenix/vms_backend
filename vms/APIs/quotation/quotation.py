@@ -213,6 +213,30 @@ def approve_quotation(data):
         if rfq_number:
             try:
                 update_losing_quotations(rfq_number, quotation_name)
+
+                rfq = frappe.get_doc("Request For Quotation", rfq_number)
+                 # Mark 'Won' in Vendor Details table if ref_no or email matches
+                for row in rfq.vendor_details:
+                    if (quotation.ref_no and quotation.ref_no == row.ref_no) or \
+                    (quotation.office_email_primary and quotation.office_email_primary == row.office_email_primary):
+                        frappe.db.set_value(
+                            "Vendor Details",
+                            row.name, 
+                            "bid_status",
+                            "Won"
+                        )
+
+                # Mark 'Won' in Non-Onboarded Vendor Details table if email matches
+                for row in rfq.non_onboarded_vendor_details:
+                    if quotation.office_email_primary and quotation.office_email_primary == row.office_email_primary:
+                        frappe.db.set_value(
+                            "Non Onboarded Vendor Details",
+                            row.name, 
+                            "bid_status",
+                            "Won"
+                        )
+
+
             except Exception as rfq_error:
                 frappe.log_error(f"Failed to update other quotations for RFQ {rfq_number}: {str(rfq_error)}")
         

@@ -17,6 +17,7 @@
   "mail_sent",
   "more_info_section",
   "quotation",
+  "bid_status",
   "json_field",
   "html"
  ],
@@ -96,13 +97,18 @@
    "fieldname": "html",
    "fieldtype": "HTML",
    "label": "HTML"
+  },
+  {
+   "fieldname": "bid_status",
+   "fieldtype": "Data",
+   "label": "Bid Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-31 01:26:25.661090",
+ "modified": "2025-07-31 20:18:47.875129",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Vendor Details",

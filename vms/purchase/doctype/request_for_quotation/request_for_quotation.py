@@ -354,8 +354,9 @@ def process_token(token):
             cutoff = get_datetime(rfq_doc.rfq_cutoff_date_logistic)
             now = now_datetime()
             if now > cutoff:
-                frappe.local.response["http_status_code"] = 410  # GONE
-                frappe.throw(_("This secure link has expired due to cutoff date."))
+                frappe.local.response["http_status_code"] = 410  # Gone
+                frappe.local.response["message"] = "This secure link has expired due to cutoff date."
+                return
 
             # Shared attachment extraction
             def get_attachments():
@@ -518,13 +519,13 @@ def process_token(token):
         # frappe.throw(_("Invalid RFQ Type."))
 
     except jwt.InvalidTokenError:
-        frappe.local.response["http_status_code"] = 401
+        frappe.local.response["http_status_code"] = 417
         frappe.throw(_("Invalid or tampered link."))
 
     except frappe.ValidationError:
-        # Already handled by a frappe.throw above (like cutoff date)
-        raise
-
+        frappe.local.response["http_status_code"] = 404
+        frappe.throw(_("The request was invalid or failed validation."))
+		
     except Exception:
         frappe.log_error(frappe.get_traceback(), "RFQ Token Processing Error")
         frappe.local.response["http_status_code"] = 500
