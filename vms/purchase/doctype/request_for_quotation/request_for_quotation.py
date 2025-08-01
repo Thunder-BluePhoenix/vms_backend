@@ -382,6 +382,7 @@ def process_token(token):
             if rfq_doc.rfq_type == "Logistic Vendor":
                 return {
                     "status": "success",
+                    "unique_id": rfq_doc.unique_id,
                     "rfq_type": rfq_doc.rfq_type,
                     "logistic_type": rfq_doc.logistic_type,
                     "company_name_logistic": rfq_doc.company_name_logistic,
@@ -436,6 +437,7 @@ def process_token(token):
 
                 return {
                     "status": "success",
+					"unique_id": rfq_doc.unique_id,
 					"rfq_type": rfq_doc.rfq_type,
                     "rfq_date": rfq_doc.rfq_date,
                     "company_name": rfq_doc.company_name,
@@ -488,6 +490,7 @@ def process_token(token):
 
                 return {
                     "status": "success",
+					"unique_id": rfq_doc.unique_id,
 					"rfq_type": rfq_doc.rfq_type,
                     "rfq_date": rfq_doc.rfq_date,
                     "company_name": rfq_doc.company_name,
