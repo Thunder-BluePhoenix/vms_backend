@@ -753,3 +753,151 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
             "vendor_onboarding": []
         }
 
+
+# Vendor brief details of company, documents and bank
+
+@frappe.whitelist(allow_guest=False)
+def vendors_brief_details(page_no=None, page_length=None, company=None, vendor_name=None):
+    try:
+        usr = frappe.session.user
+
+        if "Purchase Team" not in frappe.get_roles(usr):
+            return {
+                "status": "error",
+                "message": "User does not have the required role.",
+                "vendor_onboarding": []
+            }
+
+        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+        if not team:
+            return {
+                "status": "error",
+                "message": "No Employee record found for the user.",
+                "vendor_onboarding": []
+            }
+
+        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+        if not user_ids:
+            return {
+                "status": "error",
+                "message": "No users found in the same team.",
+                "vendor_onboarding": []
+            }
+
+        conditions = [
+            "vo.registered_by IN %(user_ids)s",
+            "vo.onboarding_form_status = 'Approved'"
+        ]
+        values = {"user_ids": user_ids}
+
+        if company:
+            conditions.append("vo.company_name = %(company)s")
+            values["company"] = company
+
+        if vendor_name:
+            conditions.append("vo.vendor_name LIKE %(vendor_name)s")
+            values["vendor_name"] = f"%{vendor_name}%"
+
+        filter_clause = " AND ".join(conditions)
+
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        offset = (page_no - 1) * page_length
+        values["limit"] = page_length
+        values["offset"] = offset
+
+        total_count = frappe.db.sql(f"""
+            SELECT COUNT(*) AS count
+            FROM `tabVendor Onboarding` vo
+            WHERE {filter_clause}
+        """, values)[0][0]
+
+        onboarding_docs = frappe.db.sql(f"""
+            SELECT
+                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.modified,
+                vo.qms_form_filled, vo.sent_qms_form_link, vo.registered_by, vo.vendor_country,
+                vo.document_details, vo.payment_detail
+            FROM `tabVendor Onboarding` vo
+            WHERE {filter_clause}
+            ORDER BY vo.modified DESC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """, values, as_dict=True)
+
+        # ✅ Enrich vendor data
+        for doc in onboarding_docs:
+            vo_id = doc.get("name")
+            main_company = doc.get("company_name")
+            ref_no = doc.get("ref_no")
+
+            filtered_codes = []
+            company_vendor = frappe.get_all(
+                "Company Vendor Code",
+                filters={"vendor_ref_no": ref_no},
+                fields=["name", "company_name", "company_code"]
+            )
+            for cvc in company_vendor:
+                if cvc.company_name == main_company:
+                    vendor_code_children = frappe.get_all(
+                        "Vendor Code",
+                        filters={"parent": cvc.name},
+                        fields=["state", "gst_no", "vendor_code"]
+                    )
+                    filtered_codes.append({
+                        "company_name": cvc.company_name,
+                        "company_code": cvc.company_code,
+                        "vendor_codes": vendor_code_children
+                    })
+            doc["company_vendor_codes"] = filtered_codes
+
+            if doc.get("document_details"):
+                legal_doc = frappe.get_doc("Legal Documents", doc.get("document_details"))
+                doc["legal_documents"] = {
+                    "company_pan_number": legal_doc.company_pan_number,
+                    "msme_enterprise_type": legal_doc.msme_enterprise_type,
+                    "udyam_number": legal_doc.udyam_number,
+                    "trc_certificate_no": legal_doc.trc_certificate_no
+                }
+
+            company_detail = frappe.get_all(
+                "Vendor Onboarding Company Details",
+                filters={"vendor_onboarding": vo_id},
+                fields=["address_line_1", "city", "district", "state", "country", "pincode"],
+                limit=1
+            )
+            doc["company_details"] = company_detail[0] if company_detail else {}
+
+            if doc.get("payment_detail"):
+                payment_detail = frappe.get_doc("Vendor Onboarding Payment Details", doc.get("payment_detail"))
+                doc["payment_details"] = {
+                    "bank_name": payment_detail.bank_name,
+                    "ifsc_code": payment_detail.ifsc_code,
+                    "account_number": payment_detail.account_number,
+                    "name_of_account_holder": payment_detail.name_of_account_holder,
+                    "currency_code": payment_detail.currency_code
+                }
+
+            vendor_master = frappe.get_all(
+                "Vendor Master",
+                filters={"name": ref_no},
+                fields=["vendor_name", "mobile_number", "office_email_primary", "service_provider_type"],
+                limit=1
+            )
+            doc["vendor_master"] = vendor_master[0] if vendor_master else {}
+
+        return {
+            "status": "success",
+            "message": "Filtered records fetched.",
+            "total_vendor_onboarding": onboarding_docs,
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendors Brief Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to filter vendor onboarding data.",
+            "error": str(e),
+            "vendor_onboarding": []
+        }
