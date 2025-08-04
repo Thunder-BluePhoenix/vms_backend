@@ -222,8 +222,7 @@ def fetch_rfq_data(name, ref_no):
 			"message": str(e)
 		}
 
-# if quotation deadline or rfqcutoff date > today datetime then i will throw a message that quotation cannot be create as time pass
-# do in above code (discussion pending with neel)
+
 
 
 
