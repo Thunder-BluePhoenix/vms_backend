@@ -1,10 +1,11 @@
+# existing_vendor_import_utils.py
 # Copyright (c) 2025, Blue Phoenix and contributors
 # For license information, please see license.txt
 
 import frappe
 import json
 import pandas as pd
-from frappe.utils import cstr, flt, cint, validate_email_address
+from frappe.utils import cstr, flt, cint, validate_email_address, today
 import re
 
 
@@ -12,66 +13,108 @@ class VendorImportUtils:
 	"""Utility class for vendor import operations"""
 	
 	@staticmethod
+	def safe_str_strip(value):
+		"""Safely convert value to string and strip whitespace"""
+		if value is None or pd.isna(value):
+			return ""
+		
+		str_value = str(value).strip()
+		if str_value.lower() in ['nan', 'none', 'null', '']:
+			return ""
+		
+		return str_value
+	
+	@staticmethod
 	def validate_email(email):
 		"""Validate email format"""
-		if not email:
+		email_str = VendorImportUtils.safe_str_strip(email)
+		if not email_str:
 			return True, ""
 		
 		try:
-			validate_email_address(email, throw=True)
+			validate_email_address(email_str, throw=True)
 			return True, ""
 		except:
-			return False, f"Invalid email format: {email}"
+			return False, f"Invalid email format: {email_str}"
 	
 	@staticmethod
 	def validate_gst(gst_no):
 		"""Validate GST number format"""
-		if not gst_no:
+		gst_str = VendorImportUtils.safe_str_strip(gst_no)
+		if not gst_str:
 			return True, ""
 		
 		gst_pattern = r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$'
-		if not re.match(gst_pattern, str(gst_no).strip()):
-			return False, f"Invalid GST format: {gst_no}"
+		if not re.match(gst_pattern, gst_str):
+			return False, f"Invalid GST format: {gst_str}"
 		
 		return True, ""
 	
 	@staticmethod
 	def validate_pan(pan_no):
 		"""Validate PAN number format"""
-		if not pan_no:
+		pan_str = VendorImportUtils.safe_str_strip(pan_no)
+		if not pan_str:
 			return True, ""
 		
 		pan_pattern = r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$'
-		if not re.match(pan_pattern, str(pan_no).strip()):
-			return False, f"Invalid PAN format: {pan_no}"
+		if not re.match(pan_pattern, pan_str):
+			return False, f"Invalid PAN format: {pan_str}"
 		
 		return True, ""
 	
 	@staticmethod
 	def validate_phone(phone_no):
 		"""Validate phone number format"""
-		if not phone_no:
+		phone_str = VendorImportUtils.safe_str_strip(phone_no)
+		if not phone_str:
 			return True, ""
 		
 		# Remove all non-digit characters
-		digits_only = re.sub(r'\D', '', str(phone_no))
+		digits_only = re.sub(r'\D', '', phone_str)
 		
 		# Check if it's a valid length (10-15 digits)
 		if len(digits_only) < 10 or len(digits_only) > 15:
-			return False, f"Invalid phone number: {phone_no}"
+			return False, f"Invalid phone number: {phone_str}"
 		
 		return True, ""
 	
 	@staticmethod
 	def validate_pincode(pincode):
 		"""Validate pincode format"""
-		if not pincode:
+		pincode_str = VendorImportUtils.safe_str_strip(pincode)
+		if not pincode_str:
 			return True, ""
 		
 		# Indian pincode should be 6 digits
-		pincode_str = str(pincode).strip()
 		if not pincode_str.isdigit() or len(pincode_str) != 6:
-			return False, f"Invalid pincode format: {pincode}"
+			return False, f"Invalid pincode format: {pincode_str}"
+		
+		return True, ""
+	
+	@staticmethod
+	def validate_vendor_code(vendor_code):
+		"""Validate vendor code format"""
+		vendor_code_str = VendorImportUtils.safe_str_strip(vendor_code)
+		if not vendor_code_str:
+			return False, "Vendor code is required"
+		
+		if len(vendor_code_str) < 3:
+			return False, f"Vendor code too short: {vendor_code_str}"
+		
+		return True, ""
+	
+	@staticmethod
+	def validate_company_code(company_code):
+		"""Validate company code format and existence"""
+		company_code_str = VendorImportUtils.safe_str_strip(company_code)
+		if not company_code_str:
+			return False, "Company code is required"
+		
+		# Check if company exists
+		company_exists = frappe.db.exists("Company Master", {"company_code": company_code_str})
+		if not company_exists:
+			return False, f"Company with code {company_code_str} not found"
 		
 		return True, ""
 	
@@ -84,13 +127,33 @@ class VendorImportUtils:
 			# Clean key
 			clean_key = str(key).strip()
 			
-			# Clean value
-			if pd.isna(value) or value == '' or str(value).lower() in ['null', 'none', 'n/a', 'na']:
+			# Clean value - handle float/int conversion properly
+			if pd.isna(value) or value == '' or str(value).lower() in ['null', 'none', 'n/a', 'na', 'nan']:
 				cleaned_row[clean_key] = None
 			else:
+				# Convert to string first, then strip
 				cleaned_row[clean_key] = str(value).strip()
 		
 		return cleaned_row
+	
+	@staticmethod
+	def normalize_vendor_name(vendor_name):
+		"""Normalize vendor name for duplicate detection"""
+		vendor_name_str = VendorImportUtils.safe_str_strip(vendor_name)
+		if not vendor_name_str:
+			return ""
+		
+		# Convert to lowercase, remove extra spaces, remove special characters
+		normalized = re.sub(r'[^\w\s]', '', vendor_name_str.lower())
+		normalized = re.sub(r'\s+', ' ', normalized).strip()
+		
+		# Remove common suffixes for better matching
+		suffixes = ['pvt ltd', 'private limited', 'ltd', 'limited', 'inc', 'incorporated']
+		for suffix in suffixes:
+			if normalized.endswith(suffix):
+				normalized = normalized.replace(suffix, '').strip()
+		
+		return normalized
 	
 	@staticmethod
 	def generate_field_mapping():
@@ -100,7 +163,7 @@ class VendorImportUtils:
 			'vendor_master': {
 				'Vendor Name': 'vendor_name',
 				'Primary Email': 'office_email_primary',
-				'Email-Id': 'office_email_primary',  # Alternative field
+				'Email-Id': 'office_email_primary',
 				'Secondary Email': 'office_email_secondary',
 				'Contact No': 'mobile_number',
 				'Country': 'country',
@@ -109,28 +172,41 @@ class VendorImportUtils:
 			
 			# Company Vendor Code fields
 			'company_vendor_code': {
-				'C.Code': 'company_code',
 				'Vendor Code': 'vendor_code',
+				'C.Code': 'company_code',
+				'Company Code': 'company_code',
+				'State': 'state',
 				'GSTN No': 'gst_no',
-				'State': 'state'
+				'GST No': 'gst_no'
 			},
 			
 			# Company Details fields
 			'company_details': {
-				'Vendor Name': 'vendor_name',
+				'Vendor Name': 'company_name',
 				'GSTN No': 'gst',
 				'PAN No': 'company_pan_number',
-				'Primary Email': 'office_email_primary',
-				'Secondary Email': 'office_email_secondary',
-				'Contact No': 'telephone_number',
 				'Address01': 'address_line_1',
 				'Address02': 'address_line_2',
+				'Address03': 'address_line_3',
 				'City': 'city',
-				'State': 'state',
-				'Country': 'country',
 				'Pincode': 'pincode',
-				'Nature Of Services': 'nature_of_business',
-				'Type of Industry': 'type_of_business'
+				'Country': 'country',
+				'Contact No': 'telephone_number',
+				'Nature of Business': 'nature_of_business',
+				'Type of Business': 'type_of_business',
+				'CIN': 'corporate_identification_number',
+				'Established Year': 'established_year'
+			},
+			
+			# Multiple Company Data fields
+			'multiple_company_data': {
+				'Purchase Organization': 'purchase_organization',
+				'Account Group': 'account_group',
+				'Terms of Payment': 'terms_of_payment',
+				'Purchase Group': 'purchase_group',
+				'Order Currency': 'order_currency',
+				'Incoterm': 'incoterms',
+				'Reconciliation Account': 'reconciliation_account'
 			},
 			
 			# Payment Details fields
@@ -139,13 +215,7 @@ class VendorImportUtils:
 				'IFSC Code': 'ifsc_code',
 				'Account Number': 'account_number',
 				'Name of Account Holder': 'name_of_account_holder',
-				'Type of Account': 'type_of_account',
-				'Terms of Payment': 'terms_of_payment',
-				'Purchase Group': 'purchase_group',
-				'Purchase Organization': 'purchase_organization',
-				'Account Group': 'account_group',
-				'Incoterm': 'incoterms',
-				'Reconciliation Account': 'reconciliation_account'
+				'Type of Account': 'type_of_account'
 			},
 			
 			# International Banking fields
@@ -157,16 +227,9 @@ class VendorImportUtils:
 				'Beneficiary Bank Address': 'beneficiary_bank_address',
 				'Beneficiary Bank Name': 'beneficiary_bank_name',
 				'Beneficiary Account No.': 'beneficiary_account_no',
-				'Beneficiary ACH No.': 'beneficiary_ach_no',
-				'Beneficiary Routing No.': 'beneficiary_routing_no',
-				'Beneficiary Currency': 'beneficiary_currency'
-			},
-			
-			# Intermediate Banking fields
-			'intermediate_banking': {
-				'Intermediate Name': 'intermediate_name',
-				'Intermediate Bank Name': 'intermediate_bank_name',
+				'Beneficiary Currency': 'beneficiary_currency',
 				'Intermediate Swift Code': 'intermediate_swift_code',
+				'Intermediate Bank Name': 'intermediate_bank_name',
 				'Intermediate IBAN No.': 'intermediate_iban_no',
 				'Intermediate ABA No.': 'intermediate_aba_no',
 				'Intermediate Bank Address': 'intermediate_bank_address',
@@ -174,24 +237,36 @@ class VendorImportUtils:
 				'Intermediate ACH No.': 'intermediate_ach_no',
 				'Intermediate Routing No.': 'intermediate_routing_no',
 				'Intermediate Currency': 'intermediate_currency'
+			},
+			
+			# Additional fields
+			'additional_fields': {
+				'Vendor GST Classification': 'vendor_gst_classification',
+				'Nature of Services': 'nature_of_services',
+				'Vendor Type': 'vendor_type',
+				'Remarks': 'remarks',
+				'Contact Person': 'contact_person',
+				'HOD': 'hod',
+				'Enterprise Registration No': 'enterprise_registration_no'
 			}
 		}
 	
 	@staticmethod
-	def create_payment_details_record(vendor_ref_no, row):
+	def create_payment_details_record(vendor_ref_no, vendor_onboarding_ref, row):
 		"""Create vendor onboarding payment details record"""
 		
 		try:
 			# Check if payment details already exist
 			existing_payment = frappe.db.exists("Vendor Onboarding Payment Details", {
-				"vendor_onboarding": vendor_ref_no
+				"vendor_onboarding": vendor_onboarding_ref
 			})
 			
 			if existing_payment:
 				payment_doc = frappe.get_doc("Vendor Onboarding Payment Details", existing_payment)
 			else:
 				payment_doc = frappe.new_doc("Vendor Onboarding Payment Details")
-				payment_doc.vendor_onboarding = vendor_ref_no
+				payment_doc.ref_no = vendor_ref_no
+				payment_doc.vendor_onboarding = vendor_onboarding_ref
 			
 			# Map banking details
 			field_mapping = VendorImportUtils.generate_field_mapping()
@@ -199,16 +274,29 @@ class VendorImportUtils:
 			
 			for csv_field, doc_field in payment_mapping.items():
 				if csv_field in row and row[csv_field]:
-					setattr(payment_doc, doc_field, row[csv_field])
+					value = VendorImportUtils.safe_str_strip(row[csv_field])
+					if value:
+						setattr(payment_doc, doc_field, value)
 			
 			# Add domestic bank details
-			if not hasattr(payment_doc, 'domestic_bank_details') or not payment_doc.domestic_bank_details:
+			bank_details_exist = False
+			if hasattr(payment_doc, 'domestic_bank_details') and payment_doc.domestic_bank_details:
+				# Check if bank details already exist
+				for bank_detail in payment_doc.domestic_bank_details:
+					account_number = VendorImportUtils.safe_str_strip(row.get('Account Number'))
+					ifsc_code = VendorImportUtils.safe_str_strip(row.get('IFSC Code'))
+					if (bank_detail.account_number == account_number and 
+						bank_detail.ifsc_code == ifsc_code):
+						bank_details_exist = True
+						break
+			
+			if not bank_details_exist and row.get('Bank Name'):
 				payment_doc.append("domestic_bank_details", {
-					"bank_name": row.get('Bank Name'),
-					"ifsc_code": row.get('IFSC Code'),
-					"account_number": row.get('Account Number'),
-					"name_of_account_holder": row.get('Name of Account Holder'),
-					"type_of_account": row.get('Type of Account')
+					"bank_name": VendorImportUtils.safe_str_strip(row.get('Bank Name')),
+					"ifsc_code": VendorImportUtils.safe_str_strip(row.get('IFSC Code')),
+					"account_number": VendorImportUtils.safe_str_strip(row.get('Account Number')),
+					"name_of_account_holder": VendorImportUtils.safe_str_strip(row.get('Name of Account Holder')),
+					"type_of_account": VendorImportUtils.safe_str_strip(row.get('Type of Account'))
 				})
 			
 			# Add international bank details if available
@@ -216,85 +304,34 @@ class VendorImportUtils:
 			intl_data = {}
 			for csv_field, doc_field in intl_mapping.items():
 				if csv_field in row and row[csv_field]:
-					intl_data[doc_field] = row[csv_field]
+					value = VendorImportUtils.safe_str_strip(row[csv_field])
+					if value:
+						intl_data[doc_field] = value
 			
 			if intl_data and any(intl_data.values()):
-				if not hasattr(payment_doc, 'international_bank_details') or not payment_doc.international_bank_details:
+				# Check if international details already exist
+				intl_exists = False
+				if hasattr(payment_doc, 'international_bank_details') and payment_doc.international_bank_details:
+					for intl_detail in payment_doc.international_bank_details:
+						if intl_detail.beneficiary_account_no == intl_data.get('beneficiary_account_no'):
+							intl_exists = True
+							break
+				
+				if not intl_exists:
 					payment_doc.append("international_bank_details", intl_data)
-			
-			# Add intermediate bank details if available
-			inter_mapping = field_mapping['intermediate_banking']
-			inter_data = {}
-			for csv_field, doc_field in inter_mapping.items():
-				if csv_field in row and row[csv_field]:
-					inter_data[doc_field] = row[csv_field]
-			
-			if inter_data and any(inter_data.values()):
-				if not hasattr(payment_doc, 'intermediate_bank_details') or not payment_doc.intermediate_bank_details:
-					payment_doc.append("intermediate_bank_details", inter_data)
 			
 			payment_doc.save(ignore_permissions=True)
 			return payment_doc.name
 			
 		except Exception as e:
-			frappe.log_error(frappe.get_traceback(), f"Error creating payment details: {str(e)}")
+			frappe.log_error(f"Error creating payment details: {str(e)}")
 			return None
 	
 	@staticmethod
-	def validate_master_data(row):
-		"""Validate master data references"""
-		errors = []
-		warnings = []
+	def create_summary_html(results):
+		"""Create HTML summary of import results"""
 		
-		# Validate Company Code
-		company_code = row.get('C.Code')
-		if company_code:
-			company_exists = frappe.db.exists("Company Master", {"company_code": str(company_code)})
-			if not company_exists:
-				warnings.append(f"Company with code {company_code} not found in Company Master")
-		
-		# Validate State
-		state = row.get('State')
-		if state:
-			state_exists = frappe.db.exists("State Master", {"state_name": state})
-			if not state_exists:
-				warnings.append(f"State '{state}' not found in State Master")
-		
-		# Validate City
-		city = row.get('City')
-		if city:
-			city_exists = frappe.db.exists("City Master", {"city_name": city})
-			if not city_exists:
-				warnings.append(f"City '{city}' not found in City Master")
-		
-		# Validate Country
-		country = row.get('Country')
-		if country and country not in ['IN', 'India', '']:
-			country_exists = frappe.db.exists("Country Master", {"country_name": country})
-			if not country_exists:
-				warnings.append(f"Country '{country}' not found in Country Master")
-		
-		# Validate Purchase Group
-		purchase_group = row.get('Purchase Group')
-		if purchase_group:
-			pg_exists = frappe.db.exists("Purchase Group Master", {"purchase_group_code": purchase_group})
-			if not pg_exists:
-				warnings.append(f"Purchase Group '{purchase_group}' not found in Purchase Group Master")
-		
-		# Validate Purchase Organization
-		purchase_org = row.get('Purchase Organization')
-		if purchase_org:
-			po_exists = frappe.db.exists("Purchase Organization Master", {"purchase_organization_code": purchase_org})
-			if not po_exists:
-				warnings.append(f"Purchase Organization '{purchase_org}' not found in Purchase Organization Master")
-		
-		return errors, warnings
-	
-	@staticmethod
-	def generate_import_summary_html(results, vendor_data):
-		"""Generate comprehensive import summary HTML"""
-		
-		total_records = len(vendor_data)
+		total_records = results.get('total_records', 0)
 		valid_records = results.get('valid_records', 0)
 		invalid_records = results.get('invalid_records', 0)
 		success_rate = (valid_records / total_records * 100) if total_records > 0 else 0
@@ -305,14 +342,14 @@ class VendorImportUtils:
 				<div class="col-12">
 					<div class="card border-primary">
 						<div class="card-header bg-primary text-white">
-							<h5 class="mb-0"><i class="fa fa-chart-bar"></i> Import Summary</h5>
+							<h5 class="mb-0"><i class="fa fa-chart-line"></i> Import Summary</h5>
 						</div>
 						<div class="card-body">
 							<div class="row text-center">
 								<div class="col-md-2">
 									<div class="metric-box">
 										<h3 class="text-primary">{total_records}</h3>
-										<p class="text-muted">Total Records</p>
+										<p class="text-muted">Total</p>
 									</div>
 								</div>
 								<div class="col-md-2">
@@ -391,36 +428,206 @@ class VendorImportUtils:
 		duplicates = []
 		vendor_names = {}
 		vendor_codes = {}
+		vendor_emails = {}
 		
 		for idx, row in enumerate(vendor_data, 1):
-			vendor_name = row.get('Vendor Name', '').strip()
-			vendor_code = row.get('Vendor Code', '').strip()
+			vendor_name = VendorImportUtils.safe_str_strip(row.get('Vendor Name', ''))
+			vendor_code = VendorImportUtils.safe_str_strip(row.get('Vendor Code', ''))
+			email = VendorImportUtils.safe_str_strip(row.get('Primary Email', '') or row.get('Email-Id', ''))
+			
+			# Normalize vendor name for better duplicate detection
+			normalized_name = VendorImportUtils.normalize_vendor_name(vendor_name)
 			
 			# Check for duplicate vendor names
-			if vendor_name in vendor_names:
+			if normalized_name and normalized_name in vendor_names:
 				duplicates.append({
 					'type': 'Vendor Name',
 					'value': vendor_name,
-					'rows': [vendor_names[vendor_name], idx]
+					'rows': [vendor_names[normalized_name], idx]
 				})
-			else:
-				vendor_names[vendor_name] = idx
+			elif normalized_name:
+				vendor_names[normalized_name] = idx
 			
 			# Check for duplicate vendor codes within same company
-			company_code = row.get('C.Code', '').strip()
+			company_code = VendorImportUtils.safe_str_strip(row.get('C.Code', ''))
 			key = f"{vendor_code}_{company_code}"
-			if key in vendor_codes:
-				duplicates.append({
-					'type': 'Vendor Code + Company',
-					'value': f"{vendor_code} (Company: {company_code})",
-					'rows': [vendor_codes[key], idx]
-				})
-			else:
-				vendor_codes[key] = idx
+			if vendor_code and company_code:
+				if key in vendor_codes:
+					duplicates.append({
+						'type': 'Vendor Code + Company',
+						'value': f"{vendor_code} (Company: {company_code})",
+						'rows': [vendor_codes[key], idx]
+					})
+				else:
+					vendor_codes[key] = idx
+			
+			# Check for duplicate emails
+			if email:
+				email_normalized = email.lower()
+				if email_normalized in vendor_emails:
+					duplicates.append({
+						'type': 'Email Address',
+						'value': email,
+						'rows': [vendor_emails[email_normalized], idx]
+					})
+				else:
+					vendor_emails[email_normalized] = idx
 		
 		return duplicates
+	
+	@staticmethod
+	def validate_row_data(row, row_number):
+		"""Validate a single row of vendor data"""
+		errors = []
+		warnings = []
+		
+		# Required field validation
+		vendor_name = VendorImportUtils.safe_str_strip(row.get('Vendor Name', ''))
+		if not vendor_name:
+			errors.append(f"Row {row_number}: Vendor name is required")
+		
+		vendor_code = VendorImportUtils.safe_str_strip(row.get('Vendor Code', ''))
+		if not vendor_code:
+			warnings.append(f"Row {row_number}: Vendor code is missing")
+		else:
+			is_valid, msg = VendorImportUtils.validate_vendor_code(vendor_code)
+			if not is_valid:
+				errors.append(f"Row {row_number}: {msg}")
+		
+		company_code = VendorImportUtils.safe_str_strip(row.get('C.Code', '') or row.get('Company Code', ''))
+		if company_code:
+			is_valid, msg = VendorImportUtils.validate_company_code(company_code)
+			if not is_valid:
+				warnings.append(f"Row {row_number}: {msg}")
+		
+		# Email validation
+		email = VendorImportUtils.safe_str_strip(row.get('Primary Email', '') or row.get('Email-Id', ''))
+		if email:
+			is_valid, msg = VendorImportUtils.validate_email(email)
+			if not is_valid:
+				errors.append(f"Row {row_number}: {msg}")
+		
+		# GST validation
+		gst_no = VendorImportUtils.safe_str_strip(row.get('GSTN No', '') or row.get('GST No', ''))
+		if gst_no:
+			is_valid, msg = VendorImportUtils.validate_gst(gst_no)
+			if not is_valid:
+				warnings.append(f"Row {row_number}: {msg}")
+		
+		# PAN validation
+		pan_no = VendorImportUtils.safe_str_strip(row.get('PAN No', ''))
+		if pan_no:
+			is_valid, msg = VendorImportUtils.validate_pan(pan_no)
+			if not is_valid:
+				warnings.append(f"Row {row_number}: {msg}")
+		
+		# Phone validation
+		phone = VendorImportUtils.safe_str_strip(row.get('Contact No', ''))
+		if phone:
+			is_valid, msg = VendorImportUtils.validate_phone(phone)
+			if not is_valid:
+				warnings.append(f"Row {row_number}: {msg}")
+		
+		# Pincode validation
+		pincode = VendorImportUtils.safe_str_strip(row.get('Pincode', ''))
+		if pincode:
+			is_valid, msg = VendorImportUtils.validate_pincode(pincode)
+			if not is_valid:
+				warnings.append(f"Row {row_number}: {msg}")
+		
+		return {
+			'errors': errors,
+			'warnings': warnings,
+			'is_valid': len(errors) == 0
+		}
+	
+	@staticmethod
+	def get_master_data_suggestions(field_name, value):
+		"""Get suggestions for master data fields"""
+		if not value:
+			return []
+		
+		suggestions = []
+		value_str = VendorImportUtils.safe_str_strip(value)
+		
+		try:
+			if field_name == 'state':
+				states = frappe.get_all("State Master", 
+					filters={'state_name': ['like', f'%{value_str}%']}, 
+					fields=['name', 'state_name'], 
+					limit=5)
+				suggestions = [{'value': s.name, 'label': s.state_name} for s in states]
+			
+			elif field_name == 'city':
+				cities = frappe.get_all("City Master", 
+					filters={'city_name': ['like', f'%{value_str}%']}, 
+					fields=['name', 'city_name'], 
+					limit=5)
+				suggestions = [{'value': c.name, 'label': c.city_name} for c in cities]
+			
+			elif field_name == 'company_code':
+				companies = frappe.get_all("Company Master", 
+					filters={'company_code': ['like', f'%{value_str}%']}, 
+					fields=['name', 'company_code', 'company_name'], 
+					limit=5)
+				suggestions = [{'value': c.name, 'label': f"{c.company_code} - {c.company_name}"} for c in companies]
+			
+			elif field_name == 'purchase_organization':
+				pos = frappe.get_all("Purchase Organization Master", 
+					filters={'purchase_organization_name': ['like', f'%{value_str}%']}, 
+					fields=['name', 'purchase_organization_name'], 
+					limit=5)
+				suggestions = [{'value': p.name, 'label': p.purchase_organization_name} for p in pos]
+			
+		except Exception as e:
+			frappe.log_error(f"Error getting suggestions for {field_name}: {str(e)}")
+		
+		return suggestions
+	
+	@staticmethod
+	def create_missing_masters(row):
+		"""Create missing master data entries"""
+		created_masters = []
+		
+		try:
+			# Create state if not exists
+			state = VendorImportUtils.safe_str_strip(row.get('State', ''))
+			if state:
+				state_exists = frappe.db.exists("State Master", {"state_name": state})
+				if not state_exists:
+					state_doc = frappe.new_doc("State Master")
+					state_doc.state_name = state
+					state_doc.state_code = state[:2].upper()
+					state_doc.insert(ignore_permissions=True)
+					created_masters.append(f"State: {state}")
+			
+			# Create city if not exists
+			city = VendorImportUtils.safe_str_strip(row.get('City', ''))
+			if city:
+				city_exists = frappe.db.exists("City Master", {"city_name": city})
+				if not city_exists:
+					city_doc = frappe.new_doc("City Master")
+					city_doc.city_name = city
+					city_doc.insert(ignore_permissions=True)
+					created_masters.append(f"City: {city}")
+			
+			# Create pincode if not exists
+			pincode = VendorImportUtils.safe_str_strip(row.get('Pincode', ''))
+			if pincode:
+				pincode_exists = frappe.db.exists("Pincode Master", {"pincode": pincode})
+				if not pincode_exists:
+					pincode_doc = frappe.new_doc("Pincode Master")
+					pincode_doc.pincode = pincode
+					pincode_doc.insert(ignore_permissions=True)
+					created_masters.append(f"Pincode: {pincode}")
+			
+		except Exception as e:
+			frappe.log_error(f"Error creating missing masters: {str(e)}")
+		
+		return created_masters
 
 
+# API Methods for utilities
 @frappe.whitelist()
 def validate_csv_data(docname):
 	"""API method to validate CSV data"""
@@ -463,19 +670,280 @@ def get_import_statistics(docname):
 	
 	for row in vendor_data:
 		# Company statistics
-		company = str(row.get('C.Code', 'Unknown'))
+		company = VendorImportUtils.safe_str_strip(row.get('C.Code', 'Unknown'))
+		if not company:
+			company = 'Unknown'
 		stats["companies"][company] = stats["companies"].get(company, 0) + 1
 		
 		# State statistics
-		state = row.get('State', 'Unknown')
+		state = VendorImportUtils.safe_str_strip(row.get('State', 'Unknown'))
+		if not state:
+			state = 'Unknown'
 		stats["states"][state] = stats["states"].get(state, 0) + 1
 		
 		# Vendor type statistics
-		vendor_type = row.get('Vendor Type', 'Unknown')
+		vendor_type = VendorImportUtils.safe_str_strip(row.get('Vendor Type', 'Unknown'))
+		if not vendor_type:
+			vendor_type = 'Unknown'
 		stats["vendor_types"][vendor_type] = stats["vendor_types"].get(vendor_type, 0) + 1
 		
 		# GST type statistics
-		gst_type = row.get('Vendor GST Classification', 'Unknown')
+		gst_type = VendorImportUtils.safe_str_strip(row.get('Vendor GST Classification', 'Unknown'))
+		if not gst_type:
+			gst_type = 'Unknown'
 		stats["gst_types"][gst_type] = stats["gst_types"].get(gst_type, 0) + 1
 	
 	return stats
+
+
+@frappe.whitelist()
+def get_field_suggestions(field_name, value):
+	"""Get field suggestions for auto-complete"""
+	return VendorImportUtils.get_master_data_suggestions(field_name, value)
+
+
+@frappe.whitelist()
+def validate_single_field(field_name, value):
+	"""Validate a single field value"""
+	utils = VendorImportUtils()
+	
+	if field_name == 'email':
+		return utils.validate_email(value)
+	elif field_name == 'gst':
+		return utils.validate_gst(value)
+	elif field_name == 'pan':
+		return utils.validate_pan(value)
+	elif field_name == 'phone':
+		return utils.validate_phone(value)
+	elif field_name == 'pincode':
+		return utils.validate_pincode(value)
+	elif field_name == 'vendor_code':
+		return utils.validate_vendor_code(value)
+	elif field_name == 'company_code':
+		return utils.validate_company_code(value)
+	else:
+		return True, ""
+
+
+@frappe.whitelist()
+def clean_import_data(docname):
+	"""Clean and standardize import data"""
+	doc = frappe.get_doc("Existing Vendor Import", docname)
+	
+	if not doc.vendor_data:
+		return {"error": "No vendor data found"}
+	
+	vendor_data = json.loads(doc.vendor_data)
+	utils = VendorImportUtils()
+	
+	cleaned_data = []
+	for row in vendor_data:
+		cleaned_row = utils.clean_vendor_data(row)
+		cleaned_data.append(cleaned_row)
+	
+	# Update document with cleaned data
+	doc.vendor_data = json.dumps(cleaned_data, indent=2, default=str)
+	doc.save()
+	
+	return {"message": "Data cleaned successfully", "total_records": len(cleaned_data)}
+
+
+@frappe.whitelist()
+def create_missing_master_data(docname):
+	"""Create missing master data entries"""
+	doc = frappe.get_doc("Existing Vendor Import", docname)
+	
+	if not doc.vendor_data:
+		return {"error": "No vendor data found"}
+	
+	vendor_data = json.loads(doc.vendor_data)
+	utils = VendorImportUtils()
+	
+	all_created_masters = []
+	
+	for idx, row in enumerate(vendor_data, 1):
+		try:
+			created_masters = utils.create_missing_masters(row)
+			if created_masters:
+				all_created_masters.extend([f"Row {idx}: {master}" for master in created_masters])
+		except Exception as e:
+			frappe.log_error(f"Error creating masters for row {idx}: {str(e)}")
+	
+	return {
+		"message": "Missing master data created successfully",
+		"created_masters": all_created_masters
+	}
+
+
+@frappe.whitelist()
+def get_duplicate_analysis(docname):
+	"""Get detailed duplicate analysis"""
+	doc = frappe.get_doc("Existing Vendor Import", docname)
+	
+	if not doc.vendor_data:
+		return {"error": "No vendor data found"}
+	
+	vendor_data = json.loads(doc.vendor_data)
+	utils = VendorImportUtils()
+	
+	duplicates = utils.get_duplicate_vendors(vendor_data)
+	
+	# Categorize duplicates
+	duplicate_analysis = {
+		"total_duplicates": len(duplicates),
+		"by_type": {},
+		"detailed_duplicates": duplicates
+	}
+	
+	for duplicate in duplicates:
+		dup_type = duplicate['type']
+		if dup_type not in duplicate_analysis["by_type"]:
+			duplicate_analysis["by_type"][dup_type] = 0
+		duplicate_analysis["by_type"][dup_type] += 1
+	
+	return duplicate_analysis
+
+
+@frappe.whitelist()
+def export_validation_report(docname):
+	"""Export detailed validation report"""
+	doc = frappe.get_doc("Existing Vendor Import", docname)
+	
+	if not doc.vendor_data:
+		return {"error": "No vendor data found"}
+	
+	vendor_data = json.loads(doc.vendor_data)
+	utils = VendorImportUtils()
+	
+	validation_report = []
+	
+	for idx, row in enumerate(vendor_data, 1):
+		row_validation = utils.validate_row_data(row, idx)
+		
+		validation_report.append({
+			"Row Number": idx,
+			"Vendor Name": VendorImportUtils.safe_str_strip(row.get('Vendor Name', '')),
+			"Vendor Code": VendorImportUtils.safe_str_strip(row.get('Vendor Code', '')),
+			"Company Code": VendorImportUtils.safe_str_strip(row.get('C.Code', '')),
+			"Is Valid": "Yes" if row_validation['is_valid'] else "No",
+			"Errors": "; ".join(row_validation['errors']) if row_validation['errors'] else "",
+			"Warnings": "; ".join(row_validation['warnings']) if row_validation['warnings'] else ""
+		})
+	
+	# Convert to DataFrame and return as Excel
+	from io import BytesIO
+	import pandas as pd
+	
+	df = pd.DataFrame(validation_report)
+	
+	output = BytesIO()
+	with pd.ExcelWriter(output, engine='openpyxl') as writer:
+		df.to_excel(writer, sheet_name='Validation Report', index=False)
+		
+		# Add summary sheet
+		summary_data = {
+			"Metric": ["Total Records", "Valid Records", "Invalid Records", "Success Rate"],
+			"Value": [
+				len(vendor_data),
+				sum(1 for r in validation_report if r["Is Valid"] == "Yes"),
+				sum(1 for r in validation_report if r["Is Valid"] == "No"),
+				f"{sum(1 for r in validation_report if r['Is Valid'] == 'Yes') / len(vendor_data) * 100:.1f}%"
+			]
+		}
+		summary_df = pd.DataFrame(summary_data)
+		summary_df.to_excel(writer, sheet_name='Summary', index=False)
+	
+	output.seek(0)
+	
+	# Save file
+	from frappe.utils.file_manager import save_file
+	filename = f"validation_report_{doc.name}.xlsx"
+	file_doc = save_file(filename, output.read(), doc.doctype, doc.name, is_private=0)
+	
+	return {
+		"file_url": file_doc.file_url,
+		"file_name": filename
+	}
+
+
+@frappe.whitelist()
+def get_import_recommendations(docname):
+	"""Get recommendations for improving import data quality"""
+	doc = frappe.get_doc("Existing Vendor Import", docname)
+	
+	if not doc.vendor_data:
+		return {"error": "No vendor data found"}
+	
+	vendor_data = json.loads(doc.vendor_data)
+	field_mapping = json.loads(doc.field_mapping) if doc.field_mapping else {}
+	
+	recommendations = []
+	
+	# Check field mapping completeness
+	mapped_fields = sum(1 for v in field_mapping.values() if v)
+	total_fields = len(field_mapping)
+	mapping_completeness = (mapped_fields / total_fields * 100) if total_fields > 0 else 0
+	
+	if mapping_completeness < 80:
+		recommendations.append({
+			"type": "Field Mapping",
+			"priority": "High",
+			"message": f"Only {mapping_completeness:.1f}% of fields are mapped. Consider mapping more fields for better data quality.",
+			"action": "Review field mapping and map important fields"
+		})
+	
+	# Check for missing required fields
+	required_fields = ['vendor_name', 'vendor_code', 'company_code']
+	mapped_required = [field for field in required_fields if field in field_mapping.values()]
+	
+	if len(mapped_required) < len(required_fields):
+		missing_required = [field for field in required_fields if field not in mapped_required]
+		recommendations.append({
+			"type": "Required Fields",
+			"priority": "Critical",
+			"message": f"Missing required field mappings: {', '.join(missing_required)}",
+			"action": "Map all required fields before processing"
+		})
+	
+	# Check data quality
+	utils = VendorImportUtils()
+	total_errors = 0
+	total_warnings = 0
+	
+	for idx, row in enumerate(vendor_data, 1):
+		validation = utils.validate_row_data(row, idx)
+		total_errors += len(validation['errors'])
+		total_warnings += len(validation['warnings'])
+	
+	if total_errors > 0:
+		recommendations.append({
+			"type": "Data Quality",
+			"priority": "High",
+			"message": f"Found {total_errors} validation errors across {len(vendor_data)} records",
+			"action": "Fix validation errors in CSV file before importing"
+		})
+	
+	if total_warnings > len(vendor_data) * 0.1:  # More than 10% of records have warnings
+		recommendations.append({
+			"type": "Data Quality",
+			"priority": "Medium",
+			"message": f"Found {total_warnings} validation warnings. Consider reviewing data quality",
+			"action": "Review and fix warning issues for better data quality"
+		})
+	
+	# Check for duplicates
+	duplicates = utils.get_duplicate_vendors(vendor_data)
+	if duplicates:
+		recommendations.append({
+			"type": "Duplicates",
+			"priority": "Medium",
+			"message": f"Found {len(duplicates)} potential duplicate entries",
+			"action": "Review duplicate entries and decide on merge or skip strategy"
+		})
+	
+	return {
+		"recommendations": recommendations,
+		"total_recommendations": len(recommendations),
+		"mapping_completeness": mapping_completeness,
+		"data_quality_score": max(0, 100 - (total_errors * 10) - (total_warnings * 2))
+	}

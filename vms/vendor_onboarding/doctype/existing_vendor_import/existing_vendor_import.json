@@ -19,6 +19,7 @@
   "original_headers",
   "column_break_mapping",
   "mapping_statistics",
+  "default_map",
   "validation_section",
   "success_fail_rate_html",
   "section_break_oqia",
@@ -39,6 +40,7 @@
   {
    "fieldname": "csv_xl",
    "fieldtype": "Attach",
+   "in_list_view": 1,
    "label": "CSV/Excel File",
    "reqd": 1
   },
@@ -65,10 +67,10 @@
    "label": "Process Vendors"
   },
   {
+   "description": "Map your CSV columns to system fields. Auto-mapping is applied based on header similarity.",
    "fieldname": "field_mapping_section",
    "fieldtype": "Section Break",
-   "label": "Field Mapping Configuration",
-   "description": "Map your CSV columns to system fields. Auto-mapping is applied based on header similarity."
+   "label": "Field Mapping Configuration"
   },
   {
    "fieldname": "field_mapping_html",
@@ -81,17 +83,17 @@
    "label": "Field Mapping"
   },
   {
+   "description": "JSON mapping of CSV headers to system fields",
    "fieldname": "field_mapping",
    "fieldtype": "Code",
-   "label": "Field Mapping JSON",
-   "description": "JSON mapping of CSV headers to system fields"
+   "label": "Field Mapping JSON"
   },
   {
    "fieldname": "original_headers",
    "fieldtype": "Code",
+   "hidden": 1,
    "label": "Original CSV Headers",
-   "read_only": 1,
-   "hidden": 1
+   "read_only": 1
   },
   {
    "fieldname": "column_break_mapping",
@@ -153,13 +155,19 @@
    "fieldname": "download_options_html",
    "fieldtype": "HTML",
    "label": "Download Options",
-   "options": "<div class='alert alert-info'><strong>Download Options:</strong><br>• Use the Actions menu to download processed data<br>• Download field mapping template for reference<br>• Export validation results and error reports</div>"
+   "options": "<div class=\"alert alert-info\"><strong>Download Options:</strong><br>\u2022 Use the Actions menu to download processed data<br>\u2022 Download field mapping template for reference<br>\u2022 Export validation results and error reports</div>"
+  },
+  {
+   "default": "{\n  \"C.Code\": \"company_code\",\n  \"Vendor Code\": \"vendor_code\",\n  \"Vendor Name\": \"vendor_name\",\n  \"State\": \"state\",\n  \"GSTN No\": \"gst_no\",\n  \"PAN No\": \"company_pan_number\",\n  \"Check\": null,\n  \"Vendor GST Classification\": \"vendor_gst_classification\",\n  \"Address01\": \"address_line_1\",\n  \"Address02\": \"address_line_1\",\n  \"Address03\": \"address_line_1\",\n  \"Address04\": \"address_line_1\",\n  \"Address05\": \"address_line_1\",\n  \"City\": \"city\",\n  \"Pincode\": \"pincode\",\n  \"Contact No\": \"mobile_number\",\n  \"Alternate No\": null,\n  \"Email-Id\": \"office_email_primary\",\n  \"Remark\": \"remarks\",\n  \"Created On\": null,\n  \"Account Group\": \"account_group\",\n  \"Type of Industry\": \"vendor_type\",\n  \"Contact Person\": null,\n  \"HOD\": null,\n  \"Nature Of Services\": \"nature_of_services\",\n  \"Nature\": \"nature_of_services\",\n  \"Remarks\": \"remarks\",\n  \"Primary Email\": \"office_email_primary\",\n  \"Secondary Email\": \"office_email_primary\",\n  \"Purchase Group\": \"purchase_group\",\n  \"Purchase Organization\": \"purchase_organization\",\n  \"Vendor Type\": \"vendor_type\",\n  \"Terms of Payment\": \"terms_of_payment\",\n  \"Incoterm\": \"incoterms\",\n  \"Reconciliation Account\": \"reconciliation_account\",\n  \"Bank Name\": \"bank_name\",\n  \"IFSC Code\": \"ifsc_code\",\n  \"Account Number\": \"account_number\",\n  \"Name of Account Holder\": \"vendor_name\",\n  \"Type of Account\": \"type_of_account\",\n  \"Enterprise Registration No.\": null,\n  \"GST Vendor Type\": \"vendor_type\",\n  \"Beneficiary Name\": \"beneficiary_name\",\n  \"Beneficiary Swift Code\": \"beneficiary_swift_code\",\n  \"Beneficiary IBAN No.\": \"beneficiary_iban_no\",\n  \"Beneficiary ABA No.\": \"beneficiary_aba_no\",\n  \"Beneficiary Bank Address\": \"beneficiary_bank_address\",\n  \"Beneficiary Bank Name\": \"beneficiary_bank_name\",\n  \"Beneficiary Account No.\": \"beneficiary_account_no\",\n  \"Beneficiary ACH No.\": \"beneficiary_ach_no\",\n  \"Beneficiary Routing No.\": \"beneficiary_routing_no\",\n  \"Beneficiary Currency\": \"order_currency\",\n  \"Intermediate Name\": \"intermediate_name\",\n  \"Intermediate Bank Name\": \"intermediate_bank_name\",\n  \"Intermediate Swift Code\": \"intermediate_swift_code\",\n  \"Intermediate IBAN No.\": \"intermediate_iban_no\",\n  \"Intermediate ABA No.\": \"intermediate_aba_no\",\n  \"Intermediate Bank Address\": \"intermediate_bank_address\",\n  \"Intermediate Account No.\": \"intermediate_account_no\",\n  \"Intermediate ACH No.\": \"intermediate_ach_no\",\n  \"Intermediate Routing No.\": \"intermediate_routing_no\",\n  \"Intermediate Currency\": \"order_currency\"\n  \n}",
+   "fieldname": "default_map",
+   "fieldtype": "Code",
+   "label": "Default Map"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-30 16:00:00.000000",
+ "modified": "2025-08-04 15:56:39.801001",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Existing Vendor Import",
