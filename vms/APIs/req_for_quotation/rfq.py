@@ -65,6 +65,8 @@ def get_full_rfq_data(unique_id):
 					"mobile_number": row.mobile_number,
 					"service_provider_type": row.service_provider_type,
 					"country": row.country,
+					"bid_won": row.bid_won,
+					"bid_loss": row.bid_loss,
 					"quotations": parsed_json   
 				})
 
@@ -87,6 +89,8 @@ def get_full_rfq_data(unique_id):
 					"country": row.country,
 					"company_pan": row.company_pan,
 					"gst_number": row.gst_number,
+					"bid_won": row.bid_won,
+					"bid_loss": row.bid_loss,
 					"quotations": parsed_json 
 				})
 
@@ -139,6 +143,9 @@ def get_full_rfq_data(unique_id):
 			# logistic import rfq data / logistic export rfq data
 			"name": doc.name,
 			"status": doc.status,
+			"form_fully_submitted": doc.form_fully_submitted,
+			"is_approved": doc.is_approved,
+			"revised_rfq": doc.revised_rfq,
 			"unique_id": doc.unique_id,
 			"rfq_type": doc.rfq_type,
 			"raised_by": doc.raised_by,

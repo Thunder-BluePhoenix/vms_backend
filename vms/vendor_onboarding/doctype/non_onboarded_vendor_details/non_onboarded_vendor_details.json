@@ -15,8 +15,10 @@
   "company_pan",
   "gst_number",
   "more_info_section",
-  "quotation",
   "bid_status",
+  "bid_won",
+  "bid_loss",
+  "quotation",
   "json_field",
   "html"
  ],
@@ -60,7 +62,7 @@
   {
    "fieldname": "quotation",
    "fieldtype": "Link",
-   "label": "Quotation",
+   "label": "Quotation Won ID",
    "options": "Quotation"
   },
   {
@@ -90,14 +92,27 @@
   {
    "fieldname": "bid_status",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Bid Status"
+  },
+  {
+   "default": "0",
+   "fieldname": "bid_won",
+   "fieldtype": "Check",
+   "label": "Bid Won"
+  },
+  {
+   "default": "0",
+   "fieldname": "bid_loss",
+   "fieldtype": "Check",
+   "label": "Bid Loss"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-31 20:19:19.721149",
+ "modified": "2025-08-04 13:16:16.091632",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Non Onboarded Vendor Details",

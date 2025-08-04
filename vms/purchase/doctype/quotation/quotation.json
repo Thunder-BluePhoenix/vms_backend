@@ -11,6 +11,7 @@
   "ref_no",
   "vendor_name",
   "vendor_code",
+  "rfq_type",
   "column_break_yoni",
   "office_email_primary",
   "vendor_contact",
@@ -845,12 +846,18 @@
    "fieldname": "final_freight_total",
    "fieldtype": "Data",
    "label": "Freight Total"
+  },
+  {
+   "fieldname": "rfq_type",
+   "fieldtype": "Link",
+   "label": "RFQ Type",
+   "options": "Vendor Type Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-31 15:22:18.761594",
+ "modified": "2025-08-04 14:18:57.996027",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Quotation",

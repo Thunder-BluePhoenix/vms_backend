@@ -357,6 +357,11 @@ def process_token(token):
                 frappe.local.response["http_status_code"] = 410  # Gone
                 frappe.local.response["message"] = "This secure link has expired due to cutoff date."
                 return
+			
+            if rfq_doc.revised_rfq == 1:
+                    frappe.local.response["http_status_code"] = 410  # Gone
+                    frappe.local.response["message"] = "The given RFQ has been Revised."
+                    return
 
             # Shared attachment extraction
             def get_attachments():
