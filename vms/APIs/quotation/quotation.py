@@ -1,6 +1,7 @@
 import frappe
 import json
 from frappe import _
+from frappe.utils import now_datetime
 
 
 
@@ -216,6 +217,7 @@ def approve_quotation(data):
 
                 rfq = frappe.get_doc("Request For Quotation", rfq_number)
                 frappe.db.set_value("Request For Quotation", rfq.name, "status", "Approved")
+                frappe.db.set_value("Request For Quotation", rfq.name, "is_approved", 1)
 
                  # Mark 'Won' in Vendor Details table if ref_no or email matches
                 for row in rfq.vendor_details:
@@ -228,6 +230,13 @@ def approve_quotation(data):
                             "Won"
                         )
 
+                        frappe.db.set_value(
+                            "Vendor Details",
+                            row.name, 
+                            "bid_won",
+                            1
+                        )
+
                 # Mark 'Won' in Non-Onboarded Vendor Details table if email matches
                 for row in rfq.non_onboarded_vendor_details:
                     if quotation.office_email_primary and quotation.office_email_primary == row.office_email_primary:
@@ -236,6 +245,13 @@ def approve_quotation(data):
                             row.name, 
                             "bid_status",
                             "Won"
+                        )
+
+                        frappe.db.set_value(
+                            "Non Onboarded Vendor Details",
+                            row.name, 
+                            "bid_won",
+                            1
                         )
 
 
@@ -462,116 +478,126 @@ def get_quotations_by_rfq(rfq_number):
         if not frappe.db.exists("Request For Quotation", rfq_number):
             frappe.throw(_("RFQ Number {0} does not exist").format(rfq_number))
         
-        
-        
-        
-        quotations = frappe.get_all(
-            "Quotation",
-            filters={
-                "rfq_number": rfq_number,
-            },
-            fields=['*']
-        )
-        
-        if not quotations:
-            return {
-                "success": True,
-                "message": _("No quotations found for RFQ {0}").format(rfq_number),
-                "data": [],
-                "total_count": 0
-            }
-        
-        def get_sort_key(quotation):
-            try:
-                rank = quotation.get('rank')
-                if rank and str(rank).strip():
-                    return int(str(rank).strip())
-                else:
-                    return 999999
-            except (ValueError, TypeError):
-                return 999999
-        
-        quotations.sort(key=get_sort_key)
-    
-        formatted_quotations = []
-        for quotation in quotations:
-            quote_amount_display = None
-            if quotation.get('quote_amount'):
-                try:
-                    quote_amount_display = float(str(quotation['quote_amount']).replace(',', ''))
-                except (ValueError, TypeError):
-                    quote_amount_display = quotation['quote_amount']
-            
-        
-            attachments = frappe.get_all(
-                "Multiple Attachment",  
+        rfq = frappe.get_doc("Request For Quotation", rfq_number)
+
+        current_time = now_datetime()
+
+        deadline = rfq.rfq_cutoff_date_logistic or rfq.quotation_deadline
+
+        if deadline and deadline < current_time:
+
+            quotations = frappe.get_all(
+                "Quotation",
                 filters={
-                    "parent": quotation.get('name'),
-                    "parenttype": "Quotation"
+                    "rfq_number": rfq_number,
                 },
-                fields=['name1', 'attachment_name']
+                fields=['*']
             )
             
-        
-            formatted_attachments = []
-            for attachment in attachments:
-                attachment_data = {
-                    "document_name": attachment.get('name1'),
-                    "attach": attachment.get('attachment_name'),
-                    "file_url": frappe.utils.get_url() + attachment.get('attachment_name') if attachment.get('attachment_name') else None
+            if not quotations:
+                return {
+                    "success": True,
+                    "message": _("No quotations found for RFQ {0}").format(rfq_number),
+                    "data": [],
+                    "total_count": 0
                 }
-                formatted_attachments.append(attachment_data)
             
-            formatted_quotation = {
-                "name": quotation.get('name'),
-                "rfq_number": quotation.get('rfq_number'),
-                "vendor_name": quotation.get('vendor_name'),
-                "vendor_code": quotation.get('vendor_code'),
-                "quote_amount": quote_amount_display,
-                # "quote_amount_formatted": quotation.get('quote_amount'), 
-                "rank": quotation.get('rank'),
-                "mode_of_shipment": quotation.get('mode_of_shipment'),
-                "office_email_primary": quotation.get('office_email_primary'),
-                "airlinevessel_name": quotation.get('airlinevessel_name'),
-                "chargeable_weight": quotation.get('chargeable_weight'),
-                "ratekg": quotation.get('ratekg'),
-                "fuel_surcharge": quotation.get('fuel_surcharge'),
-                "destination_port": quotation.get('destination_port'),
-                "actual_weight": quotation.get('actual_weight'),
-                "sc": quotation.get('sc'),
-                "xray": quotation.get('xray'),
-                "pickuporigin": quotation.get('pickuporigin'),
-                "ex_works": quotation.get('ex_works'),
-                "total_freight": quotation.get('total_freight'),
-                "from_currency": quotation.get('from_currency'),
-                "to_currency": quotation.get('to_currency'),
-                "exchange_rate": quotation.get('exchange_rate'),
-                "total_freightinr": quotation.get('total_freightinr'),
-                "destination_charge": quotation.get('destination_charge'),
-                "shipping_line_charge": quotation.get('shipping_line_charge'),
-                "cfs_charge": quotation.get('cfs_charge'),
-                "total_landing_price": quotation.get('total_landing_price'),
-                "invoice_no": quotation.get('invoice_no'),
-                "transit_days": quotation.get('transit_days'),
-                "remarks": quotation.get('remarks'),
-                "logistic_type": quotation.get('logistic_type'),
-                "bidding_status": quotation.get('bidding_status'),
-                "status": quotation.get('status'),
-                "attachments": formatted_attachments
+            def get_sort_key(quotation):
+                try:
+                    rank = quotation.get('rank')
+                    if rank and str(rank).strip():
+                        return int(str(rank).strip())
+                    else:
+                        return 999999
+                except (ValueError, TypeError):
+                    return 999999
+            
+            quotations.sort(key=get_sort_key)
+
+            formatted_quotations = []
+            for quotation in quotations:
+                quote_amount_display = None
+                if quotation.get('quote_amount'):
+                    try:
+                        quote_amount_display = float(str(quotation['quote_amount']).replace(',', ''))
+                    except (ValueError, TypeError):
+                        quote_amount_display = quotation['quote_amount']
+                
+            
+                attachments = frappe.get_all(
+                    "Multiple Attachment",  
+                    filters={
+                        "parent": quotation.get('name'),
+                        "parenttype": "Quotation"
+                    },
+                    fields=['name1', 'attachment_name']
+                )
+                
+            
+                formatted_attachments = []
+                for attachment in attachments:
+                    attachment_data = {
+                        "document_name": attachment.get('name1'),
+                        "attach": attachment.get('attachment_name'),
+                        "file_url": frappe.utils.get_url() + attachment.get('attachment_name') if attachment.get('attachment_name') else None
+                    }
+                    formatted_attachments.append(attachment_data)
+                
+                formatted_quotation = {
+                    "name": quotation.get('name'),
+                    "rfq_number": quotation.get('rfq_number'),
+                    "vendor_name": quotation.get('vendor_name'),
+                    "vendor_code": quotation.get('vendor_code'),
+                    "quote_amount": quote_amount_display,
+                    # "quote_amount_formatted": quotation.get('quote_amount'), 
+                    "rank": quotation.get('rank'),
+                    "mode_of_shipment": quotation.get('mode_of_shipment'),
+                    "office_email_primary": quotation.get('office_email_primary'),
+                    "airlinevessel_name": quotation.get('airlinevessel_name'),
+                    "chargeable_weight": quotation.get('chargeable_weight'),
+                    "ratekg": quotation.get('ratekg'),
+                    "fuel_surcharge": quotation.get('fuel_surcharge'),
+                    "destination_port": quotation.get('destination_port'),
+                    "actual_weight": quotation.get('actual_weight'),
+                    "sc": quotation.get('sc'),
+                    "xray": quotation.get('xray'),
+                    "pickuporigin": quotation.get('pickuporigin'),
+                    "ex_works": quotation.get('ex_works'),
+                    "total_freight": quotation.get('total_freight'),
+                    "from_currency": quotation.get('from_currency'),
+                    "to_currency": quotation.get('to_currency'),
+                    "exchange_rate": quotation.get('exchange_rate'),
+                    "total_freightinr": quotation.get('total_freightinr'),
+                    "destination_charge": quotation.get('destination_charge'),
+                    "shipping_line_charge": quotation.get('shipping_line_charge'),
+                    "cfs_charge": quotation.get('cfs_charge'),
+                    "total_landing_price": quotation.get('total_landing_price'),
+                    "invoice_no": quotation.get('invoice_no'),
+                    "transit_days": quotation.get('transit_days'),
+                    "remarks": quotation.get('remarks'),
+                    "logistic_type": quotation.get('logistic_type'),
+                    "bidding_status": quotation.get('bidding_status'),
+                    "status": quotation.get('status'),
+                    "attachments": formatted_attachments
+                }
+                formatted_quotations.append(formatted_quotation)
+            
+            rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
+            
+            return {
+                "success": True,
+                "message": _("Quotations retrieved successfully"),
+                "data": formatted_quotations,
+                "total_count": len(formatted_quotations),
+                "rfq_details": {
+                    "name": rfq_doc.name
+                }
             }
-            formatted_quotations.append(formatted_quotation)
         
-        rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
-        
-        return {
-            "success": True,
-            "message": _("Quotations retrieved successfully"),
-            "data": formatted_quotations,
-            "total_count": len(formatted_quotations),
-            "rfq_details": {
-                "name": rfq_doc.name
+        else:
+            return{
+                "mesaage": "Cut off datetime is not Pass thats why Bidding details wont be visible."
             }
-        }
         
     except frappe.DoesNotExistError:
         frappe.throw(_("RFQ Number {0} does not exist").format(rfq_number))
