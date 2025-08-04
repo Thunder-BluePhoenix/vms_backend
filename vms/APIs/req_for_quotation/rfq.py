@@ -221,6 +221,7 @@ def get_full_rfq_data(unique_id):
 
 			# approved quotation details
 			"final_quotation_id": final_approve_quotation.name or "",
+			"is_negotiated": final_approve_quotation.is_negotiated or "",
 			"final_mode_of_shipment": final_approve_quotation.mode_of_shipment or "",
 			"final_ffn": final_approve_quotation.vendor_name or "",
 			"final_freight_fcr": final_approve_quotation.total_freight or "",
@@ -242,6 +243,7 @@ def get_full_rfq_data(unique_id):
 			"final_total": "",
 			"final_landing_price": final_approve_quotation.total_landing_price or "",
 			"final_freight_total": final_approve_quotation.total_freight or "",
+			"final_cfs_charge": final_approve_quotation.cfs_charge or "",
 
 			# Counts
 			"total_rfq_sent": total_rfq_sent,
