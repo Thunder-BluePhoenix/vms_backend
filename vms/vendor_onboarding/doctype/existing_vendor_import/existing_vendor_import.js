@@ -1,3 +1,4 @@
+// Enhanced existing_vendor_import.js
 // Copyright (c) 2025, Blue Phoenix and contributors
 // For license information, please see license.txt
 
@@ -24,7 +25,8 @@ frappe.ui.form.on("Existing Vendor Import", {
 		// Add help text
 		add_help_text(frm);
 
-        initialize_enhanced_features(frm);
+		// Initialize enhanced features
+		initialize_enhanced_features(frm);
 	},
 	
 	csv_xl(frm) {
@@ -104,6 +106,10 @@ function add_custom_buttons(frm) {
 		frm.add_custom_button(__('Re-validate Data'), function() {
 			revalidate_data(frm);
 		}, __('Actions')).addClass('btn-info');
+		
+		frm.add_custom_button(__('Preview Import'), function() {
+			preview_import(frm);
+		}, __('Actions')).addClass('btn-secondary');
 	}
 	
 	if (frm.doc.existing_vendor_initialized) {
@@ -144,11 +150,8 @@ function reset_form_data(frm) {
 }
 
 function show_field_mapping_section(frm) {
-	// Add field mapping section if it doesn't exist
-	if (!frm.fields_dict.field_mapping_html) {
-		// The HTML will be displayed in the field_mapping_html field
-		frm.refresh_field('field_mapping_html');
-	}
+	// The HTML will be displayed in the field_mapping_html field
+	frm.refresh_field('field_mapping_html');
 }
 
 function scroll_to_field_mapping() {
@@ -210,6 +213,9 @@ function process_vendors(frm) {
 			if (r.message) {
 				let results = r.message;
 				show_results_dialog(results, frm);
+				
+				// Refresh form to show updated status
+				frm.reload_doc();
 			}
 		},
 		error: function(r) {
@@ -224,87 +230,116 @@ function process_vendors(frm) {
 }
 
 function validate_required_mapping(frm) {
+	let mapping = {};
 	try {
-		const mapping = JSON.parse(frm.doc.field_mapping);
-		const required_fields = ['vendor_name', 'vendor_code', 'company_code', 'state'];
-		const mapped_fields = Object.values(mapping).filter(Boolean);
-		
-		const missing_required = required_fields.filter(field => !mapped_fields.includes(field));
-		
-		if (missing_required.length > 0) {
-			frappe.msgprint({
-				title: __('Required Fields Missing'),
-				message: __('Please map the following required fields: ') + missing_required.join(', '),
-				indicator: 'red'
-			});
-			return false;
-		}
-		
-		return true;
-	} catch (e) {
-		frappe.msgprint(__('Invalid field mapping configuration.'));
+		mapping = JSON.parse(frm.doc.field_mapping || '{}');
+	} catch(e) {
+		frappe.msgprint(__('Invalid field mapping format.'));
 		return false;
 	}
-}
-
-function get_progress_html() {
-	return `
-		<div class="text-center">
-			<div class="progress mb-4" style="height: 25px;">
-				<div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
-					 role="progressbar" style="width: 0%" id="import-progress-bar">
-					<span id="progress-text">0%</span>
-				</div>
-			</div>
-			
-			<div class="row">
-				<div class="col-md-3">
-					<div class="card border-primary">
-						<div class="card-body text-center">
-							<h4 class="text-primary" id="total-count">0</h4>
-							<small>Total Records</small>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="card border-success">
-						<div class="card-body text-center">
-							<h4 class="text-success" id="success-count">0</h4>
-							<small>Successful</small>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="card border-danger">
-						<div class="card-body text-center">
-							<h4 class="text-danger" id="failed-count">0</h4>
-							<small>Failed</small>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="card border-info">
-						<div class="card-body text-center">
-							<h4 class="text-info" id="current-record">0</h4>
-							<small>Current Record</small>
-						</div>
-					</div>
-				</div>
-			</div>
-			
-			<div class="mt-3">
-				<p id="status-message">Initializing import process...</p>
-				<div class="spinner-border text-primary" role="status">
-					<span class="sr-only">Loading...</span>
-				</div>
-			</div>
-		</div>
-	`;
+	
+	// Check for required fields
+	let requiredFields = ['vendor_name'];
+	let missingFields = [];
+	
+	let mappedFields = Object.values(mapping).filter(v => v);
+	
+	for (let field of requiredFields) {
+		if (!mappedFields.includes(field)) {
+			missingFields.push(field);
+		}
+	}
+	
+	if (missingFields.length > 0) {
+		frappe.msgprint({
+			title: __('Missing Required Mappings'),
+			message: __('Please map the following required fields: ') + missingFields.join(', '),
+			indicator: 'orange'
+		});
+		return false;
+	}
+	
+	return true;
 }
 
 function show_results_dialog(results, frm) {
-	let success_rate = results.total_processed > 0 ? 
-		((results.successful / results.total_processed) * 100).toFixed(1) : 0;
+	let html = `
+		<div class="import-results">
+			<div class="row">
+				<div class="col-md-6">
+					<div class="card border-success">
+						<div class="card-header bg-success text-white">
+							<h6 class="mb-0"><i class="fa fa-check-circle"></i> Import Summary</h6>
+						</div>
+						<div class="card-body">
+							<div class="row text-center">
+								<div class="col-6">
+									<h4 class="text-primary">${results.total_processed}</h4>
+									<small>Total Processed</small>
+								</div>
+								<div class="col-6">
+									<h4 class="text-success">${results.vendors_created}</h4>
+									<small>Vendors Created</small>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="card border-info">
+						<div class="card-header bg-info text-white">
+							<h6 class="mb-0"><i class="fa fa-building"></i> Company Codes</h6>
+						</div>
+						<div class="card-body">
+							<div class="row text-center">
+								<div class="col-6">
+									<h4 class="text-success">${results.company_codes_created}</h4>
+									<small>Created</small>
+								</div>
+								<div class="col-6">
+									<h4 class="text-warning">${results.company_codes_updated}</h4>
+									<small>Updated</small>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+	`;
+	
+	if (results.errors && results.errors.length > 0) {
+		html += `
+			<div class="card border-danger mt-3">
+				<div class="card-header bg-danger text-white">
+					<h6 class="mb-0"><i class="fa fa-exclamation-triangle"></i> Errors (${results.errors.length})</h6>
+				</div>
+				<div class="card-body" style="max-height: 200px; overflow-y: auto;">
+		`;
+		
+		results.errors.forEach(error => {
+			html += `<div class="alert alert-danger py-1 mb-1"><small>${error}</small></div>`;
+		});
+		
+		html += '</div></div>';
+	}
+	
+	if (results.warnings && results.warnings.length > 0) {
+		html += `
+			<div class="card border-warning mt-3">
+				<div class="card-header bg-warning text-dark">
+					<h6 class="mb-0"><i class="fa fa-exclamation-triangle"></i> Warnings (${results.warnings.length})</h6>
+				</div>
+				<div class="card-body" style="max-height: 200px; overflow-y: auto;">
+		`;
+		
+		results.warnings.forEach(warning => {
+			html += `<div class="alert alert-warning py-1 mb-1"><small>${warning}</small></div>`;
+		});
+		
+		html += '</div></div>';
+	}
+	
+	html += '</div>';
 	
 	let results_dialog = new frappe.ui.Dialog({
 		title: __('Import Results'),
@@ -313,7 +348,7 @@ function show_results_dialog(results, frm) {
 			{
 				fieldtype: 'HTML',
 				fieldname: 'results_html',
-				options: generate_results_html(results)
+				options: html
 			}
 		],
 		primary_action_label: __('Download Report'),
@@ -323,102 +358,70 @@ function show_results_dialog(results, frm) {
 		secondary_action_label: __('Close'),
 		secondary_action() {
 			results_dialog.hide();
-			frm.reload_doc();
 		}
 	});
 	
 	results_dialog.show();
 }
 
-function generate_results_html(results) {
-	let success_rate = results.total_processed > 0 ? 
-		((results.successful / results.total_processed) * 100).toFixed(1) : 0;
-	
-	let html = `
-		<div class="import-results">
-			<div class="row mb-4">
-				<div class="col-md-3 text-center">
-					<div class="card border-primary">
-						<div class="card-body">
-							<h3 class="text-primary">${results.total_processed}</h3>
-							<p class="mb-0">Total Processed</p>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3 text-center">
-					<div class="card border-success">
-						<div class="card-body">
-							<h3 class="text-success">${results.successful}</h3>
-							<p class="mb-0">Successful</p>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3 text-center">
-					<div class="card border-danger">
-						<div class="card-body">
-							<h3 class="text-danger">${results.failed}</h3>
-							<p class="mb-0">Failed</p>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3 text-center">
-					<div class="card border-info">
-						<div class="card-body">
-							<h3 class="text-info">${success_rate}%</h3>
-							<p class="mb-0">Success Rate</p>
-						</div>
-					</div>
-				</div>
+function get_progress_html() {
+	return `
+		<div class="progress-container text-center">
+			<div class="spinner-border text-primary mb-3" role="status">
+				<span class="sr-only">Loading...</span>
 			</div>
+			<h5>Processing Vendor Import</h5>
+			<p class="text-muted">Please wait while we process your vendor data...</p>
 			
-			<div class="progress mb-3" style="height: 20px;">
-				<div class="progress-bar bg-success" role="progressbar" 
-					 style="width: ${success_rate}%" 
-					 aria-valuenow="${success_rate}" 
-					 aria-valuemin="0" 
-					 aria-valuemax="100">
-					${success_rate}%
+			<div class="progress-steps mt-4">
+				<div class="step active">
+					<i class="fa fa-check-circle"></i> Validating Data
+				</div>
+				<div class="step">
+					<i class="fa fa-cog fa-spin"></i> Creating Vendors
+				</div>
+				<div class="step">
+					<i class="fa fa-clock"></i> Linking Companies
+				</div>
+				<div class="step">
+					<i class="fa fa-clock"></i> Finalizing
 				</div>
 			</div>
+		</div>
+		
+		<style>
+			.progress-steps {
+				display: flex;
+				justify-content: space-between;
+				margin-top: 20px;
+			}
+			
+			.step {
+				text-align: center;
+				flex: 1;
+				padding: 10px;
+				border-radius: 6px;
+				margin: 0 5px;
+				background: #f8f9fa;
+				border: 1px solid #dee2e6;
+			}
+			
+			.step.active {
+				background: #e3f2fd;
+				border-color: #2196f3;
+				color: #1976d2;
+			}
+			
+			.step i {
+				display: block;
+				font-size: 1.2rem;
+				margin-bottom: 5px;
+			}
+		</style>
 	`;
-	
-	if (results.errors && results.errors.length > 0) {
-		html += `
-			<div class="card border-danger mt-3">
-				<div class="card-header bg-danger text-white">
-					<h6 class="mb-0">Errors (${results.errors.length})</h6>
-				</div>
-				<div class="card-body">
-					<div style="max-height: 300px; overflow-y: auto;">
-						<ul class="list-unstyled mb-0">
-		`;
-		
-		results.errors.slice(0, 50).forEach(error => {
-			html += `<li class="text-danger mb-1">• ${error}</li>`;
-		});
-		
-		if (results.errors.length > 50) {
-			html += `<li class="text-muted mb-1">... and ${results.errors.length - 50} more errors</li>`;
-		}
-		
-		html += `
-					</ul>
-				</div>
-			</div>
-		`;
-	}
-	
-	html += `</div>`;
-	return html;
 }
 
 function download_processed_data(frm, data_type) {
-	// Show loading indicator
-	frappe.show_alert({
-		message: __('Preparing download...'),
-		indicator: 'blue'
-	});
-	
 	frappe.call({
 		method: 'vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import.download_processed_data',
 		args: {
@@ -426,42 +429,26 @@ function download_processed_data(frm, data_type) {
 			data_type: data_type
 		},
 		callback: function(r) {
-			if (r.message && r.message.file_url) {
-				// Create download link
-				const link = document.createElement('a');
-				link.href = r.message.file_url;
-				link.download = r.message.file_name;
-				link.target = '_blank';
-				
-				// Trigger download
-				document.body.appendChild(link);
-				link.click();
-				document.body.removeChild(link);
-				
+			if (r.message) {
+				// Open download link
+				window.open(r.message.file_url, '_blank');
 				frappe.show_alert({
 					message: __('Download started: ') + r.message.file_name,
 					indicator: 'green'
 				});
 			}
-		},
-		error: function(r) {
-			frappe.show_alert({
-				message: __('Failed to generate download file.'),
-				indicator: 'red'
-			});
 		}
 	});
 }
-
 
 function download_field_mapping_template() {
 	frappe.call({
 		method: 'vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import.download_field_mapping_template',
 		callback: function(r) {
-			if (r.message && r.message.file_url) {
+			if (r.message) {
 				window.open(r.message.file_url, '_blank');
 				frappe.show_alert({
-					message: __('Field mapping template downloaded'),
+					message: __('Template downloaded successfully'),
 					indicator: 'green'
 				});
 			}
@@ -470,11 +457,11 @@ function download_field_mapping_template() {
 }
 
 function download_sample_template() {
-	// Create sample template data
+	// Generate sample CSV data
 	let sample_data = [{
-		'C.Code': '2000',
+		'Vendor Name': 'Sample Vendor Pvt Ltd.',
 		'Vendor Code': '10001',
-		'Vendor Name': 'Sample Vendor Pvt. Ltd.',
+		'C.Code': '2000',
 		'State': 'Gujarat',
 		'State Code': '6',
 		'GSTN No': '24AACCD0267F1Z4',
@@ -566,296 +553,185 @@ function clear_all_mapping(frm) {
 	frappe.confirm(
 		'Are you sure you want to clear all field mappings?',
 		function() {
-			if (frm.doc.original_headers) {
-				let headers = JSON.parse(frm.doc.original_headers);
-				let empty_mapping = {};
-				headers.forEach(header => {
-					empty_mapping[header] = null;
-				});
-				
-				frm.set_value('field_mapping', JSON.stringify(empty_mapping, null, 2));
-				frm.save().then(() => {
-					frappe.show_alert({
-						message: __('All mappings cleared'),
-						indicator: 'orange'
-					});
-					frm.refresh();
-				});
+			let headers = [];
+			try {
+				headers = JSON.parse(frm.doc.original_headers || '[]');
+			} catch(e) {
+				headers = [];
 			}
+			
+			// Create empty mapping object
+			let empty_mapping = {};
+			headers.forEach(header => {
+				empty_mapping[header] = null;
+			});
+			
+			frm.set_value('field_mapping', JSON.stringify(empty_mapping, null, 2));
+			frm.save().then(() => {
+				frappe.show_alert({
+					message: __('All mappings cleared'),
+					indicator: 'orange'
+				});
+				frm.refresh();
+			});
 		}
 	);
 }
 
 function validate_field_mapping(frm) {
 	if (!frm.doc.field_mapping) {
-		frappe.msgprint(__('No field mapping found.'));
+		frappe.msgprint(__('No field mapping to validate.'));
 		return;
 	}
 	
-	try {
-		const mapping = JSON.parse(frm.doc.field_mapping);
-		const required_fields = ['vendor_name', 'vendor_code', 'company_code', 'state'];
-		const mapped_fields = Object.values(mapping).filter(Boolean);
-		
-		let validation_results = {
-			total_headers: Object.keys(mapping).length,
-			mapped_headers: mapped_fields.length,
-			unmapped_headers: Object.keys(mapping).length - mapped_fields.length,
-			required_mapped: 0,
-			required_missing: []
-		};
-		
-		required_fields.forEach(field => {
-			if (mapped_fields.includes(field)) {
-				validation_results.required_mapped++;
-			} else {
-				validation_results.required_missing.push(field);
+	frappe.call({
+		method: 'vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import.validate_import_data',
+		args: {
+			docname: frm.doc.name
+		},
+		callback: function(r) {
+			if (r.message) {
+				let results = r.message;
+				
+				let message = `
+					<div class="validation-summary">
+						<h6>Validation Results:</h6>
+						<ul>
+							<li><strong>Total Records:</strong> ${results.total_records}</li>
+							<li><strong>Valid Records:</strong> <span class="text-success">${results.valid_records}</span></li>
+							<li><strong>Invalid Records:</strong> <span class="text-danger">${results.invalid_records}</span></li>
+							<li><strong>Errors:</strong> <span class="text-danger">${results.errors ? results.errors.length : 0}</span></li>
+							<li><strong>Warnings:</strong> <span class="text-warning">${results.warnings ? results.warnings.length : 0}</span></li>
+						</ul>
+					</div>
+				`;
+				
+				frappe.msgprint({
+					title: __('Validation Complete'),
+					message: message,
+					indicator: results.errors && results.errors.length > 0 ? 'red' : 'green'
+				});
+				
+				// Refresh to show updated validation results
+				frm.refresh();
 			}
-		});
-		
-		// Show validation dialog
-		let validation_dialog = new frappe.ui.Dialog({
-			title: __('Field Mapping Validation'),
-			fields: [
-				{
-					fieldtype: 'HTML',
-					fieldname: 'validation_html',
-					options: generate_validation_html(validation_results)
-				}
-			],
-			primary_action_label: __('Close'),
-			primary_action() {
-				validation_dialog.hide();
-			}
-		});
-		
-		validation_dialog.show();
-		
-	} catch (e) {
-		frappe.msgprint(__('Invalid field mapping JSON format.'));
-	}
+		}
+	});
 }
-
-function generate_validation_html(results) {
-	let html = `
-		<div class="validation-results">
-			<div class="row mb-3">
-				<div class="col-md-6">
-					<div class="card border-info">
-						<div class="card-body text-center">
-							<h4 class="text-info">${results.mapped_headers}</h4>
-							<small>Mapped Headers</small>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="card border-warning">
-						<div class="card-body text-center">
-							<h4 class="text-warning">${results.unmapped_headers}</h4>
-							<small>Unmapped Headers</small>
-						</div>
-					</div>
-				</div>
-			</div>
-			
-			<div class="row mb-3">
-				<div class="col-md-6">
-					<div class="card border-success">
-						<div class="card-body text-center">
-							<h4 class="text-success">${results.required_mapped}/4</h4>
-							<small>Required Fields Mapped</small>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="card border-danger">
-						<div class="card-body text-center">
-							<h4 class="text-danger">${results.required_missing.length}</h4>
-							<small>Required Fields Missing</small>
-						</div>
-					</div>
-				</div>
-			</div>
-	`;
-	
-	if (results.required_missing.length > 0) {
-		html += `
-			<div class="alert alert-danger">
-				<h6>Missing Required Fields:</h6>
-				<ul class="mb-0">
-		`;
-		results.required_missing.forEach(field => {
-			html += `<li>${field}</li>`;
-		});
-		html += `
-				</ul>
-			</div>
-		`;
-	} else {
-		html += `
-			<div class="alert alert-success">
-				<i class="fa fa-check-circle"></i> All required fields are mapped. You can proceed with processing.
-			</div>
-		`;
-	}
-	
-	html += `</div>`;
-	return html;
-}
-
 
 function revalidate_data(frm) {
-	frm.dashboard.add_comment('Re-validating data with current field mapping...', 'blue', true);
-	
-	frm.save().then(() => {
-		frm.dashboard.clear_comment();
-		frappe.show_alert({
-			message: __('Data re-validated successfully'),
-			indicator: 'green'
-		});
+	frappe.call({
+		method: 'vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import.validate_import_data',
+		args: {
+			docname: frm.doc.name
+		},
+		callback: function(r) {
+			if (r.message) {
+				frappe.show_alert({
+					message: __('Data re-validated successfully'),
+					indicator: 'green'
+				});
+				frm.reload_doc();
+			}
+		}
 	});
 }
 
-function initialize_enhanced_features(frm) {
-	// Initialize Chart.js if available
-	if (typeof Chart !== 'undefined') {
-		// Charts will be initialized by the HTML code
-		console.log('Chart.js is available for enhanced visualizations');
+function preview_import(frm) {
+	frappe.call({
+		method: 'vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import.get_vendor_import_preview',
+		args: {
+			docname: frm.doc.name
+		},
+		callback: function(r) {
+			if (r.message && r.message.preview_data) {
+				show_preview_dialog(r.message, frm);
+			}
+		}
+	});
+}
+
+function show_preview_dialog(preview_data, frm) {
+	let html = '<div class="preview-container">';
+	
+	// Summary
+	html += `
+		<div class="preview-summary mb-3">
+			<div class="row">
+				<div class="col-md-4">
+					<div class="text-center">
+						<h4 class="text-primary">${preview_data.total_records}</h4>
+						<small>Total Records</small>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="text-center">
+						<h4 class="text-success">${preview_data.mapped_fields}</h4>
+						<small>Mapped Fields</small>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="text-center">
+						<h4 class="text-info">5</h4>
+						<small>Preview Records</small>
+					</div>
+				</div>
+			</div>
+		</div>
+	`;
+	
+	// Preview table
+	if (preview_data.preview_data && preview_data.preview_data.length > 0) {
+		let firstRow = preview_data.preview_data[0];
+		let fields = Object.keys(firstRow).filter(key => !key.startsWith('_'));
+		
+		html += `
+			<div class="table-responsive">
+				<table class="table table-bordered table-striped">
+					<thead class="table-dark">
+						<tr>
+							<th>Row</th>
+		`;
+		
+		fields.forEach(field => {
+			html += `<th>${field.replace(/_/g, ' ').toUpperCase()}</th>`;
+		});
+		
+		html += '</tr></thead><tbody>';
+		
+		preview_data.preview_data.forEach(row => {
+			html += `<tr><td><span class="badge bg-secondary">${row._row_number}</span></td>`;
+			fields.forEach(field => {
+				let value = row[field] || 'N/A';
+				html += `<td>${value}</td>`;
+			});
+			html += '</tr>';
+		});
+		
+		html += '</tbody></table></div>';
 	}
 	
-	// Initialize field mapping interactions
-	setTimeout(() => {
-		setup_field_mapping_interactions();
-		setup_vendor_data_interactions();
-	}, 1000);
-}
-
-function setup_field_mapping_interactions() {
-	// Enhanced field mapping functions
-	window.update_mapping_status = function(select) {
-		const row = select.closest('tr');
-		const statusBadge = row.querySelector('.mapping-status');
-		
-		if (select.value) {
-			statusBadge.className = 'badge bg-success mapping-status';
-			statusBadge.textContent = 'Mapped';
-		} else {
-			statusBadge.className = 'badge bg-warning mapping-status';
-			statusBadge.textContent = 'Unmapped';
-		}
-		
-		update_mapping_summary();
-		update_mapping_progress();
-	};
+	html += '</div>';
 	
-	window.update_mapping_summary = function() {
-		const selects = document.querySelectorAll('.field-mapping-select');
-		let mapped = 0, unmapped = 0;
-		
-		selects.forEach(select => {
-			if (select.value) mapped++;
-			else unmapped++;
-		});
-		
-		// Update badges
-		const mappedEl = document.querySelector('.mapped-count');
-		const unmappedEl = document.querySelector('.unmapped-count');
-		const totalEl = document.querySelector('.total-count');
-		
-		if (mappedEl) mappedEl.textContent = mapped;
-		if (unmappedEl) unmappedEl.textContent = unmapped;
-		if (totalEl) totalEl.textContent = mapped + unmapped;
-	};
-	
-	window.update_mapping_progress = function() {
-		const selects = document.querySelectorAll('.field-mapping-select');
-		const mapped = Array.from(selects).filter(s => s.value).length;
-		const total = selects.length;
-		const percentage = total > 0 ? (mapped / total * 100) : 0;
-		
-		// Update progress bar in mapping stats
-		const progressBar = document.querySelector('.mapping-stats-section .progress-bar');
-		if (progressBar) {
-			progressBar.style.width = percentage + '%';
-			progressBar.textContent = percentage.toFixed(1) + '% Mapped';
-		}
-	};
-	
-	window.apply_auto_mapping = function() {
-		if (!cur_frm) return;
-		
-		frappe.call({
-			method: 'vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import.get_auto_mapping',
-			args: {
-				docname: cur_frm.doc.name
-			},
-			callback: function(r) {
-				if (r.message) {
-					const mapping = r.message;
-					document.querySelectorAll('.field-mapping-select').forEach(select => {
-						const header = select.dataset.header;
-						if (mapping[header]) {
-							select.value = mapping[header];
-							update_mapping_status(select);
-						}
-					});
-					frappe.show_alert('Auto mapping applied successfully');
-					update_mapping_progress();
-				}
+	let preview_dialog = new frappe.ui.Dialog({
+		title: __('Import Preview'),
+		size: 'extra-large',
+		fields: [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'preview_html',
+				options: html
 			}
-		});
-	};
-	
-	window.clear_all_mapping = function() {
-		document.querySelectorAll('.field-mapping-select').forEach(select => {
-			select.value = '';
-			update_mapping_status(select);
-		});
-		frappe.show_alert('All mappings cleared');
-		update_mapping_progress();
-	};
-	
-	window.save_field_mapping = function() {
-		if (!cur_frm) return;
-		
-		const mapping = {};
-		document.querySelectorAll('.field-mapping-select').forEach(select => {
-			mapping[select.dataset.header] = select.value;
-		});
-		
-		cur_frm.set_value('field_mapping', JSON.stringify(mapping, null, 2));
-		cur_frm.save().then(() => {
-			frappe.show_alert('Field mapping saved successfully');
-		});
-	};
-}
-
-function setup_vendor_data_interactions() {
-	// Enhanced vendor data functions
-	window.highlight_vendor_row = function(rowId) {
-		// Remove existing highlights
-		document.querySelectorAll('.vendor-row').forEach(row => {
-			row.classList.remove('table-warning');
-		});
-		
-		// Highlight selected row
-		const targetRow = document.querySelector(`[data-row="${rowId}"]`);
-		if (targetRow) {
-			targetRow.classList.add('table-warning');
-			targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		],
+		primary_action_label: __('Proceed with Import'),
+		primary_action() {
+			preview_dialog.hide();
+			process_vendors(frm);
 		}
-	};
-	
-	// Add click handlers to vendor rows
-	document.querySelectorAll('.vendor-row').forEach(row => {
-		row.addEventListener('click', function() {
-			const rowId = this.dataset.row;
-			highlight_vendor_row(rowId);
-		});
 	});
+	
+	preview_dialog.show();
 }
-
-
 
 function add_help_text(frm) {
 	if (!frm.doc.csv_xl) {
@@ -1006,152 +882,272 @@ function style_form(frm) {
 	frm.wrapper.addClass('enhanced-vendor-import');
 }
 
+function initialize_enhanced_features(frm) {
+	// Add Chart.js for validation charts
+	if (typeof Chart === 'undefined') {
+		frappe.require('https://cdn.jsdelivr.net/npm/chart.js', () => {
+			console.log('Chart.js loaded for vendor import visualizations');
+		});
+	}
+	
+	// Add export functionality
+	if (frm.doc.vendor_data) {
+		add_export_functionality(frm);
+	}
+	
+	// Add real-time validation
+	if (frm.doc.field_mapping && frm.doc.vendor_data) {
+		setup_realtime_validation(frm);
+	}
+}
+
+function add_export_functionality(frm) {
+	// Add export menu to the form
+	if (!frm.page.menu.find('[data-label="Export Data"]').length) {
+		frm.page.add_menu_item(__('Export Data'), function() {
+			show_export_dialog(frm);
+		});
+	}
+}
+
+function show_export_dialog(frm) {
+	let export_dialog = new frappe.ui.Dialog({
+		title: __('Export Options'),
+		fields: [
+			{
+				fieldtype: 'Select',
+				fieldname: 'export_type',
+				label: 'Export Type',
+				options: [
+					'All Records',
+					'Valid Records Only',
+					'Invalid Records Only',
+					'Field Mapping Template'
+				],
+				default: 'All Records'
+			},
+			{
+				fieldtype: 'Select',
+				fieldname: 'export_format',
+				label: 'Format',
+				options: ['Excel', 'CSV'],
+				default: 'Excel'
+			},
+			{
+				fieldtype: 'Check',
+				fieldname: 'include_validation',
+				label: 'Include Validation Results',
+				default: 1
+			}
+		],
+		primary_action_label: __('Export'),
+		primary_action(values) {
+			export_dialog.hide();
+			
+			if (values.export_type === 'Field Mapping Template') {
+				download_field_mapping_template();
+			} else {
+				let data_type = values.export_type.toLowerCase().includes('valid') ? 'valid' : 
+							   values.export_type.toLowerCase().includes('invalid') ? 'invalid' : 'all';
+				download_processed_data(frm, data_type);
+			}
+		}
+	});
+	
+	export_dialog.show();
+}
+
+function setup_realtime_validation(frm) {
+	// Add real-time field mapping validation
+	frappe.realtime.on('vendor_import_progress', function(data) {
+		if (data.docname === frm.doc.name) {
+			update_progress_indicator(data);
+		}
+	});
+}
+
+function update_progress_indicator(data) {
+	// Update any progress indicators based on real-time data
+	if (data.status === 'processing') {
+		$('.progress-bar').css('width', data.percentage + '%');
+	}
+}
+
+// Enhanced validation functions
+function validate_csv_structure(frm) {
+	if (!frm.doc.vendor_data) {
+		return false;
+	}
+	
+	try {
+		let data = JSON.parse(frm.doc.vendor_data);
+		return data && data.length > 0;
+	} catch(e) {
+		return false;
+	}
+}
+
+function get_mapping_completeness(frm) {
+	if (!frm.doc.field_mapping) {
+		return 0;
+	}
+	
+	try {
+		let mapping = JSON.parse(frm.doc.field_mapping);
+		let total = Object.keys(mapping).length;
+		let mapped = Object.values(mapping).filter(v => v).length;
+		return total > 0 ? (mapped / total * 100) : 0;
+	} catch(e) {
+		return 0;
+	}
+}
+
+// Advanced features
+function show_duplicate_analysis(frm) {
+	frappe.call({
+		method: 'vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import.get_import_summary',
+		args: {
+			docname: frm.doc.name
+		},
+		callback: function(r) {
+			if (r.message) {
+				show_analytics_dialog(r.message);
+			}
+		}
+	});
+}
+
+function show_analytics_dialog(summary) {
+	let html = `
+		<div class="analytics-container">
+			<div class="row">
+				<div class="col-md-6">
+					<h6>Data Distribution</h6>
+					<div class="analytics-item">
+						<strong>Companies:</strong> ${summary.companies.length}
+						<div class="small text-muted">${summary.companies.join(', ')}</div>
+					</div>
+					<div class="analytics-item">
+						<strong>States:</strong> ${summary.states.length}
+						<div class="small text-muted">${summary.states.join(', ')}</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<h6>Field Mapping</h6>
+					<div class="progress mb-2">
+						<div class="progress-bar bg-success" style="width: ${summary.field_mapping_percentage}%">
+							${summary.field_mapping_percentage.toFixed(1)}%
+						</div>
+					</div>
+					<div class="analytics-item">
+						<strong>Mapped Fields:</strong> ${summary.mapped_fields}
+					</div>
+					<div class="analytics-item">
+						<strong>Unmapped Fields:</strong> ${summary.unmapped_fields}
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<style>
+			.analytics-item {
+				margin-bottom: 10px;
+				padding: 8px;
+				background: #f8f9fa;
+				border-radius: 4px;
+			}
+		</style>
+	`;
+	
+	let analytics_dialog = new frappe.ui.Dialog({
+		title: __('Import Analytics'),
+		size: 'large',
+		fields: [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'analytics_html',
+				options: html
+			}
+		]
+	});
+	
+	analytics_dialog.show();
+}
+
 // Custom field validation
 frappe.ui.form.on("Existing Vendor Import", {
 	validate(frm) {
 		if (!frm.doc.csv_xl) {
 			frappe.validated = false;
 			frappe.msgprint(__('Please upload a CSV/Excel file.'));
-			return false;
+			return;
 		}
 		
-		// Check file extension
-		let file_url = frm.doc.csv_xl;
-		let file_extension = file_url.split('.').pop().toLowerCase();
-		
-		if (!['csv', 'xlsx', 'xls'].includes(file_extension)) {
-			frappe.validated = false;
-			frappe.msgprint(__('Please upload a valid CSV or Excel file.'));
-			return false;
-		}
-		
-		return true;
-	}
-});
-
-// Global helper functions for field mapping interface
-window.update_mapping_status = function(select) {
-	const row = select.closest('tr');
-	const statusBadge = row.querySelector('.mapping-status');
-	
-	if (select.value) {
-		statusBadge.className = 'badge bg-success mapping-status';
-		statusBadge.textContent = 'Mapped';
-	} else {
-		statusBadge.className = 'badge bg-warning mapping-status';
-		statusBadge.textContent = 'Unmapped';
-	}
-	
-	update_mapping_summary();
-};
-
-window.update_mapping_summary = function() {
-	const selects = document.querySelectorAll('.field-mapping-select');
-	let mapped = 0, unmapped = 0;
-	
-	selects.forEach(select => {
-		if (select.value) mapped++;
-		else unmapped++;
-	});
-	
-	const mappedCountEl = document.querySelector('.mapped-count');
-	const unmappedCountEl = document.querySelector('.unmapped-count');
-	const totalCountEl = document.querySelector('.total-count');
-	
-	if (mappedCountEl) mappedCountEl.textContent = mapped;
-	if (unmappedCountEl) unmappedCountEl.textContent = unmapped;
-	if (totalCountEl) totalCountEl.textContent = mapped + unmapped;
-};
-
-window.apply_auto_mapping = function() {
-	if (!cur_frm) return;
-	
-	frappe.call({
-		method: 'vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import.get_auto_mapping',
-		args: {
-			docname: cur_frm.doc.name
-		},
-		callback: function(r) {
-			if (r.message) {
-				const mapping = r.message;
-				document.querySelectorAll('.field-mapping-select').forEach(select => {
-					const header = select.dataset.header;
-					if (mapping[header]) {
-						select.value = mapping[header];
-						update_mapping_status(select);
-					}
-				});
-				frappe.show_alert('Auto mapping applied successfully');
+		// Basic file validation (extension check)
+		if (frm.doc.csv_xl) {
+			let file_url = frm.doc.csv_xl;
+			let file_extension = file_url.split('.').pop().toLowerCase();
+			
+			if (!['csv', 'xlsx', 'xls'].includes(file_extension)) {
+				frappe.validated = false;
+				frappe.msgprint(__('Please upload a valid CSV or Excel file.'));
+				return;
 			}
 		}
-	});
-};
-
-window.clear_all_mapping = function() {
-	document.querySelectorAll('.field-mapping-select').forEach(select => {
-		select.value = '';
-		update_mapping_status(select);
-	});
-	frappe.show_alert('All mappings cleared');
-};
-
-window.save_field_mapping = function() {
-	if (!cur_frm) return;
-	
-	const mapping = {};
-	document.querySelectorAll('.field-mapping-select').forEach(select => {
-		mapping[select.dataset.header] = select.value;
-	});
-	
-	cur_frm.set_value('field_mapping', JSON.stringify(mapping, null, 2));
-	cur_frm.save().then(() => {
-		frappe.show_alert('Field mapping saved successfully');
-	});
-};
-
-// Initialize when DOM is ready
-$(document).ready(function() {
-	// Auto-update mapping summary if elements exist
-	setTimeout(function() {
-		if (typeof update_mapping_summary === 'function') {
-			update_mapping_summary();
-		}
-	}, 1000);
-});
-
-
-$(document).ready(function() {
-	// Auto-update mapping summary if elements exist
-	setTimeout(function() {
-		if (typeof update_mapping_summary === 'function') {
-			update_mapping_summary();
-		}
-		if (typeof update_mapping_progress === 'function') {
-			update_mapping_progress();
-		}
-	}, 2000);
-});
-
-// Global download function accessible from HTML
-window.download_processed_data = function(type) {
-	if (cur_frm) {
-		download_processed_data(cur_frm, type);
 	}
-};$(document).ready(function() {
-	// Auto-update mapping summary if elements exist
-	setTimeout(function() {
-		if (typeof update_mapping_summary === 'function') {
-			update_mapping_summary();
-		}
-		if (typeof update_mapping_progress === 'function') {
-			update_mapping_progress();
-		}
-	}, 2000);
 });
 
-// Global download function accessible from HTML
-window.download_processed_data = function(type) {
-	if (cur_frm) {
-		download_processed_data(cur_frm, type);
+// Auto-save functionality
+let auto_save_timeout;
+frappe.ui.form.on("Existing Vendor Import", {
+	field_mapping(frm) {
+		// Clear existing timeout
+		if (auto_save_timeout) {
+			clearTimeout(auto_save_timeout);
+		}
+		
+		// Set new timeout for auto-save
+		auto_save_timeout = setTimeout(() => {
+			if (frm.doc.field_mapping && frm.doc.vendor_data) {
+				frm.save();
+			}
+		}, 2000); // Auto-save after 2 seconds of inactivity
 	}
-};
+});
+
+// Keyboard shortcuts
+$(document).on('keydown', function(e) {
+	if (cur_frm && cur_frm.doctype === 'Existing Vendor Import') {
+		// Ctrl+S for save
+		if (e.ctrlKey && e.which === 83) {
+			e.preventDefault();
+			cur_frm.save();
+		}
+		
+		// Ctrl+P for process
+		if (e.ctrlKey && e.which === 80) {
+			e.preventDefault();
+			if (cur_frm.doc.field_mapping && !cur_frm.doc.existing_vendor_initialized) {
+				process_vendors(cur_frm);
+			}
+		}
+	}
+});
+
+// Form enhancement on load
+frappe.ui.form.on("Existing Vendor Import", {
+	onload(frm) {
+		// Set initial state
+		if (frm.is_new()) {
+			frm.set_value('existing_vendor_initialized', 0);
+		}
+		
+		// Add custom CSS
+		style_form(frm);
+		
+		// Initialize tooltips
+		setTimeout(() => {
+			$('[data-toggle="tooltip"]').tooltip();
+		}, 1000);
+	}
+});

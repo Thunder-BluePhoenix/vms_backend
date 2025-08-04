@@ -1,3 +1,4 @@
+# Enhanced existing_vendor_import.py
 # Copyright (c) 2025, Blue Phoenix and contributors
 # For license information, please see license.txt
 
@@ -19,7 +20,7 @@ class ExistingVendorImport(Document):
 			self.parse_and_validate_data()
 
 	def parse_and_validate_data(self):
-		"""Parse CSV/Excel file and validate data - UPDATED"""
+		"""Parse CSV/Excel file and validate data"""
 		try:
 			# Get file content
 			file_doc = frappe.get_doc("File", {"file_url": self.csv_xl})
@@ -51,7 +52,7 @@ class ExistingVendorImport(Document):
 				auto_mapping = self.generate_auto_mapping(df.columns)
 				self.field_mapping = json.dumps(auto_mapping, indent=2)
 			
-			# ADD THIS LINE: Generate mapping statistics
+			# Generate mapping statistics
 			self.mapping_statistics = self.generate_mapping_statistics_html()
 			
 			# Validate and process data
@@ -64,56 +65,146 @@ class ExistingVendorImport(Document):
 		except Exception as e:
 			frappe.throw(f"Error parsing file: {str(e)}")
 
-
-
-
 	def generate_auto_mapping(self, csv_headers):
 		"""Generate automatic field mapping based on header similarity"""
 		
-		# Define mapping patterns including Multiple Company Data fields
+		# Define comprehensive mapping patterns
 		mapping_patterns = {
-			# Vendor Master fields
-			'vendor_name': ['vendor name', 'company name', 'supplier name', 'name'],
-			'office_email_primary': ['primary email', 'email-id', 'email', 'contact email', 'office email'],
-			'office_email_secondary': ['secondary email', 'alternate email', 'backup email'],
-			'mobile_number': ['contact no', 'phone', 'mobile', 'telephone', 'contact number'],
+			# Vendor Master fields - more comprehensive patterns
+			'vendor_name': [
+				'vendor name', 'company name', 'supplier name', 'name', 'vendor_name',
+				'vendorname', 'company_name', 'supplier_name', 'firm name', 'organization name'
+			],
+			'office_email_primary': [
+				'primary email', 'email-id', 'email', 'contact email', 'office email',
+				'email_id', 'emailid', 'email address', 'primary_email', 'main email'
+			],
+			'office_email_secondary': [
+				'secondary email', 'alternate email', 'backup email', 'secondary_email',
+				'alt email', 'email 2', 'second email'
+			],
+			'mobile_number': [
+				'contact no', 'phone', 'mobile', 'telephone', 'contact number',
+				'contact_no', 'mobile_number', 'phone_number', 'contact_number',
+				'mobile no', 'cell phone', 'phone no'
+			],
 			'country': ['country'],
 			
 			# Company Vendor Code fields
-			'company_code': ['c.code', 'company code', 'comp code'],
-			'vendor_code': ['vendor code', 'supplier code', 'sap code'],
-			'gst_no': ['gstn no', 'gst no', 'gst number', 'gstin'],
-			'state': ['state'],
+			'company_code': [
+				'c.code', 'company code', 'comp code', 'company_code',
+				'ccode', 'c code', 'company id', 'comp_code'
+			],
+			'vendor_code': [
+				'vendor code', 'supplier code', 'sap code', 'vendor_code',
+				'vendorcode', 'supplier_code', 'sap_code', 'vendor id'
+			],
+			'gst_no': [
+				'gstn no', 'gst no', 'gst number', 'gstin', 'gst_no',
+				'gstn_no', 'gst_number', 'tax_number', 'gstin_no'
+			],
+			'state': ['state', 'state name', 'state_name'],
+			'state_code': ['state code', 'state_code', 'statecode'],
 			
 			# Company Details fields
-			'company_pan_number': ['pan no', 'pan number', 'pan'],
-			'address_line_1': ['address01', 'address 1', 'address line 1', 'street 1'],
-			'address_line_2': ['address02', 'address 2', 'address line 2', 'street 2'],
-			'city': ['city'],
-			'pincode': ['pincode', 'pin code', 'postal code', 'zip'],
-			'telephone_number': ['telephone number', 'landline', 'office phone'],
+			'company_pan_number': [
+				'pan no', 'pan number', 'pan', 'company_pan_number',
+				'pan_no', 'pan_number', 'company pan', 'tax_id'
+			],
+			'address_line_1': [
+				'address01', 'address 1', 'address line 1', 'street 1',
+				'address1', 'address_line_1', 'street address', 'address'
+			],
+			'address_line_2': [
+				'address02', 'address 2', 'address line 2', 'street 2',
+				'address2', 'address_line_2', 'address line 2'
+			],
+			'city': ['city', 'city_name'],
+			'pincode': [
+				'pincode', 'pin code', 'postal code', 'zip', 'pin_code',
+				'zipcode', 'zip_code', 'postal_code'
+			],
+			'telephone_number': [
+				'telephone number', 'landline', 'office phone', 'telephone_number',
+				'landline_number', 'office_phone', 'tel_no'
+			],
 			
 			# Multiple Company Data fields
-			'purchase_organization': ['purchase organization', 'purchase org', 'po', 'porg'],
-			'account_group': ['account group', 'acc group', 'account grp'],
-			'terms_of_payment': ['terms of payment', 'payment terms', 'payment condition'],
-			'purchase_group': ['purchase group', 'purchasing group', 'purch group'],
-			'order_currency': ['order currency', 'currency', 'curr'],
-			'incoterms': ['incoterm', 'incoterms', 'delivery terms'],
-			'reconciliation_account': ['reconciliation account', 'recon account', 'gl account'],
+			'purchase_organization': [
+				'purchase organization', 'purchase org', 'po', 'porg',
+				'purchase_organization', 'purchase_org', 'purch_org'
+			],
+			'account_group': [
+				'account group', 'acc group', 'account grp', 'account_group',
+				'acc_group', 'account_grp'
+			],
+			'terms_of_payment': [
+				'terms of payment', 'payment terms', 'payment condition',
+				'terms_of_payment', 'payment_terms', 'payment_condition'
+			],
+			'purchase_group': [
+				'purchase group', 'purchasing group', 'purch group',
+				'purchase_group', 'purchasing_group', 'purch_group'
+			],
+			'order_currency': [
+				'order currency', 'currency', 'curr', 'order_currency',
+				'payment_currency', 'transaction_currency'
+			],
+			'incoterms': [
+				'incoterm', 'incoterms', 'delivery terms', 'inco_terms',
+				'delivery_terms', 'shipping_terms'
+			],
+			'reconciliation_account': [
+				'reconciliation account', 'recon account', 'gl account',
+				'reconciliation_account', 'recon_account', 'gl_account'
+			],
 			
 			# Payment Details fields
-			'bank_name': ['bank name'],
-			'ifsc_code': ['ifsc code', 'ifsc'],
-			'account_number': ['account number', 'bank account'],
-			'name_of_account_holder': ['name of account holder', 'account holder name'],
-			'type_of_account': ['type of account', 'account type'],
+			'bank_name': ['bank name', 'bank_name', 'bank'],
+			'ifsc_code': ['ifsc code', 'ifsc', 'ifsc_code', 'bank_code'],
+			'account_number': [
+				'account number', 'bank account', 'account_number',
+				'bank_account', 'acc_number', 'account no'
+			],
+			'name_of_account_holder': [
+				'name of account holder', 'account holder name',
+				'name_of_account_holder', 'account_holder_name', 'account holder'
+			],
+			'type_of_account': [
+				'type of account', 'account type', 'type_of_account',
+				'account_type', 'acc_type'
+			],
 			
 			# Additional fields
-			'vendor_gst_classification': ['vendor gst classification', 'gst classification'],
-			'nature_of_services': ['nature of services', 'service type'],
-			'vendor_type': ['vendor type', 'supplier type'],
-			'remarks': ['remarks', 'comments', 'notes']
+			'vendor_gst_classification': [
+				'vendor gst classification', 'gst classification',
+				'vendor_gst_classification', 'gst_classification'
+			],
+			'nature_of_services': [
+				'nature of services', 'service type', 'nature_of_services',
+				'service_type', 'services'
+			],
+			'vendor_type': [
+				'vendor type', 'supplier type', 'vendor_type',
+				'supplier_type', 'type'
+			],
+			'remarks': ['remarks', 'comments', 'notes', 'remark'],
+			'established_year': [
+				'established year', 'year established', 'established_year',
+				'year_established', 'incorporation year'
+			],
+			'nature_of_business': [
+				'nature of business', 'business nature', 'nature_of_business',
+				'business_nature', 'business type'
+			],
+			'type_of_business': [
+				'type of business', 'business type', 'type_of_business',
+				'business_type'
+			],
+			'corporate_identification_number': [
+				'cin', 'cin number', 'corporate identification',
+				'corporate_identification_number', 'cin_number'
+			]
 		}
 		
 		auto_mapping = {}
@@ -125,7 +216,9 @@ class ExistingVendorImport(Document):
 			# Try to find exact or partial matches
 			for field_name, patterns in mapping_patterns.items():
 				for pattern in patterns:
-					if pattern in csv_header_lower or csv_header_lower in pattern:
+					if (pattern == csv_header_lower or 
+						pattern in csv_header_lower or 
+						csv_header_lower in pattern):
 						auto_mapping[csv_header] = field_name
 						mapped = True
 						break
@@ -138,13 +231,481 @@ class ExistingVendorImport(Document):
 		
 		return auto_mapping
 
-	def generate_field_mapping_html(self, csv_headers):
-		"""Generate HTML interface for field mapping with statistics"""
-	
-		# Get all available target fields
-		target_fields = self.get_all_target_fields()
+	def process_vendors(self):
+		"""Process and import all vendors with enhanced duplicate handling"""
+		if not self.vendor_data or not self.field_mapping:
+			frappe.throw("Vendor data and field mapping are required")
 		
-		# Generate auto mapping
+		vendor_data = json.loads(self.vendor_data)
+		field_mapping = json.loads(self.field_mapping)
+		
+		results = {
+			"total_processed": 0,
+			"vendors_created": 0,
+			"vendors_updated": 0,
+			"company_codes_created": 0,
+			"company_codes_updated": 0,
+			"errors": [],
+			"warnings": []
+		}
+		
+		for idx, row in enumerate(vendor_data, 1):
+			try:
+				# Apply field mapping
+				mapped_row = self.apply_field_mapping(row, field_mapping)
+				
+				# Process each vendor
+				vendor_result = self.process_single_vendor(mapped_row, idx)
+				
+				# Aggregate results
+				results["total_processed"] += 1
+				if vendor_result.get("vendor_action") == "created":
+					results["vendors_created"] += 1
+				elif vendor_result.get("vendor_action") == "updated":
+					results["vendors_updated"] += 1
+				
+				if vendor_result.get("company_code_action") == "created":
+					results["company_codes_created"] += 1
+				elif vendor_result.get("company_code_action") == "updated":
+					results["company_codes_updated"] += 1
+				
+				if vendor_result.get("warnings"):
+					results["warnings"].extend(vendor_result["warnings"])
+					
+			except Exception as e:
+				error_msg = f"Row {idx}: {str(e)}"
+				results["errors"].append(error_msg)
+				frappe.log_error(f"Vendor import error: {error_msg}")
+		
+		# Mark as completed
+		self.existing_vendor_initialized = 1
+		self.save()
+		
+		return results
+
+	def process_single_vendor(self, mapped_row, row_number):
+		"""Process a single vendor with enhanced duplicate detection"""
+		
+		vendor_name = str(mapped_row.get('vendor_name', '')).strip()
+		vendor_code = str(mapped_row.get('vendor_code', '')).strip()
+		company_code = str(mapped_row.get('company_code', '')).strip()
+		state = str(mapped_row.get('state', '')).strip()
+		gst_no = str(mapped_row.get('gst_no', '')).strip()
+		
+		if not vendor_name:
+			raise frappe.ValidationError(f"Vendor name is required")
+		
+		result = {
+			"vendor_action": None,
+			"company_code_action": None,
+			"warnings": []
+		}
+		
+		# Step 1: Find or create Vendor Master
+		vendor_master = self.find_or_create_vendor_master(mapped_row)
+		result["vendor_action"] = "updated" if frappe.db.exists("Vendor Master", {"vendor_name": vendor_name}) else "created"
+		
+		# Step 2: Handle Company Vendor Code with enhanced duplicate logic
+		if vendor_code and company_code:
+			company_code_result = self.handle_company_vendor_code(
+				vendor_master.name, 
+				mapped_row, 
+				vendor_code, 
+				company_code, 
+				state, 
+				gst_no
+			)
+			result.update(company_code_result)
+		
+		# Step 3: Create/update company details
+		self.create_vendor_company_details(vendor_master.name, mapped_row)
+		
+		# Step 4: Create/update multiple company data
+		self.create_multiple_company_data(vendor_master.name, mapped_row)
+		
+		return result
+
+	def find_or_create_vendor_master(self, mapped_row):
+		"""Find existing vendor or create new one"""
+		
+		vendor_name = str(mapped_row.get('vendor_name', '')).strip()
+		office_email = str(mapped_row.get('office_email_primary', '')).strip()
+		
+		# Try to find existing vendor by name or email
+		existing_vendor = None
+		
+		# Search by vendor name first
+		if vendor_name:
+			existing_vendor = frappe.db.exists("Vendor Master", {"vendor_name": vendor_name})
+		
+		# If not found by name, search by email
+		if not existing_vendor and office_email:
+			existing_vendor = frappe.db.exists("Vendor Master", {"office_email_primary": office_email})
+		
+		if existing_vendor:
+			# Update existing vendor
+			vendor_master = frappe.get_doc("Vendor Master", existing_vendor)
+			self.update_vendor_master_fields(vendor_master, mapped_row)
+		else:
+			# Create new vendor
+			vendor_master = frappe.new_doc("Vendor Master")
+			self.set_vendor_master_fields(vendor_master, mapped_row)
+		
+		vendor_master.save(ignore_permissions=True)
+		return vendor_master
+
+	def handle_company_vendor_code(self, vendor_ref_no, mapped_row, vendor_code, company_code, state, gst_no):
+		"""Enhanced handling of Company Vendor Code with proper duplicate logic"""
+		
+		result = {
+			"company_code_action": None,
+			"warnings": []
+		}
+		
+		# Find company master
+		company_master = frappe.db.exists("Company Master", {"company_code": company_code})
+		if not company_master:
+			result["warnings"].append(f"Company with code {company_code} not found. Please create company master first.")
+			return result
+		
+		company_doc = frappe.get_doc("Company Master", company_master)
+		
+		# Check if Company Vendor Code exists for this vendor + company combination
+		existing_cvc = frappe.db.exists("Company Vendor Code", {
+			"vendor_ref_no": vendor_ref_no,
+			"company_name": company_doc.name
+		})
+		
+		if existing_cvc:
+			# Update existing Company Vendor Code
+			cvc_doc = frappe.get_doc("Company Vendor Code", existing_cvc)
+			
+			# Check if this vendor code + state + GST combination already exists
+			duplicate_found = False
+			
+			for vc_row in cvc_doc.vendor_code:
+				if (str(vc_row.vendor_code).strip() == vendor_code and 
+					str(vc_row.state).strip() == state and 
+					str(vc_row.gst_no).strip() == gst_no):
+					duplicate_found = True
+					result["warnings"].append(f"Vendor code {vendor_code} for state {state} with GST {gst_no} already exists")
+					break
+			
+			# If no duplicate, add new vendor code row
+			if not duplicate_found:
+				cvc_doc.append("vendor_code", {
+					"vendor_code": vendor_code,
+					"state": state,
+					"gst_no": gst_no
+				})
+				result["company_code_action"] = "updated"
+			
+		else:
+			# Create new Company Vendor Code
+			cvc_doc = frappe.new_doc("Company Vendor Code")
+			cvc_doc.vendor_ref_no = vendor_ref_no
+			cvc_doc.company_name = company_doc.name
+			
+			# Add vendor code row
+			cvc_doc.append("vendor_code", {
+				"vendor_code": vendor_code,
+				"state": state,
+				"gst_no": gst_no
+			})
+			result["company_code_action"] = "created"
+		
+		cvc_doc.save(ignore_permissions=True)
+		return result
+
+	def create_vendor_company_details(self, vendor_ref_no, mapped_row):
+		"""Create or update vendor company details"""
+		
+		company_code = str(mapped_row.get('company_code', '')).strip()
+		if not company_code:
+			return
+		
+		# Find company master
+		company_master = frappe.db.exists("Company Master", {"company_code": company_code})
+		if not company_master:
+			return
+		
+		# Check if company details already exist
+		existing_details = frappe.db.exists("Vendor Onboarding Company Details", {
+			"ref_no": vendor_ref_no,
+			"company_name": company_master
+		})
+		
+		if not existing_details:
+			# Create new company details
+			company_details = frappe.new_doc("Vendor Onboarding Company Details")
+			company_details.ref_no = vendor_ref_no
+			company_details.company_name = company_master
+			
+			# Set company detail fields with proper string conversion
+			field_mapping = {
+				'gst': 'gst',
+				'company_pan_number': 'company_pan_number',
+				'address_line_1': 'address_line_1',
+				'address_line_2': 'address_line_2',
+				'city': 'city',
+				'state': 'state',
+				'country': 'country',
+				'pincode': 'pincode',
+				'telephone_number': 'telephone_number',
+				'nature_of_business': 'nature_of_business',
+				'type_of_business': 'type_of_business',
+				'corporate_identification_number': 'corporate_identification_number',
+				'established_year': 'established_year'
+			}
+			
+			for csv_field, doc_field in field_mapping.items():
+				if mapped_row.get(csv_field):
+					# Convert to string and clean
+					value = str(mapped_row[csv_field]).strip() if mapped_row[csv_field] not in [None, 'nan', 'NaN'] else None
+					if value and value.lower() not in ['nan', 'none', 'null']:
+						company_details.set(doc_field, value)
+			
+			# Create or link master data
+			if mapped_row.get('state'):
+				state_value = str(mapped_row['state']).strip()
+				if state_value and state_value.lower() not in ['nan', 'none', 'null']:
+					company_details.state = self.get_or_create_state(state_value)
+			
+			if mapped_row.get('city'):
+				city_value = str(mapped_row['city']).strip()
+				if city_value and city_value.lower() not in ['nan', 'none', 'null']:
+					company_details.city = self.get_or_create_city(city_value)
+			
+			if mapped_row.get('pincode'):
+				pincode_value = str(mapped_row['pincode']).strip()
+				if pincode_value and pincode_value.lower() not in ['nan', 'none', 'null']:
+					company_details.pincode = self.get_or_create_pincode(pincode_value)
+			
+			company_details.save(ignore_permissions=True)
+
+	def create_multiple_company_data(self, vendor_ref_no, mapped_row):
+		"""Create or update multiple company data"""
+		
+		company_code = str(mapped_row.get('company_code', '')).strip()
+		if not company_code:
+			return
+		
+		# Find company master
+		company_master = frappe.db.exists("Company Master", {"company_code": company_code})
+		if not company_master:
+			return
+		
+		# Get vendor master
+		vendor_master = frappe.get_doc("Vendor Master", vendor_ref_no)
+		
+		# Check if multiple company data already exists
+		duplicate_found = False
+		for mcd in vendor_master.multiple_company_data:
+			if mcd.company_name == company_master:
+				duplicate_found = True
+				break
+		
+		if not duplicate_found:
+			# Add new multiple company data row
+			mcd_row = {
+				"company_name": company_master,
+				"purchase_organization": self.safe_get_value(mapped_row, 'purchase_organization'),
+				"account_group": self.safe_get_value(mapped_row, 'account_group'),
+				"terms_of_payment": self.safe_get_value(mapped_row, 'terms_of_payment'),
+				"purchase_group": self.safe_get_value(mapped_row, 'purchase_group'),
+				"order_currency": self.safe_get_value(mapped_row, 'order_currency'),
+				"incoterms": self.safe_get_value(mapped_row, 'incoterms'),
+				"reconciliation_account": self.safe_get_value(mapped_row, 'reconciliation_account')
+			}
+			
+			vendor_master.append("multiple_company_data", mcd_row)
+			vendor_master.save(ignore_permissions=True)
+
+	def safe_get_value(self, mapped_row, field_name):
+		"""Safely get and convert value to string"""
+		value = mapped_row.get(field_name)
+		if value is None or str(value).lower() in ['nan', 'none', 'null', '']:
+			return None
+		return str(value).strip()
+
+	def set_vendor_master_fields(self, vendor_master, mapped_row):
+		"""Set fields for new vendor master"""
+		
+		field_mapping = {
+			'vendor_name': 'vendor_name',
+			'office_email_primary': 'office_email_primary',
+			'office_email_secondary': 'office_email_secondary',
+			'mobile_number': 'mobile_number',
+			'country': 'country',
+			'payee_in_document': 'payee_in_document',
+			'gr_based_inv_ver': 'gr_based_inv_ver',
+			'service_based_inv_ver': 'service_based_inv_ver',
+			'check_double_invoice': 'check_double_invoice'
+		}
+		
+		for csv_field, doc_field in field_mapping.items():
+			value = self.safe_get_value(mapped_row, csv_field)
+			if value:
+				vendor_master.set(doc_field, value)
+		
+		# Set default values for checkboxes if not provided
+		vendor_master.payee_in_document = 1 if not mapped_row.get('payee_in_document') else self.safe_get_value(mapped_row, 'payee_in_document')
+		vendor_master.gr_based_inv_ver = 1 if not mapped_row.get('gr_based_inv_ver') else self.safe_get_value(mapped_row, 'gr_based_inv_ver')
+		vendor_master.service_based_inv_ver = 1 if not mapped_row.get('service_based_inv_ver') else self.safe_get_value(mapped_row, 'service_based_inv_ver')
+		vendor_master.check_double_invoice = 1 if not mapped_row.get('check_double_invoice') else self.safe_get_value(mapped_row, 'check_double_invoice')
+		
+		# Set additional fields
+		vendor_master.status = "Active"
+		vendor_master.registered_date = today()
+		vendor_master.registered_by = frappe.session.user
+
+	def update_vendor_master_fields(self, vendor_master, mapped_row):
+		"""Update fields for existing vendor master"""
+		
+		# Update only non-empty fields
+		update_fields = {
+			'office_email_secondary': 'office_email_secondary',
+			'mobile_number': 'mobile_number',
+			'country': 'country'
+		}
+		
+		for csv_field, doc_field in update_fields.items():
+			value = self.safe_get_value(mapped_row, csv_field)
+			if value:
+				vendor_master.set(doc_field, value)
+
+	def apply_field_mapping(self, row, field_mapping):
+		"""Apply field mapping to a data row"""
+		mapped_row = {}
+		
+		for csv_field, system_field in field_mapping.items():
+			if system_field and csv_field in row:
+				# Use safe_get_value to handle float/int conversion
+				value = self.safe_get_value(row, csv_field)
+				if value:  # Only add non-empty values
+					mapped_row[system_field] = value
+		
+		return mapped_row
+
+	def validate_vendor_data(self, vendor_data):
+		"""Validate each vendor record using current field mapping"""
+		results = {
+			"total_records": len(vendor_data),
+			"valid_records": 0,
+			"invalid_records": 0,
+			"errors": [],
+			"warnings": []
+		}
+		
+		field_mapping = json.loads(self.field_mapping) if self.field_mapping else {}
+		
+		for idx, row in enumerate(vendor_data, 1):
+			mapped_row = self.apply_field_mapping(row, field_mapping)
+			
+			# Validate required fields
+			errors = []
+			warnings = []
+			
+			# Check required fields with safe string conversion
+			vendor_name = self.safe_get_value(mapped_row, 'vendor_name')
+			if not vendor_name:
+				errors.append(f"Row {idx}: Vendor name is required")
+			
+			vendor_code = self.safe_get_value(mapped_row, 'vendor_code')
+			if not vendor_code:
+				warnings.append(f"Row {idx}: Vendor code is missing")
+			
+			company_code = self.safe_get_value(mapped_row, 'company_code')
+			if not company_code:
+				warnings.append(f"Row {idx}: Company code is missing")
+			
+			# Validate email format
+			email = self.safe_get_value(mapped_row, 'office_email_primary')
+			if email and not validate_email_address(email):
+				errors.append(f"Row {idx}: Invalid email format - {email}")
+			
+			# Validate GST number format (basic check)
+			gst = self.safe_get_value(mapped_row, 'gst_no')
+			if gst and not self.validate_gst_format(gst):
+				warnings.append(f"Row {idx}: Invalid GST format - {gst}")
+			
+			# Record results
+			if errors:
+				results["invalid_records"] += 1
+				results["errors"].extend(errors)
+			else:
+				results["valid_records"] += 1
+			
+			results["warnings"].extend(warnings)
+		
+		return results
+
+	def validate_gst_format(self, gst):
+		"""Basic GST format validation"""
+		if not gst:
+			return True  # GST is optional
+		
+		gst_str = str(gst).strip()
+		# Basic GST format: 15 characters
+		return len(gst_str) == 15 and gst_str.isalnum()
+
+	def get_or_create_state(self, state_name):
+		"""Get or create state master"""
+		state_name_str = self.safe_get_value({'state': state_name}, 'state')
+		if not state_name_str:
+			return None
+		
+		state = frappe.db.exists("State Master", {"state_name": state_name_str})
+		if not state:
+			try:
+				state_doc = frappe.new_doc("State Master")
+				state_doc.state_name = state_name_str
+				state_doc.state_code = state_name_str[:2].upper()
+				state_doc.insert(ignore_permissions=True)
+				return state_doc.name
+			except:
+				return None
+		return state
+
+	def get_or_create_city(self, city_name):
+		"""Get or create city master"""
+		city_name_str = self.safe_get_value({'city': city_name}, 'city')
+		if not city_name_str:
+			return None
+		
+		city = frappe.db.exists("City Master", {"city_name": city_name_str})
+		if not city:
+			try:
+				city_doc = frappe.new_doc("City Master")
+				city_doc.city_name = city_name_str
+				city_doc.insert(ignore_permissions=True)
+				return city_doc.name
+			except:
+				return None
+		return city
+
+	def get_or_create_pincode(self, pincode):
+		"""Get or create pincode master"""
+		pincode_str = self.safe_get_value({'pincode': pincode}, 'pincode')
+		if not pincode_str:
+			return None
+		
+		pincode_master = frappe.db.exists("Pincode Master", {"pincode": pincode_str})
+		if not pincode_master:
+			try:
+				pincode_doc = frappe.new_doc("Pincode Master")
+				pincode_doc.pincode = pincode_str
+				pincode_doc.insert(ignore_permissions=True)
+				return pincode_doc.name
+			except:
+				return None
+		return pincode_master
+
+	# HTML Generation Methods
+	def generate_field_mapping_html(self, csv_headers):
+		"""Generate HTML interface for field mapping"""
+		
+		target_fields = self.get_all_target_fields()
 		auto_mapping = self.generate_auto_mapping(csv_headers)
 		
 		# Calculate mapping statistics
@@ -212,7 +773,7 @@ class ExistingVendorImport(Document):
 		if self.vendor_data:
 			vendor_data = json.loads(self.vendor_data)
 			if vendor_data:
-				sample_data = vendor_data[0]  # First row as sample
+				sample_data = vendor_data[0]
 		
 		for idx, header in enumerate(csv_headers):
 			auto_mapped_field = auto_mapping.get(header, '')
@@ -235,20 +796,18 @@ class ExistingVendorImport(Document):
 				options_html += '</optgroup>'
 			
 			html += f"""
-				<tr data-header="{header}">
+				<tr>
 					<td>{idx + 1}</td>
-					<td>
-						<strong>{header}</strong>
-					</td>
+					<td><strong>{header}</strong></td>
 					<td>
 						<select class="form-control field-mapping-select" 
-								data-header="{header}" 
-								onchange="update_mapping_status(this)">
+								data-csv-field="{header}" 
+								onchange="update_field_mapping(this)">
 							{options_html}
 						</select>
 					</td>
 					<td>
-						<span class="badge bg-{status_class} mapping-status">{status_text}</span>
+						<span class="badge bg-{status_class}">{status_text}</span>
 					</td>
 					<td>
 						<small class="text-muted">{sample_value}</small>
@@ -257,72 +816,220 @@ class ExistingVendorImport(Document):
 			"""
 		
 		html += """
-						</tbody>
-					</table>
-				</div>
-				
-				<div class="card-footer">
-					<div class="row">
-						<div class="col-md-8">
-							<div class="required-fields-info">
-								<small><strong>Required Fields:</strong> Vendor Name, Vendor Code, Company Code, State</small>
-							</div>
-						</div>
-						<div class="col-md-4 text-right">
-							<button type="button" class="btn btn-primary" onclick="save_field_mapping()">
-								<i class="fa fa-save"></i> Save Mapping
-							</button>
-						</div>
+							</tbody>
+						</table>
 					</div>
 				</div>
 			</div>
 		</div>
 		
-		<style>
-			.mapping-stats-section {
-				background: #f8f9fa;
-				padding: 15px;
-				border-radius: 8px;
-				border: 1px solid #dee2e6;
+		<script>
+			function update_field_mapping(selectElement) {
+				// Get current mapping
+				let currentMapping = {};
+				try {
+					currentMapping = JSON.parse(cur_frm.doc.field_mapping || '{}');
+				} catch(e) {
+					currentMapping = {};
+				}
+				
+				// Update mapping
+				let csvField = selectElement.getAttribute('data-csv-field');
+				let systemField = selectElement.value;
+				
+				if (systemField) {
+					currentMapping[csvField] = systemField;
+				} else {
+					delete currentMapping[csvField];
+				}
+				
+				// Save back to form
+				cur_frm.set_value('field_mapping', JSON.stringify(currentMapping, null, 2));
+				
+				// Update statistics
+				update_mapping_statistics();
 			}
 			
-			.mapping-actions .btn {
-				width: 100%;
+			function update_mapping_statistics() {
+				let mapping = {};
+				try {
+					mapping = JSON.parse(cur_frm.doc.field_mapping || '{}');
+				} catch(e) {
+					mapping = {};
+				}
+				
+				let total = Object.keys(mapping).length;
+				let mapped = Object.values(mapping).filter(v => v).length;
+				let unmapped = total - mapped;
+				let percentage = total > 0 ? (mapped / total * 100) : 0;
+				
+				// Update display
+				$('.mapped-count').text(mapped);
+				$('.unmapped-count').text(unmapped);
+				$('.total-count').text(total);
+				$('.progress-bar').css('width', percentage + '%').text(percentage.toFixed(1) + '% Mapped');
+				
+				// Update row statuses
+				$('.field-mapping-select').each(function() {
+					let row = $(this).closest('tr');
+					let badge = row.find('.badge');
+					
+					if ($(this).val()) {
+						badge.removeClass('bg-warning').addClass('bg-success').text('Mapped');
+					} else {
+						badge.removeClass('bg-success').addClass('bg-warning').text('Unmapped');
+					}
+				});
+			}
+			
+			function apply_auto_mapping() {
+				frappe.call({
+					method: 'vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import.get_auto_mapping',
+					args: { docname: cur_frm.doc.name },
+					callback: function(r) {
+						if (r.message) {
+							cur_frm.set_value('field_mapping', JSON.stringify(r.message, null, 2));
+							cur_frm.save().then(() => {
+								frappe.show_alert({
+									message: __('Auto mapping applied successfully'),
+									indicator: 'green'
+								});
+								location.reload();
+							});
+						}
+					}
+				});
+			}
+			
+			function clear_all_mapping() {
+				frappe.confirm('Are you sure you want to clear all field mappings?', function() {
+					cur_frm.set_value('field_mapping', '{}');
+					cur_frm.save().then(() => {
+						location.reload();
+					});
+				});
+			}
+		</script>
+		
+		<style>
+			.field-mapping-container .card {
+				border-radius: 10px;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 			}
 			
 			.mapping-table th {
 				background-color: #343a40 !important;
 				color: white;
+				border-color: #454d55;
 			}
 			
-			.mapping-table tr:hover {
-				background-color: #f8f9fa;
+			.mapping-table td {
+				vertical-align: middle;
+			}
+			
+			.field-mapping-select {
+				border-radius: 6px;
+				border: 2px solid #dee2e6;
+				transition: border-color 0.3s ease;
+			}
+			
+			.field-mapping-select:focus {
+				border-color: #007bff;
+				box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+			}
+			
+			.mapping-summary .badge {
+				margin-right: 10px;
+				padding: 8px 12px;
+				font-size: 0.9rem;
+			}
+			
+			.mapping-actions .btn {
+				width: 100%;
+				margin-bottom: 5px;
 			}
 			
 			.progress {
 				border-radius: 10px;
 			}
 			
-			.mapping-summary .badge {
-				margin-right: 8px;
-				padding: 6px 10px;
-				font-size: 0.85rem;
+			.progress-bar {
+				transition: width 0.6s ease;
+				font-weight: bold;
 			}
 		</style>
 		"""
 		
 		self.field_mapping_html = html
 
-
-
-
-
-
-
-
-
-	
-
+	def get_all_target_fields(self):
+		"""Get all available target fields organized by DocType"""
+		
+		return {
+			"Vendor Master": {
+				"vendor_name": "Vendor Name",
+				"office_email_primary": "Primary Email",
+				"office_email_secondary": "Secondary Email", 
+				"mobile_number": "Mobile Number",
+				"country": "Country",
+				"payee_in_document": "Payee in Document",
+				"gr_based_inv_ver": "GR Based Invoice Verification",
+				"service_based_inv_ver": "Service Based Invoice Verification",
+				"check_double_invoice": "Check Double Invoice"
+			},
+			
+			"Company Details": {
+				"company_name": "Company Name",
+				"gst": "GST Number",
+				"company_pan_number": "PAN Number",
+				"address_line_1": "Address Line 1",
+				"address_line_2": "Address Line 2",
+				"city": "City",
+				"state": "State",
+				"country": "Country",
+				"pincode": "Pincode",
+				"telephone_number": "Telephone Number",
+				"nature_of_business": "Nature of Business",
+				"type_of_business": "Type of Business",
+				"corporate_identification_number": "CIN Number",
+				"established_year": "Established Year"
+			},
+			
+			"Company Vendor Code": {
+				"company_code": "Company Code",
+				"vendor_code": "Vendor Code", 
+				"gst_no": "GST Number",
+				"state": "State"
+			},
+			
+			"Multiple Company Data": {
+				"purchase_organization": "Purchase Organization",
+				"account_group": "Account Group",
+				"terms_of_payment": "Terms of Payment",
+				"purchase_group": "Purchase Group",
+				"order_currency": "Order Currency",
+				"incoterms": "Incoterms",
+				"reconciliation_account": "Reconciliation Account"
+			},
+			
+			"Payment Details": {
+				"bank_name": "Bank Name",
+				"ifsc_code": "IFSC Code",
+				"account_number": "Account Number",
+				"name_of_account_holder": "Account Holder Name",
+				"type_of_account": "Account Type"
+			},
+			
+			"Additional Fields": {
+				"vendor_gst_classification": "GST Classification",
+				"nature_of_services": "Nature of Services",
+				"vendor_type": "Vendor Type",
+				"remarks": "Remarks",
+				"contact_person": "Contact Person",
+				"hod": "HOD",
+				"enterprise_registration_no": "Enterprise Registration Number"
+			}
+		}
 
 	def generate_mapping_statistics_html(self):
 		"""Generate mapping statistics HTML"""
@@ -338,149 +1045,314 @@ class ExistingVendorImport(Document):
 			unmapped_fields = total_fields - mapped_fields
 			mapping_percentage = (mapped_fields / total_fields * 100) if total_fields > 0 else 0
 			
-			# Required fields check
-			required_fields = ['vendor_name', 'vendor_code', 'company_code', 'state']
-			mapped_required = sum(1 for v in field_mapping.values() if v in required_fields)
-			
-			# Field category breakdown
-			target_fields = self.get_all_target_fields()
-			category_stats = {}
-			for category in target_fields.keys():
-				category_stats[category] = 0
-			
-			for system_field in field_mapping.values():
-				if system_field:
-					for category, fields in target_fields.items():
-						if system_field in fields:
-							category_stats[category] += 1
-							break
-			
 			html = f"""
-			<div class="mapping-statistics-container">
-				<div class="card">
-					<div class="card-header bg-info text-white">
-						<h6 class="mb-0"><i class="fa fa-chart-pie"></i> Mapping Statistics</h6>
-					</div>
-					<div class="card-body">
-						<!-- Overall Progress -->
-						<div class="mb-3">
-							<div class="d-flex justify-content-between mb-1">
-								<span>Overall Mapping Progress</span>
-								<span>{mapping_percentage:.1f}%</span>
-							</div>
-							<div class="progress" style="height: 20px;">
-								<div class="progress-bar bg-success" role="progressbar" 
-									style="width: {mapping_percentage}%" 
-									aria-valuenow="{mapping_percentage}" 
-									aria-valuemin="0" 
-									aria-valuemax="100">
-									{mapped_fields}/{total_fields}
-								</div>
-							</div>
-						</div>
-						
-						<!-- Summary Cards -->
-						<div class="row mb-3">
-							<div class="col-md-3">
-								<div class="stat-card bg-primary text-white">
-									<div class="stat-number">{total_fields}</div>
-									<div class="stat-label">Total Fields</div>
-								</div>
-							</div>
-							<div class="col-md-3">
-								<div class="stat-card bg-success text-white">
-									<div class="stat-number">{mapped_fields}</div>
-									<div class="stat-label">Mapped</div>
-								</div>
-							</div>
-							<div class="col-md-3">
-								<div class="stat-card bg-warning text-white">
-									<div class="stat-number">{unmapped_fields}</div>
-									<div class="stat-label">Unmapped</div>
-								</div>
-							</div>
-							<div class="col-md-3">
-								<div class="stat-card bg-info text-white">
-									<div class="stat-number">{mapped_required}/4</div>
-									<div class="stat-label">Required</div>
-								</div>
-							</div>
-						</div>
-						
-						<!-- Category Breakdown -->
-						<div class="category-breakdown">
-							<h6>Field Categories</h6>
-							<div class="row">
-			"""
-			
-			for category, count in category_stats.items():
-				percentage = (count / mapped_fields * 100) if mapped_fields > 0 else 0
-				html += f"""
-					<div class="col-md-6 mb-2">
-						<div class="category-item">
-							<div class="d-flex justify-content-between">
-								<span class="category-name">{category}</span>
-								<span class="category-count">{count}</span>
-							</div>
-							<div class="progress" style="height: 8px;">
-								<div class="progress-bar bg-info" style="width: {percentage}%"></div>
-							</div>
+			<div class="card">
+				<div class="card-header bg-info text-white">
+					<h6><i class="fa fa-chart-pie"></i> Mapping Statistics</h6>
+				</div>
+				<div class="card-body">
+					<div class="progress mb-3" style="height: 25px;">
+						<div class="progress-bar bg-success" style="width: {mapping_percentage}%">
+							{mapping_percentage:.1f}% Mapped
 						</div>
 					</div>
-				"""
-			
-			html += """
+					<div class="row text-center">
+						<div class="col-md-4">
+							<h4 class="text-primary">{total_fields}</h4>
+							<small>Total Fields</small>
+						</div>
+						<div class="col-md-4">
+							<h4 class="text-success">{mapped_fields}</h4>
+							<small>Mapped</small>
+						</div>
+						<div class="col-md-4">
+							<h4 class="text-warning">{unmapped_fields}</h4>
+							<small>Unmapped</small>
 						</div>
 					</div>
 				</div>
 			</div>
-			</div>
-			
-			<style>
-				.stat-card {
-					padding: 15px;
-					border-radius: 8px;
-					text-align: center;
-					margin-bottom: 10px;
-				}
-				
-				.stat-number {
-					font-size: 1.8rem;
-					font-weight: bold;
-				}
-				
-				.stat-label {
-					font-size: 0.9rem;
-					opacity: 0.9;
-				}
-				
-				.category-item {
-					padding: 8px 12px;
-					background: #f8f9fa;
-					border-radius: 6px;
-					border: 1px solid #dee2e6;
-				}
-				
-				.category-name {
-					font-size: 0.85rem;
-					font-weight: 500;
-				}
-				
-				.category-count {
-					font-size: 0.85rem;
-					font-weight: bold;
-					color: #495057;
-				}
-			</style>
 			"""
-			
 			return html
 			
 		except Exception as e:
-			return f"<div class='alert alert-danger'>Error generating statistics: {str(e)}</div>"
+			return f"<div class='alert alert-danger'>Error: {str(e)}</div>"
+
+	def generate_display_html(self, vendor_data, validation_results):
+		"""Generate all display HTML sections"""
+		
+		# Generate success/fail rate HTML
+		success_rate = (validation_results['valid_records'] / validation_results['total_records'] * 100) if validation_results['total_records'] > 0 else 0
+		fail_rate = 100 - success_rate
+		
+		success_html = f"""
+		<div class="import-summary-container">
+			<div class="row">
+				<div class="col-md-8">
+					<div class="row">
+						<div class="col-md-3">
+							<div class="summary-stat">
+								<div class="stat-circle bg-primary">
+									<div class="stat-number">{validation_results['total_records']}</div>
+								</div>
+								<div class="stat-label">Total Records</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="summary-stat">
+								<div class="stat-circle bg-success">
+									<div class="stat-number">{validation_results['valid_records']}</div>
+								</div>
+								<div class="stat-label">Valid Records</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="summary-stat">
+								<div class="stat-circle bg-danger">
+									<div class="stat-number">{validation_results['invalid_records']}</div>
+								</div>
+								<div class="stat-label">Invalid Records</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="summary-stat">
+								<div class="stat-circle bg-info">
+									<div class="stat-number">{len(json.loads(self.field_mapping) if self.field_mapping else {})}</div>
+								</div>
+								<div class="stat-label">CSV Columns</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="progress-section">
+						<h6>Success Rate</h6>
+						<div class="progress mb-2" style="height: 20px;">
+							<div class="progress-bar bg-success" style="width: {success_rate}%">{success_rate:.1f}%</div>
+						</div>
+						<div class="progress" style="height: 20px;">
+							<div class="progress-bar bg-danger" style="width: {fail_rate}%">{fail_rate:.1f}% Failed</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			{self.generate_validation_charts(validation_results)}
+			{self.generate_errors_html(validation_results)}
+		</div>
+		"""
+		
+		# Enhanced Vendor Data HTML with schema
+		vendor_html = self.generate_vendor_data_schema_html(vendor_data, validation_results)
+		
+		# Add CSS
+		css = """
+		<style>
+			.summary-stat {
+				margin-bottom: 20px;
+			}
+			
+			.stat-circle {
+				width: 80px;
+				height: 80px;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin: 0 auto 10px auto;
+				color: white;
+			}
+			
+			.stat-number {
+				font-size: 1.5rem;
+				font-weight: bold;
+			}
+			
+			.stat-label {
+				font-weight: 500;
+				color: #495057;
+			}
+			
+			.progress-section {
+				background: #f8f9fa;
+				padding: 15px;
+				border-radius: 8px;
+				border: 1px solid #dee2e6;
+			}
+			
+			.download-actions .btn {
+				width: 100%;
+			}
+			
+			.validation-charts {
+				background: #fff;
+				padding: 20px;
+				border-radius: 8px;
+				border: 1px solid #dee2e6;
+				margin-top: 20px;
+			}
+		</style>
+		"""
+		
+		self.success_fail_rate_html = success_html + css
+		self.vendor_html = vendor_html
+
+	def generate_validation_charts(self, validation_results):
+		"""Generate validation charts section"""
+		if not validation_results:
+			return ""
+		
+		errors_count = len(validation_results.get('errors', []))
+		warnings_count = len(validation_results.get('warnings', []))
+		
+		html = f"""
+		<div class="validation-charts">
+			<div class="row">
+				<div class="col-md-6">
+					<h6>Validation Results</h6>
+					<canvas id="validationResultsChart" width="300" height="200"></canvas>
+				</div>
+				<div class="col-md-6">
+					<h6>Issue Breakdown</h6>
+					<div class="issue-stats">
+						<div class="issue-item">
+							<div class="issue-icon bg-danger">
+								<i class="fa fa-times"></i>
+							</div>
+							<div class="issue-details">
+								<div class="issue-count">{errors_count}</div>
+								<div class="issue-label">Errors</div>
+							</div>
+						</div>
+						<div class="issue-item">
+							<div class="issue-icon bg-warning">
+								<i class="fa fa-exclamation-triangle"></i>
+							</div>
+							<div class="issue-details">
+								<div class="issue-count">{warnings_count}</div>
+								<div class="issue-label">Warnings</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<script>
+		setTimeout(function() {{
+			// Create validation results chart
+			const ctx = document.getElementById('validationResultsChart');
+			if (ctx) {{
+				new Chart(ctx, {{
+					type: 'doughnut',
+					data: {{
+						labels: ['Valid Records', 'Invalid Records'],
+						datasets: [{{
+							data: [{validation_results['valid_records']}, {validation_results['invalid_records']}],
+							backgroundColor: ['#28a745', '#dc3545'],
+							borderWidth: 2,
+							borderColor: '#fff'
+						}}]
+					}},
+					options: {{
+						responsive: true,
+						plugins: {{
+							legend: {{
+								position: 'bottom'
+							}}
+						}}
+					}}
+				}});
+			}}
+		}}, 1000);
+		</script>
+		
+		<style>
+			.issue-stats {{
+				display: flex;
+				gap: 20px;
+			}}
+			
+			.issue-item {{
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				flex: 1;
+			}}
+			
+			.issue-icon {{
+				width: 40px;
+				height: 40px;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				color: white;
+			}}
+			
+			.issue-count {{
+				font-size: 1.5rem;
+				font-weight: bold;
+			}}
+			
+			.issue-label {{
+				color: #6c757d;
+				font-size: 0.9rem;
+			}}
+		</style>
+		"""
+		
+		return html
+
+	def generate_errors_html(self, validation_results):
+		"""Generate errors and warnings HTML"""
+		errors = validation_results.get('errors', [])
+		warnings = validation_results.get('warnings', [])
+		
+		if not errors and not warnings:
+			return '<div class="alert alert-success mt-3"><i class="fa fa-check-circle"></i> All records passed validation!</div>'
+		
+		html = '<div class="validation-issues mt-3">'
+		
+		if errors:
+			html += f"""
+			<div class="card border-danger mb-3">
+				<div class="card-header bg-danger text-white">
+					<h6 class="mb-0"><i class="fa fa-times-circle"></i> Errors ({len(errors)})</h6>
+				</div>
+				<div class="card-body">
+					<div class="error-list" style="max-height: 200px; overflow-y: auto;">
+			"""
+			for error in errors[:20]:  # Show first 20 errors
+				html += f'<div class="alert alert-danger py-2 mb-1"><small>{error}</small></div>'
+			
+			if len(errors) > 20:
+				html += f'<div class="alert alert-info py-2"><small>... and {len(errors) - 20} more errors</small></div>'
+			
+			html += '</div></div></div>'
+		
+		if warnings:
+			html += f"""
+			<div class="card border-warning mb-3">
+				<div class="card-header bg-warning text-dark">
+					<h6 class="mb-0"><i class="fa fa-exclamation-triangle"></i> Warnings ({len(warnings)})</h6>
+				</div>
+				<div class="card-body">
+					<div class="warning-list" style="max-height: 200px; overflow-y: auto;">
+			"""
+			for warning in warnings[:20]:  # Show first 20 warnings
+				html += f'<div class="alert alert-warning py-2 mb-1"><small>{warning}</small></div>'
+			
+			if len(warnings) > 20:
+				html += f'<div class="alert alert-info py-2"><small>... and {len(warnings) - 20} more warnings</small></div>'
+			
+			html += '</div></div></div>'
+		
+		html += '</div>'
+		return html
 
 	def generate_vendor_data_schema_html(self, vendor_data, validation_results):
-		"""Generate enhanced vendor data HTML with schema and graph format - FIXED SYNTAX"""
+		"""Generate enhanced vendor data HTML with schema and graph format"""
 		
 		if not vendor_data:
 			return "<div class='alert alert-info'>No vendor data available</div>"
@@ -492,7 +1364,7 @@ class ExistingVendorImport(Document):
 		invalid_records = validation_results.get('invalid_records', 0)
 		total_columns = len(field_mapping)
 		
-		html = """
+		html = f"""
 		<div class="vendor-data-container">
 			<!-- Data Overview -->
 			<div class="card mb-3">
@@ -506,25 +1378,25 @@ class ExistingVendorImport(Document):
 								<div class="row">
 									<div class="col-md-3">
 										<div class="stat-box bg-primary">
-											<div class="stat-number">{}</div>
+											<div class="stat-number">{total_records}</div>
 											<div class="stat-label">Total Records</div>
 										</div>
 									</div>
 									<div class="col-md-3">
 										<div class="stat-box bg-success">
-											<div class="stat-number">{}</div>
+											<div class="stat-number">{valid_records}</div>
 											<div class="stat-label">Valid Records</div>
 										</div>
 									</div>
 									<div class="col-md-3">
 										<div class="stat-box bg-danger">
-											<div class="stat-number">{}</div>
+											<div class="stat-number">{invalid_records}</div>
 											<div class="stat-label">Invalid Records</div>
 										</div>
 									</div>
 									<div class="col-md-3">
 										<div class="stat-box bg-info">
-											<div class="stat-number">{}</div>
+											<div class="stat-number">{total_columns}</div>
 											<div class="stat-label">CSV Columns</div>
 										</div>
 									</div>
@@ -547,7 +1419,7 @@ class ExistingVendorImport(Document):
 				</div>
 				<div class="card-body">
 					<div class="schema-diagram">
-						{}
+						{self.generate_schema_diagram()}
 					</div>
 				</div>
 			</div>
@@ -574,7 +1446,7 @@ class ExistingVendorImport(Document):
 								</tr>
 							</thead>
 							<tbody>
-		""".format(total_records, valid_records, invalid_records, total_columns, self.generate_schema_diagram())
+		"""
 		
 		# Display actual vendor data
 		for idx, row in enumerate(vendor_data[:10], 1):  # Show first 10 records
@@ -585,61 +1457,43 @@ class ExistingVendorImport(Document):
 			status_class = "success" if is_valid else "danger"
 			status_text = "Valid" if is_valid else "Invalid"
 			
-			# Get values with fallbacks
-			vendor_name = mapped_row.get('vendor_name', 'N/A')
-			vendor_code = mapped_row.get('vendor_code', 'N/A')
-			company_code = mapped_row.get('company_code', 'N/A')
-			state = mapped_row.get('state', 'N/A')
-			gst = mapped_row.get('gst') or mapped_row.get('gst_no', 'N/A')
-			email = mapped_row.get('office_email_primary', 'N/A')
-			phone = mapped_row.get('mobile_number', 'N/A')
+			# Get values with fallbacks using safe string conversion
+			vendor_name = self.safe_get_value(mapped_row, 'vendor_name') or 'N/A'
+			vendor_code = self.safe_get_value(mapped_row, 'vendor_code') or 'N/A'
+			company_code = self.safe_get_value(mapped_row, 'company_code') or 'N/A'
+			state = self.safe_get_value(mapped_row, 'state') or 'N/A'
+			gst = self.safe_get_value(mapped_row, 'gst') or self.safe_get_value(mapped_row, 'gst_no') or 'N/A'
+			email = self.safe_get_value(mapped_row, 'office_email_primary') or 'N/A'
+			phone = self.safe_get_value(mapped_row, 'mobile_number') or 'N/A'
 			
 			# Truncate long values
-			vendor_name = (vendor_name[:20] + '...') if len(str(vendor_name)) > 20 else vendor_name
-			email = (email[:20] + '...') if len(str(email)) > 20 else email
+			vendor_name = (vendor_name[:20] + '...') if len(vendor_name) > 20 else vendor_name
+			email = (email[:20] + '...') if len(email) > 20 else email
 			
-			html += """
-				<tr class="vendor-row" data-row="{}">
-					<td>
-						<span class="badge bg-secondary">{}</span>
-					</td>
-					<td>
-						<strong>{}</strong>
-					</td>
-					<td>
-						<code>{}</code>
-					</td>
-					<td>
-						<span class="company-code">{}</span>
-					</td>
-					<td>
-						<span class="state-name">{}</span>
-					</td>
-					<td>
-						<small class="gst-number">{}</small>
-					</td>
-					<td>
-						<small class="email-address">{}</small>
-					</td>
-					<td>
-						<small class="phone-number">{}</small>
-					</td>
-					<td>
-						<span class="badge bg-{}">{}</span>
-					</td>
+			html += f"""
+				<tr class="vendor-row">
+					<td><span class="badge bg-secondary">{idx}</span></td>
+					<td><strong>{vendor_name}</strong></td>
+					<td><span class="vendor-code">{vendor_code}</span></td>
+					<td><span class="company-code">{company_code}</span></td>
+					<td><span class="state-name">{state}</span></td>
+					<td><span class="gst-number">{gst}</span></td>
+					<td><span class="email-address">{email}</span></td>
+					<td><span class="phone-number">{phone}</span></td>
+					<td><span class="badge bg-{status_class}">{status_text}</span></td>
 				</tr>
-			""".format(idx, idx, vendor_name, vendor_code, company_code, state, gst, email, phone, status_class, status_text)
+			"""
 		
+		# Show more records indicator
 		if len(vendor_data) > 10:
-			html += """
+			html += f"""
 				<tr>
 					<td colspan="9" class="text-center text-muted">
-						<i class="fa fa-ellipsis-h"></i> ... and {} more records
+						<i class="fa fa-ellipsis-h"></i> ... and {len(vendor_data) - 10} more records
 					</td>
 				</tr>
-			""".format(len(vendor_data) - 10)
+			"""
 		
-		# Add Chart.js script and CSS
 		html += """
 							</tbody>
 						</table>
@@ -648,81 +1502,39 @@ class ExistingVendorImport(Document):
 			</div>
 		</div>
 		
-		<!-- Chart.js for Validation Chart -->
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-		<script>
-			document.addEventListener('DOMContentLoaded', function() {
-				// Create validation pie chart
-				const ctx = document.getElementById('validationChart');
-				if (ctx) {
-					const context = ctx.getContext('2d');
-					new Chart(context, {
-						type: 'pie',
-						data: {
-							labels: ['Valid Records', 'Invalid Records'],
-							datasets: [{
-								data: [""" + str(valid_records) + """, """ + str(invalid_records) + """],
-								backgroundColor: ['#28a745', '#dc3545'],
-								borderWidth: 2,
-								borderColor: '#fff'
-							}]
-						},
-						options: {
-							responsive: true,
-							maintainAspectRatio: false,
-							plugins: {
-								legend: {
-									position: 'bottom',
-									labels: {
-										fontSize: 12,
-										padding: 10
-									}
-								}
-							}
-						}
-					});
-				}
-			});
-		</script>
-		
 		<style>
-			.vendor-data-container .card {
-				box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-				border-radius: 8px;
-			}
-			
-			.stat-box {
+			.vendor-data-container .stat-box {
+				text-align: center;
 				padding: 15px;
 				border-radius: 8px;
-				text-align: center;
 				color: white;
 				margin-bottom: 10px;
 			}
 			
-			.stat-number {
-				font-size: 1.5rem;
+			.vendor-data-container .stat-number {
+				font-size: 1.8rem;
 				font-weight: bold;
+				display: block;
 			}
 			
-			.stat-label {
-				font-size: 0.85rem;
+			.vendor-data-container .stat-label {
+				font-size: 0.9rem;
 				opacity: 0.9;
 			}
 			
-			.validation-chart {
-				height: 200px;
-				position: relative;
-			}
-			
-			.vendor-data-table {
-				font-size: 0.9rem;
-			}
-			
 			.vendor-row:hover {
-				background-color: #f8f9fa !important;
+				background-color: #f8f9fa;
 			}
 			
-			.company-code, .state-name {
+			.vendor-code, .company-code {
+				background: #e3f2fd;
+				padding: 2px 6px;
+				border-radius: 3px;
+				font-family: monospace;
+				font-size: 0.85rem;
+			}
+			
+			.state-name {
 				background: #e3f2fd;
 				padding: 2px 6px;
 				border-radius: 3px;
@@ -731,11 +1543,6 @@ class ExistingVendorImport(Document):
 			
 			.gst-number, .email-address, .phone-number {
 				font-family: monospace;
-			}
-			
-			.schema-diagram {
-				text-align: center;
-				padding: 20px;
 			}
 		</style>
 		"""
@@ -871,1022 +1678,6 @@ class ExistingVendorImport(Document):
 		"""
 
 
-
-	def generate_mapping_statistics_html(self):
-		"""Generate mapping statistics HTML"""
-		if not self.field_mapping:
-			return "<div class='alert alert-info'>Upload a file to see mapping statistics</div>"
-		
-		try:
-			field_mapping = json.loads(self.field_mapping)
-			
-			# Calculate statistics
-			total_fields = len(field_mapping)
-			mapped_fields = sum(1 for v in field_mapping.values() if v)
-			unmapped_fields = total_fields - mapped_fields
-			mapping_percentage = (mapped_fields / total_fields * 100) if total_fields > 0 else 0
-			
-			html = f"""
-			<div class="card">
-				<div class="card-header bg-info text-white">
-					<h6><i class="fa fa-chart-pie"></i> Mapping Statistics</h6>
-				</div>
-				<div class="card-body">
-					<div class="progress mb-3" style="height: 25px;">
-						<div class="progress-bar bg-success" style="width: {mapping_percentage}%">
-							{mapping_percentage:.1f}% Mapped
-						</div>
-					</div>
-					<div class="row text-center">
-						<div class="col-md-4">
-							<h4 class="text-primary">{total_fields}</h4>
-							<small>Total Fields</small>
-						</div>
-						<div class="col-md-4">
-							<h4 class="text-success">{mapped_fields}</h4>
-							<small>Mapped</small>
-						</div>
-						<div class="col-md-4">
-							<h4 class="text-warning">{unmapped_fields}</h4>
-							<small>Unmapped</small>
-						</div>
-					</div>
-				</div>
-			</div>
-			"""
-			return html
-			
-		except Exception as e:
-			return f"<div class='alert alert-danger'>Error: {str(e)}</div>"
-
-
-
-	def get_all_target_fields(self):
-		"""Get all available target fields organized by DocType"""
-		
-		return {
-			"Vendor Master": {
-				"vendor_name": "Vendor Name",
-				"office_email_primary": "Primary Email",
-				"office_email_secondary": "Secondary Email", 
-				"mobile_number": "Mobile Number",
-				"country": "Country",
-				"payee_in_document": "Payee in Document",
-				"gr_based_inv_ver": "GR Based Invoice Verification",
-				"service_based_inv_ver": "Service Based Invoice Verification",
-				"check_double_invoice": "Check Double Invoice"
-			},
-			
-			"Company Details": {
-				"company_name": "Company Name",
-				"gst": "GST Number",
-				"company_pan_number": "PAN Number",
-				"address_line_1": "Address Line 1",
-				"address_line_2": "Address Line 2",
-				"city": "City",
-				"state": "State",
-				"country": "Country",
-				"pincode": "Pincode",
-				"telephone_number": "Telephone Number",
-				"nature_of_business": "Nature of Business",
-				"type_of_business": "Type of Business",
-				"corporate_identification_number": "CIN Number",
-				"established_year": "Established Year"
-			},
-			
-			"Company Vendor Code": {
-				"company_code": "Company Code",
-				"vendor_code": "Vendor Code", 
-				"gst_no": "GST Number",
-				"state": "State"
-			},
-			
-			"Multiple Company Data": {
-				"purchase_organization": "Purchase Organization",
-				"account_group": "Account Group",
-				"terms_of_payment": "Terms of Payment",
-				"purchase_group": "Purchase Group",
-				"order_currency": "Order Currency",
-				"incoterms": "Incoterms",
-				"reconciliation_account": "Reconciliation Account"
-			},
-			
-			"Payment Details": {
-				"bank_name": "Bank Name",
-				"ifsc_code": "IFSC Code",
-				"account_number": "Account Number",
-				"name_of_account_holder": "Account Holder Name",
-				"type_of_account": "Account Type"
-			},
-			
-			"International Banking": {
-				"beneficiary_name": "Beneficiary Name",
-				"beneficiary_swift_code": "Beneficiary Swift Code",
-				"beneficiary_iban_no": "Beneficiary IBAN",
-				"beneficiary_aba_no": "Beneficiary ABA Number",
-				"beneficiary_bank_address": "Beneficiary Bank Address",
-				"beneficiary_bank_name": "Beneficiary Bank Name",
-				"beneficiary_account_no": "Beneficiary Account Number",
-				"beneficiary_currency": "Beneficiary Currency"
-			},
-			
-			"Additional Fields": {
-				"vendor_gst_classification": "GST Classification",
-				"nature_of_services": "Nature of Services",
-				"vendor_type": "Vendor Type",
-				"remarks": "Remarks",
-				"contact_person": "Contact Person",
-				"hod": "HOD",
-				"enterprise_registration_no": "Enterprise Registration Number"
-			}
-		}
-
-	def validate_vendor_data(self, vendor_data):
-		"""Validate each vendor record using current field mapping"""
-		results = {
-			"total_records": len(vendor_data),
-			"valid_records": 0,
-			"invalid_records": 0,
-			"errors": [],
-			"warnings": []
-		}
-		
-		# Get current field mapping
-		field_mapping = json.loads(self.field_mapping) if self.field_mapping else {}
-		
-		for idx, row in enumerate(vendor_data, 1):
-			try:
-				errors = []
-				warnings = []
-				
-				# Apply field mapping to get system field values
-				mapped_row = self.apply_field_mapping(row, field_mapping)
-				
-				# Mandatory field validation using mapped fields
-				if not mapped_row.get('vendor_name'):
-					errors.append(f"Row {idx}: Vendor Name is mandatory")
-				
-				if not mapped_row.get('vendor_code'):
-					errors.append(f"Row {idx}: Vendor Code is mandatory")
-				
-				if not mapped_row.get('company_code'):
-					errors.append(f"Row {idx}: Company Code is mandatory")
-				
-				if not mapped_row.get('state'):
-					errors.append(f"Row {idx}: State is mandatory")
-				
-				# Email validation - check both primary and secondary
-				email_primary = mapped_row.get('office_email_primary')
-				if email_primary and not self.validate_email_format(email_primary):
-					warnings.append(f"Row {idx}: Invalid primary email format: {email_primary}")
-				
-				email_secondary = mapped_row.get('office_email_secondary')
-				if email_secondary and not self.validate_email_format(email_secondary):
-					warnings.append(f"Row {idx}: Invalid secondary email format: {email_secondary}")
-				
-				# GST validation
-				gst = mapped_row.get('gst') or mapped_row.get('gst_no')
-				if gst and not self.validate_gst_format(gst):
-					warnings.append(f"Row {idx}: Invalid GST format: {gst}")
-				
-				# PAN validation
-				pan = mapped_row.get('company_pan_number')
-				if pan and not self.validate_pan_format(pan):
-					warnings.append(f"Row {idx}: Invalid PAN format: {pan}")
-				
-				# Phone validation
-				phone = mapped_row.get('mobile_number')
-				if phone and not self.validate_phone_format(phone):
-					warnings.append(f"Row {idx}: Invalid phone format: {phone}")
-				
-				# Check if vendor already exists
-				existing_vendor = frappe.db.exists("Vendor Master", {"vendor_name": mapped_row.get('vendor_name')})
-				if existing_vendor:
-					warnings.append(f"Row {idx}: Vendor '{mapped_row.get('vendor_name')}' already exists - will update")
-				
-				if errors:
-					results["invalid_records"] += 1
-					results["errors"].extend(errors)
-				else:
-					results["valid_records"] += 1
-				
-				if warnings:
-					results["warnings"].extend(warnings)
-					
-			except Exception as e:
-				results["invalid_records"] += 1
-				results["errors"].append(f"Row {idx}: Validation error - {str(e)}")
-		
-		return results
-
-	def validate_email_format(self, email):
-		"""Validate email format"""
-		if not email or pd.isna(email):
-			return True
-		
-		email_str = str(email).strip()
-		if not email_str:
-			return True
-			
-		# Basic email validation
-		email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-		return bool(re.match(email_pattern, email_str))
-
-	def validate_gst_format(self, gst):
-		"""Validate GST format"""
-		if not gst or pd.isna(gst):
-			return True
-		
-		gst_str = str(gst).strip()
-		if not gst_str:
-			return True
-			
-		# GST should be 15 characters alphanumeric
-		return len(gst_str) == 15 and gst_str.isalnum()
-
-	def validate_pan_format(self, pan):
-		"""Validate PAN format"""
-		if not pan or pd.isna(pan):
-			return True
-		
-		pan_str = str(pan).strip()
-		if not pan_str:
-			return True
-			
-		# PAN should be 10 characters alphanumeric
-		return len(pan_str) == 10 and pan_str.isalnum()
-
-	def validate_phone_format(self, phone):
-		"""Validate phone format"""
-		if not phone or pd.isna(phone):
-			return True
-		
-		phone_str = str(phone).strip()
-		if not phone_str:
-			return True
-		
-		# Remove non-digit characters and check length
-		digits_only = re.sub(r'\D', '', phone_str)
-		return 10 <= len(digits_only) <= 15
-
-	def apply_field_mapping(self, row, field_mapping):
-		"""Apply field mapping to convert CSV row to system fields"""
-		mapped_row = {}
-		
-		for csv_header, system_field in field_mapping.items():
-			if system_field and csv_header in row:
-				value = row[csv_header]
-				# Handle NaN values
-				if pd.isna(value):
-					mapped_row[system_field] = None
-				else:
-					mapped_row[system_field] = str(value).strip() if value else None
-		
-		return mapped_row
-
-	def generate_display_html(self, vendor_data, validation_results):
-		"""Generate HTML for displaying vendor data and validation results - FIXED SYNTAX"""
-		
-		total_records = validation_results.get('total_records', 0)
-		valid_records = validation_results.get('valid_records', 0)
-		invalid_records = validation_results.get('invalid_records', 0)
-		warnings_count = len(validation_results.get('warnings', []))
-		
-		success_rate = (valid_records / total_records * 100) if total_records > 0 else 0
-		
-		# Use .format() instead of f-strings to avoid JavaScript conflicts
-		success_html = """
-		<div class="import-summary-container">
-			<div class="card">
-				<div class="card-header bg-primary text-white">
-					<h5 class="mb-0"><i class="fa fa-chart-bar"></i> Import Summary & Statistics</h5>
-				</div>
-				<div class="card-body">
-					<div class="row">
-						<div class="col-md-4">
-							<div class="text-center summary-stat">
-								<div class="stat-circle bg-primary">
-									<span class="stat-number">{}</span>
-								</div>
-								<p class="stat-label">Total Records</p>
-							</div>
-						</div>
-						<div class="col-md-4">
-							<div class="text-center summary-stat">
-								<div class="stat-circle bg-success">
-									<span class="stat-number">{}</span>
-								</div>
-								<p class="stat-label">Valid Records</p>
-							</div>
-						</div>
-						<div class="col-md-4">
-							<div class="text-center summary-stat">
-								<div class="stat-circle bg-danger">
-									<span class="stat-number">{}</span>
-								</div>
-								<p class="stat-label">Invalid Records</p>
-							</div>
-						</div>
-					</div>
-					
-					<div class="mt-4">
-						<div class="row">
-							<div class="col-md-8">
-								<div class="progress-section">
-									<div class="d-flex justify-content-between mb-2">
-										<span>Success Rate</span>
-										<span>{:.1f}%</span>
-									</div>
-									<div class="progress" style="height: 25px;">
-										<div class="progress-bar bg-success" role="progressbar" 
-											style="width: {:.1f}%" 
-											aria-valuenow="{}" 
-											aria-valuemin="0" 
-											aria-valuemax="{}">
-											{}/{}
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-md-4">
-								<div class="download-actions">
-									<button type="button" class="btn btn-success btn-sm mb-1" onclick="download_processed_data('valid')">
-										<i class="fa fa-download"></i> Valid Records
-									</button><br>
-									<button type="button" class="btn btn-danger btn-sm mb-1" onclick="download_processed_data('invalid')">
-										<i class="fa fa-download"></i> Invalid Records  
-									</button><br>
-									<button type="button" class="btn btn-info btn-sm" onclick="download_processed_data('all')">
-										<i class="fa fa-download"></i> All Data
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					
-					{}
-				</div>
-			</div>
-		</div>
-		
-		{}
-		""".format(
-			total_records, valid_records, invalid_records,
-			success_rate, success_rate, valid_records, total_records, valid_records, total_records,
-			self.generate_validation_charts(validation_results),
-			self.generate_errors_html(validation_results)
-		)
-		
-		# Enhanced Vendor Data HTML with schema
-		vendor_html = self.generate_vendor_data_schema_html(vendor_data, validation_results)
-		
-		# Add CSS
-		css = """
-		<style>
-			.summary-stat {
-				margin-bottom: 20px;
-			}
-			
-			.stat-circle {
-				width: 80px;
-				height: 80px;
-				border-radius: 50%;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				margin: 0 auto 10px auto;
-				color: white;
-			}
-			
-			.stat-number {
-				font-size: 1.5rem;
-				font-weight: bold;
-			}
-			
-			.stat-label {
-				font-weight: 500;
-				color: #495057;
-			}
-			
-			.progress-section {
-				background: #f8f9fa;
-				padding: 15px;
-				border-radius: 8px;
-				border: 1px solid #dee2e6;
-			}
-			
-			.download-actions .btn {
-				width: 100%;
-			}
-			
-			.validation-charts {
-				background: #fff;
-				padding: 20px;
-				border-radius: 8px;
-				border: 1px solid #dee2e6;
-				margin-top: 20px;
-			}
-		</style>
-		"""
-		
-		self.success_fail_rate_html = success_html + css
-		self.vendor_html = vendor_html
-		
-		# Also generate mapping statistics
-		self.mapping_statistics = self.generate_mapping_statistics_html()
-
-
-
-	def generate_validation_charts(self, validation_results):
-		"""Generate validation charts section - FIXED SYNTAX"""
-		if not validation_results:
-			return ""
-		
-		errors_count = len(validation_results.get('errors', []))
-		warnings_count = len(validation_results.get('warnings', []))
-		valid_records = validation_results.get('valid_records', 0)
-		invalid_records = validation_results.get('invalid_records', 0)
-		
-		# Use regular string formatting to avoid f-string conflicts with JavaScript
-		html = """
-		<div class="validation-charts">
-			<div class="row">
-				<div class="col-md-6">
-					<h6>Validation Results</h6>
-					<canvas id="validationResultsChart" width="300" height="200"></canvas>
-				</div>
-				<div class="col-md-6">
-					<h6>Issue Breakdown</h6>
-					<div class="issue-stats">
-						<div class="issue-item">
-							<div class="issue-icon bg-danger">
-								<i class="fa fa-times"></i>
-							</div>
-							<div class="issue-details">
-								<div class="issue-count">{}</div>
-								<div class="issue-label">Errors</div>
-							</div>
-						</div>
-						<div class="issue-item">
-							<div class="issue-icon bg-warning">
-								<i class="fa fa-exclamation-triangle"></i>
-							</div>
-							<div class="issue-details">
-								<div class="issue-count">{}</div>
-								<div class="issue-label">Warnings</div>
-							</div>
-						</div>
-						<div class="issue-item">
-							<div class="issue-icon bg-success">
-								<i class="fa fa-check"></i>
-							</div>
-							<div class="issue-details">
-								<div class="issue-count">{}</div>
-								<div class="issue-label">Clean Records</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		""".format(errors_count, warnings_count, valid_records)
-		
-		# Add JavaScript separately to avoid f-string conflicts
-		javascript = """
-		<script>
-			document.addEventListener('DOMContentLoaded', function() {
-				// Validation Results Chart
-				const ctx2 = document.getElementById('validationResultsChart');
-				if (ctx2) {
-					const context = ctx2.getContext('2d');
-					new Chart(context, {
-						type: 'doughnut',
-						data: {
-							labels: ['Valid', 'Invalid', 'Errors', 'Warnings'],
-							datasets: [{
-								data: [""" + str(valid_records) + """, """ + str(invalid_records) + """, """ + str(errors_count) + """, """ + str(warnings_count) + """],
-								backgroundColor: ['#28a745', '#dc3545', '#fd7e14', '#ffc107'],
-								borderWidth: 2,
-								borderColor: '#fff'
-							}]
-						},
-						options: {
-							responsive: true,
-							maintainAspectRatio: false,
-							plugins: {
-								legend: {
-									position: 'bottom',
-									labels: {
-										fontSize: 10,
-										padding: 8
-									}
-								}
-							}
-						}
-					});
-				}
-			});
-		</script>
-		"""
-		
-		css = """
-		<style>
-			.issue-stats {
-				display: flex;
-				flex-direction: column;
-				gap: 15px;
-			}
-			
-			.issue-item {
-				display: flex;
-				align-items: center;
-				padding: 10px;
-				background: #f8f9fa;
-				border-radius: 8px;
-				border: 1px solid #dee2e6;
-			}
-			
-			.issue-icon {
-				width: 40px;
-				height: 40px;
-				border-radius: 50%;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				color: white;
-				margin-right: 15px;
-			}
-			
-			.issue-details {
-				flex: 1;
-			}
-			
-			.issue-count {
-				font-size: 1.2rem;
-				font-weight: bold;
-				color: #495057;
-			}
-			
-			.issue-label {
-				font-size: 0.9rem;
-				color: #6c757d;
-			}
-		</style>
-		"""
-		
-		return html + javascript + css
-
-
-	def generate_errors_html(self, validation_results):
-		"""Generate HTML for displaying errors and warnings"""
-		if not validation_results.get('errors') and not validation_results.get('warnings'):
-			return '<div class="alert alert-success">No validation errors found!</div>'
-		
-		html = ""
-		
-		if validation_results.get('errors'):
-			html += """
-			<div class="card mt-3">
-				<div class="card-header bg-danger text-white">
-					<h6>Validation Errors</h6>
-				</div>
-				<div class="card-body">
-					<ul class="list-unstyled">
-			"""
-			for error in validation_results['errors'][:20]:  # Limit to 20 errors
-				html += f'<li class="text-danger">• {error}</li>'
-			
-			if len(validation_results['errors']) > 20:
-				html += f'<li class="text-muted">... and {len(validation_results["errors"]) - 20} more errors</li>'
-			
-			html += """
-					</ul>
-				</div>
-			</div>
-			"""
-		
-		if validation_results.get('warnings'):
-			html += """
-			<div class="card mt-3">
-				<div class="card-header bg-warning">
-					<h6>Validation Warnings</h6>
-				</div>
-				<div class="card-body">
-					<ul class="list-unstyled">
-			"""
-			for warning in validation_results['warnings'][:20]:  # Limit to 20 warnings
-				html += f'<li class="text-warning">• {warning}</li>'
-			
-			if len(validation_results['warnings']) > 20:
-				html += f'<li class="text-muted">... and {len(validation_results["warnings"]) - 20} more warnings</li>'
-			
-			html += """
-					</ul>
-				</div>
-			</div>
-			"""
-		
-		return html
-	def update_mapping_statistics_field(self):
-		"""Update the mapping_statistics field in the document"""
-		self.mapping_statistics = self.generate_mapping_statistics_html()
-
-	@frappe.whitelist()
-	def process_vendors(self):
-		"""Process and create vendor records"""
-		if not self.vendor_data:
-			frappe.throw("No vendor data found. Please upload and validate the file first.")
-		
-		if not self.field_mapping:
-			frappe.throw("Field mapping not configured. Please set up field mapping first.")
-		
-		vendor_data = json.loads(self.vendor_data)
-		field_mapping = json.loads(self.field_mapping)
-		
-		results = {
-			"total_processed": 0,
-			"successful": 0,
-			"failed": 0,
-			"errors": []
-		}
-		
-		for idx, row in enumerate(vendor_data, 1):
-			try:
-				mapped_row = self.apply_field_mapping(row, field_mapping)
-				
-				if self.is_valid_vendor_row(mapped_row):
-					self.create_vendor_from_row(mapped_row, idx)
-					results["successful"] += 1
-				else:
-					results["failed"] += 1
-					results["errors"].append(f"Row {idx}: Validation failed - missing required fields")
-				
-				results["total_processed"] += 1
-				
-			except Exception as e:
-				results["failed"] += 1
-				results["errors"].append(f"Row {idx}: {str(e)}")
-				frappe.log_error(frappe.get_traceback(), f"Vendor Import Error - Row {idx}")
-		
-		# Update status
-		self.existing_vendor_initialized = 1
-		self.save(ignore_permissions=True)
-		
-		# Return results
-		frappe.msgprint(f"Import completed: {results['successful']} successful, {results['failed']} failed")
-		return results
-
-	def is_valid_vendor_row(self, mapped_row):
-		"""Check if vendor row has all mandatory fields"""
-		mandatory_fields = ['vendor_name', 'vendor_code', 'company_code', 'state']
-		return all(mapped_row.get(field) for field in mandatory_fields)
-
-	def create_vendor_from_row(self, mapped_row, row_idx):
-		"""Create vendor master and related records from mapped row data"""
-		
-		# Check if vendor already exists
-		existing_vendor = frappe.db.exists("Vendor Master", {"vendor_name": mapped_row.get('vendor_name')})
-		if existing_vendor:
-			vendor_name = existing_vendor
-			self.update_existing_vendor(vendor_name, mapped_row)
-		else:
-			# Create new Vendor Master
-			vendor = frappe.new_doc("Vendor Master")
-			
-			# Basic vendor details using mapped fields
-			vendor.vendor_name = mapped_row.get('vendor_name')
-			vendor.office_email_primary = mapped_row.get('office_email_primary')
-			vendor.office_email_secondary = mapped_row.get('office_email_secondary')
-			vendor.mobile_number = mapped_row.get('mobile_number')
-			vendor.country = self.get_or_create_country(mapped_row.get('country', 'India'))
-			vendor.status = "Active"
-			vendor.created_from_registration = 0  # Existing vendor
-			vendor.registered_date = now()
-			
-			# Set purchasing data
-			vendor.payee_in_document = 1 if mapped_row.get('payee_in_document') else 0
-			vendor.gr_based_inv_ver = 1
-			vendor.service_based_inv_ver = 1
-			vendor.check_double_invoice = 1
-			
-			# Save vendor master first
-			vendor.insert(ignore_permissions=True)
-			vendor_name = vendor.name
-		
-		# Create Company Vendor Code record
-		company_vendor_code_name = self.create_company_vendor_code(vendor_name, mapped_row)
-		
-		# Create or update Multiple Company Data entry in Vendor Master
-		self.create_multiple_company_data_entry(vendor_name, mapped_row, company_vendor_code_name)
-		
-		# Create vendor onboarding company details if needed
-		self.create_vendor_company_details(vendor_name, mapped_row)
-		
-		return vendor_name
-
-	def create_multiple_company_data_entry(self, vendor_ref_no, mapped_row, company_vendor_code_name):
-		"""Create or update Multiple Company Data entry in Vendor Master"""
-		
-		vendor_doc = frappe.get_doc("Vendor Master", vendor_ref_no)
-		company_code = str(mapped_row.get('company_code'))
-		
-		# Get company name from company code
-		company_name = self.get_company_by_code(company_code)
-		
-		# Check if Multiple Company Data entry already exists for this company
-		existing_entry = None
-		if hasattr(vendor_doc, 'multiple_company_data') and vendor_doc.multiple_company_data:
-			for entry in vendor_doc.multiple_company_data:
-				if getattr(entry, 'company_name', '') == company_name:
-					existing_entry = entry
-					break
-		
-		if existing_entry:
-			# Update existing entry
-			existing_entry.company_vendor_code = company_vendor_code_name
-			# Update other fields from mapped_row
-			self.update_multiple_company_entry(existing_entry, mapped_row)
-		else:
-			# Create new Multiple Company Data entry
-			new_entry = {
-				"company_name": company_name,
-				"company_vendor_code": company_vendor_code_name,
-				"sap_client_code": company_code
-			}
-			
-			# Add additional fields from mapped data
-			self.populate_multiple_company_fields(new_entry, mapped_row)
-			
-			vendor_doc.append("multiple_company_data", new_entry)
-		
-		vendor_doc.save(ignore_permissions=True)
-		return vendor_doc.name
-
-	def populate_multiple_company_fields(self, entry, mapped_row):
-		"""Populate Multiple Company Data fields from mapped CSV data"""
-		
-		# Map fields from CSV to Multiple Company Data fields
-		field_mapping = {
-			"purchase_organization": "purchase_organization",
-			"account_group": "account_group", 
-			"terms_of_payment": "terms_of_payment",
-			"purchase_group": "purchase_group",
-			"order_currency": "order_currency",
-			"incoterms": "incoterm",
-			"reconciliation_account": "reconciliation_account"
-		}
-		
-		for csv_field, table_field in field_mapping.items():
-			if csv_field in mapped_row and mapped_row[csv_field]:
-				# Get master data reference
-				master_value = self.get_master_data_reference(csv_field, mapped_row[csv_field])
-				if master_value:
-					entry[table_field] = master_value
-
-	def update_multiple_company_entry(self, entry, mapped_row):
-		"""Update existing Multiple Company Data entry"""
-		self.populate_multiple_company_fields(entry, mapped_row)
-
-	def get_master_data_reference(self, field_type, value):
-		"""Get master data reference for Multiple Company Data fields"""
-		
-		master_mappings = {
-			"purchase_organization": ("Purchase Organization Master", "purchase_organization_code"),
-			"account_group": ("Account Group Master", "account_group_code"),
-			"terms_of_payment": ("Terms of Payment Master", "payment_terms_code"),
-			"purchase_group": ("Purchase Group Master", "purchase_group_code"),
-			"order_currency": ("Currency Master", "currency_code"),
-			"incoterms": ("Incoterm Master", "incoterm_code"),
-			"reconciliation_account": ("Reconciliation Account", "account_code")
-		}
-		
-		if field_type in master_mappings:
-			doctype, field_name = master_mappings[field_type]
-			
-			# Try to find existing master record
-			existing = frappe.db.exists(doctype, {field_name: value})
-			if existing:
-				return existing
-			
-			# If not found, try by name
-			existing_by_name = frappe.db.exists(doctype, value)
-			if existing_by_name:
-				return existing_by_name
-			
-			# Log missing master data but don't fail
-			frappe.log_error(f"Master data not found: {doctype} with {field_name} = {value}", "Vendor Import")
-		
-		return None
-
-	def update_existing_vendor(self, vendor_name, mapped_row):
-		"""Update existing vendor with new company/code data"""
-		vendor = frappe.get_doc("Vendor Master", vendor_name)
-		
-		# Update basic info if not present
-		if not vendor.office_email_primary and mapped_row.get('office_email_primary'):
-			vendor.office_email_primary = mapped_row.get('office_email_primary')
-		
-		if not vendor.mobile_number and mapped_row.get('mobile_number'):
-			vendor.mobile_number = mapped_row.get('mobile_number')
-		
-		vendor.save(ignore_permissions=True)
-
-	def create_company_vendor_code(self, vendor_ref_no, mapped_row):
-		"""Create or update Company Vendor Code record using mapped fields"""
-		
-		company_code = str(mapped_row.get('company_code'))
-		vendor_code = str(mapped_row.get('vendor_code'))
-		gst_no = mapped_row.get('gst_no') or mapped_row.get('gst', '')
-		state = mapped_row.get('state', '')
-		
-		# Get company name from company code
-		company_name = self.get_company_by_code(company_code)
-		
-		# Check if Company Vendor Code already exists
-		existing_cvc = frappe.db.exists("Company Vendor Code", {
-			"vendor_ref_no": vendor_ref_no,
-			"company_code": company_code
-		})
-		
-		if existing_cvc:
-			# Update existing record
-			cvc = frappe.get_doc("Company Vendor Code", existing_cvc)
-		else:
-			# Create new record
-			cvc = frappe.new_doc("Company Vendor Code")
-			cvc.vendor_ref_no = vendor_ref_no
-			cvc.company_name = company_name
-			cvc.company_code = company_code
-			cvc.sap_client_code = company_code  # Assuming SAP client code is same as company code
-		
-		# Check if this exact vendor code already exists
-		found_existing = False
-		if hasattr(cvc, 'vendor_code') and cvc.vendor_code:
-			for vc in cvc.vendor_code:
-				if (getattr(vc, 'vendor_code', '') == vendor_code and 
-					getattr(vc, 'gst_no', '') == gst_no and 
-					getattr(vc, 'state', '') == state):
-					found_existing = True
-					break
-		
-		# Add new vendor code if not found
-		if not found_existing:
-			cvc.append("vendor_code", {
-				"vendor_code": vendor_code,
-				"gst_no": gst_no,
-				"state": state
-			})
-		
-		cvc.save(ignore_permissions=True)
-		return cvc.name
-
-	def create_vendor_company_details(self, vendor_ref_no, mapped_row):
-		"""Create vendor onboarding company details record using mapped fields"""
-		
-		# Create company details record
-		company_details = frappe.new_doc("Vendor Onboarding Company Details")
-		
-		# Basic company information using mapped fields
-		company_details.vendor_name = mapped_row.get('vendor_name')
-		company_details.company_name = mapped_row.get('company_name') or mapped_row.get('vendor_name')
-		company_details.gst = mapped_row.get('gst') or mapped_row.get('gst_no')
-		company_details.company_pan_number = mapped_row.get('company_pan_number')
-		company_details.office_email_primary = mapped_row.get('office_email_primary')
-		company_details.office_email_secondary = mapped_row.get('office_email_secondary')
-		company_details.telephone_number = mapped_row.get('telephone_number') or mapped_row.get('mobile_number')
-		
-		# Address details
-		company_details.address_line_1 = mapped_row.get('address_line_1')
-		company_details.address_line_2 = mapped_row.get('address_line_2')
-		company_details.city = self.get_or_create_city(mapped_row.get('city'))
-		company_details.state = self.get_or_create_state(mapped_row.get('state'))
-		company_details.country = self.get_or_create_country(mapped_row.get('country', 'India'))
-		company_details.pincode = self.get_or_create_pincode(mapped_row.get('pincode'))
-		
-		# Business details
-		company_details.nature_of_business = self.get_or_create_business_nature(
-			mapped_row.get('nature_of_business', 'General Business')
-		)
-		company_details.type_of_business = mapped_row.get('type_of_business', 'Private Limited')
-		company_details.corporate_identification_number = mapped_row.get('corporate_identification_number')
-		company_details.established_year = mapped_row.get('established_year')
-		
-		company_details.insert(ignore_permissions=True)
-		return company_details.name
-
-	def get_company_by_code(self, company_code):
-		"""Get company name by company code"""
-		company = frappe.db.get_value("Company Master", {"company_code": company_code}, "name")
-		if not company:
-			# Create a default company if not found
-			try:
-				company_doc = frappe.new_doc("Company Master")
-				company_doc.company_name = f"Company {company_code}"
-				company_doc.company_code = company_code
-				company_doc.sap_client_code = company_code
-				company_doc.insert(ignore_permissions=True)
-				frappe.log_error(f"Auto-created company with code {company_code}", "Vendor Import")
-				return company_doc.name
-			except:
-				frappe.log_error(f"Company with code {company_code} not found and could not be created", "Vendor Import")
-				return "Default Company"
-		return company
-
-	def get_or_create_country(self, country_name):
-		"""Get or create country master"""
-		if not country_name or country_name == "IN":
-			country_name = "India"
-		
-		# Handle numeric country codes
-		if str(country_name).isdigit():
-			country_name = "India"
-		
-		country = frappe.db.exists("Country Master", {"country_name": country_name})
-		if not country:
-			try:
-				country_doc = frappe.new_doc("Country Master")
-				country_doc.country_name = country_name
-				country_doc.country_code = country_name[:2].upper()
-				country_doc.insert(ignore_permissions=True)
-				return country_doc.name
-			except:
-				return None
-		return country
-
-	def get_or_create_state(self, state_name):
-		"""Get or create state master"""
-		if not state_name:
-			return None
-		
-		state = frappe.db.exists("State Master", {"state_name": state_name})
-		if not state:
-			try:
-				state_doc = frappe.new_doc("State Master")
-				state_doc.state_name = state_name
-				state_doc.state_code = state_name[:2].upper()
-				state_doc.insert(ignore_permissions=True)
-				return state_doc.name
-			except:
-				return None
-		return state
-
-	def get_or_create_city(self, city_name):
-		"""Get or create city master"""
-		if not city_name or pd.isna(city_name):
-			return None
-		
-		city_str = str(city_name).strip()
-		if not city_str:
-			return None
-		
-		city = frappe.db.exists("City Master", {"city_name": city_str})
-		if not city:
-			try:
-				city_doc = frappe.new_doc("City Master")
-				city_doc.city_name = city_str
-				city_doc.insert(ignore_permissions=True)
-				return city_doc.name
-			except:
-				return None
-		return city
-
-	def get_or_create_pincode(self, pincode):
-		"""Get or create pincode master"""
-		if not pincode or pd.isna(pincode):
-			return None
-		
-		pincode_str = str(pincode).strip()
-		if not pincode_str:
-			return None
-		
-		pincode_master = frappe.db.exists("Pincode Master", {"pincode": pincode_str})
-		if not pincode_master:
-			try:
-				pincode_doc = frappe.new_doc("Pincode Master")
-				pincode_doc.pincode = pincode_str
-				pincode_doc.insert(ignore_permissions=True)
-				return pincode_doc.name
-			except:
-				return None
-		return pincode_master
-
-	def get_or_create_business_nature(self, business_nature):
-		"""Get or create business nature master"""
-		if not business_nature:
-			business_nature = "General Business"
-		
-		nature = frappe.db.exists("Business Nature Master", {"business_nature": business_nature})
-		if not nature:
-			try:
-				nature_doc = frappe.new_doc("Business Nature Master")
-				nature_doc.business_nature = business_nature
-				nature_doc.insert(ignore_permissions=True)
-				return nature_doc.name
-			except:
-				return None
-		return nature
-
-
 # API Methods
 @frappe.whitelist()
 def process_existing_vendors(docname):
@@ -1909,7 +1700,7 @@ def get_auto_mapping(docname):
 
 @frappe.whitelist()
 def download_processed_data(docname, data_type="all"):
-	"""Download processed data in various formats"""
+	"""Download processed vendor data as Excel"""
 	doc = frappe.get_doc("Existing Vendor Import", docname)
 	
 	if not doc.vendor_data:
@@ -1919,73 +1710,55 @@ def download_processed_data(docname, data_type="all"):
 	field_mapping = json.loads(doc.field_mapping) if doc.field_mapping else {}
 	validation_results = json.loads(doc.success_fail_rate) if doc.success_fail_rate else {}
 	
+	# Apply field mapping to all data
+	processed_data = []
+	for idx, row in enumerate(vendor_data):
+		mapped_row = doc.apply_field_mapping(row, field_mapping)
+		mapped_row['_row_number'] = idx + 1
+		mapped_row['_status'] = 'Valid' if idx < validation_results.get('valid_records', 0) else 'Invalid'
+		processed_data.append(mapped_row)
+	
 	# Filter data based on type
 	if data_type == "valid":
-		# Get only valid records
-		filtered_data = vendor_data[:validation_results.get('valid_records', 0)]
+		processed_data = [row for row in processed_data if row['_status'] == 'Valid']
+		filename = f"valid_vendors_{doc.name}.xlsx"
 	elif data_type == "invalid":
-		# Get only invalid records
-		valid_count = validation_results.get('valid_records', 0)
-		filtered_data = vendor_data[valid_count:]
+		processed_data = [row for row in processed_data if row['_status'] == 'Invalid']
+		filename = f"invalid_vendors_{doc.name}.xlsx"
 	else:
-		# Get all data
-		filtered_data = vendor_data
+		filename = f"all_vendors_{doc.name}.xlsx"
 	
-	# Apply field mapping
-	mapped_data = []
-	for row in filtered_data:
-		mapped_row = doc.apply_field_mapping(row, field_mapping)
-		# Combine original and mapped data
-		combined_row = {**row, **{f"mapped_{k}": v for k, v in mapped_row.items()}}
-		mapped_data.append(combined_row)
-	
-	# Create DataFrame
-	df = pd.DataFrame(mapped_data)
-	
-	# Generate filename
-	timestamp = frappe.utils.now().replace(" ", "_").replace(":", "-")
-	filename = f"vendor_import_{data_type}_{timestamp}.xlsx"
-	
-	# Create Excel file with multiple sheets
+	# Create Excel file
 	output = BytesIO()
 	with pd.ExcelWriter(output, engine='openpyxl') as writer:
 		# Main data sheet
-		df.to_excel(writer, sheet_name='Vendor Data', index=False)
+		if processed_data:
+			df = pd.DataFrame(processed_data)
+			df.to_excel(writer, sheet_name='Vendor Data', index=False)
 		
 		# Field mapping sheet
 		mapping_df = pd.DataFrame([
-			{"CSV Header": k, "System Field": v, "Mapped": "Yes" if v else "No"}
+			{"CSV Header": k, "System Field": v or "Not Mapped"} 
 			for k, v in field_mapping.items()
 		])
 		mapping_df.to_excel(writer, sheet_name='Field Mapping', index=False)
 		
-		# Validation results sheet
-		if validation_results:
-			validation_df = pd.DataFrame([
-				{"Metric": "Total Records", "Count": validation_results.get('total_records', 0)},
-				{"Metric": "Valid Records", "Count": validation_results.get('valid_records', 0)},
-				{"Metric": "Invalid Records", "Count": validation_results.get('invalid_records', 0)},
-				{"Metric": "Errors", "Count": len(validation_results.get('errors', []))},
-				{"Metric": "Warnings", "Count": len(validation_results.get('warnings', []))}
-			])
-			validation_df.to_excel(writer, sheet_name='Validation Summary', index=False)
-			
-			# Errors sheet
-			if validation_results.get('errors'):
-				errors_df = pd.DataFrame([{"Error": error} for error in validation_results['errors']])
-				errors_df.to_excel(writer, sheet_name='Errors', index=False)
-			
-			# Warnings sheet
-			if validation_results.get('warnings'):
-				warnings_df = pd.DataFrame([{"Warning": warning} for warning in validation_results['warnings']])
-				warnings_df.to_excel(writer, sheet_name='Warnings', index=False)
-	
+		# Validation results
+		if validation_results.get('errors'):
+			errors_df = pd.DataFrame([{"Error": error} for error in validation_results['errors']])
+			errors_df.to_excel(writer, sheet_name='Errors', index=False)
+		
+		# Warnings sheet
+		if validation_results.get('warnings'):
+			warnings_df = pd.DataFrame([{"Warning": warning} for warning in validation_results['warnings']])
+			warnings_df.to_excel(writer, sheet_name='Warnings', index=False)
+
 	output.seek(0)
-	
+
 	# Save file
 	from frappe.utils.file_manager import save_file
 	file_doc = save_file(filename, output.read(), doc.doctype, doc.name, is_private=0)
-	
+
 	return {
 		"file_url": file_doc.file_url,
 		"file_name": filename
@@ -2038,7 +1811,18 @@ def download_field_mapping_template():
 			"MOBILE_NUMBER": "9876543210",
 			"ADDRESS_LINE_1": "Sample Address",
 			"CITY": "Ahmedabad",
-			"PINCODE": "380001"
+			"PINCODE": "380001",
+			"PURCHASE_ORGANIZATION": "PO01",
+			"ACCOUNT_GROUP": "AG01",
+			"TERMS_OF_PAYMENT": "30 Days",
+			"PURCHASE_GROUP": "PG01",
+			"ORDER_CURRENCY": "INR",
+			"INCOTERMS": "FOB",
+			"BANK_NAME": "HDFC Bank",
+			"IFSC_CODE": "HDFC0001234",
+			"ACCOUNT_NUMBER": "123456789012",
+			"ACCOUNT_HOLDER_NAME": "Sample Vendor Pvt Ltd",
+			"ACCOUNT_TYPE": "Current"
 		}]
 		
 		sample_df = pd.DataFrame(sample_data)
@@ -2048,21 +1832,22 @@ def download_field_mapping_template():
 		instructions = [
 			{"Step": 1, "Instruction": "Use the 'Field Mapping Guide' sheet to understand available system fields"},
 			{"Step": 2, "Instruction": "Create your CSV with appropriate headers (can be any name)"},
-			{"Step": 3, "Instruction": "Upload CSV to Existing Vendor Import"},
-			{"Step": 4, "Instruction": "Use the field mapping interface to map CSV columns to system fields"},
-			{"Step": 5, "Instruction": "Validate and process the import"},
-			{"Step": 6, "Instruction": "Download processed data if needed"}
+			{"Step": 3, "Instruction": "Upload your CSV file in the Existing Vendor Import form"},
+			{"Step": 4, "Instruction": "Review and adjust the automatic field mapping"},
+			{"Step": 5, "Instruction": "Validate data and process the import"},
+			{"Step": 6, "Instruction": "For existing vendors, no SAP integration will be triggered"},
+			{"Step": 7, "Instruction": "System handles duplicate vendor codes properly"}
 		]
 		
 		instructions_df = pd.DataFrame(instructions)
 		instructions_df.to_excel(writer, sheet_name='Instructions', index=False)
-	
+
 	output.seek(0)
-	
+
 	# Save file
 	from frappe.utils.file_manager import save_file
-	file_doc = save_file(filename, output.read(), "Existing Vendor Import", "Template", is_private=0)
-	
+	file_doc = save_file(filename, output.read(), "Existing Vendor Import", None, is_private=0)
+
 	return {
 		"file_url": file_doc.file_url,
 		"file_name": filename
@@ -2070,49 +1855,92 @@ def download_field_mapping_template():
 
 
 @frappe.whitelist()
-def fix_field_mapping(docname):
-	"""Fix field mapping issues in existing import"""
+def get_vendor_import_preview(docname):
+	"""Get preview of vendor data with mapping applied"""
 	doc = frappe.get_doc("Existing Vendor Import", docname)
 	
-	if not doc.field_mapping:
-		return {"error": "No field mapping found"}
+	if not doc.vendor_data or not doc.field_mapping:
+		return {"error": "Vendor data and field mapping required"}
 	
-	try:
-		# Get current mapping
-		current_mapping = json.loads(doc.field_mapping)
+	vendor_data = json.loads(doc.vendor_data)
+	field_mapping = json.loads(doc.field_mapping)
+	
+	# Apply mapping to first 5 records for preview
+	preview_data = []
+	for idx, row in enumerate(vendor_data[:5]):
+		mapped_row = doc.apply_field_mapping(row, field_mapping)
+		mapped_row['_row_number'] = idx + 1
+		preview_data.append(mapped_row)
+	
+	return {
+		"preview_data": preview_data,
+		"total_records": len(vendor_data),
+		"mapped_fields": sum(1 for v in field_mapping.values() if v)
+	}
+
+
+@frappe.whitelist()
+def validate_import_data(docname):
+	"""Validate import data and return detailed results"""
+	doc = frappe.get_doc("Existing Vendor Import", docname)
+	
+	if not doc.vendor_data:
+		return {"error": "No vendor data found"}
+	
+	vendor_data = json.loads(doc.vendor_data)
+	validation_results = doc.validate_vendor_data(vendor_data)
+	
+	# Add duplicate check
+	duplicates = doc.check_for_duplicates(vendor_data)
+	if duplicates:
+		validation_results['duplicates'] = duplicates
+	
+	# Save validation results
+	doc.success_fail_rate = json.dumps(validation_results, indent=2)
+	doc.save()
+	
+	return validation_results
+
+
+@frappe.whitelist()
+def get_import_summary(docname):
+	"""Get comprehensive import summary"""
+	doc = frappe.get_doc("Existing Vendor Import", docname)
+	
+	if not doc.vendor_data:
+		return {"error": "No vendor data found"}
+	
+	vendor_data = json.loads(doc.vendor_data)
+	field_mapping = json.loads(doc.field_mapping) if doc.field_mapping else {}
+	
+	# Calculate statistics
+	summary = {
+		"total_records": len(vendor_data),
+		"mapped_fields": sum(1 for v in field_mapping.values() if v),
+		"unmapped_fields": sum(1 for v in field_mapping.values() if not v),
+		"field_mapping_percentage": 0,
+		"companies": set(),
+		"states": set(),
+		"vendor_types": set()
+	}
+	
+	if len(field_mapping) > 0:
+		summary["field_mapping_percentage"] = (summary["mapped_fields"] / len(field_mapping)) * 100
+	
+	# Analyze data
+	for row in vendor_data:
+		mapped_row = doc.apply_field_mapping(row, field_mapping)
 		
-		# Fix common mapping issues from your data
-		fixes_applied = []
-		
-		# Fix email fields that got mapped to wrong fields
-		for csv_header, system_field in current_mapping.items():
-			if "email" in csv_header.lower():
-				if csv_header == "Secondary Email" and system_field == "office_email_primary":
-					current_mapping[csv_header] = "office_email_secondary"
-					fixes_applied.append(f"Fixed {csv_header} mapping to office_email_secondary")
-				elif csv_header == "Email-Id" and not system_field:
-					current_mapping[csv_header] = "office_email_primary"
-					fixes_applied.append(f"Fixed {csv_header} mapping to office_email_primary")
-			
-			# Fix bank name mapping
-			elif csv_header == "Bank Name" and system_field == "vendor_name":
-				current_mapping[csv_header] = "bank_name"
-				fixes_applied.append(f"Fixed {csv_header} mapping to bank_name")
-			
-			# Fix other misaligned fields
-			elif csv_header == "Count" and system_field == "country":
-				current_mapping[csv_header] = None
-				fixes_applied.append(f"Cleared incorrect {csv_header} mapping")
-		
-		# Update the mapping
-		doc.field_mapping = json.dumps(current_mapping, indent=2)
-		doc.save(ignore_permissions=True)
-		
-		return {
-			"success": True,
-			"fixes_applied": fixes_applied,
-			"message": f"Applied {len(fixes_applied)} fixes to field mapping"
-		}
-		
-	except Exception as e:
-		return {"error": f"Failed to fix mapping: {str(e)}"}
+		if mapped_row.get('company_code'):
+			summary["companies"].add(mapped_row['company_code'])
+		if mapped_row.get('state'):
+			summary["states"].add(mapped_row['state'])
+		if mapped_row.get('vendor_type'):
+			summary["vendor_types"].add(mapped_row['vendor_type'])
+	
+	# Convert sets to lists for JSON serialization
+	summary["companies"] = list(summary["companies"])
+	summary["states"] = list(summary["states"])
+	summary["vendor_types"] = list(summary["vendor_types"])
+	
+	return summary
