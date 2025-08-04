@@ -590,6 +590,7 @@ def create_or_update_quotation_non_onboarded():
             handle_quotation_files(quotation, files)
             quotation.save(ignore_version=True)
             frappe.db.commit()
+            send_quotation_access_email_simple(quotation, vendor_email, "updated",rfq_number)
             
 
             action = "updated"
@@ -621,6 +622,7 @@ def create_or_update_quotation_non_onboarded():
             handle_quotation_files(quotation, files)
             quotation.save(ignore_version=True)
             frappe.db.commit()
+            send_quotation_access_email_simple(quotation, vendor_email, "created",rfq_number)
             
 
             action = "created"
@@ -904,3 +906,59 @@ def handle_quotation_files(quotation, files):
             frappe.log_error(traceback.format_exc(), "file_attachment_traceback")
             continue
 
+
+
+
+
+
+def send_quotation_access_email_simple(quotation, vendor_email, action,rfq_number):
+    try:
+        site_url = frappe.get_site_config().get('frontend_http', 'https://saksham-v.merillife.com/')
+        
+        
+        token = generate_secure_token(
+            email=vendor_email,
+            quotation_name=quotation.name,
+            rfq_number=rfq_number
+        )
+        access_link = f"{site_url}/quotation-form?token={token}"
+    
+        
+      
+        subject = f"Quotation {action.title()} Successfully - {quotation.name}"
+        message = f"""
+        <p>Dear Vendor,</p>
+        <p>Your quotation <strong>{quotation.name}</strong> has been {action} successfully!</p>
+        <p><a href="{access_link}" target="_blank" style="background-color: #1976d2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Click here to access your quotation or check your rank</a></p>
+        <p>Thank you,<br>VMS Team</p>
+        """
+        
+        frappe.sendmail(
+            recipients=[vendor_email],
+            subject=subject,
+            message=message,
+            now=True
+        )
+        
+    except Exception as e:
+        frappe.log_error(f"Failed to send access email: {str(e)}", "Simple Email Error")
+
+
+
+def generate_secure_token(email=None, quotation_name=None,rfq_number=None):
+    try:
+       
+        
+        payload = {         
+            "email": email,    
+            "quotation": quotation_name,
+            "rfq_number": rfq_number
+        }
+        
+        
+        token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+        return token
+        
+    except Exception as e:
+        frappe.log_error(f"Token generation failed: {str(e)}", "Token Generation Error")
+        return None
