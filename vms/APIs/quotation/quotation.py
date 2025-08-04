@@ -637,12 +637,13 @@ def update_final_negotiated_rate(data):
         if isinstance(data, str):
             data = json.loads(data)
 
-        quotation_name = data.get("quotation")
+        quotation_name = data.get("final_quotation_id")
         if not quotation_name:
             frappe.throw(_("Missing Quotation name"))
 
         quotation = frappe.get_doc("Quotation", quotation_name)
 
+        quotation.is_negotiated = 1
         quotation.final_ffn = data.get("final_ffn") or ""
         quotation.final_rate_kg = data.get("final_rate_kg") or ""
         quotation.final_chargeable_weight = data.get("final_chargeable_weight") or ""
@@ -663,14 +664,104 @@ def update_final_negotiated_rate(data):
         quotation.final_freight_total = data.get("final_freight_total") or ""
         quotation.final_remarks = data.get("final_remarks") or ""
         quotation.final_tat = data.get("final_tat") or ""
+        quotation.final_cfs_charge = data.get("final_cfs_charge") or ""
 
         # Save document
         quotation.save(ignore_permissions=True)
         frappe.db.commit()
 
+        prev_values = [
+            quotation.mode_of_shipment or "",
+            quotation.vendor_name or "",
+            quotation.total_freight or "",
+            quotation.exchange_rate or "",
+            quotation.total_freightinr or "",
+            quotation.remarks or "",
+            quotation.destination_charge or "",
+            quotation.remarks or "",
+            quotation.ratekg or "",
+            quotation.fuel_surcharge or "",
+            quotation.pickuporigin or "",
+            quotation.airlinevessel_name or "",
+            quotation.transit_days or "",
+            quotation.chargeable_weight or "",
+            quotation.sc or "",
+            quotation.xray or "",
+            quotation.total_landing_price or "",
+            quotation.total_freight or "",
+        ]
+
+        final_negotiated_values = [
+            quotation.final_ffn,
+            quotation.final_rate_kg,
+            quotation.final_chargeable_weight,
+            quotation.final_freight_fcr,
+            quotation.final_fsc,
+            quotation.final_sc,
+            quotation.final_xcr,
+            quotation.final_pickup,
+            quotation.final_xray,
+            quotation.final_sum_freight_inr,
+            quotation.final_gst_amount,
+            quotation.final_total,
+            quotation.final_others,
+            quotation.final_airline,
+            quotation.final_landing_price,
+            quotation.final_dc,
+            quotation.final_transit_days,
+            quotation.final_freight_total,
+            quotation.final_remarks,
+            quotation.final_tat,
+        ]
+
+        table_html = """
+            <h3>Final Negotiated Rate Details</h3>
+            <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; font-family: Arial; font-size: 13px;">
+                <tr style="background-color: #f2f2f2;">
+                    <th>Field</th>
+                    <th>Previous Value</th>
+                    <th>Final Negotiated Value</th>
+                </tr>
+        """
+
+        field_labels = [
+            "FFN", "Rate/KG", "Chargeable Weight", "Freight FCR", "FSC", "SC", "XCR",
+            "Pickup", "X-Ray", "Sum Freight INR", "GST Amount", "Total", "Others",
+            "Airline", "Landing Price", "DC", "Transit Days", "Freight Total", "Remarks", "TAT"
+        ]
+
+        for label, prev, updated in zip(field_labels, prev_values, final_negotiated_values):
+            table_html += f"""
+                <tr>
+                    <td>{label}</td>
+                    <td>{prev or '-'}</td>
+                    <td>{updated or '-'}</td>
+                </tr>
+            """
+
+        table_html += "</table>"
+
+        subject = f"Final Negotiated Rate for Quotation {quotation.name}"
+        message = f"""
+        <p>Dear {quotation.vendor_name},</p>
+        <p>The final negotiated rates for your quotation <b>{quotation.name}</b> have been finalized. Please find the comparison below:</p>
+        {table_html}
+        <p>Regards,<br>Procurement Team</p>
+        # """
+
+        if not quotation.office_email_primary:
+            frappe.throw(_("Vendor email is missing. Cannot send email."))
+
+        frappe.sendmail(
+            recipients=[quotation.office_email_primary],
+            subject=subject,
+            message=message,
+            now=True
+        )
+
         return {
             "status": "success",
-            "message": _("Final negotiated rate updated successfully."),
+            "message": _("Final negotiated rate updated and email queued successfully."),
             "quotation": quotation.name
         }
 
@@ -678,3 +769,4 @@ def update_final_negotiated_rate(data):
         frappe.log_error(frappe.get_traceback(), "Error in update_final_negotiated_rate API")
         frappe.local.response["http_status_code"] = 500
         frappe.throw(_("An error occurred while updating the final negotiated rate: {0}").format(str(e)))
+

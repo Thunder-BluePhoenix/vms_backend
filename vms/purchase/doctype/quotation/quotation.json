@@ -117,6 +117,7 @@
   "bidding_status",
   "rank",
   "final_negotiated_rate_section",
+  "is_negotiated",
   "final_ffn",
   "final_freight_fcr",
   "final_xcr",
@@ -132,6 +133,7 @@
   "final_airline",
   "final_transit_days",
   "final_tat",
+  "final_cfs_charge",
   "column_break_seze",
   "final_chargeable_weight",
   "final_sc",
@@ -852,12 +854,23 @@
    "fieldtype": "Link",
    "label": "RFQ Type",
    "options": "Vendor Type Master"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_negotiated",
+   "fieldtype": "Check",
+   "label": "Is Negotiated"
+  },
+  {
+   "fieldname": "final_cfs_charge",
+   "fieldtype": "Data",
+   "label": "CFS Charge"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-04 14:18:57.996027",
+ "modified": "2025-08-04 18:34:13.973777",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Quotation",
