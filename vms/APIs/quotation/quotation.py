@@ -174,26 +174,26 @@ def approve_quotation(data):
         
         quotation = frappe.get_doc('Quotation', quotation_name)
         
-        quotation.final_ffn = data.get("final_ffn") or ""
-        quotation.final_rate_kg = data.get("final_rate_kg") or ""
-        quotation.final_chargeable_weight = data.get("final_chargeable_weight") or ""
-        quotation.final_freight_fcr = data.get("final_freight_fcr") or ""
-        quotation.final_fsc = data.get("final_fsc") or ""
-        quotation.final_sc = data.get("final_sc") or ""
-        quotation.final_xcr = data.get("final_xcr") or ""
-        quotation.final_pickup = data.get("final_pickup") or ""
-        quotation.final_xray = data.get("final_xray") or ""
-        quotation.final_sum_freight_inr = data.get("final_sum_freight_inr") or ""
-        quotation.final_gst_amount = data.get("final_gst_amount") or ""
-        quotation.final_total = data.get("final_total") or ""
-        quotation.final_others = data.get("final_others") or ""
-        quotation.final_airline = data.get("final_airline") or ""
-        quotation.final_landing_price = data.get("final_landing_price") or ""
-        quotation.final_dc = data.get("final_dc") or ""
-        quotation.final_transit_days = data.get("final_transit_days") or ""
-        quotation.final_freight_total = data.get("final_freight_total") or ""
-        quotation.final_remarks = data.get("final_remarks") or ""
-        quotation.final_tat = data.get("final_tat") or ""
+        # quotation.final_ffn = data.get("final_ffn") or ""
+        # quotation.final_rate_kg = data.get("final_rate_kg") or ""
+        # quotation.final_chargeable_weight = data.get("final_chargeable_weight") or ""
+        # quotation.final_freight_fcr = data.get("final_freight_fcr") or ""
+        # quotation.final_fsc = data.get("final_fsc") or ""
+        # quotation.final_sc = data.get("final_sc") or ""
+        # quotation.final_xcr = data.get("final_xcr") or ""
+        # quotation.final_pickup = data.get("final_pickup") or ""
+        # quotation.final_xray = data.get("final_xray") or ""
+        # quotation.final_sum_freight_inr = data.get("final_sum_freight_inr") or ""
+        # quotation.final_gst_amount = data.get("final_gst_amount") or ""
+        # quotation.final_total = data.get("final_total") or ""
+        # quotation.final_others = data.get("final_others") or ""
+        # quotation.final_airline = data.get("final_airline") or ""
+        # quotation.final_landing_price = data.get("final_landing_price") or ""
+        # quotation.final_dc = data.get("final_dc") or ""
+        # quotation.final_transit_days = data.get("final_transit_days") or ""
+        # quotation.final_freight_total = data.get("final_freight_total") or ""
+        # quotation.final_remarks = data.get("final_remarks") or ""
+        # quotation.final_tat = data.get("final_tat") or ""
         
         rfq_number = quotation.get('rfq_number') 
         
@@ -236,6 +236,13 @@ def approve_quotation(data):
                             "bid_won",
                             1
                         )
+                        # set quotation win ID
+                        frappe.db.set_value(
+                            "Vendor Details",
+                            row.name, 
+                            "quotation",
+                            quotation.name
+                        )
 
                 # Mark 'Won' in Non-Onboarded Vendor Details table if email matches
                 for row in rfq.non_onboarded_vendor_details:
@@ -252,6 +259,13 @@ def approve_quotation(data):
                             row.name, 
                             "bid_won",
                             1
+                        )
+                         # set quotation win ID
+                        frappe.db.set_value(
+                            "Non Onboarded Vendor Details",
+                            row.name, 
+                            "quotation",
+                            quotation.name
                         )
 
 
@@ -468,32 +482,41 @@ def get_quotation_details(quotation_name):
         frappe.throw(f"An error occurred while fetching Quotation details: {str(e)}")
 
 @frappe.whitelist(allow_guest=True)
-def get_quotations_by_rfq(rfq_number):
+def get_quotations_by_rfq(rfq_number, page_no=1, page_length=5, vendor_name=None):
     try:
-        
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        offset = (page_no - 1) * page_length
+
         if not rfq_number:
             frappe.throw(_("RFQ Number is required"))
-        
-       
+
         if not frappe.db.exists("Request For Quotation", rfq_number):
             frappe.throw(_("RFQ Number {0} does not exist").format(rfq_number))
-        
+
         rfq = frappe.get_doc("Request For Quotation", rfq_number)
 
         current_time = now_datetime()
-
         deadline = rfq.rfq_cutoff_date_logistic or rfq.quotation_deadline
 
         if deadline and deadline < current_time:
+            # Build filters
+            filters = {"rfq_number": rfq_number}
+            if vendor_name:
+                # LIKE filter for vendor_name
+                filters["vendor_name"] = ["like", f"%{vendor_name}%"]
+
+            # Get total count for pagination info
+            total_count = frappe.db.count("Quotation", filters=filters)
 
             quotations = frappe.get_all(
                 "Quotation",
-                filters={
-                    "rfq_number": rfq_number,
-                },
-                fields=['*']
+                filters=filters,
+                fields=['*'],
+                limit_start=offset,
+                limit_page_length=page_length
             )
-            
+
             if not quotations:
                 return {
                     "success": True,
@@ -501,7 +524,7 @@ def get_quotations_by_rfq(rfq_number):
                     "data": [],
                     "total_count": 0
                 }
-            
+
             def get_sort_key(quotation):
                 try:
                     rank = quotation.get('rank')
@@ -511,7 +534,7 @@ def get_quotations_by_rfq(rfq_number):
                         return 999999
                 except (ValueError, TypeError):
                     return 999999
-            
+
             quotations.sort(key=get_sort_key)
 
             formatted_quotations = []
@@ -522,18 +545,16 @@ def get_quotations_by_rfq(rfq_number):
                         quote_amount_display = float(str(quotation['quote_amount']).replace(',', ''))
                     except (ValueError, TypeError):
                         quote_amount_display = quotation['quote_amount']
-                
-            
+
                 attachments = frappe.get_all(
-                    "Multiple Attachment",  
+                    "Multiple Attachment",
                     filters={
                         "parent": quotation.get('name'),
                         "parenttype": "Quotation"
                     },
                     fields=['name1', 'attachment_name']
                 )
-                
-            
+
                 formatted_attachments = []
                 for attachment in attachments:
                     attachment_data = {
@@ -542,7 +563,7 @@ def get_quotations_by_rfq(rfq_number):
                         "file_url": frappe.utils.get_url() + attachment.get('attachment_name') if attachment.get('attachment_name') else None
                     }
                     formatted_attachments.append(attachment_data)
-                
+
                 formatted_quotation = {
                     "name": quotation.get('name'),
                     "rfq_number": quotation.get('rfq_number'),
@@ -581,27 +602,79 @@ def get_quotations_by_rfq(rfq_number):
                     "attachments": formatted_attachments
                 }
                 formatted_quotations.append(formatted_quotation)
-            
+
             rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
-            
+
             return {
                 "success": True,
                 "message": _("Quotations retrieved successfully"),
                 "data": formatted_quotations,
-                "total_count": len(formatted_quotations),
+                "total_count": total_count,
+                "page_no": page_no,
+                "page_length": page_length,
                 "rfq_details": {
                     "name": rfq_doc.name
                 }
             }
-        
+
         else:
-            return{
-                "mesaage": "Cut off datetime is not Pass thats why Bidding details wont be visible."
+            return {
+                "mesaage": "Cut off datetime is not Pass thats why Bidding details wont be visible.",
+                "data": [],
             }
-        
+
     except frappe.DoesNotExistError:
         frappe.throw(_("RFQ Number {0} does not exist").format(rfq_number))
     except Exception as e:
         frappe.log_error(f"Error in get_quotations_by_rfq API: {str(e)}", "Quotation API Error")
         frappe.throw(_("An error occurred while fetching quotations: {0}").format(str(e)))
 
+
+# update the final negotiated rate of quotation
+@frappe.whitelist(allow_guest=True)
+def update_final_negotiated_rate(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        quotation_name = data.get("quotation")
+        if not quotation_name:
+            frappe.throw(_("Missing Quotation name"))
+
+        quotation = frappe.get_doc("Quotation", quotation_name)
+
+        quotation.final_ffn = data.get("final_ffn") or ""
+        quotation.final_rate_kg = data.get("final_rate_kg") or ""
+        quotation.final_chargeable_weight = data.get("final_chargeable_weight") or ""
+        quotation.final_freight_fcr = data.get("final_freight_fcr") or ""
+        quotation.final_fsc = data.get("final_fsc") or ""
+        quotation.final_sc = data.get("final_sc") or ""
+        quotation.final_xcr = data.get("final_xcr") or ""
+        quotation.final_pickup = data.get("final_pickup") or ""
+        quotation.final_xray = data.get("final_xray") or ""
+        quotation.final_sum_freight_inr = data.get("final_sum_freight_inr") or ""
+        quotation.final_gst_amount = data.get("final_gst_amount") or ""
+        quotation.final_total = data.get("final_total") or ""
+        quotation.final_others = data.get("final_others") or ""
+        quotation.final_airline = data.get("final_airline") or ""
+        quotation.final_landing_price = data.get("final_landing_price") or ""
+        quotation.final_dc = data.get("final_dc") or ""
+        quotation.final_transit_days = data.get("final_transit_days") or ""
+        quotation.final_freight_total = data.get("final_freight_total") or ""
+        quotation.final_remarks = data.get("final_remarks") or ""
+        quotation.final_tat = data.get("final_tat") or ""
+
+        # Save document
+        quotation.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": _("Final negotiated rate updated successfully."),
+            "quotation": quotation.name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in update_final_negotiated_rate API")
+        frappe.local.response["http_status_code"] = 500
+        frappe.throw(_("An error occurred while updating the final negotiated rate: {0}").format(str(e)))

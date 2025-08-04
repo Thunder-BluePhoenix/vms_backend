@@ -139,6 +139,16 @@ def get_full_rfq_data(unique_id):
 		total_rfq_sent = len(doc.vendor_details) + len(doc.non_onboarded_vendor_details)
 		total_quotation_received = vendor_with_quotation + non_onboarded_with_quotation
 
+		final_approve_quotation = ""
+
+		for row in doc.vendor_details:
+			if row.quotation:
+				final_approve_quotation = frappe.get_doc("Quotation", row.quotation)
+						
+		for row in doc.non_onboarded_vendor_details:
+			if row.quotation:
+				final_approve_quotation = frappe.get_doc("Quotation", row.quotation)
+
 		data = {
 			# logistic import rfq data / logistic export rfq data
 			"name": doc.name,
@@ -208,6 +218,30 @@ def get_full_rfq_data(unique_id):
 			"vendor_details": vendor_details_data,
 			"all_vendors": all_vendors,
 			"attachments": attachments,
+
+			# approved quotation details
+			"final_quotation_id": final_approve_quotation.name or "",
+			"final_mode_of_shipment": final_approve_quotation.mode_of_shipment or "",
+			"final_ffn": final_approve_quotation.vendor_name or "",
+			"final_freight_fcr": final_approve_quotation.total_freight or "",
+			"final_xcr": final_approve_quotation.exchange_rate or "",
+			"final_sum_freight_inr": final_approve_quotation.total_freightinr or "",
+			"final_others": final_approve_quotation.remarks or "",
+			"final_dc": final_approve_quotation.destination_charge or "",
+			"final_remarks": final_approve_quotation.remarks or "",
+			"final_rate_kg": final_approve_quotation.ratekg or "",
+			"final_fsc": final_approve_quotation.fuel_surcharge or "",
+			"final_pickup": final_approve_quotation.pickuporigin or "",
+			"final_gst_amount": "",
+			"final_airline": final_approve_quotation.airlinevessel_name or "",
+			"final_transit_days": final_approve_quotation.transit_days or "",
+			"final_tat": "",
+			"final_chargeable_weight": final_approve_quotation.chargeable_weight or "",
+			"final_sc": final_approve_quotation.sc or "",
+			"final_xray": final_approve_quotation.xray or "",
+			"final_total": "",
+			"final_landing_price": final_approve_quotation.total_landing_price or "",
+			"final_freight_total": final_approve_quotation.total_freight or "",
 
 			# Counts
 			"total_rfq_sent": total_rfq_sent,

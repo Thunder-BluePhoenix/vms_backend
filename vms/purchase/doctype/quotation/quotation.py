@@ -1,6 +1,7 @@
 import frappe
 import json
 from frappe.model.document import Document
+from frappe.utils import now
 
 class Quotation(Document):
     
@@ -15,7 +16,7 @@ class Quotation(Document):
             )
         
         if not self.flags.get('skip_rfq_update'):
-            set_quotation_id_in_rfq(self)
+            # set_quotation_id_in_rfq(self)
             set_multi_quot_id_in_rfq(self)
     
     def update_quotation_rankings(self):
@@ -123,48 +124,46 @@ def background_update_rankings(quotation_name, rfq_number):
 #     except Exception as e:
 #         frappe.log_error(f"Error setting quotation ID in RFQ {doc.rfq_number}: {str(e)}", "RFQ Update Error")
 
-def set_quotation_id_in_rfq(doc):
-    if not doc.rfq_number:
-        return
+# def set_quotation_id_in_rfq(doc):
+#     if not doc.rfq_number:
+#         return
 
-    try:
-        conditions = []
-        values = []
+#     try:
+#         conditions = []
+#         values = []
 
-        # Build dynamic condition for Vendor Details
-        if doc.ref_no:
-            conditions.append("(ref_no = %s)")
-            values.append(doc.ref_no)
-        if doc.office_email_primary:
-            conditions.append("(office_email_primary = %s)")
-            values.append(doc.office_email_primary)
+#         # Build dynamic condition for Vendor Details
+#         if doc.ref_no:
+#             conditions.append("(ref_no = %s)")
+#             values.append(doc.ref_no)
+#         if doc.office_email_primary:
+#             conditions.append("(office_email_primary = %s)")
+#             values.append(doc.office_email_primary)
 
-        if conditions:
-            condition_clause = " OR ".join(conditions)
-            frappe.db.sql(f"""
-                UPDATE `tabVendor Details` 
-                SET quotation = %s 
-                WHERE parent = %s AND ({condition_clause}) AND (quotation IS NULL OR quotation = '')
-            """, tuple([doc.name, doc.rfq_number] + values))
+#         if conditions:
+#             condition_clause = " OR ".join(conditions)
+#             frappe.db.sql(f"""
+#                 UPDATE `tabVendor Details` 
+#                 SET quotation = %s 
+#                 WHERE parent = %s AND ({condition_clause}) AND (quotation IS NULL OR quotation = '')
+#             """, tuple([doc.name, doc.rfq_number] + values))
 
-        # Non-Onboarded Vendor: Only use office_email_primary
-        if doc.office_email_primary:
-            frappe.db.sql("""
-                UPDATE `tabNon Onboarded Vendor Details` 
-                SET quotation = %s 
-                WHERE parent = %s AND office_email_primary = %s AND (quotation IS NULL OR quotation = '')
-            """, (doc.name, doc.rfq_number, doc.office_email_primary))
+#         # Non-Onboarded Vendor: Only use office_email_primary
+#         if doc.office_email_primary:
+#             frappe.db.sql("""
+#                 UPDATE `tabNon Onboarded Vendor Details` 
+#                 SET quotation = %s 
+#                 WHERE parent = %s AND office_email_primary = %s AND (quotation IS NULL OR quotation = '')
+#             """, (doc.name, doc.rfq_number, doc.office_email_primary))
 
-        frappe.db.commit()
+#         frappe.db.commit()
 
-    except Exception as e:
-        frappe.log_error(f"Error setting quotation ID in RFQ {doc.rfq_number}: {str(e)}", "RFQ Update Error")
+#     except Exception as e:
+#         frappe.log_error(f"Error setting quotation ID in RFQ {doc.rfq_number}: {str(e)}", "RFQ Update Error")
 
 
 
-import json
-import frappe
-from frappe.utils import now
+
 
 def set_multi_quot_id_in_rfq(doc):
     if not doc.rfq_number:
