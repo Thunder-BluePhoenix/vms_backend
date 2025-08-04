@@ -422,8 +422,6 @@ def create_or_update_quotation_non_onboarded():
         vendor_email = decoded.get("email")
         rfq_number = decoded.get("rfq")
 
-
-
         if rfq_number:
             
             rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
@@ -464,7 +462,6 @@ def create_or_update_quotation_non_onboarded():
 
         rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
 
-
         user_authorized = False
         vendor_details = None
         is_onboarded_vendor = False
@@ -496,7 +493,6 @@ def create_or_update_quotation_non_onboarded():
                 "error": "Unauthorized Access"
             }
 
-
         files = []
 
         if hasattr(frappe, 'request') and hasattr(frappe.request, 'files'):
@@ -504,7 +500,6 @@ def create_or_update_quotation_non_onboarded():
             if 'file' in request_files:
                 file_list = request_files.getlist('file')
                 files.extend(file_list)
-
 
         if hasattr(frappe.local, 'uploaded_files') and frappe.local.uploaded_files:
             uploaded_files = frappe.local.uploaded_files
@@ -514,7 +509,6 @@ def create_or_update_quotation_non_onboarded():
             else:
                 files.append(uploaded_files)
 
-
         if 'file' in form_data:
             file_data = form_data.get('file')
             if hasattr(file_data, 'filename'):
@@ -522,7 +516,6 @@ def create_or_update_quotation_non_onboarded():
 
             elif isinstance(file_data, list):
                 files.extend([f for f in file_data if hasattr(f, 'filename')])
-
 
        
         data = {}
@@ -548,7 +541,6 @@ def create_or_update_quotation_non_onboarded():
         if rfq_number:
             data["rfq_number"] = rfq_number
 
-
         
         if vendor_details and is_onboarded_vendor:
             
@@ -556,6 +548,26 @@ def create_or_update_quotation_non_onboarded():
             data['vendor_name'] = vendor_details.get('vendor_name')
             data['vendor_code'] = vendor_details.get('vendor_code')
 
+        def apply_rfq_logistic_logic(data_dict):
+            rfq_type = data_dict.get('rfq_type', '').lower()
+            logistic_type = data_dict.get('logistic_type', '').lower()
+            
+            if rfq_type == 'logistic vendor':
+                if logistic_type == 'import':
+                    total_landing_price = data_dict.get('total_landing_price')
+                    if total_landing_price:
+                        data_dict['quote_amount'] = total_landing_price
+                        data_dict['total_landing_price'] = total_landing_price
+                        
+                elif logistic_type == 'export':
+                    total_freightinr = data_dict.get('total_freightinr')
+                    if total_freightinr:
+                        data_dict['quote_amount'] = total_freightinr
+                        data_dict['total_freightinr'] = total_freightinr
+            
+            return data_dict
+
+        data = apply_rfq_logistic_logic(data)
 
         quotation_name = data.get('name')
         action = "updated"
@@ -670,7 +682,6 @@ def create_or_update_quotation_non_onboarded():
             "message": f"An error occurred: {str(e)}",
             "error_type": "general"
         }
-
 
 def send_quotation_notification_email(quotation_name, rfq_number, action):
     try:
