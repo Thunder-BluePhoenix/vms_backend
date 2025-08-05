@@ -10,7 +10,7 @@ class PurchaseRequisitionWebform(Document):
 	def before_save(self):
 		set_unique_id(self, method=None)
 		# pass
-		send_pur_req_email(self, method=None)
+		# send_pur_req_email(self, method=None)
 
 	def on_update(self):
 		set_purchase_req_id(self)
