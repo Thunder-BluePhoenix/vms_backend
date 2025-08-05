@@ -1700,7 +1700,7 @@ def send_pr_failure_notification(doc_name, failure_type, error_details):
         # Send email to thunder00799@gmail.com
         try:
             frappe.sendmail(
-                recipients=["thunder00799@gmail.com", "rishi.hingadd@merillife.com", "abhishek@mail.hybrowlabs.com"],
+                recipients=["thunder00799@gmail.com", "rishi.hingad@merillife.com", "abhishek@mail.hybrowlabs.com"],
                 subject=subject,
                 message=message,
                 now=True
