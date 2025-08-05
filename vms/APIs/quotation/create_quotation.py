@@ -566,6 +566,40 @@ def create_or_update_quotation_non_onboarded():
             
             return data_dict
 
+        def apply_field_mapping_logic(data_dict):
+            field_mapping = {
+                'ratekg': 'final_rate_kg',
+                'chargeable_weight': 'final_chargeable_weight',
+                'sc': 'final_sc',
+                'final_xcr': 'exchange_rate',
+                'pickuporigin': 'final_pickup',
+                'xray': 'final_xray',
+                'other_charges_in_total': 'final_others',
+                'airlinevessel_name': 'final_airline',
+                'total_landing_price': 'final_landing_price',
+                'transit_days': 'final_transit_days',
+                # 'total_freight':'final_freight_fcr',
+                'total_freight':'final_freight_total',
+                'remarks':'final_others',
+                'vendor_name':'final_ffn',
+                'total_freightinr':'final_sum_freight_inr',
+                'destination_charge':'final_dc',
+                'fuel_surcharge':'final_fsc',
+                'cfs_charge':'final_cfs_charge'
+
+                
+            }
+            
+            
+            for original_field, final_field in field_mapping.items():
+                if original_field in data_dict and data_dict[original_field] is not None:
+                    data_dict[final_field] = data_dict[original_field]
+                    print(f"Mapped {original_field} = {data_dict[original_field]} to {final_field}")
+            
+            return data_dict
+
+
+        data = apply_field_mapping_logic(data)
         data = apply_rfq_logistic_logic(data)
 
         quotation_name = data.get('name')
