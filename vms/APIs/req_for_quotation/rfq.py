@@ -139,7 +139,7 @@ def get_full_rfq_data(unique_id):
 		total_rfq_sent = len(doc.vendor_details) + len(doc.non_onboarded_vendor_details)
 		total_quotation_received = vendor_with_quotation + non_onboarded_with_quotation
 
-		final_approve_quotation = ""
+		final_approve_quotation = None
 
 		for row in doc.vendor_details:
 			if row.quotation:
@@ -220,30 +220,30 @@ def get_full_rfq_data(unique_id):
 			"attachments": attachments,
 
 			# approved quotation details
-			"final_quotation_id": final_approve_quotation.name or "",
-			"is_negotiated": final_approve_quotation.is_negotiated or "",
-			"final_mode_of_shipment": final_approve_quotation.mode_of_shipment or "",
-			"final_ffn": final_approve_quotation.vendor_name or "",
-			"final_freight_fcr": final_approve_quotation.total_freight or "",
-			"final_xcr": final_approve_quotation.exchange_rate or "",
-			"final_sum_freight_inr": final_approve_quotation.total_freightinr or "",
-			"final_others": final_approve_quotation.remarks or "",
-			"final_dc": final_approve_quotation.destination_charge or "",
-			"final_remarks": final_approve_quotation.remarks or "",
-			"final_rate_kg": final_approve_quotation.ratekg or "",
-			"final_fsc": final_approve_quotation.fuel_surcharge or "",
-			"final_pickup": final_approve_quotation.pickuporigin or "",
+			"final_quotation_id": final_approve_quotation.name if final_approve_quotation else "",
+			"is_negotiated": final_approve_quotation.is_negotiated if final_approve_quotation else 0,
+			"final_mode_of_shipment": final_approve_quotation.mode_of_shipment if final_approve_quotation else "",
+			"final_ffn": final_approve_quotation.vendor_name if final_approve_quotation else "",
+			"final_freight_fcr": final_approve_quotation.total_freight if final_approve_quotation else "",
+			"final_xcr": final_approve_quotation.exchange_rate if final_approve_quotation else "",
+			"final_sum_freight_inr": final_approve_quotation.total_freightinr if final_approve_quotation else "",
+			"final_others": final_approve_quotation.remarks if final_approve_quotation else "",
+			"final_dc": final_approve_quotation.destination_charge if final_approve_quotation else "",
+			"final_remarks": final_approve_quotation.remarks if final_approve_quotation else "",
+			"final_rate_kg": final_approve_quotation.ratekg if final_approve_quotation else "",
+			"final_fsc": final_approve_quotation.fuel_surcharge if final_approve_quotation else "",
+			"final_pickup": final_approve_quotation.pickuporigin if final_approve_quotation else "",
 			"final_gst_amount": "",
-			"final_airline": final_approve_quotation.airlinevessel_name or "",
-			"final_transit_days": final_approve_quotation.transit_days or "",
+			"final_airline": final_approve_quotation.airlinevessel_name if final_approve_quotation else "",
+			"final_transit_days": final_approve_quotation.transit_days if final_approve_quotation else "",
 			"final_tat": "",
-			"final_chargeable_weight": final_approve_quotation.chargeable_weight or "",
-			"final_sc": final_approve_quotation.sc or "",
-			"final_xray": final_approve_quotation.xray or "",
+			"final_chargeable_weight": final_approve_quotation.chargeable_weight if final_approve_quotation else "",
+			"final_sc": final_approve_quotation.sc if final_approve_quotation else "",
+			"final_xray": final_approve_quotation.xray if final_approve_quotation else "",
 			"final_total": "",
-			"final_landing_price": final_approve_quotation.total_landing_price or "",
-			"final_freight_total": final_approve_quotation.total_freight or "",
-			"final_cfs_charge": final_approve_quotation.cfs_charge or "",
+			"final_landing_price": final_approve_quotation.total_landing_price if final_approve_quotation else "",
+			"final_freight_total": final_approve_quotation.total_freight if final_approve_quotation else "",
+			"final_cfs_charge": final_approve_quotation.cfs_charge if final_approve_quotation else "",
 
 			# Counts
 			"total_rfq_sent": total_rfq_sent,
