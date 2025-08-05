@@ -962,3 +962,40 @@ def generate_secure_token(email=None, quotation_name=None,rfq_number=None):
     except Exception as e:
         frappe.log_error(f"Token generation failed: {str(e)}", "Token Generation Error")
         return None
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_quotation_details_by_token():
+    try:
+
+        form_data = frappe.local.form_dict
+        token = form_data.get('token')
+        
+        
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"], options={"verify_exp": False})
+
+        quotation_name = decoded.get('quotation')
+        vendor_email = decoded.get('email')
+        
+        if not quotation_name:
+            frappe.throw("Quotation name not found in token", frappe.ValidationError)
+        
+        try:
+            quotation = frappe.get_doc("Quotation", quotation_name)
+            quotation_dict = quotation.as_dict()
+            
+            # Optionally, you can add the vendor email to the response
+            quotation_dict['token_vendor_email'] = vendor_email
+            
+            return {
+                "status": "success",
+                "data": quotation_dict
+            }
+            
+        except frappe.DoesNotExistError:
+            frappe.throw(f"Quotation '{quotation_name}' not found", frappe.DoesNotExistError)
+    except Exception as e:
+        print(f"Unexpected error in get_quotation_details_by_token: {str(e)}")
+        frappe.log_error(f"Error in get_quotation_details_by_token: {str(e)}")
+        frappe.throw(f"An error occurred while fetching Quotation details: {str(e)}")
