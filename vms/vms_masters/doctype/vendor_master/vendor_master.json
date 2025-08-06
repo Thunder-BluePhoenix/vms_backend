@@ -48,7 +48,11 @@
   "vendor_onboarding_records_section",
   "vendor_onb_records",
   "vendor_annual_assessment_form_records_section",
-  "form_records"
+  "form_records",
+  "more_info_tab",
+  "bank_details",
+  "document_details",
+  "manufacturing_details"
  ],
  "fields": [
   {
@@ -283,12 +287,35 @@
    "fieldtype": "Link",
    "label": "Service Provider Type",
    "options": "Service Provider Type"
+  },
+  {
+   "fieldname": "more_info_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "fieldname": "bank_details",
+   "fieldtype": "Link",
+   "label": "Bank Details",
+   "options": "Vendor Bank Details"
+  },
+  {
+   "fieldname": "document_details",
+   "fieldtype": "Link",
+   "label": "Document Details",
+   "options": "Vendor Document Details"
+  },
+  {
+   "fieldname": "manufacturing_details",
+   "fieldtype": "Link",
+   "label": "Manufacturing Details",
+   "options": "Vendor Manufacturing Details"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 11:02:09.354346",
+ "modified": "2025-08-06 15:52:59.605799",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
