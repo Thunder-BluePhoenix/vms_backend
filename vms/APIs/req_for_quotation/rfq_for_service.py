@@ -46,7 +46,7 @@ def create_rfq_service(data):
 
         # Administrative Fields
         rfq.collection_number = data.get("collection_number")
-        rfq.quotation_deadline = data.get("quotation_deadline")
+        rfq.rfq_cutoff_date_logistic = data.get("rfq_cutoff_date_logistic")
         rfq.validity_start_date = data.get("validity_start_date")
         rfq.validity_end_date = data.get("validity_end_date")
         rfq.bidding_person = data.get("bidding_person")
