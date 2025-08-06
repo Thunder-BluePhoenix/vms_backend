@@ -8,6 +8,9 @@ from frappe.utils.background_jobs import enqueue
 import json
 
 class VendorOnboarding(Document):
+    def after_save(self):
+        sync_maintain(self, method= None)
+
     
      
 
@@ -882,3 +885,40 @@ def sent_asa_form_link(doc, method=None):
 
     except Exception:
         frappe.log_error(frappe.get_traceback(), "Error in sent_asa_form_link")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def sync_maintain(doc, method= None):
+    # Server Script for Vendor Onboarding
+    if doc.onboarding_form_status == "Approved":
+        # Check if not already synced
+        if not frappe.db.get_value("Vendor Onboarding", doc.name, "data_sent_to_sap"):
+            frappe.call(
+                "vms.vendor_onboarding.vendor_document_management.sync_vendor_documents_on_approval",
+                vendor_onboarding_name=doc.name
+            )
+            
+            # Mark as synced
+            frappe.db.set_value("Vendor Onboarding", doc.name, {
+                "data_sent_to_sap": 1
+            }, update_modified=False)
+            
+            frappe.msgprint("Vendor documents synced to Vendor Master successfully")
