@@ -149,7 +149,7 @@
   {
    "fieldname": "quotation_data_section",
    "fieldtype": "Section Break",
-   "label": "Quotation Data"
+   "label": "Material/Service"
   },
   {
    "fieldname": "rfq_number",
@@ -870,7 +870,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-04 18:34:13.973777",
+ "modified": "2025-08-06 12:49:30.197722",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Quotation",

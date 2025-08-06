@@ -69,11 +69,11 @@ def block_quotation_link():
 
     req_quotations = frappe.get_all(
         "Request For Quotation",
-        fields=["name", "rfq_cutoff_date_logistic", "quotation_deadline"]
+        fields=["name", "rfq_cutoff_date_logistic"]
     )
     for rfq_data in req_quotations:
-        deadline = rfq_data.rfq_cutoff_date_logistic or rfq_data.quotation_deadline
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@", deadline)
+        deadline = rfq_data.rfq_cutoff_date_logistic 
+
 
         if deadline and deadline < current_time:
             frappe.db.set_value(

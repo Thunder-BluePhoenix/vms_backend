@@ -249,7 +249,7 @@ def create_rfq_material(data):
 
 		# Administrative Fields
 		rfq.collection_number = data.get("collection_number") or ""
-		rfq.quotation_deadline = data.get("quotation_deadline") or None
+		rfq.rfq_cutoff_date_logistic = data.get("rfq_cutoff_date_logistic") or None
 		rfq.validity_start_date = data.get("validity_start_date") or None
 		rfq.validity_end_date = data.get("validity_end_date") or None
 		rfq.bidding_person = data.get("bidding_person") or ""
