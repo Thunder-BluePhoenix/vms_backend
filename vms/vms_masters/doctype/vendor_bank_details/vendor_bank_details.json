@@ -1,0 +1,259 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-08-06 15:32:51.111377",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "ref_no",
+  "column_break_kkrt",
+  "country",
+  "indian_bank_details_section",
+  "bank_name",
+  "ifsc_code",
+  "account_number",
+  "name_of_account_holder",
+  "column_break_usab",
+  "type_of_account",
+  "currency",
+  "currency_code",
+  "bank_proof_section",
+  "bank_proof",
+  "bank_proof_by_purchase_team",
+  "preferred_transaction_section",
+  "rtgs",
+  "column_break_yyye",
+  "neft",
+  "column_break_umls",
+  "ift",
+  "bank_details_in_table_section",
+  "banker_details",
+  "international_bank_details",
+  "add_intermediate_bank_details",
+  "intermediate_bank_details",
+  "tab_2_tab",
+  "registered_for_multi_companies",
+  "unique_multi_comp_id"
+ ],
+ "fields": [
+  {
+   "bold": 1,
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "VBD-.YYYY.-.MM.-",
+   "print_hide": 1
+  },
+  {
+   "fetch_from": "vendor_onboarding.ref_no",
+   "fieldname": "ref_no",
+   "fieldtype": "Link",
+   "label": "Ref No.",
+   "options": "Vendor Master"
+  },
+  {
+   "fieldname": "column_break_kkrt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "indian_bank_details_section",
+   "fieldtype": "Section Break",
+   "label": "Indian Bank Details"
+  },
+  {
+   "fieldname": "bank_name",
+   "fieldtype": "Link",
+   "label": "Bank Name",
+   "options": "Bank Master"
+  },
+  {
+   "fieldname": "ifsc_code",
+   "fieldtype": "Data",
+   "label": "IFSC Code"
+  },
+  {
+   "fieldname": "account_number",
+   "fieldtype": "Data",
+   "label": "Account Number"
+  },
+  {
+   "fieldname": "name_of_account_holder",
+   "fieldtype": "Data",
+   "label": "Name of Account Holder"
+  },
+  {
+   "fieldname": "column_break_usab",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type_of_account",
+   "fieldtype": "Select",
+   "label": "Type of Account",
+   "options": "-Select-\nSavings Account\nCurrent Account"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fetch_from": "currency.currency_code",
+   "fieldname": "currency_code",
+   "fieldtype": "Data",
+   "label": "Currency Code"
+  },
+  {
+   "fieldname": "bank_proof_section",
+   "fieldtype": "Section Break",
+   "label": "Bank Proof"
+  },
+  {
+   "fieldname": "bank_proof",
+   "fieldtype": "Attach",
+   "label": "Bank Proof"
+  },
+  {
+   "fieldname": "bank_proof_by_purchase_team",
+   "fieldtype": "Attach",
+   "label": "Bank Proof by Purchase Team"
+  },
+  {
+   "fieldname": "preferred_transaction_section",
+   "fieldtype": "Section Break",
+   "label": "Preferred Transaction"
+  },
+  {
+   "default": "0",
+   "fieldname": "rtgs",
+   "fieldtype": "Check",
+   "label": "RTGS"
+  },
+  {
+   "fieldname": "column_break_yyye",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "neft",
+   "fieldtype": "Check",
+   "label": "NEFT"
+  },
+  {
+   "fieldname": "column_break_umls",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "ift",
+   "fieldtype": "Check",
+   "label": "IFT"
+  },
+  {
+   "fieldname": "bank_details_in_table_section",
+   "fieldtype": "Section Break",
+   "label": "Bank Details in Table"
+  },
+  {
+   "fieldname": "banker_details",
+   "fieldtype": "Table",
+   "label": "Banker Details",
+   "options": "Banker Details"
+  },
+  {
+   "fieldname": "international_bank_details",
+   "fieldtype": "Table",
+   "label": "International Bank Details",
+   "options": "International Bank Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_intermediate_bank_details",
+   "fieldtype": "Check",
+   "label": "Add Intermediate Bank Details"
+  },
+  {
+   "fieldname": "intermediate_bank_details",
+   "fieldtype": "Table",
+   "label": "Intermediate Bank Details",
+   "options": "Intermediate Bank Details"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "default": "0",
+   "fieldname": "registered_for_multi_companies",
+   "fieldtype": "Check",
+   "label": "Registered for Multi Companies"
+  },
+  {
+   "fieldname": "unique_multi_comp_id",
+   "fieldtype": "Data",
+   "label": "Unique ID"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-08-06 15:33:22.561506",
+ "modified_by": "Administrator",
+ "module": "VMS Masters",
+ "name": "Vendor Bank Details",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guest",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
