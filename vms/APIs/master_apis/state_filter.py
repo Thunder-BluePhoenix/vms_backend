@@ -50,15 +50,26 @@ def get_states_for_gst(ref_no=None, vendor_onboarding=None):
         all_states = []
         
         company = []
-        for row in vend_onboarding.multiple_company:
+        if vend_onboarding.registered_for_multi_companies:
+            for row in vend_onboarding.multiple_company:
+                company_details = frappe.db.get_value(
+                    "Company Master",
+                    row.company,
+                    ["name", "company_code", "company_name", "description"],
+                    as_dict=True
+                )
+                if company_details:
+                    company.append(company_details)
+        else:
             company_details = frappe.db.get_value(
-                "Company Master",
-                row.company,
-                ["name", "company_code", "company_name", "description"],
-                as_dict=True
-            )
+                    "Company Master",
+                    vend_onboarding.company_name,
+                    ["name", "company_code", "company_name", "description"],
+                    as_dict=True
+                )
             if company_details:
-                company.append(company_details)
+                    company.append(company_details)
+            # company.append(vend_onboarding.company_name)
                             
         # Iterate through vendor company details
         for vend_comp in vend_onboarding.vendor_company_details:
