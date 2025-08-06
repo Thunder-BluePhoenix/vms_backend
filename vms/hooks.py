@@ -155,7 +155,11 @@ permission_query_conditions = {
 
 
 doc_events = {
-    "Vendor Onboarding":{"on_update": "vms.APIs.sap.sap.update_sap_vonb",
+    "Vendor Master": {
+        "on_update": "vms.vendor_onboarding.vendor_document_management.vendor_master_on_update"
+    },
+    "Vendor Onboarding":{"on_update": ["vms.APIs.sap.sap.update_sap_vonb",
+                                       "vms.vendor_onboarding.vendor_document_management.on_vendor_onboarding_submit"],
                          "before_save": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_vendor_onboarding_status"},
     "Purchase Requisition Form":{"on_update":"vms.APIs.sap.erp_to_sap_pr.onupdate_pr"},
     "Version":{"after_insert":"vms.overrides.versions.get_version_data_universal"},
@@ -210,6 +214,12 @@ scheduler_events = {
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "vms.event.get_events"
 # }
+
+override_whitelisted_methods = {
+    "vms.sync_vendor_documents": "vms.vendor_onboarding.vendor_document_management.sync_vendor_documents_on_approval",
+    "vms.get_vendor_history": "vms.vendor_onboarding.vendor_document_management.get_vendor_document_history",
+    "vms.restore_vendor_docs": "vms.vendor_onboarding.vendor_document_management.restore_from_onboarding"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
