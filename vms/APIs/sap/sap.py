@@ -300,9 +300,9 @@ from requests.auth import HTTPBasicAuth
 def update_sap_vonb(doc, method=None):
     if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and not doc.rejected and not doc.data_sent_to_sap:
         erp_to_sap_vendor_data(doc.name)
-        doc.data_sent_to_sap = 1
+        # doc.data_sent_to_sap = 1
         # doc.save()
-        doc.db_update()
+        # doc.db_update()
         frappe.db.commit()
 
 
@@ -525,7 +525,8 @@ def erp_to_sap_vendor_data(onb_ref):
                                                 sap_client_code, 
                                                 vedno, 
                                                 gst_num, 
-                                                gst_state
+                                                gst_state,
+                                                onb.name
                                             )
                                             print(f"      📝 Vendor Master Update: {update_result['status']}")
                                         except Exception as update_err:
@@ -957,7 +958,7 @@ def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, c
     if vendor_code not in ('E', '') and transaction_status == "Success":
 
         try:
-            update_vendor_master(name, company_name, sap_code, vendor_code, gst, state)
+            update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, onb_name)
             print(f"✅ Vendor master updated successfully with vendor code: {vendor_code}")
         except Exception as update_err:
             update_error_msg = f"Failed to update vendor master: {str(update_err)}"
@@ -1269,7 +1270,7 @@ def get_vendor_details_for_email(onb_doc):
 
 
 
-def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state):
+def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, onb):
     """
     Fixed function to properly handle multiple vendor code rows for a single company
     """
@@ -1354,6 +1355,16 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state):
         # Commit the transaction
         frappe.db.commit()
         print(f"✅ Transaction committed successfully")
+
+
+
+
+
+        onb_doc = frappe.get_doc("Vendor Onboarding", onb)
+        onb_doc.data_sent_to_sap = 1
+
+
+
         
         return {
             "status": "success",
