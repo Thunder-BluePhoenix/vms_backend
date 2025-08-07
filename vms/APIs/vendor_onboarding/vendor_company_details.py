@@ -132,7 +132,9 @@ def update_vendor_onboarding_company_address(data):
                 "address_line_1", "address_line_2", "city", "district", "state", "country", "pincode",
                 "same_as_above", "street_1", "street_2", "manufacturing_city", "manufacturing_district",
                 "manufacturing_state", "manufacturing_country", "manufacturing_pincode",
-                "multiple_locations"
+                "multiple_locations", "international_city", "international_state", "international_country", 
+                "international_zipcode", "inter_manufacture_city", "inter_manufacture_state", "inter_manufacture_country",
+                "inter_manufacture_zipcode"
             ]
 
             for field in fields_to_update:
@@ -167,7 +169,11 @@ def update_vendor_onboarding_company_address(data):
                         "ma_district": row.get("ma_district"),
                         "ma_city": row.get("ma_city"),
                         "ma_state": row.get("ma_state"),
-                        "ma_country": row.get("ma_country")
+                        "ma_country": row.get("ma_country"),
+                        "city": row.get("city"),
+                        "state": row.get("state"),
+                        "country": row.get("country"),
+                        "zipcode": row.get("zipcode")
                     })
 
                     # is_duplicate = False
@@ -208,7 +214,9 @@ def update_vendor_onboarding_company_address(data):
                     "address_line_1", "address_line_2", "city", "district", "state", "country", "pincode",
                     "same_as_above", "street_1", "street_2", "manufacturing_city", "manufacturing_district",
                     "manufacturing_state", "manufacturing_country", "manufacturing_pincode",
-                    "multiple_locations"
+                    "multiple_locations", "international_city", "international_state", "international_country", 
+                    "international_zipcode", "inter_manufacture_city", "inter_manufacture_state", "inter_manufacture_country",
+                    "inter_manufacture_zipcode"
                 ]
 
                 for field in fields_to_update:
@@ -243,7 +251,11 @@ def update_vendor_onboarding_company_address(data):
                             "ma_district": row.get("ma_district"),
                             "ma_city": row.get("ma_city"),
                             "ma_state": row.get("ma_state"),
-                            "ma_country": row.get("ma_country")
+                            "ma_country": row.get("ma_country"),
+                            "city": row.get("city"),
+                            "state": row.get("state"),
+                            "country": row.get("country"),
+                            "zipcode": row.get("zipcode")
                         })
 
                         # is_duplicate = False

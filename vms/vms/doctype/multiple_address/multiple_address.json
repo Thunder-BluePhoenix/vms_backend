@@ -13,7 +13,13 @@
   "column_break_etrw",
   "ma_city",
   "ma_state",
-  "ma_country"
+  "ma_country",
+  "for_international_vendor_section",
+  "city",
+  "state",
+  "column_break_byxe",
+  "country",
+  "zipcode"
  ],
  "fields": [
   {
@@ -66,13 +72,46 @@
    "in_list_view": 1,
    "label": "MA Country",
    "options": "Country Master"
+  },
+  {
+   "fieldname": "for_international_vendor_section",
+   "fieldtype": "Section Break",
+   "label": "For International Vendor"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "City"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "State"
+  },
+  {
+   "fieldname": "column_break_byxe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Country"
+  },
+  {
+   "fieldname": "zipcode",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Zipcode"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-14 12:40:43.503915",
+ "modified": "2025-08-07 11:27:46.549799",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Multiple Address",
