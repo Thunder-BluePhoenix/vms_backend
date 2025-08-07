@@ -324,6 +324,15 @@ def erp_to_sap_vendor_data(onb_ref):
     print("ERP TO SAP VENDOR DATA - STARTING")
     print(f"Vendor Onboarding Reference: {onb_ref}")
     print("=" * 80)
+
+
+    # **TRACKING VARIABLES**
+    company_counter = 0
+    total_gst_rows_processed = 0
+    successful_sap_calls = 0
+    failed_sap_calls = 0
+    connection_errors = 0
+    validation_errors = 0
     
     try:
         # Get main documents
@@ -494,90 +503,151 @@ def erp_to_sap_vendor_data(onb_ref):
                                 
                                 # **CHECK RESULT AND HANDLE RESPONSE**
                                 if not result or "error" in result:
+                                    failed_sap_calls += 1
                                     error_msg = result.get('error', 'Unknown error') if result else 'No response from send_detail function'
                                     print(f"      ❌ SAP API Call Failed: {error_msg}")
-                                    send_failure_notification(
-                                        onb.name, 
-                                        "SAP API Call Failed", 
-                                        f"The SAP integration API call failed for GST {gst_num}. Error: {error_msg}"
-                                    )
+                                    send_failure_notification(onb.name, "SAP API Call Failed", f"GST {gst_num}: {error_msg}")
+                                    
                                 elif result and isinstance(result, dict):
                                     # Extract vendor code from response
                                     vedno = result.get('d', {}).get('Vedno', '') if 'd' in result else result.get('Vedno', '')
                                     zmsg = result.get('d', {}).get('Zmsg', '') if 'd' in result else result.get('Zmsg', '')
                                     
                                     if vedno == 'E' or vedno == '' or not vedno:
+                                        failed_sap_calls += 1
                                         error_msg = f"SAP returned error or empty vendor code. Vedno: '{vedno}', Zmsg: '{zmsg}'"
                                         print(f"      ❌ SAP Error: {error_msg}")
-                                        send_failure_notification(
-                                            onb.name, 
-                                            "SAP Vendor Creation Failed", 
-                                            error_msg
-                                        )
+                                        send_failure_notification(onb.name, "SAP Vendor Creation Failed", error_msg)
+                                        
                                     else:
+                                        successful_sap_calls += 1
                                         print(f"      ✅ SUCCESS: Vendor code {vedno} created for GST {gst_num}")
                                         
-                                        # **UPDATE VENDOR MASTER WITH VENDOR CODE**
+                                        # Update vendor master
                                         try:
                                             update_result = update_vendor_master(
-                                                onb.ref_no, 
-                                                vcd.company_name, 
-                                                sap_client_code, 
-                                                vedno, 
-                                                gst_num, 
-                                                gst_state,
-                                                onb.name
+                                                onb.ref_no, vcd.company_name, sap_client_code, 
+                                                vedno, gst_num, gst_state, onb.name
                                             )
                                             print(f"      📝 Vendor Master Update: {update_result['status']}")
                                         except Exception as update_err:
-                                            error_msg = f"Failed to update vendor master: {str(update_err)}"
-                                            print(f"      ❌ Update Error: {error_msg}")
-                                            frappe.log_error(error_msg, "Vendor Master Update Error")
+                                            print(f"      ❌ Update Error: {str(update_err)}")
+                                            frappe.log_error(str(update_err), "Vendor Master Update Error")
                                 
                             except Exception as send_err:
+                                failed_sap_calls += 1
                                 error_msg = f"Error in send_detail function: {str(send_err)}"
                                 print(f"      ❌ Send Detail Error: {error_msg}")
                                 frappe.log_error(error_msg, "Send Detail Error")
-                                send_failure_notification(
-                                    onb.name, 
-                                    "SAP Send Detail Error", 
-                                    error_msg
-                                )
+                                send_failure_notification(onb.name, "SAP Send Detail Error", error_msg)
+                                
                         else:
+                            # **CONNECTION/CSRF ERROR**
+                            connection_errors += 1
+                            failed_sap_calls += 1
                             error_msg = f"Failed to get CSRF token: {csrf_result.get('error', 'Unknown error')}"
                             print(f"      ❌ CSRF Error: {error_msg}")
-                            send_failure_notification(
-                                onb.name, 
-                                "SAP CSRF Token Error", 
-                                error_msg
-                            )
+                            
+                            # Check if it's a connection error specifically
+                            if "Connection refused" in error_msg or "Failed to establish" in error_msg:
+                                print(f"      🔌 CONNECTION ISSUE: SAP server appears to be unreachable")
+                            
+                            try:
+                                log_name = create_connection_error_sap_log(
+                                    onb.name,
+                                    data,
+                                    error_msg,
+                                    sap_client_code,
+                                    vcd.company_name,
+                                    onb.ref_no,
+                                    gst_num,
+                                    gst_state
+                                )
+                                if log_name:
+                                    print(f"      📝 Connection Error SAP Log created: {log_name}")
+                                else:
+                                    print(f"      ⚠️ Failed to create SAP log for connection error")
+                            except Exception as log_err:
+                                print(f"      ⚠️ Exception creating SAP log: {str(log_err)}")
+                                frappe.log_error(f"SAP Log Creation Exception: {str(log_err)}", "SAP Log Error")
+                            
+                            send_failure_notification(onb.name, "SAP Connection Error", error_msg)
                     
                     except Exception as gst_err:
+                        failed_sap_calls += 1
+                        validation_errors += 1
                         error_msg = f"Error processing GST entry {gst_counter}: {str(gst_err)}"
                         print(f"      ❌ GST Processing Error: {error_msg}")
                         frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "GST Processing Error")
-                        continue  # Continue with next GST entry
+                        continue
                 
                 print(f"   ✅ Company {company_counter} completed: {gst_counter} GST entries processed")
                 
             except Exception as company_err:
+                failed_sap_calls += 1
+                validation_errors += 1
                 error_msg = f"Error processing company {company_counter}: {str(company_err)}"
                 print(f"   ❌ Company Processing Error: {error_msg}")
                 frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "Company Processing Error")
-                continue  # Continue with next company
+                continue
         
-        # **FINAL SUMMARY**
+        # **ENHANCED FINAL SUMMARY WITH PROPER SUCCESS DETERMINATION**
+        total_attempts = successful_sap_calls + failed_sap_calls
+        success_rate = (successful_sap_calls / total_attempts * 100) if total_attempts > 0 else 0
+        
         print("=" * 80)
-        print("ERP TO SAP VENDOR DATA - COMPLETED")
-        print(f"✅ Total Companies Processed: {company_counter}")
-        print(f"✅ Total GST Rows Processed: {total_gst_rows_processed}")
+        print("ERP TO SAP VENDOR DATA - FINAL RESULTS")
         print("=" * 80)
+        print(f"📊 Total Companies Processed: {company_counter}")
+        print(f"📊 Total GST Rows Processed: {total_gst_rows_processed}")
+        print(f"✅ Successful SAP API Calls: {successful_sap_calls}")
+        print(f"❌ Failed SAP API Calls: {failed_sap_calls}")
+        print(f"🔌 Connection Errors: {connection_errors}")
+        print(f"⚠️ Validation Errors: {validation_errors}")
+        print(f"📈 Success Rate: {success_rate:.1f}%")
+        print("=" * 80)
+        
+        # **DETERMINE OVERALL STATUS BASED ON ACTUAL SAP SUCCESS**
+        if successful_sap_calls == 0 and failed_sap_calls > 0:
+            # Complete failure - no successful SAP calls
+            status = "error"
+            message = f"SAP Integration Failed: 0/{total_attempts} successful. "
+            
+            if connection_errors > 0:
+                message += f"Connection errors: {connection_errors}. Check SAP server connectivity."
+            elif validation_errors > 0:
+                message += f"Validation errors: {validation_errors}. Check data completeness."
+            else:
+                message += "All SAP API calls failed."
+                
+        elif successful_sap_calls > 0 and failed_sap_calls == 0:
+            # Complete success - all SAP calls succeeded
+            status = "success"
+            message = f"SAP Integration Successful: {successful_sap_calls}/{total_attempts} entries sent to SAP successfully."
+            
+        elif successful_sap_calls > 0 and failed_sap_calls > 0:
+            # Partial success - some succeeded, some failed
+            status = "partial_success"
+            message = f"SAP Integration Partial Success: {successful_sap_calls}/{total_attempts} successful ({success_rate:.1f}%). {failed_sap_calls} failed."
+            
+        else:
+            # Edge case - no attempts made
+            status = "error"
+            message = "No SAP integration attempts were made. Check data configuration."
+        
+        print(f"🎯 FINAL STATUS: {status.upper()}")
+        print(f"💬 FINAL MESSAGE: {message}")
         
         return {
-            "status": "success",
-            "message": f"Processed {company_counter} companies with {total_gst_rows_processed} GST entries",
+            "status": status,
+            "message": message,
             "companies_processed": company_counter,
-            "gst_rows_processed": total_gst_rows_processed
+            "gst_rows_processed": total_gst_rows_processed,
+            "successful_sap_calls": successful_sap_calls,
+            "failed_sap_calls": failed_sap_calls,
+            "connection_errors": connection_errors,
+            "validation_errors": validation_errors,
+            "success_rate": success_rate
         }
         
     except Exception as e:
@@ -585,23 +655,22 @@ def erp_to_sap_vendor_data(onb_ref):
         print(f"❌ MAIN ERROR: {error_msg}")
         frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "ERP to SAP Vendor Data Error")
         
-        # Send notification for main error
         try:
-            send_failure_notification(
-                onb_ref, 
-                "ERP to SAP Main Function Error", 
-                error_msg
-            )
+            send_failure_notification(onb_ref, "ERP to SAP Main Function Error", error_msg)
         except Exception as notif_err:
             print(f"⚠️ Failed to send notification: {str(notif_err)}")
         
         return {
             "status": "error",
-            "message": error_msg,
-            "companies_processed": 0,
-            "gst_rows_processed": 0
+            "message": f"Critical error in SAP integration: {error_msg}",
+            "companies_processed": company_counter,
+            "gst_rows_processed": total_gst_rows_processed,
+            "successful_sap_calls": 0,
+            "failed_sap_calls": total_gst_rows_processed,  # Assume all failed due to critical error
+            "connection_errors": 1,
+            "validation_errors": 0,
+            "success_rate": 0.0
         }
-
 
 def safe_get(obj, list_name, index, attr, default=""):
     """Helper function to safely get nested attributes"""
@@ -1397,7 +1466,92 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
 
 
 
-
+def create_connection_error_sap_log(onb_name, data, error_msg, sap_client_code, company_name, vendor_ref_no, gst_num, gst_state):
+    """
+    Create SAP log entry for connection errors when CSRF token request fails
+    """
+    try:
+        sap_log = frappe.new_doc("VMS SAP Logs")
+        sap_log.vendor_onboarding_link = onb_name
+        
+        # Store the payload that would have been sent
+        sap_log.erp_to_sap_data = data
+        
+        # Create error response object for connection failure
+        error_response = {
+            "error_type": "connection_error",
+            "error_message": error_msg,
+            "timestamp": frappe.utils.now(),
+            "status": "connection_failed",
+            "http_status": "No Response",
+            "details": {
+                "csrf_token_request_failed": True,
+                "connection_refused": "Connection refused" in error_msg or "Failed to establish" in error_msg,
+                "gst_number": gst_num,
+                "gst_state": gst_state,
+                "sap_client_code": sap_client_code
+            }
+        }
+        
+        sap_log.sap_response = error_response
+        
+        # Create comprehensive transaction log matching send_detail format
+        transaction_data = {
+            "request_details": {
+                "url": f"SAP_URL/{sap_client_code}",  # Would be actual URL
+                "sap_client_code": sap_client_code,
+                "company_name": company_name,
+                "vendor_ref_no": vendor_ref_no,
+                "gst_number": gst_num,
+                "gst_state": gst_state,
+                "payload": data,
+                "csrf_token_requested": True,
+                "csrf_token_obtained": False
+            },
+            "response_details": {
+                "status_code": "Connection Failed",
+                "headers": {},
+                "body": error_msg,
+                "connection_error": True
+            },
+            "transaction_summary": {
+                "status": "Connection Failed",
+                "vendor_code": None,
+                "error_details": error_msg,
+                "timestamp": frappe.utils.now(),
+                "sap_client_code": sap_client_code,
+                "company_name": company_name,
+                "vendor_ref_no": vendor_ref_no,
+                "error_category": "Infrastructure/Connectivity",
+                "actionable_steps": [
+                    "Check SAP server connectivity",
+                    "Verify network access to SAP server",
+                    "Contact IT team to check SAP server status",
+                    "Retry after connectivity is restored"
+                ]
+            }
+        }
+        
+        sap_log.total_transaction = frappe.as_json(transaction_data, indent=2)
+        sap_log.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        print(f"📝 Connection Error SAP Log created: {sap_log.name}")
+        
+        # Also create Error Log entry for connection failure
+        error_log = frappe.new_doc("Error Log")
+        error_log.method = "erp_to_sap_vendor_data"
+        error_log.error = f"SAP Connection Error: {error_msg}\nVendor: {vendor_ref_no}\nCompany: {company_name}\nGST: {gst_num}"
+        error_log.save(ignore_permissions=True)
+        print(f"📝 Connection Error Log created: {error_log.name}")
+        
+        return sap_log.name
+        
+    except Exception as e:
+        error_msg = f"Failed to create connection error SAP log: {str(e)}"
+        print(f"❌ SAP Log Creation Error: {error_msg}")
+        frappe.log_error(error_msg, "Connection Error SAP Log Creation")
+        return None
 
 
 
@@ -1467,6 +1621,15 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
 
 
 
+
+
+
+
+
+#############################################################################################################3
+#-----------------------------------------------------------client side calls---------------------------##
+################################################################################################################
+
 @frappe.whitelist()
 def send_vendor_to_sap(doc_name):
     """Simplified function specifically for button click"""
@@ -1498,4 +1661,286 @@ def send_vendor_to_sap(doc_name):
         frappe.log_error(f"SAP Integration Error for {doc_name}: {str(e)}")
         return {"status": "error", "message": str(e)}
     
+
+@frappe.whitelist()
+def send_vendor_to_sap_via_front(doc_name):
+    """Enhanced function specifically for button click with proper response handling"""
     
+    # Initialize response variables
+    response_data = {
+        "status": "error",
+        "message": "Unknown error occurred",
+        "details": {}
+    }
+    
+    try:
+        print(f"🚀 Starting SAP integration for document: {doc_name}")
+        
+        # Get the document
+        doc = frappe.get_doc("Vendor Onboarding", doc_name)
+        
+        # Check permissions
+        if not doc.has_permission("write"):
+            response_data["message"] = "You don't have permission to update this document"
+            frappe.throw(_(response_data["message"]))
+        
+        # Validate conditions
+        validation_errors = []
+        
+        if not doc.purchase_team_undertaking:
+            validation_errors.append("Purchase team undertaking is required")
+        if not doc.accounts_team_undertaking:
+            validation_errors.append("Accounts team undertaking is required")
+        if not doc.purchase_head_undertaking:
+            validation_errors.append("Purchase head undertaking is required")
+        if doc.rejected:
+            validation_errors.append("Cannot send rejected vendor data")
+        # if not doc.mandatory_data_filled:
+        #     validation_errors.append("Mandatory data must be filled")
+        
+        if validation_errors:
+            response_data["message"] = "Validation failed: " + "; ".join(validation_errors)
+            response_data["details"]["validation_errors"] = validation_errors
+            frappe.throw(_(response_data["message"]))
+        
+        print("✅ Validation passed, proceeding with SAP integration...")
+        
+        # Call the main SAP function
+        sap_result = erp_to_sap_vendor_data(doc.name)
+        
+        print(f"📊 SAP function result: {sap_result}")
+        
+        # Handle the response from SAP function
+        if isinstance(sap_result, dict):
+            if sap_result.get("status") == "success":
+                # Complete success - all SAP calls succeeded
+                response_data = {
+                    "status": "success",
+                    "message": sap_result.get("message", "Vendor data sent to SAP successfully"),
+                    "details": {
+                        "companies_processed": sap_result.get("companies_processed", 0),
+                        "gst_rows_processed": sap_result.get("gst_rows_processed", 0),
+                        "successful_sap_calls": sap_result.get("successful_sap_calls", 0),
+                        "failed_sap_calls": sap_result.get("failed_sap_calls", 0),
+                        "success_rate": sap_result.get("success_rate", 0),
+                        "doc_name": doc_name,
+                        "vendor_name": doc.vendor_name if hasattr(doc, 'vendor_name') else "Unknown"
+                    }
+                }
+                
+                # Update the document to mark as sent to SAP (only on complete success)
+                try:
+                    # doc.db_set("data_sent_to_sap", 1)
+                    doc.add_comment("Comment", f"Data sent to SAP successfully. Success rate: {sap_result.get('success_rate', 0):.1f}%")
+                    frappe.db.commit()
+                    print("✅ Document updated and committed")
+                except Exception as update_err:
+                    print(f"⚠️ Warning: Could not update document status: {str(update_err)}")
+                    
+            elif sap_result.get("status") == "partial_success":
+                # Partial success - some succeeded, some failed  
+                response_data = {
+                    "status": "partial_success",
+                    "message": sap_result.get("message", "Some vendor data sent to SAP"),
+                    "details": {
+                        "companies_processed": sap_result.get("companies_processed", 0),
+                        "gst_rows_processed": sap_result.get("gst_rows_processed", 0),
+                        "successful_sap_calls": sap_result.get("successful_sap_calls", 0),
+                        "failed_sap_calls": sap_result.get("failed_sap_calls", 0),
+                        "success_rate": sap_result.get("success_rate", 0),
+                        "connection_errors": sap_result.get("connection_errors", 0),
+                        "doc_name": doc_name
+                    }
+                }
+                
+                # Don't mark as fully sent to SAP on partial success
+                try:
+                    doc.add_comment("Comment", f"Partial SAP integration. Success rate: {sap_result.get('success_rate', 0):.1f}%. {sap_result.get('failed_sap_calls', 0)} entries failed.")
+                    frappe.db.commit()
+                except Exception as update_err:
+                    print(f"⚠️ Warning: Could not add comment: {str(update_err)}")
+                    
+            elif sap_result.get("status") == "error":
+                # Error case from SAP function
+                response_data = {
+                    "status": "error", 
+                    "message": sap_result.get("message", "SAP integration failed"),
+                    "details": {
+                        "companies_processed": sap_result.get("companies_processed", 0),
+                        "gst_rows_processed": sap_result.get("gst_rows_processed", 0),
+                        "successful_sap_calls": sap_result.get("successful_sap_calls", 0),
+                        "failed_sap_calls": sap_result.get("failed_sap_calls", 0),
+                        "connection_errors": sap_result.get("connection_errors", 0),
+                        "error_type": "sap_integration_error",
+                        "doc_name": doc_name
+                    }
+                }
+                
+                # Don't mark as sent to SAP on error
+                try:
+                    doc.add_comment("Comment", f"SAP integration failed. {sap_result.get('connection_errors', 0)} connection errors detected.")
+                    frappe.db.commit()
+                except Exception as update_err:
+                    print(f"⚠️ Warning: Could not add comment: {str(update_err)}")
+                    
+            else:
+                # Unexpected response format
+                response_data = {
+                    "status": "warning",
+                    "message": "SAP function returned unexpected response format",
+                    "details": {
+                        "sap_response": sap_result,
+                        "doc_name": doc_name
+                    }
+                }
+        else:
+            # SAP function returned non-dict response
+            response_data = {
+                "status": "warning",
+                "message": "SAP function completed but returned unexpected response type",
+                "details": {
+                    "sap_response": str(sap_result),
+                    "response_type": type(sap_result).__name__,
+                    "doc_name": doc_name
+                },
+                "companies_processed": 0,
+                "gst_rows_processed": 0,
+                "successful_sap_calls": 0,
+                "failed_sap_calls": 1,
+                "connection_errors": 0,
+                "success_rate": 0.0
+            }
+        
+        # Copy additional fields to the main response level for client access
+        if isinstance(sap_result, dict):
+            response_data.update({
+                "companies_processed": sap_result.get("companies_processed", 0),
+                "gst_rows_processed": sap_result.get("gst_rows_processed", 0),
+                "successful_sap_calls": sap_result.get("successful_sap_calls", 0),
+                "failed_sap_calls": sap_result.get("failed_sap_calls", 0),
+                "connection_errors": sap_result.get("connection_errors", 0),
+                "success_rate": sap_result.get("success_rate", 0)
+            })
+        
+        print(f"📋 Final response: {response_data}")
+        return response_data
+        
+    except frappe.exceptions.ValidationError as ve:
+        # Handle Frappe validation errors (like frappe.throw)
+        error_msg = str(ve).replace("ValidationError: ", "")
+        response_data["message"] = error_msg
+        response_data["details"]["error_type"] = "validation_error"
+        
+        print(f"❌ Validation Error: {error_msg}")
+        frappe.log_error(f"SAP Integration Validation Error for {doc_name}: {error_msg}", "SAP Integration Validation")
+        return response_data
+        
+    except frappe.exceptions.PermissionError as pe:
+        # Handle permission errors
+        error_msg = "You don't have sufficient permissions to perform this action"
+        response_data["message"] = error_msg
+        response_data["details"]["error_type"] = "permission_error"
+        
+        print(f"❌ Permission Error: {str(pe)}")
+        frappe.log_error(f"SAP Integration Permission Error for {doc_name}: {str(pe)}", "SAP Integration Permission")
+        return response_data
+        
+    except Exception as e:
+        # Handle all other exceptions
+        error_msg = f"Unexpected error occurred: {str(e)}"
+        response_data["message"] = error_msg
+        response_data["details"]["error_type"] = "unexpected_error"
+        response_data["details"]["error_details"] = str(e)
+        
+        print(f"❌ Unexpected Error: {error_msg}")
+        frappe.log_error(f"SAP Integration Unexpected Error for {doc_name}: {str(e)}\n\nTraceback: {frappe.get_traceback()}", "SAP Integration Error")
+        return response_data
+
+
+# Optional: Alternative version with more granular success/partial success handling
+@frappe.whitelist()
+def send_vendor_to_sap_via_front_detailed(doc_name):
+    """Alternative version with more detailed success/partial success handling"""
+    
+    try:
+        print(f"🚀 Starting detailed SAP integration for document: {doc_name}")
+        
+        # Get the document
+        doc = frappe.get_doc("Vendor Onboarding", doc_name)
+        
+        # Validation (same as above)
+        if not doc.has_permission("write"):
+            frappe.throw(_("You don't have permission to update this document"))
+        
+        if not (doc.purchase_team_undertaking and 
+                doc.accounts_team_undertaking and 
+                doc.purchase_head_undertaking and 
+                not doc.rejected and 
+                doc.mandatory_data_filled):
+            frappe.throw(_("Required conditions are not met to send data to SAP"))
+        
+        # Call the main SAP function
+        sap_result = erp_to_sap_vendor_data(doc.name)
+        
+        # Enhanced response handling
+        if isinstance(sap_result, dict) and sap_result.get("status") == "success":
+            companies_processed = sap_result.get("companies_processed", 0)
+            gst_rows_processed = sap_result.get("gst_rows_processed", 0)
+            
+            # Determine success level
+            if companies_processed > 0 and gst_rows_processed > 0:
+                success_level = "complete"
+                status_message = f"✅ Complete Success: {companies_processed} companies and {gst_rows_processed} GST entries processed"
+            elif companies_processed > 0:
+                success_level = "partial"
+                status_message = f"⚠️ Partial Success: {companies_processed} companies processed, but some GST entries may have failed"
+            else:
+                success_level = "failed"
+                status_message = "❌ No companies or GST entries were successfully processed"
+            
+            # Update document status
+            try:
+                doc.db_set("data_sent_to_sap", 1 if success_level in ["complete", "partial"] else 0)
+                doc.add_comment("Comment", f"SAP Integration Result: {status_message}")
+                frappe.db.commit()
+            except Exception as update_err:
+                print(f"⚠️ Could not update document: {str(update_err)}")
+            
+            return {
+                "status": "success" if success_level == "complete" else "partial_success" if success_level == "partial" else "failed",
+                "message": status_message,
+                "details": {
+                    "success_level": success_level,
+                    "companies_processed": companies_processed,
+                    "gst_rows_processed": gst_rows_processed,
+                    "doc_name": doc_name,
+                    "sap_result": sap_result
+                }
+            }
+        else:
+            # Handle error or unexpected result
+            error_message = sap_result.get("message", "SAP integration failed") if isinstance(sap_result, dict) else "Unknown error in SAP integration"
+            
+            return {
+                "status": "error",
+                "message": f"❌ SAP Integration Failed: {error_message}",
+                "details": {
+                    "sap_result": sap_result,
+                    "doc_name": doc_name,
+                    "error_type": "sap_integration_failed"
+                }
+            }
+            
+    except Exception as e:
+        error_msg = f"SAP Integration Error: {str(e)}"
+        frappe.log_error(f"{error_msg} for {doc_name}\n\nTraceback: {frappe.get_traceback()}", "SAP Integration Frontend Error")
+        
+        return {
+            "status": "error",
+            "message": error_msg,
+            "details": {
+                "error_type": "exception",
+                "doc_name": doc_name
+            }
+        }
+
