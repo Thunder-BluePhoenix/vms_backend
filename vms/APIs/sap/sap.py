@@ -1463,3 +1463,39 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
 #     "ZZINTR_ABA_NO": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_aba_no"),
 #     "ZZINTR_ROUTING": safe_get(onb_pmd, "intermediate_bank_details", 0, "intermediate_routing_no"),
 # }
+
+
+
+
+@frappe.whitelist()
+def send_vendor_to_sap(doc_name):
+    """Simplified function specifically for button click"""
+    try:
+        doc = frappe.get_doc("Vendor Onboarding", doc_name)
+        
+        # Check permissions
+        if not doc.has_permission("write"):
+            frappe.throw(_("You don't have permission to update this document"))
+        
+        # Validate conditions
+        if not (doc.purchase_team_undertaking and 
+                doc.accounts_team_undertaking and 
+                doc.purchase_head_undertaking and 
+                not doc.rejected and
+                doc.mandatory_data_filled
+                # not doc.data_sent_to_sap
+                ):
+            frappe.throw(_("Required conditions are not met to send data to SAP"))
+        
+        # Send to SAP
+        erp_to_sap_vendor_data(doc.name)
+        
+        
+        
+        return {"status": "success", "message": "Vendor data sent to SAP"}
+        
+    except Exception as e:
+        frappe.log_error(f"SAP Integration Error for {doc_name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+    
+    
