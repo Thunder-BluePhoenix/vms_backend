@@ -9,7 +9,8 @@
   "account_group",
   "reconcil_account",
   "reconcil_account_code",
-  "reconcil_description"
+  "reconcil_description",
+  "company"
  ],
  "fields": [
   {
@@ -33,12 +34,18 @@
    "fieldname": "reconcil_account_code",
    "fieldtype": "Data",
    "label": "Reconcil Account Code"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:42:30.071140",
+ "modified": "2025-08-07 15:54:33.750828",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Reconciliation Account",
