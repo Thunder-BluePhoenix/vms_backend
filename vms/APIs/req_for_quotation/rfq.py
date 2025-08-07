@@ -29,11 +29,16 @@ def get_full_rfq_data(unique_id):
 				"purchase_requisition_number": row.purchase_requisition_number,
 				"material_code_head": row.material_code_head,
 				"delivery_date_head": row.delivery_date_head,
-				"plant_head": row.plant_head,
 				"material_name_head": row.material_name_head,
 				"quantity_head": row.quantity_head,
 				"uom_head": row.uom_head,
 				"price_head": row.price_head,
+				"rate_with_tax": row.rate_with_tax,
+				"rate_without_tax": row.rate_without_tax,
+				"moq_head": row.moq_head,
+				"lead_time_head": row.lead_time_head,
+				"tax": row.tax,
+
 				"subhead_unique_field": row.subhead_unique_field,
 				"material_code_subhead": row.material_code_subhead,
 				"material_name_subhead": row.material_name_subhead,
@@ -648,11 +653,15 @@ def send_revised_rfq(data):
                 "purchase_requisition_number": item.get("requisition_no"),
                 "material_code_head": item.get("material_code_head"),
                 "delivery_date_head": item.get("delivery_date_head"),
-                "plant_head": item.get("plant_head"),
                 "material_name_head": item.get("material_name_head"),
                 "quantity_head": item.get("quantity_head"),
                 "uom_head": item.get("uom_head"),
-                "price_head": item.get("price_head")
+                "price_head": item.get("price_head"),
+                "rate_with_tax": item.get("rate_with_tax"),
+                "rate_without_tax": item.get("rate_without_tax"),
+                "moq_head": item.get("moq_head"),
+                "lead_time_head": item.get("lead_time_head"),
+                "tax": item.get("tax")
             })
 
         # Vendor Details Table
@@ -718,11 +727,15 @@ def send_revised_rfq(data):
                 "purchase_requisition_number": item.get("requisition_no"),
                 "material_code_head": item.get("material_code_head"),
                 "delivery_date_head": item.get("delivery_date_head"),
-                "plant_head": item.get("plant_head"),
                 "material_name_head": item.get("material_name_head"),
                 "quantity_head": item.get("quantity_head"),
                 "uom_head": item.get("uom_head"),
-                "price_head": item.get("price_head")
+                "price_head": item.get("price_head"),
+                "rate_with_tax": item.get("rate_with_tax"),
+                "rate_without_tax": item.get("rate_without_tax"),
+                "moq_head": item.get("moq_head"),
+                "lead_time_head": item.get("lead_time_head"),
+                "tax": item.get("tax")
             }
 
             subheads = item.get("subhead_fields", [])
