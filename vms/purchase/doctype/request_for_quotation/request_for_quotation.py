@@ -433,11 +433,15 @@ def process_token(token):
                         "purchase_requisition_number": row.purchase_requisition_number,
                         "material_code_head": row.material_code_head,
                         "delivery_date_head": row.delivery_date_head,
-                        "plant_head": row.plant_head,
                         "material_name_head": row.material_name_head,
                         "quantity_head": row.quantity_head,
                         "uom_head": row.uom_head,
-                        "price_head": row.price_head
+                        "price_head": row.price_head,
+                        "rate_with_tax": row.rate_with_tax,
+                        "rate_without_tax": row.rate_without_tax,
+                        "moq_head": row.moq_head,
+                        "lead_time_head": row.lead_time_head,
+                        "tax": row.tax,
                     })
 
                 return {
@@ -479,11 +483,16 @@ def process_token(token):
                         "purchase_requisition_number": row.purchase_requisition_number,
                         "material_code_head": row.material_code_head,
                         "delivery_date_head": row.delivery_date_head,
-                        "plant_head": row.plant_head,
                         "material_name_head": row.material_name_head,
                         "quantity_head": row.quantity_head,
                         "uom_head": row.uom_head,
                         "price_head": row.price_head,
+						"rate_with_tax": row.rate_with_tax,
+                        "rate_without_tax": row.rate_without_tax,
+                        "moq_head": row.moq_head,
+                        "lead_time_head": row.lead_time_head,
+                        "tax": row.tax,
+
                         "subhead_unique_field": row.subhead_unique_field,
                         "material_code_subhead": row.material_code_subhead,
                         "material_name_subhead": row.material_name_subhead,
