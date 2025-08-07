@@ -638,7 +638,7 @@ def get_csrf_token_and_session(sap_client_code):
         password = sap_settings.auth_user_pass
 
         headers = {
-            'X-CSRF-TOKEN': 'Fetch',
+            'X-CSRF-Token': 'FETCH',
             'Authorization': f"{header_auth_type} {header_auth_key}",
             'Content-Type': 'application/json'
         }
@@ -696,7 +696,7 @@ def send_detail(csrf_token, data, session_cookies, name, sap_code, state, gst, c
     cookie_string = "; ".join([f"{name}={value}" for name, value in session_cookies.items()])
 
     headers = {
-        'X-CSRF-TOKEN': csrf_token,
+        'X-CSRF-Token': csrf_token,
         'Authorization': f"{header_auth_type} {header_auth_key}",
         'Content-Type': 'application/json;charset=utf-8',
         'Accept': 'application/json',
