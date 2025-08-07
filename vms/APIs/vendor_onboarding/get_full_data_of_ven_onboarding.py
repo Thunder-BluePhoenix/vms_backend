@@ -73,7 +73,9 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         # Billing Address
         billing_address = {}
 
-        billing_address_field = ["address_line_1", "address_line_2", "pincode", "city", "district", "state", "country"]
+        billing_address_field = ["address_line_1", "address_line_2", "pincode", "city", "district", "state", "country", "international_city", 
+                                "international_state", "international_country", "international_zipcode"
+                            ]
 
         billing_address = {field: doc.get(field) for field in billing_address_field}
 
@@ -104,7 +106,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         shipping_address = {}
 
         shipping_address_field = ["street_1", "street_2", "manufacturing_pincode", "manufacturing_city", "manufacturing_district",
-            "manufacturing_state", "manufacturing_country"]
+            "manufacturing_state", "manufacturing_country", "inter_manufacture_city", "inter_manufacture_state", "inter_manufacture_country",
+            "inter_manufacture_zipcode"]
 
         shipping_address = {field: doc.get(field) for field in shipping_address_field}
         

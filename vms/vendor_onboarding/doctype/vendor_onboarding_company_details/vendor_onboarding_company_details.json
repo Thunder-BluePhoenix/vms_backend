@@ -41,6 +41,12 @@
   "state",
   "country",
   "pincode",
+  "office_address_for_international_section",
+  "international_city",
+  "international_state",
+  "column_break_qhkq",
+  "international_country",
+  "international_zipcode",
   "same_as_above_address_section",
   "same_as_above",
   "manufacturing_address_section",
@@ -52,6 +58,12 @@
   "manufacturing_state",
   "manufacturing_country",
   "manufacturing_pincode",
+  "international_manufacturing_address_section",
+  "inter_manufacture_city",
+  "inter_manufacture_state",
+  "column_break_ihzb",
+  "inter_manufacture_country",
+  "inter_manufacture_zipcode",
   "multiple_location_within_state_section",
   "multiple_locations",
   "multiple_location_table",
@@ -351,12 +363,70 @@
    "fieldtype": "Table",
    "label": "GST Table",
    "options": "Vendor Company GST Table"
+  },
+  {
+   "fieldname": "office_address_for_international_section",
+   "fieldtype": "Section Break",
+   "label": "Office Address for International"
+  },
+  {
+   "fieldname": "international_city",
+   "fieldtype": "Data",
+   "label": "City"
+  },
+  {
+   "fieldname": "international_state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "column_break_qhkq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "international_country",
+   "fieldtype": "Data",
+   "label": "Country"
+  },
+  {
+   "fieldname": "international_zipcode",
+   "fieldtype": "Data",
+   "label": "Zipcode"
+  },
+  {
+   "fieldname": "international_manufacturing_address_section",
+   "fieldtype": "Section Break",
+   "label": "Manufacturing Address for International"
+  },
+  {
+   "fieldname": "inter_manufacture_state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "column_break_ihzb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "inter_manufacture_country",
+   "fieldtype": "Data",
+   "label": "Country"
+  },
+  {
+   "fieldname": "inter_manufacture_zipcode",
+   "fieldtype": "Data",
+   "label": "Zipcode"
+  },
+  {
+   "fieldname": "inter_manufacture_city",
+   "fieldtype": "Data",
+   "label": "City"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-20 13:53:27.437245",
+ "modified": "2025-08-07 11:34:00.377613",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",
