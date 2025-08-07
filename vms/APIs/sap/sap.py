@@ -1626,11 +1626,6 @@ def create_connection_error_sap_log(onb_name, data, error_msg, sap_client_code, 
 
 
 
-
-
-
-
-
 #############################################################################################################3
 #-----------------------------------------------------------client side calls---------------------------##
 ################################################################################################################
@@ -1666,6 +1661,7 @@ def send_vendor_to_sap(doc_name):
         frappe.log_error(f"SAP Integration Error for {doc_name}: {str(e)}")
         return {"status": "error", "message": str(e)}
     
+
 @frappe.whitelist()
 def send_vendor_to_sap_via_front(doc_name):
     """Enhanced function specifically for button click with proper response handling"""
@@ -1947,3 +1943,4 @@ def send_vendor_to_sap_via_front_detailed(doc_name):
                 "doc_name": doc_name
             }
         }
+

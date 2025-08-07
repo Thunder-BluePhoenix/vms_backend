@@ -266,33 +266,3 @@ function handle_sap_response(response, frm) {
     }
 }
 
-// Optional: Add a function to check SAP status
-frappe.ui.form.on('Vendor Onboarding', {
-    refresh: function(frm) {
-        // Previous button code here...
-        
-        // Add SAP Status check button (optional)
-        if (!frm.doc.__islocal && frm.doc.data_sent_to_sap) {
-            frm.add_custom_button(__('Check SAP Status'), function() {
-                frappe.call({
-                    method: 'vms.APIs.sap.sap.check_sap_status',
-                    args: {
-                        doc_name: frm.doc.name
-                    },
-                    callback: function(r) {
-                        if (r.message) {
-                            frappe.msgprint({
-                                title: __('SAP Status'),
-                                message: `
-                                    <div><strong>Status:</strong> ${r.message.status || 'Unknown'}</div>
-                                    <div><strong>Last Updated:</strong> ${r.message.last_updated || 'Unknown'}</div>
-                                    <div><strong>Vendor Codes:</strong> ${r.message.vendor_codes ? r.message.vendor_codes.join(', ') : 'None'}</div>
-                                `
-                            });
-                        }
-                    }
-                });
-            }, __('SAP Actions'));
-        }
-    }
-});
