@@ -395,8 +395,11 @@ def validate_mandatory_data(onb_ref):
 @frappe.whitelist(allow_guest=True)
 def set_vendor_onboarding_status(doc, method=None):
     try:
-        if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking:
+        if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and doc.data_sent_to_sap:
             doc.onboarding_form_status = "Approved"
+            doc.rejected = False
+        elif doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and doc.data_sent_to_sap != 1:
+            doc.onboarding_form_status = "SAP Error"
             doc.rejected = False
         
         elif doc.rejected:

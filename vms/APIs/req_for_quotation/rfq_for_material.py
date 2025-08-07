@@ -284,11 +284,15 @@ def create_rfq_material(data):
 				"purchase_requisition_number": item.get("requisition_no") or "",
 				"material_code_head": item.get("material_code_head") or "",
 				"delivery_date_head": item.get("delivery_date_head") or None,
-				"plant_head": item.get("plant_head") or "",
 				"material_name_head": item.get("material_name_head") or "",
 				"quantity_head": item.get("quantity_head") or 0,
 				"uom_head": item.get("uom_head") or "",
-				"price_head": item.get("price_head") or 0
+				"price_head": item.get("price_head") or 0,
+				"rate_with_tax": item.get("rate_with_tax") or 0,
+				"rate_without_tax": item.get("rate_without_tax") or 0,
+				"moq_head": item.get("moq_head") or 0,
+				"lead_time_head": item.get("lead_time_head") or 0,
+				"tax": item.get("tax") or 0
 			})
 
 		# Vendor Details Table
