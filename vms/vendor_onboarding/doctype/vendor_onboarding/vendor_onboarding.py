@@ -481,6 +481,9 @@ def check_vnonb_send_mails(doc, method=None):
         else:
              pass
         
+    elif doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 1:
+        send_rejection_email(doc, method=None)
+
     else:
         pass
 
@@ -727,6 +730,94 @@ def send_mail_account_team(doc, method=None):
             "message": "Failed to send email.",
             "error": str(e)
         }
+    
+
+# sent rejection email to vendor with reason
+
+def send_rejection_email(doc, method=None):
+    try:
+        if not doc:
+            return {
+                "status": "error",
+                "message": "Document not found."
+            }
+
+        vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+
+        vendor_email = vendor_master.office_email_primary or vendor_master.office_email_secondary
+        if not vendor_email:
+            return {
+                "status": "error",
+                "message": "Vendor email not found."
+            }
+
+        conf = frappe.conf
+        http_server = conf.get("frontend_http")
+
+        document_details = (
+            f"{http_server}/vendor-details-form"
+            f"?tabtype=Company%20Detail"
+            f"&refno={vendor_master.name}"
+            f"&vendor_onboarding={doc.name}"
+        )
+
+        # Build CC list based on conditions
+        cc_list = []
+        if doc.purchase_h_approval:
+            if doc.purchase_t_approval:
+                cc_list.append(doc.purchase_t_approval)
+
+        if doc.accounts_t_approval:
+            if doc.purchase_t_approval:
+                cc_list.append(doc.purchase_t_approval)
+            if doc.purchase_h_approval:
+                cc_list.append(doc.purchase_h_approval)
+
+        # Remove duplicates and empty values
+        cc_list = list({email for email in cc_list if email})
+
+        frappe.sendmail(
+            recipients=[vendor_email],
+            cc=cc_list,
+            subject="Vendor Onboarding has been Rejected",
+            message=f"""
+                <p>Dear {vendor_master.vendor_name},</p>
+                <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has been rejected because of {doc.reason_for_rejection}.</p>
+                
+                <p>Please review the details and take necessary actions.</p>
+                
+                <p>
+                    <a href="{document_details}" style="
+                        background-color: #28a745;
+                        color: white;
+                        padding: 10px 20px;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        display: inline-block;
+                        font-weight: bold;
+                    ">
+                        Review Onboarding
+                    </a>
+                </p>
+                
+                <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
+            """,
+            now=True,
+        )
+
+        return {
+            "status": "success",
+            "message": "Email sent successfully."
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Email Error")
+        return {
+            "status": "error",
+            "message": "Failed to send email.",
+            "error": str(e)
+        }
+
 
 
 # update the vendor onboarding record table with the latest status and data in the table (present in vendor master)

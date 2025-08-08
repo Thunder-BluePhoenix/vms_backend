@@ -293,6 +293,15 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         ]
         payment_details = {field: payment_doc.get(field) for field in payment_fields}
 
+        payment_details["bank_name_details"] = (
+                frappe.db.get_value(
+                    "Bank Master",
+                    payment_doc.bank_name,
+                    ["name", "bank_code", "country", "description"],
+                    as_dict=True
+                ) if payment_doc.bank_name and frappe.db.exists("Bank Master", payment_doc.bank_name) else {}
+            )
+
         # bank proof and bank proof by purchase team
         if payment_doc.bank_proof:
             file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof})
@@ -512,39 +521,138 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         #------------------purchasing Details ------------------------------
         
+        # purchasing_details = []
+
+        # if vendor_onboarding:
+        #     vonb = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+        #     pur_data = {
+        #     "company_name" : vonb.company_name or None,
+        #     "purchase_organization" : vonb.purchase_organization or None,
+        #     "order_currency" : vonb.order_currency or None,
+        #     "terms_of_payment": vonb.terms_of_payment or None,
+        #     "purchase_group" : vonb.purchase_group or None,
+        #     "account_group" : vonb.account_group or None,
+        #     "reconciliation_account" : vonb.reconciliation_account or None,
+        #     "qa_team_remarks" : vonb.qa_team_remarks or None,
+        #     "purchase_team_remarks" : vonb.purchase_team_approval_remarks or None,
+        #     "purchase_head_remarks" : vonb.purchase_head_approval_remarks or None,
+        #     "account_team_remarks": vonb.accounts_team_approval_remarks or None,
+        #     "incoterms" : vonb.incoterms or None,
+        #     }
+        # else :
+        #      pur_data = {
+        #     "company_name" : "",
+        #     "purchase_organization" : "",
+        #     "order_currency" : "",
+        #     "terms_of_payment": "",
+        #     "purchase_group" : "",
+        #     "account_group" : "",
+        #     "reconciliation_account" : "",
+        #     "qa_team_remarks" : "",
+        #     "purchase_team_remarks" : "",
+        #     "purchase_head_remarks" : "",
+        #     "incoterms" : "",
+        #     }
+        # purchasing_details.append(pur_data)
+
         purchasing_details = []
 
         if vendor_onboarding:
             vonb = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+
             pur_data = {
-            "company_name" : vonb.company_name or None,
-            "purchase_organization" : vonb.purchase_organization or None,
-            "order_currency" : vonb.order_currency or None,
-            "terms_of_payment": vonb.terms_of_payment or None,
-            "purchase_group" : vonb.purchase_group or None,
-            "account_group" : vonb.account_group or None,
-            "reconciliation_account" : vonb.reconciliation_account or None,
-            "qa_team_remarks" : vonb.qa_team_remarks or None,
-            "purchase_team_remarks" : vonb.purchase_team_approval_remarks or None,
-            "purchase_head_remarks" : vonb.purchase_head_approval_remarks or None,
-            "account_team_remarks": vonb.accounts_team_approval_remarks or None,
-            "incoterms" : vonb.incoterms or None,
+                "company_name": vonb.company_name or None,
+                "purchase_organization": vonb.purchase_organization or None,
+                "order_currency": vonb.order_currency or None,
+                "terms_of_payment": vonb.terms_of_payment or None,
+                "purchase_group": vonb.purchase_group or None,
+                "account_group": vonb.account_group or None,
+                "reconciliation_account": vonb.reconciliation_account or None,
+                "qa_team_remarks": vonb.qa_team_remarks or None,
+                "purchase_team_remarks": vonb.purchase_team_approval_remarks or None,
+                "purchase_head_remarks": vonb.purchase_head_approval_remarks or None,
+                "account_team_remarks": vonb.accounts_team_approval_remarks or None,
+                "incoterms": vonb.incoterms or None,
             }
-        else :
-             pur_data = {
-            "company_name" : "",
-            "purchase_organization" : "",
-            "order_currency" : "",
-            "terms_of_payment": "",
-            "purchase_group" : "",
-            "account_group" : "",
-            "reconciliation_account" : "",
-            "qa_team_remarks" : "",
-            "purchase_team_remarks" : "",
-            "purchase_head_remarks" : "",
-            "incoterms" : "",
+
+            pur_data["company_details"] = (
+                frappe.db.get_value(
+                    "Company Master",
+                    vonb.company_name,
+                    ["name", "company_code", "company_name", "description"],
+                    as_dict=True
+                ) if vonb.company_name and frappe.db.exists("Company Master", vonb.company_name) else {}
+            )
+
+            pur_data["pur_org_details"] = (
+                frappe.db.get_value(
+                    "Purchase Organization Master",
+                    vonb.purchase_organization,
+                    ["name", "purchase_organization_code", "purchase_organization_name", "description"],
+                    as_dict=True
+                ) if vonb.purchase_organization and frappe.db.exists("Purchase Organization Master", vonb.purchase_organization) else {}
+            )
+
+            pur_data["term_payment_details"] = (
+                frappe.db.get_value(
+                    "Terms of Payment Master",
+                    vonb.terms_of_payment,
+                    ["name", "terms_of_payment_code", "terms_of_payment_name", "description"],
+                    as_dict=True
+                ) if vonb.terms_of_payment and frappe.db.exists("Terms of Payment Master", vonb.terms_of_payment) else {}
+            )
+
+            pur_data["pur_group_details"] = (
+                frappe.db.get_value(
+                    "Purchase Group Master",
+                    vonb.purchase_group,
+                    ["name", "purchase_group_code", "purchase_group_name", "description"],
+                    as_dict=True
+                ) if vonb.purchase_group and frappe.db.exists("Purchase Group Master", vonb.purchase_group) else {}
+            )
+
+            pur_data["account_group_details"] = (
+                frappe.db.get_value(
+                    "Account Group Master",
+                    vonb.account_group,
+                    ["name", "account_group_code", "account_group_name", "account_group_description"],
+                    as_dict=True
+                ) if vonb.account_group and frappe.db.exists("Account Group Master", vonb.account_group) else {}
+            )
+
+            pur_data["reconciliation_details"] = (
+                frappe.db.get_value(
+                    "Reconciliation Account",
+                    vonb.reconciliation_account,
+                    ["name", "reconcil_account_code", "reconcil_account", "reconcil_description"],
+                    as_dict=True
+                ) if vonb.reconciliation_account and frappe.db.exists("Reconciliation Account", vonb.reconciliation_account) else {}
+            )
+
+        else:
+            pur_data = {
+                "company_name": "",
+                "purchase_organization": "",
+                "order_currency": "",
+                "terms_of_payment": "",
+                "purchase_group": "",
+                "account_group": "",
+                "reconciliation_account": "",
+                "qa_team_remarks": "",
+                "purchase_team_remarks": "",
+                "purchase_head_remarks": "",
+                "account_team_remarks": "",
+                "incoterms": "",
+                "company_details": {},
+                "pur_org_details": {},
+                "term_payment_details": {},
+                "pur_group_details": {},
+                "account_group_details": {},
+                "reconciliation_details": {}
             }
+
         purchasing_details.append(pur_data)
+
 
         # Return the check box from vendor onboarding doctype 
         validation_check = {}
