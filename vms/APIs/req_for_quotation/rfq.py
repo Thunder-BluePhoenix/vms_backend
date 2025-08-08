@@ -38,6 +38,7 @@ def get_full_rfq_data(unique_id):
 				"moq_head": row.moq_head,
 				"lead_time_head": row.lead_time_head,
 				"tax": row.tax,
+				"remarks": row.remarks,
 
 				"subhead_unique_field": row.subhead_unique_field,
 				"material_code_subhead": row.material_code_subhead,
@@ -376,8 +377,6 @@ def get_quotation_data(name):
 				"quantity_unit": quotation.quantity_unit,
 				"delivery_date": quotation.delivery_date,
 				"quote_amount": quotation.quote_amount,
-				"negotiable": quotation.negotiable,
-				"non_negotiable": quotation.non_negotiable,
 				"payment_terms": quotation.payment_terms,
 
 				# Child table

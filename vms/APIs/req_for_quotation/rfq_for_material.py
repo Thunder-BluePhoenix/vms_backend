@@ -292,7 +292,8 @@ def create_rfq_material(data):
 				"rate_without_tax": item.get("rate_without_tax") or 0,
 				"moq_head": item.get("moq_head") or 0,
 				"lead_time_head": item.get("lead_time_head") or 0,
-				"tax": item.get("tax") or 0
+				"tax": item.get("tax") or 0,
+				"remarks": item.get("remarks") or 0
 			})
 
 		# Vendor Details Table
