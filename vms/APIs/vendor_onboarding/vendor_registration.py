@@ -601,7 +601,7 @@ def send_registration_email_link(vendor_onboarding, refno):
             query_params = urlencode({
                 "vendor_onboarding": onboarding_doc.name,
                 "ref_no": onboarding_doc.ref_no,
-                "mobile_number": vendor_master.mobile_number,
+                # "mobile_number": vendor_master.mobile_number,
                 "company_code": ",".join(company_codes)
             })
             http_backend_server = frappe.conf.get("backend_http")
@@ -628,7 +628,7 @@ def send_registration_email_link(vendor_onboarding, refno):
                 }
 
             frappe.sendmail(
-                recipients=[recipient_email],
+                recipients=[recipient_email], cc=[onboarding_doc.registered_by],
                 subject=f"""New Vendor Appointment for Meril Group -{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
                 message=f"""
                     <p>Dear Sir/Madam,</p>

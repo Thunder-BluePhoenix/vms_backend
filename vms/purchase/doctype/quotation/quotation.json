@@ -99,8 +99,7 @@
   "quotation_amount_section",
   "quote_amount",
   "payment_terms_section",
-  "negotiable",
-  "non_negotiable",
+  "negotiation",
   "column_break_nnid",
   "payment_terms",
   "rfq_items_section",
@@ -642,18 +641,6 @@
    "label": "Payment Terms"
   },
   {
-   "default": "0",
-   "fieldname": "negotiable",
-   "fieldtype": "Check",
-   "label": " Negotiable"
-  },
-  {
-   "default": "0",
-   "fieldname": "non_negotiable",
-   "fieldtype": "Check",
-   "label": " Non Negotiable"
-  },
-  {
    "fieldname": "column_break_nnid",
    "fieldtype": "Column Break"
   },
@@ -865,12 +852,18 @@
    "fieldname": "final_cfs_charge",
    "fieldtype": "Data",
    "label": "CFS Charge"
+  },
+  {
+   "default": "0",
+   "fieldname": "negotiation",
+   "fieldtype": "Check",
+   "label": " Negotiable"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-06 12:49:30.197722",
+ "modified": "2025-08-08 15:07:25.423944",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Quotation",

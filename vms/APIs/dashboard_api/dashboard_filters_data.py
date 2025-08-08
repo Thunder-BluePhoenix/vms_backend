@@ -105,7 +105,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
                 vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver, vo.qms_form_filled, vo.sent_qms_form_link,
-                vo.registered_by, vo.vendor_country
+                vo.registered_by, vo.vendor_country, vo.rejected_by, vo.rejected_by_designation, vo.reason_for_rejection
             FROM `tabVendor Onboarding` vo
             WHERE {filter_clause}
             ORDER BY vo.modified DESC
