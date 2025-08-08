@@ -37,6 +37,7 @@
   "data_sent_to_sap",
   "expired",
   "rejected_by",
+  "rejected_by_designation",
   "reason_for_rejection",
   "purchase_team_undertaking",
   "purchase_head_undertaking",
@@ -526,12 +527,17 @@
    "fieldname": "vendor_country",
    "fieldtype": "Data",
    "label": "Vendor Country"
+  },
+  {
+   "fieldname": "rejected_by_designation",
+   "fieldtype": "Data",
+   "label": "Rejected By Designation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 15:57:18.812565",
+ "modified": "2025-08-08 13:31:41.529007",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
