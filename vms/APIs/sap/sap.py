@@ -298,12 +298,13 @@ from requests.auth import HTTPBasicAuth
 
 
 def update_sap_vonb(doc, method=None):
-    if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and not doc.rejected and not doc.data_sent_to_sap:
-        erp_to_sap_vendor_data(doc.name)
-        # doc.data_sent_to_sap = 1
-        # doc.save()
-        # doc.db_update()
-        frappe.db.commit()
+    if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking :
+        if doc.rejected == 0 and not doc.data_sent_to_sap:
+            erp_to_sap_vendor_data(doc.name)
+            # doc.data_sent_to_sap = 1
+            # doc.save()
+            # doc.db_update()
+            frappe.db.commit()
 
 
 
