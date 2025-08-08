@@ -633,7 +633,7 @@ def update_regular_fields(doc, form_data):
         'adequate_sizes', 'additional_or_supplement_information', 'conclusion_by_meril',
         'performer_name', 'performer_title', 'performent_date', 'mdpl_qa_date',
         'signed_date', 'name1', 'date', 'vendor_name', 'status', 'qms_form_status',
-        'for_company_2000', 'for_company_7000', 'organization_name'
+        'for_company_2000', 'for_company_7000', 'organization_name', "contact_person_1", "contact_person_2"
     ]
     
     for field_name in regular_fields:

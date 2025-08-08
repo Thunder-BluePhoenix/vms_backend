@@ -103,8 +103,22 @@ def create_annual_ass_form(data):
 		if isinstance(data, str):
 			data = json.loads(data)
 
-		# Create main document
-		annual_ass = frappe.new_doc("Annual Supplier Assessment Questionnaire")
+		# Check if vendor_ref_no exists
+		existing_doc = frappe.get_all(
+			"Annual Supplier Assessment Questionnaire",
+			filters={"vendor_ref_no": data.get("vendor_ref_no")},
+			limit=1,
+			fields=["name"]
+		)
+
+		if existing_doc:
+			# Fetch and update existing doc
+			annual_ass = frappe.get_doc("Annual Supplier Assessment Questionnaire", existing_doc[0].name)
+		else:
+			# Create new doc
+			annual_ass = frappe.new_doc("Annual Supplier Assessment Questionnaire")
+
+		# Common assignments (create or update)
 		annual_ass.vendor_ref_no = data.get("vendor_ref_no")
 		annual_ass.vendor_name = data.get("vendor_name")
 		annual_ass.name_of_the_company = data.get("name_of_the_company")
@@ -117,11 +131,15 @@ def create_annual_ass_form(data):
 		annual_ass.plans_for_recycle_materials = data.get("plans_for_recycle_materials")
 		annual_ass.details_to_increase_recycle_material = data.get("details_to_increase_recycle_material")
 
-		# Save and get name
-		annual_ass.insert(ignore_permissions=True)
+		# Insert if new
+		if not existing_doc:
+			annual_ass.insert(ignore_permissions=True)
+		else:
+			annual_ass.save(ignore_permissions=True)
+
 		annual_ass_name = annual_ass.name
 
-		# Handle file upload for valid_consent
+		# File uploads (overwrite or add new)
 		if "valid_consent" in frappe.request.files:
 			file = frappe.request.files["valid_consent"]
 			saved = save_file(file.filename, file.stream.read(), annual_ass.doctype, annual_ass.name, is_private=0)
@@ -129,41 +147,47 @@ def create_annual_ass_form(data):
 			annual_ass.save(ignore_permissions=True)
 
 		if "upload_file_2" in frappe.request.files:
-			file = frappe.request.files["valid_consent"]
+			file = frappe.request.files["upload_file_2"]
 			saved = save_file(file.filename, file.stream.read(), annual_ass.doctype, annual_ass.name, is_private=0)
-			annual_ass.valid_consent = saved.file_url
+			annual_ass.upload_file_2 = saved.file_url
 			annual_ass.save(ignore_permissions=True)
 
 		if "upload_file_3" in frappe.request.files:
-			file = frappe.request.files["valid_consent"]
+			file = frappe.request.files["upload_file_3"]
 			saved = save_file(file.filename, file.stream.read(), annual_ass.doctype, annual_ass.name, is_private=0)
-			annual_ass.valid_consent = saved.file_url
+			annual_ass.upload_file_3 = saved.file_url
 			annual_ass.save(ignore_permissions=True)
 
-		# Governance
-		governance_doc = frappe.new_doc("Governance Annual Supplier Assessment Questionnaire")
-		governance_doc.annual_supplier_assessment_questionnaire = annual_ass_name
-		governance_doc.insert(ignore_permissions=True)
+		# Create sub-forms only if new
+		if not existing_doc:
+			# Governance
+			governance_doc = frappe.new_doc("Governance Annual Supplier Assessment Questionnaire")
+			governance_doc.annual_supplier_assessment_questionnaire = annual_ass_name
+			governance_doc.insert(ignore_permissions=True)
 
-		# Social
-		social_doc = frappe.new_doc("Social Annual Supplier Assessment Questionnaire")
-		social_doc.annual_supplier_assessment_questionnaire = annual_ass_name
-		social_doc.insert(ignore_permissions=True)
+			# Social
+			social_doc = frappe.new_doc("Social Annual Supplier Assessment Questionnaire")
+			social_doc.annual_supplier_assessment_questionnaire = annual_ass_name
+			social_doc.insert(ignore_permissions=True)
 
-		# Environment
-		environment_doc = frappe.new_doc("Environment Annual Supplier Assessment Questionnaire")
-		environment_doc.annual_supplier_assessment_questionnaire = annual_ass_name
-		environment_doc.insert(ignore_permissions=True)
+			# Environment
+			environment_doc = frappe.new_doc("Environment Annual Supplier Assessment Questionnaire")
+			environment_doc.annual_supplier_assessment_questionnaire = annual_ass_name
+			environment_doc.insert(ignore_permissions=True)
 
-		# Link sub-forms to main document
-		annual_ass.governance_doctype = governance_doc.name
-		annual_ass.social_doctype = social_doc.name
-		annual_ass.environment_doctype = environment_doc.name
-		annual_ass.save(ignore_permissions=True)
+			# Link sub-forms
+			annual_ass.governance_doctype = governance_doc.name
+			annual_ass.social_doctype = social_doc.name
+			annual_ass.environment_doctype = environment_doc.name
+			annual_ass.save(ignore_permissions=True)
+		else:
+			governance_doc = frappe.get_doc("Governance Annual Supplier Assessment Questionnaire", annual_ass.governance_doctype)
+			social_doc = frappe.get_doc("Social Annual Supplier Assessment Questionnaire", annual_ass.social_doctype)
+			environment_doc = frappe.get_doc("Environment Annual Supplier Assessment Questionnaire", annual_ass.environment_doctype)
 
 		return {
 			"status": "success",
-			"message": "Assessment form created successfully",
+			"message": "Assessment form created/updated successfully",
 			"assessment_name": annual_ass_name,
 			"governance_doc": governance_doc.name,
 			"social_doc": social_doc.name,
@@ -174,12 +198,12 @@ def create_annual_ass_form(data):
 		frappe.log_error(frappe.get_traceback(), "Create Annual Assessment Form Error")
 		return {
 			"status": "error",
-			"message": "Failed to create assessment form",
+			"message": "Failed to create/update assessment form",
 			"error": str(e)
 		}
      
-# create env asa form
 
+# create env asa form
 @frappe.whitelist(allow_guest=True)
 def create_env_asa_form(data):
 	try:
@@ -206,13 +230,10 @@ def create_env_asa_form(data):
 		env_doc.scope_wise_chg_emission = data.get("scope_wise_chg_emission")
 		env_doc.consume_renewable_energy = data.get("consume_renewable_energy")
 		env_doc.total_renewable_energy_consumption = data.get("total_renewable_energy_consumption")
-
 		env_doc.have_system_to_control_air_emission = data.get("have_system_to_control_air_emission")
 		env_doc.details_of_system_to_control_air_emission = data.get("details_of_system_to_control_air_emission")
-
 		env_doc.have_target_for_increase_renewable_share = data.get("have_target_for_increase_renewable_share")
 		env_doc.mention_target_for_increase_renewable_share = data.get("mention_target_for_increase_renewable_share")
-
 		env_doc.have_target_to_reduce_energy_consumption = data.get("have_target_to_reduce_energy_consumption")
 		env_doc.mention_target_to_reduce_energy_consumption = data.get("mention_target_to_reduce_energy_consumption")
 
@@ -459,7 +480,11 @@ def get_data_ann_ass_form(vendor_ref_no):
 			"vendor_name": ann_doc.vendor_name,
 			"name_of_the_company": ann_doc.name_of_the_company,
 			"location": ann_doc.location,
-			"name_of_product": ann_doc.name_of_product
+			"name_of_product": ann_doc.name_of_product,
+			# "name": ann_doc.name,
+			# "governance_doctype": ann_doc.governance_doctype,
+			# "environment_doctype": ann_doc.environment_doctype,
+			# "social_doctype": ann_doc.social_doctype
 		}
 
 		# Section 2: General Disclosure
@@ -467,23 +492,49 @@ def get_data_ann_ass_form(vendor_ref_no):
 			"valid_consent_from_pollution_control": ann_doc.valid_consent_from_pollution_control,
 			"expiry_date_of_consent": ann_doc.expiry_date_of_consent,
 			"recycle_plastic_package_material": ann_doc.recycle_plastic_package_material,
-			"plans_for_recycle_materials": ann_doc.plans_for_recycle_materials
+			"plans_for_recycle_materials": ann_doc.plans_for_recycle_materials,
+			"recycle_plastic_details": ann_doc.recycle_plastic_details,
+			"details_to_increase_recycle_material": ann_doc.details_to_increase_recycle_material
 		}
 
 		# Handle attached file for valid_consent
-		if ann_doc.valid_consent:
-			file_doc = frappe.get_doc("File", {"file_url": ann_doc.valid_consent})
-			general_disclosure["valid_consent"] = {
-				"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-				"name": file_doc.name,
-				"file_name": file_doc.file_name
+		# if ann_doc.valid_consent:
+		# 	file_doc = frappe.get_doc("File", {"file_url": ann_doc.valid_consent})
+		# 	general_disclosure["valid_consent"] = {
+		# 		"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+		# 		"name": file_doc.name,
+		# 		"file_name": file_doc.file_name
+		# 	}
+		# else:
+		# 	general_disclosure["valid_consent"] = {
+		# 		"url": "",
+		# 		"name": "",
+		# 		"file_name": ""
+		# 	}
+
+		for field in ["valid_consent", "upload_file_2", "upload_file_3"]:
+			file_url = getattr(ann_doc, field, "")
+			if file_url:
+				try:
+					file_doc = frappe.get_doc("File", {"file_url": file_url})
+					general_disclosure[field] = {
+						"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+						"name": file_doc.name,
+						"file_name": file_doc.file_name
+					}
+				except:
+					general_disclosure[field] = {
+						"url": "",
+						"name": "",
+						"file_name": ""
+					}
+			else:
+				general_disclosure[field] = {
+					"url": "",
+					"name": "",
+					"file_name": ""
 			}
-		else:
-			general_disclosure["valid_consent"] = {
-				"url": "",
-				"name": "",
-				"file_name": ""
-			}
+
 
 		# linked_documents = {
 		# 	"governance_doc": ann_doc.governance_doctype,
@@ -512,6 +563,9 @@ def get_data_ann_ass_form(vendor_ref_no):
 				"environment_sustainability_policy": env_doc.environment_sustainability_policy,
 				"environmental_management_certification": env_doc.environmental_management_certification,
 				"regular_audits_conducted": env_doc.regular_audits_conducted,
+				"details_1": env_doc.details_1,
+				"details_2": env_doc.details_2,
+				"details_3": env_doc.details_3
 			}
 			for i in range(1, 4):
 				field = f"upload_file_{i}"
@@ -544,10 +598,15 @@ def get_data_ann_ass_form(vendor_ref_no):
 			# Water Consumption and Management
 			water_cons_mang = {
 				"water_source_tracking": env_doc.water_source_tracking,
+				"details_13": env_doc.details_13,
 				"have_permission_for_groundwater": env_doc.have_permission_for_groundwater,
+				"details_14": env_doc.details_14,
 				"has_system_to_track_water_withdrawals": env_doc.has_system_to_track_water_withdrawals,
+				"details_15": env_doc.details_15,
 				"have_facility_to_recycle_wastewater": env_doc.have_facility_to_recycle_wastewater,
+				"details_16": env_doc.details_16,
 				"have_zld_strategy": env_doc.have_zld_strategy,
+				"details_17": env_doc.details_17,
 				"have_initiatives_to_increase_water_efficiency": env_doc.have_initiatives_to_increase_water_efficiency,
 				"details_to_increase_water_efficiency": env_doc.details_to_increase_water_efficiency,
 				"have_targets_to_reduce_water_consumption": env_doc.have_targets_to_reduce_water_consumption,
@@ -560,9 +619,13 @@ def get_data_ann_ass_form(vendor_ref_no):
 			# Waste Management
 			waste_management = {
 				"track_waste_generation": env_doc.track_waste_generation,
+				"details_20": env_doc.details_20,
 				"handover_waste_to_authorized_vendor": env_doc.handover_waste_to_authorized_vendor,
+				"details_21": env_doc.details_21,
 				"vendor_audits_for_waste_management": env_doc.vendor_audits_for_waste_management,
+				"details_22": env_doc.details_22,
 				"have_epr_for_waste_management": env_doc.have_epr_for_waste_management,
+				"details_23": env_doc.details_23,
 				"have_goals_to_reduce_waste": env_doc.have_goals_to_reduce_waste,
 				"details_of_goals_to_reduce_waste": env_doc.details_of_goals_to_reduce_waste
 			}
@@ -573,12 +636,14 @@ def get_data_ann_ass_form(vendor_ref_no):
 			# Green Products
 			green_products = {
 				"certified_green_projects": env_doc.certified_green_projects,
+				"details_25": env_doc.details_25,
 				"upload_file_25": get_file_data(getattr(env_doc, "upload_file_25", None))
 			}
 
 			# Biodiversity
 			biodiversity = {
 				"have_policy_on_biodiversity": env_doc.have_policy_on_biodiversity,
+				"details_26":env_doc.details_26,
 				"upload_file_26": get_file_data(getattr(env_doc, "upload_file_26", None))
 			}
 
@@ -640,24 +705,33 @@ def get_data_ann_ass_form(vendor_ref_no):
 			gov_doc = frappe.get_doc("Governance Annual Supplier Assessment Questionnaire", ann_doc.governance_doctype)
 			governance = {
 				"have_formal_governance_structure": gov_doc.have_formal_governance_structure,
+				"details_1": gov_doc.details_1,
 				"esg_policies_coverage": gov_doc.esg_policies_coverage,
+				"details_2": gov_doc.details_2,
 				"esg_risk_integration": gov_doc.esg_risk_integration,
+				"details_3": gov_doc.details_3,
 				"company_publish_sustainability_report": gov_doc.company_publish_sustainability_report,
+				"details_4": gov_doc.details_4,
 				"esg_rating_participated": gov_doc.esg_rating_participated,
 				"esg_rating_score": gov_doc.esg_rating_score,
 				"esg_incentive_for_employee": gov_doc.esg_incentive_for_employee,
+				"details_6": gov_doc.details_6,
 				"csat_survey_conducted": gov_doc.csat_survey_conducted,
 				"csat_score": gov_doc.csat_score,
 				"instance_of_loss_customer_data": gov_doc.instance_of_loss_customer_data,
 				"no_of_loss_data_incidents": gov_doc.no_of_loss_data_incidents
 			}
-			for i in range(1, 8):
+			for i in range(1, 9):
 				field = f"upload_file_{i}"
 				governance[field] = get_file_data(getattr(gov_doc, field, None))
 
 		return {
 			"status": "success",
 			"message": "Data fetched successfully",
+			"name": ann_doc.name,
+			"governance_doctype": ann_doc.governance_doctype,
+			"environment_doctype": ann_doc.environment_doctype,
+			"social_doctype": ann_doc.social_doctype,
 			"company_information": company_information,
 			"general_disclosure": general_disclosure,
 			"env_manage_system": env_manage_system,
