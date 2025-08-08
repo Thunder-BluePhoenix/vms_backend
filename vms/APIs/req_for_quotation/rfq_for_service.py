@@ -89,7 +89,8 @@ def create_rfq_service(data):
                 "rate_without_tax": item.get("rate_without_tax"),
                 "moq_head": item.get("moq_head"),
                 "lead_time_head": item.get("lead_time_head"),
-                "tax": item.get("tax")
+                "tax": item.get("tax"),
+                "remarks": item.get("remarks")
             }
 
             subheads = item.get("subhead_fields", [])

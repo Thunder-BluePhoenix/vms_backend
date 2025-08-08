@@ -593,6 +593,15 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 ) if vonb.purchase_organization and frappe.db.exists("Purchase Organization Master", vonb.purchase_organization) else {}
             )
 
+            pur_data["currency_details"] = (
+                frappe.db.get_value(
+                    "Currency Master",
+                    vonb.order_currency,
+                    ["name", "currency_code", "currency_name", "country"],
+                    as_dict=True
+                ) if vonb.order_currency and frappe.db.exists("Currency Master", vonb.order_currency) else {}
+            )
+
             pur_data["term_payment_details"] = (
                 frappe.db.get_value(
                     "Terms of Payment Master",
