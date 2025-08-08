@@ -8,9 +8,9 @@ import json
 def get_reconcilation_list(data):
     try:
         
-        acc_grp = data.get("account_group")
+        company = data.get("company")
         # Fetch all currency records
-        rc_account = frappe.get_all("Reconciliation Account", filters={"account_group": acc_grp}, fields=["name", "reconcil_account_code", "reconcil_description"])
+        rc_account = frappe.get_all("Reconciliation Account", filters={"company": company}, fields=["name", "reconcil_account", "reconcil_account_code", "reconcil_description"])
 
         if not rc_account:
             return {
