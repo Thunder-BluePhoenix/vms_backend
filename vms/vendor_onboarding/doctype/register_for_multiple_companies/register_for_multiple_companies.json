@@ -6,7 +6,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "company"
+  "company",
+  "qms_required"
  ],
  "fields": [
   {
@@ -15,13 +16,20 @@
    "in_list_view": 1,
    "label": "Company",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "qms_required",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "QMS Required",
+   "options": "\nYes\nNo"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-19 16:25:03.628915",
+ "modified": "2025-08-11 16:33:55.419241",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Register For Multiple Companies",

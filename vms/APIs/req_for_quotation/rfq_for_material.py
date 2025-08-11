@@ -253,6 +253,7 @@ def create_rfq_material(data):
 		rfq.validity_start_date = data.get("validity_start_date") or None
 		rfq.validity_end_date = data.get("validity_end_date") or None
 		rfq.bidding_person = data.get("bidding_person") or ""
+		rfq.requestor_name = data.get("requestor_name") or ""
 
 		# Material/Service Details
 		rfq.service_code = data.get("service_code") or ""
