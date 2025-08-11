@@ -771,7 +771,7 @@ def vendor_registration_multi(data):
         # Set vendor master fields with validation
         vendor_fields = [
             "vendor_title", "vendor_name", "office_email_primary", "search_term",
-            "country", "mobile_number", "registered_date", "qms_required"
+            "country", "mobile_number", "registered_date", "qa_required"
         ]
         
         for field in vendor_fields:
@@ -920,11 +920,13 @@ def vendor_registration_multi(data):
                     vendor_onboarding.incoterms = company.get("incoterms")
                     if isinstance(company, dict) and company.get("company_name"):
                         vendor_onboarding.append("multiple_company", {
-                            "company": company.get("company_name")
+                            "company": company.get("company_name"),
+                            "qms_required": company.get("qms_required")
                         })
                     elif hasattr(company, 'company_name'):
                         vendor_onboarding.append("multiple_company", {
-                            "company": company.company_name
+                            "company": company.company_name,
+                            "qms_required": company.get("qms_required")
                         })
 
                 # Add vendor types (avoiding duplicates)
