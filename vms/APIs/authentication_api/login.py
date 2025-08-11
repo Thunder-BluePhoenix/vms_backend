@@ -292,7 +292,8 @@ def build_user_response(user, api_credentials):
         vendor_code = collect_vendor_code_data(vendor_master, method=None)
         response = {
             'vendor_codes': vendor_code,
-            'designation': 'Vendor'
+            'designation': 'Vendor',
+            'ref_no': vendor_master.name
         }
         return response
 
