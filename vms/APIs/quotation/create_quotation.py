@@ -596,14 +596,21 @@ def create_or_update_quotation_non_onboarded():
 
         def apply_field_mapping_logic(data_dict):
             field_mapping = {
+                'vendor_name':'final_ffn',
+                'total_freight':'final_freight_fcr',
+                'exchange_rate': 'final_xcr',
+                'total_freightinr':'final_sum_freight_inr',
+                'other_charges_in_total': 'final_others',
+                'destination_charge':'final_dc',
+                'remarks':'final_remarks',
                 'ratekg': 'final_rate_kg',
+                'fuel_surcharge':'final_fsc',
+                'pickuporigin': 'final_pickup',
+                'airlinevessel_name': 'final_airline',
+                'transit_days': 'final_transit_days',
                 'chargeable_weight': 'final_chargeable_weight',
                 'sc': 'final_sc',
-                'final_xcr': 'exchange_rate',
-                'pickuporigin': 'final_pickup',
                 'xray': 'final_xray',
-                'other_charges_in_total': 'final_others',
-                'airlinevessel_name': 'final_airline',
                 'total_landing_price': 'final_landing_price',
                 'transit_days': 'final_transit_days',
                 'total_freight': 'final_freight_fcr',
@@ -1035,7 +1042,7 @@ def send_quotation_access_email_simple(quotation, vendor_email, action,rfq_numbe
             quotation_name=quotation.name,
             rfq_number=rfq_number
         )
-        access_link = f"{site_url}/quotation-form?token={token}"
+        access_link = f"{site_url}/track-quotation?token={token}"
     
         
       

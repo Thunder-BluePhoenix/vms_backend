@@ -76,6 +76,7 @@ def purchase_team_check(data):
                 frappe.throw(_("Rejection reason is required."))
             onb_doc.rejected = 1
             onb_doc.rejected_by = user
+            onb_doc.rejected_by_designation = "Rejected By Purchase Team"
             onb_doc.purchase_t_approval = user
             onb_doc.reason_for_rejection = rejection_reason
             message = _("Onboarding rejected by Purchase Team.")
@@ -162,6 +163,7 @@ def accounts_team_check(data):
                 frappe.throw(_("Rejection reason is required."))
             onb_doc.rejected = 1
             onb_doc.rejected_by = user
+            onb_doc.rejected_by_designation = "Rejected By Accounts Team"
             onb_doc.accounts_t_approval = user
             onb_doc.reason_for_rejection = rejection_reason
             message = _("Onboarding rejected by Accounts Team.")
@@ -237,6 +239,7 @@ def purchase_head_check(data):
                 frappe.throw(_("Rejection reason is required."))
             onb_doc.rejected = 1
             onb_doc.rejected_by = user
+            onb_doc.rejected_by_designation = "Rejected By Purchase Head"
             onb_doc.purchase_h_approval = user
             onb_doc.reason_for_rejection = rejection_reason
             message = _("Onboarding rejected by Purchase Head.")

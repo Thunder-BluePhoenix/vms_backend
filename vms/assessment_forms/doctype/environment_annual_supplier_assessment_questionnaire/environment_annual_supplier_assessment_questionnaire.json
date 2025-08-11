@@ -293,7 +293,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Do you have the permission for groundwater withdrawal, if applicable?",
-   "options": "\nYes\nNo"
+   "options": "NA\nYes\nNo"
   },
   {
    "fieldname": "have_facility_to_recycle_wastewater",
@@ -683,7 +683,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-01 01:10:17.470727",
+ "modified": "2025-08-08 14:31:17.966156",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Environment Annual Supplier Assessment Questionnaire",
