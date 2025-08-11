@@ -412,31 +412,25 @@ SECRET_KEY = str(frappe.conf.get("secret_key", ""))
 @frappe.whitelist(allow_guest=True)
 def create_or_update_quotation_non_onboarded():
     try:
-        
         form_data = frappe.local.form_dict
         token = form_data.get('token')
-        
         
         decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"], options={"verify_exp": False})
         vendor_email = decoded.get("email")
         rfq_number = decoded.get("rfq")
+        rfq_type = decoded.get("rfq_type")
+        print(rfq_type,"llllllllllllllllllllllllllllllll")
 
         if rfq_number:
-            
             rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
-
-            
             cutoff = get_datetime(rfq_doc.rfq_cutoff_date_logistic)
             now = now_datetime()
             
-            
             if now > cutoff:
-                
                 frappe.local.response["http_status_code"] = 410  
                 frappe.throw(_("This secure link has expired due to cutoff date."))
 
         if not vendor_email:
-
             return {
                 "status": "error",
                 "message": "Email is required",
@@ -444,7 +438,6 @@ def create_or_update_quotation_non_onboarded():
             }
 
         if not rfq_number:
-            
             return {
                 "status": "error",
                 "message": "RFQ Number is required",
@@ -452,7 +445,6 @@ def create_or_update_quotation_non_onboarded():
             }
 
         if not frappe.db.exists("Request For Quotation", rfq_number):
-            
             return {
                 "status": "error",
                 "message": f"RFQ {rfq_number} does not exist",
@@ -460,40 +452,34 @@ def create_or_update_quotation_non_onboarded():
             }
 
         rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
-
         user_authorized = False
         vendor_details = None
         is_onboarded_vendor = False
 
-        
+       
         for vendor in rfq_doc.vendor_details:
-
             if vendor.get('office_email_primary') == vendor_email:
-                
                 user_authorized = True
                 vendor_details = vendor
                 is_onboarded_vendor = True
                 break
 
-        
+      
         if not user_authorized:
             for vendor in rfq_doc.non_onboarded_vendor_details:
-                
                 if vendor.get('office_email_primary') == vendor_email:
-                
                     user_authorized = True
                     break
 
         if not user_authorized:
-            
             return {
                 "status": "error",
                 "message": "You are not allowed to fill this quotation",
                 "error": "Unauthorized Access"
             }
 
+        
         files = []
-
         if hasattr(frappe, 'request') and hasattr(frappe.request, 'files'):
             request_files = frappe.request.files
             if 'file' in request_files:
@@ -504,7 +490,6 @@ def create_or_update_quotation_non_onboarded():
             uploaded_files = frappe.local.uploaded_files
             if isinstance(uploaded_files, list):
                 files.extend(uploaded_files)
-
             else:
                 files.append(uploaded_files)
 
@@ -512,40 +497,68 @@ def create_or_update_quotation_non_onboarded():
             file_data = form_data.get('file')
             if hasattr(file_data, 'filename'):
                 files.append(file_data)
-
             elif isinstance(file_data, list):
                 files.extend([f for f in file_data if hasattr(f, 'filename')])
 
-       
+        # Process form data
         data = {}
         for key, value in form_data.items():
             if key != 'file':
                 data[key] = value
 
         if isinstance(data.get('data'), str):
-         
             try:
                 json_data = json.loads(data.get('data'))
                 data.update(json_data)
                 data.pop('data', None)
-                
             except json.JSONDecodeError:
-                
                 pass
 
         if vendor_email:
             data['office_email_primary'] = vendor_email
-            
 
         if rfq_number:
             data["rfq_number"] = rfq_number
 
         
+       
+
+        
+    
+
+
+       
         if vendor_details and is_onboarded_vendor:
-            
             data['ref_no'] = vendor_details.get('ref_no')
             data['vendor_name'] = vendor_details.get('vendor_name')
             data['vendor_code'] = vendor_details.get('vendor_code')
+
+        def find_quotation_child_table():
+         
+            try:
+                quotation_meta = frappe.get_meta('Quotation')
+                
+                
+                preferred_tables = ['rfq_item_list', 'items', 'quotation_items', 'rfq_items']
+                
+                for field in quotation_meta.fields:
+                    if (field and hasattr(field, 'fieldtype') and 
+                        field.fieldtype == 'Table' and 
+                        field.fieldname in preferred_tables):
+                        return field.fieldname, field.options
+                
+    
+                for field in quotation_meta.fields:
+                    if (field and hasattr(field, 'fieldtype') and 
+                        field.fieldtype == 'Table' and 
+                        field.fieldname not in ['attachments', 'version_history']):
+                        return field.fieldname, field.options
+                
+                return None, None
+                
+            except Exception as e:
+                frappe.log_error(f"Child table discovery failed: {str(e)[:80]}", "Child Table Error")
+                return None, None
 
         def apply_rfq_logistic_logic(data_dict):
             rfq_type = data_dict.get('rfq_type', '').lower()
@@ -563,6 +576,21 @@ def create_or_update_quotation_non_onboarded():
                     if total_freightinr:
                         data_dict['quote_amount'] = total_freightinr
                         data_dict['total_freightinr'] = total_freightinr
+            
+            elif rfq_type == 'material vendor':
+                # Calculate total quote amount from items
+                rfq_item_list = data_dict.get('rfq_item_list', [])
+                total_amount = 0
+                
+                for item in rfq_item_list:
+                    try:
+                        price = float(item.get('price_head', 0) or 0)
+                        total_amount += price
+                    except (ValueError, TypeError):
+                        continue
+                        
+                if total_amount > 0:
+                    data_dict['quote_amount'] = total_amount
             
             return data_dict
 
@@ -584,37 +612,81 @@ def create_or_update_quotation_non_onboarded():
                 'sc': 'final_sc',
                 'xray': 'final_xray',
                 'total_landing_price': 'final_landing_price',
-                'cfs_charge':'final_cfs_charge',
-                'total_freight':'final_freight_total',
-
-                
+                'transit_days': 'final_transit_days',
+                'total_freight': 'final_freight_fcr',
+                'remarks': 'final_remarks',
+                'vendor_name': 'final_ffn',
+                'total_freightinr': 'final_sum_freight_inr',
+                'destination_charge': 'final_dc',
+                'fuel_surcharge': 'final_fsc',
+                'cfs_charge': 'final_cfs_charge'
             }
-            
             
             for original_field, final_field in field_mapping.items():
                 if original_field in data_dict and data_dict[original_field] is not None:
                     data_dict[final_field] = data_dict[original_field]
-                    print(f"Mapped {original_field} = {data_dict[original_field]} to {final_field}")
             
             return data_dict
 
+        def process_material_vendor_items(quotation, rfq_item_list, child_table_name):
+            
+            if not rfq_item_list or not child_table_name:
+                return
+            
+            quotation.set(child_table_name, [])
+            
+            for i, item_data in enumerate(rfq_item_list):
+                try:
+                    quotation_item = quotation.append(child_table_name, item_data)
+                    
+                   
+                    numeric_fields = ['rate_head', 'quantity_head', 'price_head', 'lead_time_head']
+                    for field in numeric_fields:
+                        if hasattr(quotation_item, field) and getattr(quotation_item, field):
+                            try:
+                                value = getattr(quotation_item, field)
+                                setattr(quotation_item, field, float(value))
+                            except (ValueError, TypeError):
+                                setattr(quotation_item, field, 0)
+                    
+                    if hasattr(quotation_item, 'rfq_type'):
+                        quotation_item.rfq_type = data.get('rfq_type', '')
+                        
+                except Exception as item_error:
+                    frappe.log_error(f"Error processing item {i+1}: {str(item_error)[:80]}", "Item Error")
+                    continue
 
         data = apply_field_mapping_logic(data)
         data = apply_rfq_logistic_logic(data)
+        rfq_item_list = data.pop('rfq_item_list', [])
 
         quotation_name = data.get('name')
         action = "updated"
         email_sent = False
 
         
-
+        child_table_name, child_doctype = find_quotation_child_table()
+        
         if quotation_name and frappe.db.exists('Quotation', quotation_name):
-
+            
             quotation = frappe.get_doc('Quotation', quotation_name)
 
+            if 'rfq_type' in form_data:
+                rfq_type_name = form_data.get('rfq_type')
+                rfq_type_doc = frappe.get_doc("Vendor Type Master", {"vendor_type_name": rfq_type_name})
+                quotation.rfq_type = rfq_type_doc.name
+                print(f"Explicitly set rfq_type: {quotation.rfq_type}")
+
+               
+
+            
             for key, value in data.items():
                 if hasattr(quotation, key) and key != 'name':
                     setattr(quotation, key, value)
+
+         
+            if data.get('rfq_type', '').lower() == 'material vendor' and rfq_item_list and child_table_name:
+                process_material_vendor_items(quotation, rfq_item_list, child_table_name)
 
             quotation.asked_to_revise = 0
             quotation.flags.ignore_version = True
@@ -624,13 +696,12 @@ def create_or_update_quotation_non_onboarded():
             handle_quotation_files(quotation, files)
             quotation.save(ignore_version=True)
             frappe.db.commit()
-            send_quotation_access_email_simple(quotation, vendor_email, "updated",rfq_number)
+            send_quotation_access_email_simple(quotation, vendor_email, "updated", rfq_number)
             
-
             action = "updated"
 
         else:
-            
+           
             data.pop('name', None)
 
             quotation = frappe.new_doc('Quotation')
@@ -640,24 +711,36 @@ def create_or_update_quotation_non_onboarded():
 
             if not data.get('rfq_date_logistic'):
                 data['rfq_date_logistic'] = nowdate()
-                
 
+            
+                
+         
             for key, value in data.items():
                 if hasattr(quotation, key):
                     setattr(quotation, key, value)
+            
+            if 'rfq_type' in form_data:
+
+                rfq_type_name = form_data.get('rfq_type')
+                rfq_type_doc = frappe.get_doc("Vendor Type Master", {"vendor_type_name": rfq_type_name})
+                quotation.rfq_type = rfq_type_doc.name
+                print(f"Explicitly set rfq_type: {quotation.rfq_type}")
 
             quotation.asked_to_revise = 0
             quotation.flags.ignore_version = True
             quotation.flags.ignore_links = True
-            quotation.insert(ignore_permissions=True)
             
+            if data.get('rfq_type', '').lower() == 'material vendor' and rfq_item_list and child_table_name:
+                process_material_vendor_items(quotation, rfq_item_list, child_table_name)
 
+          
+            
+            quotation.insert(ignore_permissions=True)
 
             handle_quotation_files(quotation, files)
             quotation.save(ignore_version=True)
             frappe.db.commit()
-            send_quotation_access_email_simple(quotation, vendor_email, "created",rfq_number)
-            
+            send_quotation_access_email_simple(quotation, vendor_email, "created", rfq_number)
 
             action = "created"
 
@@ -675,9 +758,8 @@ def create_or_update_quotation_non_onboarded():
                     email_sent = True
                     
                 except Exception as email_error:
-                    print(f"Failed to queue email for quotation {quotation.name}: {str(email_error)}")
+                    frappe.log_error(f"Failed to queue email for quotation {quotation.name}: {str(email_error)[:80]}", "Email Queue Error")
 
-        
         return {
             "status": "success",
             "message": f"Quotation {action} successfully",
@@ -687,12 +769,14 @@ def create_or_update_quotation_non_onboarded():
                 "attachments_count": len(quotation.attachments) if quotation.attachments else 0,
                 "email_sent": email_sent,
                 "vendor_type": "onboarded" if is_onboarded_vendor else "non_onboarded",
-                "vendor_email": vendor_email
+                "vendor_email": vendor_email,
+                "items_processed": len(rfq_item_list) if rfq_item_list else 0,
+                "child_table_found": child_table_name is not None,
+                "child_table_name": child_table_name
             }
         }
 
     except frappe.ValidationError as e:
-        
         frappe.db.rollback()
         return {
             "status": "error",
@@ -701,7 +785,6 @@ def create_or_update_quotation_non_onboarded():
         }
 
     except frappe.DuplicateEntryError as e:
-        
         frappe.db.rollback()
         return {
             "status": "error",
@@ -710,13 +793,17 @@ def create_or_update_quotation_non_onboarded():
         }
 
     except Exception as e:
-        
         frappe.db.rollback()
+        import traceback
+        error_traceback = traceback.format_exc()
+        frappe.log_error(f"Full error traceback:\n{error_traceback[:500]}", "Quotation Creation Error")
         return {
             "status": "error",
             "message": f"An error occurred: {str(e)}",
-            "error_type": "general"
+            "error_type": "general",
+            "debug_info": "Check Error Log for full traceback"
         }
+
 
 def send_quotation_notification_email(quotation_name, rfq_number, action):
     try:
