@@ -419,7 +419,7 @@ def create_or_update_quotation_non_onboarded():
         vendor_email = decoded.get("email")
         rfq_number = decoded.get("rfq")
         rfq_type = decoded.get("rfq_type")
-        print(rfq_type,"llllllllllllllllllllllllllllllll")
+        
 
         if rfq_number:
             rfq_doc = frappe.get_doc("Request For Quotation", rfq_number)
