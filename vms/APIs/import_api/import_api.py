@@ -4,8 +4,10 @@ import frappe
 import pandas as pd
 import os
 import json
-from frappe.utils import get_files_path, get_site_path, now
+from frappe.utils import get_files_path, get_site_path, now,get_site_url
 from frappe import _
+from datetime import datetime
+from frappe.utils import get_url
 
 def create_field_mapping():
     
@@ -447,3 +449,218 @@ def test_file_access(file_url):
             "error": str(e),
             "file_url": file_url
         }
+
+
+
+
+@frappe.whitelist()
+def export_earth_invoice_data(export_options):
+
+    try:
+        export_options = frappe.parse_json(export_options)
+        
+       
+        filters = build_export_filters(export_options)
+        
+        
+        data = get_earth_invoice_data(filters, export_options)
+        
+        if not data:
+            return {
+                "success": False,
+                "message": "No data found to export"
+            }
+        
+        
+        file_path = create_export_file(data, export_options)
+        
+        return {
+            "success": True,
+            "file_url":  get_url() + file_path,
+            "total_records": len(data),
+            "file_size": get_file_size(file_path),
+            "export_format": export_options.get('export_format', 'Excel'),
+            "export_details": get_export_details(export_options, len(data))
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Export error: {str(e)}")
+        return {
+            "success": False,
+            "message": str(e)
+        }
+
+def build_export_filters(export_options):
+   
+    filters = {}
+    
+    export_type = export_options.get('export_type')
+    
+    if export_type == 'Date Range':
+        if export_options.get('from_date'):
+            filters['creation'] = ['>=', export_options.get('from_date')]
+        if export_options.get('to_date'):
+            filters['creation'] = ['<=', export_options.get('to_date')]
+    
+    elif export_type == 'By Booking Type':
+        if export_options.get('booking_type'):
+            filters['type'] = export_options.get('booking_type')
+    
+    elif export_type == 'By Approval Status':
+        if export_options.get('approval_status'):
+            filters['approval_status'] = export_options.get('approval_status')
+    
+    elif export_type == 'Selected Records':
+        if export_options.get('selected_records'):
+            filters['name'] = ['in', export_options.get('selected_records')]
+    
+    elif export_type == 'Filtered Records':
+        current_filters = export_options.get('current_filters', {})
+        filters.update(current_filters)
+    
+    return filters
+
+def get_earth_invoice_data(filters, export_options):
+    
+    fields = [
+        "*"
+    ]
+    
+    if export_options.get('include_system_fields'):
+        fields.extend([
+            "owner", "modified_by", "docstatus", "idx"
+        ])
+    
+    
+    data = frappe.get_all("Earth Invoice", filters=filters, fields=fields)
+    
+    
+    if export_options.get('include_child_tables'):
+        for record in data:
+            record.update(get_child_table_data(record['name']))
+    
+    return data
+
+def get_child_table_data(invoice_name):
+   
+    child_data = {}
+    
+   
+    child_tables = ['confirmation_voucher', 'invoice_attachment', 'debit_note_attachment']
+    
+    for table_name in child_tables:
+        attachments = frappe.get_all(
+            f"Earth Invoice {table_name.replace('_', ' ').title()}",
+            filters={'parent': invoice_name},
+            fields=['*']
+        )
+        child_data[f"{table_name}_count"] = len(attachments)
+        child_data[f"{table_name}_details"] = '; '.join([
+            f"Row {i+1}: {att.get('attach_field', 'No attachment')}" 
+            for i, att in enumerate(attachments)
+        ]) if attachments else "No attachments"
+    
+    return child_data
+
+def create_export_file(data, export_options):
+    export_format = export_options.get('export_format', 'Excel')
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    
+    export_dir = os.path.join(frappe.get_site_path(), "public", "files", "exports")
+    os.makedirs(export_dir, exist_ok=True)
+    
+
+    processed_data = []
+    for record in data:
+        processed_record = {}
+        for key, value in record.items():
+            if isinstance(value, datetime):
+               
+                processed_record[key] = value.strftime("%Y-%m-%d %H:%M:%S") if value else ""
+            elif value is None:
+                processed_record[key] = ""
+            else:
+                processed_record[key] = str(value)
+        processed_data.append(processed_record)
+    
+    if export_format == 'Excel':
+        filename = f"earth_invoice_export_{timestamp}.xlsx"
+        file_path = os.path.join(export_dir, filename)
+        
+        try:
+          
+            df = pd.DataFrame(processed_data)
+            
+          
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name='Earth Invoice Data', index=False)
+                
+               
+                workbook = writer.book
+                worksheet = writer.sheets['Earth Invoice Data']
+                
+              
+                for column in worksheet.columns:
+                    max_length = 0
+                    column_letter = column[0].column_letter
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    adjusted_width = min(max_length + 2, 50)
+                    worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        except Exception as e:
+            frappe.log_error(f"Excel creation error: {str(e)}")
+           
+            df = pd.DataFrame(processed_data)
+            df.to_excel(file_path, index=False, engine='openpyxl')
+    
+    else:  
+        filename = f"earth_invoice_export_{timestamp}.csv"
+        file_path = os.path.join(export_dir, filename)
+        
+        df = pd.DataFrame(processed_data)
+        df.to_csv(file_path, index=False, encoding='utf-8')
+    
+    
+    return f"/files/exports/{filename}"
+
+def get_file_size(file_path):
+   
+    try:
+        size = os.path.getsize(frappe.get_site_path() + "/public" + file_path)
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024.0:
+                return f"{size:.1f} {unit}"
+            size /= 1024.0
+        return f"{size:.1f} TB"
+    except:
+        return "Unknown"
+
+def get_export_details(export_options, record_count):
+   
+    details = []
+    
+    export_type = export_options.get('export_type')
+    details.append(f"Export Type: {export_type}")
+    details.append(f"Records Exported: {record_count}")
+    
+    if export_options.get('from_date'):
+        details.append(f"From Date: {export_options.get('from_date')}")
+    if export_options.get('to_date'):
+        details.append(f"To Date: {export_options.get('to_date')}")
+    if export_options.get('booking_type'):
+        details.append(f"Booking Type: {export_options.get('booking_type')}")
+    if export_options.get('approval_status'):
+        details.append(f"Approval Status: {export_options.get('approval_status')}")
+    
+    if export_options.get('include_child_tables'):
+        details.append("Child table data included")
+    if export_options.get('include_system_fields'):
+        details.append("System fields included")
+    
+    return details
