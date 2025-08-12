@@ -665,12 +665,78 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         # Return the check box from vendor onboarding doctype 
         validation_check = {}
+    
+        # check_box_fields = ["mandatory_data_filled", "register_by_account_team", "form_fully_submitted_by_vendor", "purchase_team_undertaking",
+        #         "purchase_head_undertaking", "accounts_team_undertaking", "accounts_head_undertaking"]
 
-        check_box_fields = ["mandatory_data_filled", "form_fully_submitted_by_vendor", "purchase_team_undertaking",
-             "purchase_head_undertaking", "accounts_team_undertaking"]
-        
+        check_box_fields = ["mandatory_data_filled", "register_by_account_team", "form_fully_submitted_by_vendor"]
+
         validation_check = {field: vonb.get(field) for field in check_box_fields}
 
+        if vonb.register_by_account_team == 0:
+            if vonb.mail_sent_to_purchase_team:
+                validation_check.update({
+                    "is_purchase_approve": 1,
+                    "is_purchase_head_approve": 0,
+                    "is_accounts_team_approve": 0,
+                    "is_accounts_head_approve": 0
+                })
+
+            if vonb.mail_sent_to_purchase_head and vonb.mail_sent_to_purchase_team:
+                validation_check.update({
+                    "is_purchase_approve": 0,
+                    "is_purchase_head_approve": 1,
+                    "is_accounts_team_approve": 0,
+                    "is_accounts_head_approve": 0
+                })
+
+            if vonb.mail_sent_to_account_team and vonb.mail_sent_to_purchase_head and vonb.mail_sent_to_purchase_team:
+                validation_check.update({
+                    "is_purchase_approve": 0,
+                    "is_purchase_head_approve": 0,
+                    "is_accounts_team_approve": 1,
+                    "is_accounts_head_approve": 0
+                })
+            if vonb.accounts_team_undertaking and vonb.mail_sent_to_account_team and vonb.mail_sent_to_purchase_head and vonb.mail_sent_to_purchase_team:
+                validation_check.update({
+                    "is_purchase_approve": 0,
+                    "is_purchase_head_approve": 0,
+                    "is_accounts_team_approve": 0,
+                    "is_accounts_head_approve": 0
+                })
+            else:
+                pass
+        
+        elif vonb.register_by_account_team == 1:
+            if vonb.mail_sent_to_account_team:
+                validation_check.update({
+                    "is_purchase_approve": 0,
+                    "is_purchase_head_approve": 0,
+                    "is_accounts_team_approve": 1,
+                    "is_accounts_head_approve": 0
+                })
+
+            if vonb.mail_sent_to_account_head and vonb.mail_sent_to_account_team:
+                validation_check.update({
+                    "is_purchase_approve": 0,
+                    "is_purchase_head_approve": 0,
+                    "is_accounts_team_approve": 0,
+                    "is_accounts_head_approve": 1
+                })
+            
+            if vonb.accounts_head_undertaking and vonb.mail_sent_to_account_head and vonb.mail_sent_to_account_team:
+                validation_check.update({
+                    "is_purchase_approve": 0,
+                    "is_purchase_head_approve": 0,
+                    "is_accounts_team_approve": 0,
+                    "is_accounts_head_approve": 0
+                })
+            
+            else:
+                pass
+
+        else:
+            pass
 
         return {
             "status": "success",
