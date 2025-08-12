@@ -298,13 +298,24 @@ from requests.auth import HTTPBasicAuth
 
 
 def update_sap_vonb(doc, method=None):
-    if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking :
-        if doc.rejected == 0 and not doc.data_sent_to_sap:
-            erp_to_sap_vendor_data(doc.name)
-            # doc.data_sent_to_sap = 1
-            # doc.save()
-            # doc.db_update()
-            frappe.db.commit()
+
+    if doc.register_by_account_team == 0:
+        if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking :
+            if doc.rejected == 0 and not doc.data_sent_to_sap and doc.mandatory_data_filled == 1:
+                erp_to_sap_vendor_data(doc.name)
+                # doc.data_sent_to_sap = 1
+                # doc.save()
+                # doc.db_update()
+                frappe.db.commit()
+
+    elif doc.register_by_account_team == 1:
+        if doc.accounts_team_undertaking and doc.accounts_head_undertaking :
+            if doc.rejected == 0 and not doc.data_sent_to_sap and doc.mandatory_data_filled == 1:
+                erp_to_sap_vendor_data(doc.name)
+                # doc.data_sent_to_sap = 1
+                # doc.save()
+                # doc.db_update()
+                frappe.db.commit()
 
 
 
@@ -1687,17 +1698,27 @@ def send_vendor_to_sap_via_front(doc_name):
         
         # Validate conditions
         validation_errors = []
-        
-        if not doc.purchase_team_undertaking:
-            validation_errors.append("Purchase team undertaking is required")
-        if not doc.accounts_team_undertaking:
-            validation_errors.append("Accounts team undertaking is required")
-        if not doc.purchase_head_undertaking:
-            validation_errors.append("Purchase head undertaking is required")
-        if doc.rejected:
-            validation_errors.append("Cannot send rejected vendor data")
-        if not doc.mandatory_data_filled:
-            validation_errors.append("Mandatory data must be filled")
+        if doc.register_by_account_team == 0:
+            if not doc.purchase_team_undertaking:
+                validation_errors.append("Purchase team undertaking is required")
+            if not doc.accounts_team_undertaking:
+                validation_errors.append("Accounts team undertaking is required")
+            if not doc.purchase_head_undertaking:
+                validation_errors.append("Purchase head undertaking is required")
+            if doc.rejected:
+                validation_errors.append("Cannot send rejected vendor data")
+            if not doc.mandatory_data_filled:
+                validation_errors.append("Mandatory data must be filled")
+        elif doc.register_by_account_team == 1:
+           
+            if not doc.accounts_team_undertaking:
+                validation_errors.append("Accounts team undertaking is required")
+            if not doc.accounts_head_undertaking:
+                validation_errors.append("Purchase head undertaking is required")
+            if doc.rejected:
+                validation_errors.append("Cannot send rejected vendor data")
+            if not doc.mandatory_data_filled:
+                validation_errors.append("Mandatory data must be filled")
         
         if validation_errors:
             response_data["message"] = "Validation failed: " + "; ".join(validation_errors)
