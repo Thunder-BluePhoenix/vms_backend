@@ -33,92 +33,186 @@ def filter_storage_locatioon(company):
             "error": str(e)
         }
 
+# @frappe.whitelist(allow_guest=False)
+# def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=1, page_length=10):
+# 	if not rfq_type:
+# 		frappe.throw(_("Missing required parameter: rfq_type"))
+
+# 	try:
+# 		# Return empty result if the service provider is All Service Provider, Premium Service Provider
+# 		if service_provider in ["All Service Provider", "Premium Service Provider"]:
+# 			return {
+# 				"status": "success",
+# 				"message": "No vendors returned for this service provider.",
+# 				"data": [],
+# 				"total_count": 0,
+# 				"page_no": page_no,
+# 				"page_length": page_length
+# 			}
+
+# 		vendor_links = frappe.get_all(
+# 			"Vendor Type Group",
+# 			filters={
+# 				"vendor_type": rfq_type,
+# 				"parenttype": "Vendor Master"
+# 			},
+# 			pluck="parent"
+# 		)
+
+# 		conditions = {"name": ["in", list(set(vendor_links))]}
+
+# 		if service_provider=="Courier Service Provider":
+# 			conditions["service_provider_type"] = "Courier Partner"
+
+# 		if service_provider == "Adhoc Service Provider":
+# 			conditions["service_provider_type"] = ["in", ["Courier Partner", "Premium Service Provider", "Service Provider"]]
+
+# 		if vendor_name:
+# 			conditions["vendor_name"] = ["like", f"%{vendor_name}%"]
+
+# 		page_no = int(page_no) if page_no else 1
+# 		page_length = int(page_length) if page_length else 10
+# 		offset = (page_no - 1) * page_length
+
+# 		vendor_masters = frappe.get_all(
+# 			"Vendor Master",
+# 			filters=conditions,
+# 			fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country", "service_provider_type"],
+# 			start=offset,
+# 			page_length=page_length
+# 		)
+
+# 		total_count = frappe.db.count("Vendor Master", filters=conditions)
+
+# 		output = []
+# 		for vm in vendor_masters:
+# 			vendor_code = []
+# 			company_vendor_code = frappe.get_all(
+# 				"Company Vendor Code",
+# 				filters={"vendor_ref_no": vm.name},
+# 				fields=["name"]
+# 			)
+# 			for row in company_vendor_code:
+# 				doc = frappe.get_doc("Company Vendor Code", row.name)
+# 				for code_row in doc.vendor_code:
+# 					vendor_code.append(code_row.vendor_code)
+
+# 			output.append({
+# 				"refno": vm.name,
+# 				"vendor_name": vm.vendor_name,
+# 				"office_email_primary": vm.office_email_primary,
+# 				"mobile_number": vm.mobile_number,
+# 				"country": vm.country,
+# 				"vendor_code": vendor_code,
+# 				"service_provider_type": vm.service_provider_type
+# 			})
+
+# 		return {
+# 			"status": "success",
+# 			"message": f"{len(output)} vendor(s) found",
+# 			"data": output,
+# 			"total_count": total_count,
+# 			"page_no": page_no,
+# 			"page_length": page_length
+# 		}
+
+# 	except Exception as e:
+# 		frappe.log_error(frappe.get_traceback(), "Vendor List Error")
+# 		frappe.throw(_("Error fetching vendor list: ") + str(e))
+
+
+# vendor list acc to company wise
 @frappe.whitelist(allow_guest=False)
-def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=1, page_length=10):
-	if not rfq_type:
-		frappe.throw(_("Missing required parameter: rfq_type"))
-
-	try:
-		# Return empty result if the service provider is All Service Provider, Premium Service Provider
-		if service_provider in ["All Service Provider", "Premium Service Provider"]:
-			return {
-				"status": "success",
-				"message": "No vendors returned for this service provider.",
-				"data": [],
-				"total_count": 0,
-				"page_no": page_no,
-				"page_length": page_length
-			}
-
-		vendor_links = frappe.get_all(
-			"Vendor Type Group",
-			filters={
-				"vendor_type": rfq_type,
-				"parenttype": "Vendor Master"
-			},
-			pluck="parent"
-		)
-
-		conditions = {"name": ["in", list(set(vendor_links))]}
-
-		if service_provider=="Courier Service Provider":
-			conditions["service_provider_type"] = "Courier Partner"
-
-		if service_provider == "Adhoc Service Provider":
-			conditions["service_provider_type"] = ["in", ["Courier Partner", "Premium Service Provider", "Service Provider"]]
-
-		if vendor_name:
-			conditions["vendor_name"] = ["like", f"%{vendor_name}%"]
-
-		page_no = int(page_no) if page_no else 1
-		page_length = int(page_length) if page_length else 10
-		offset = (page_no - 1) * page_length
-
-		vendor_masters = frappe.get_all(
-			"Vendor Master",
-			filters=conditions,
-			fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country", "service_provider_type"],
-			start=offset,
-			page_length=page_length
-		)
-
-		total_count = frappe.db.count("Vendor Master", filters=conditions)
-
-		output = []
-		for vm in vendor_masters:
-			vendor_code = []
-			company_vendor_code = frappe.get_all(
-				"Company Vendor Code",
-				filters={"vendor_ref_no": vm.name},
-				fields=["name"]
-			)
-			for row in company_vendor_code:
-				doc = frappe.get_doc("Company Vendor Code", row.name)
-				for code_row in doc.vendor_code:
-					vendor_code.append(code_row.vendor_code)
-
-			output.append({
-				"refno": vm.name,
-				"vendor_name": vm.vendor_name,
-				"office_email_primary": vm.office_email_primary,
-				"mobile_number": vm.mobile_number,
-				"country": vm.country,
-				"vendor_code": vendor_code,
-				"service_provider_type": vm.service_provider_type
-			})
-
-		return {
-			"status": "success",
-			"message": f"{len(output)} vendor(s) found",
-			"data": output,
-			"total_count": total_count,
-			"page_no": page_no,
-			"page_length": page_length
-		}
-
-	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "Vendor List Error")
-		frappe.throw(_("Error fetching vendor list: ") + str(e))
+def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=1, page_length=10, company=None):
+    if not rfq_type:
+        frappe.throw(_("Missing required parameter: rfq_type"))
+    if not company:
+        frappe.throw(_("Missing required parameter: company"))
+    try:
+        # Return empty result if the service provider is All Service Provider, Premium Service Provider
+        if service_provider in ["All Service Provider", "Premium Service Provider"]:
+            return {
+                "status": "success",
+                "message": "No vendors returned for this service provider.",
+                "data": [],
+                "total_count": 0,
+                "page_no": page_no,
+                "page_length": page_length
+            }
+        # Get all vendor linked to this company
+        company_vendor_links = frappe.get_all(
+            "Company Vendor Code",
+            filters={"company_name": company},
+            pluck="vendor_ref_no"
+        )
+        if not company_vendor_links:
+            return {
+                "status": "success",
+                "message": "No vendors found for the given company.",
+                "data": [],
+                "total_count": 0,
+                "page_no": page_no,
+                "page_length": page_length
+            }
+        vendor_links = frappe.get_all(
+            "Vendor Type Group",
+            filters={
+                "vendor_type": rfq_type,
+                "parenttype": "Vendor Master",
+                "parent": ["in", company_vendor_links]
+            },
+            pluck="parent"
+        )
+        conditions = {"name": ["in", list(set(vendor_links))]}
+        if service_provider=="Courier Service Provider":
+            conditions["service_provider_type"] = "Courier Partner"
+        if service_provider == "Adhoc Service Provider":
+            conditions["service_provider_type"] = ["in", ["Courier Partner", "Premium Service Provider", "Service Provider"]]
+        if vendor_name:
+            conditions["vendor_name"] = ["like", f"%{vendor_name}%"]
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 10
+        offset = (page_no - 1) * page_length
+        vendor_masters = frappe.get_all(
+            "Vendor Master",
+            filters=conditions,
+            fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country", "service_provider_type"],
+            start=offset,
+            page_length=page_length
+        )
+        total_count = frappe.db.count("Vendor Master", filters=conditions)
+        output = []
+        for vm in vendor_masters:
+            vendor_code = []
+            company_vendor_code_list = frappe.get_all(
+                "Company Vendor Code",
+                filters={"vendor_ref_no": vm.name},
+                fields=["name"]
+            )
+            for row in company_vendor_code_list:
+                doc = frappe.get_doc("Company Vendor Code", row.name)
+                for code_row in doc.vendor_code:
+                    vendor_code.append(code_row.vendor_code)
+            output.append({
+                "refno": vm.name,
+                "vendor_name": vm.vendor_name,
+                "office_email_primary": vm.office_email_primary,
+                "mobile_number": vm.mobile_number,
+                "country": vm.country,
+                "vendor_code": vendor_code,
+                "service_provider_type": vm.service_provider_type
+            })
+        return {
+            "status": "success",
+            "message": f"{len(output)} vendor(s) found",
+            "data": output,
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendor List Error")
+        frappe.throw(_("Error fetching vendor list: ") + str(e))
 
 
 
