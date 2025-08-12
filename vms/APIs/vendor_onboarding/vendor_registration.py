@@ -406,6 +406,18 @@ def vendor_registration_single(data):
             
         # Create Vendor Onboarding
         vendor_onboarding = frappe.new_doc("Vendor Onboarding")
+        
+        # check for session user is belongs to the accounts team
+        usr = frappe.session.user
+        employee = frappe.get_value(
+            "Employee",
+            {"user_id": usr},
+            ["name", "designation"],
+            as_dict=True
+        )
+        if employee and employee.designation == "Accounts Team":
+            vendor_onboarding.register_by_account_team = 1
+
         vendor_onboarding.ref_no = vendor_master.name
 
         for field in [
@@ -633,7 +645,7 @@ def send_registration_email_link(vendor_onboarding, refno):
                 message=f"""
                     <p>Dear Sir/Madam,</p>
                     <p>Greetings for the Day!</p>
-                    <p>You have been added by {frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")} to Onboard as a Vendor/Supplier for {company_names}.</p>
+                    <p>You have been added by <strong>{frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")}</strong> to Onboard as a Vendor/Supplier for {company_names}.</p>
                     <p> Founded in 2006, Meril Life Sciences Pvt. Ltd. is a global medtech company based in India, dedicated to designing and manufacturing innovative, 
                     patient-centric medical devices. We focus on advancing healthcare through cutting-edge R&D, quality manufacturing, and clinical excellence 
                     to help people live longer, healthier lives. We are a family of 3000+ Vendors/Sub – Vendors across India. </p>
@@ -887,6 +899,18 @@ def vendor_registration_multi(data):
             try:
                 # Create vendor onboarding
                 vendor_onboarding = frappe.new_doc("Vendor Onboarding")
+
+                # check for session user is belongs to the accounts team
+                usr = frappe.session.user
+                employee = frappe.get_value(
+                    "Employee",
+                    {"user_id": usr},
+                    ["name", "designation"],
+                    as_dict=True
+                )
+                if employee and employee.designation == "Accounts Team":
+                    vendor_onboarding.register_by_account_team = 1
+
                 vendor_onboarding.ref_no = vendor_master.name
                 vendor_onboarding.registered_for_multi_companies = 1
                 vendor_onboarding.unique_multi_comp_id = unique_multi_comp_id
