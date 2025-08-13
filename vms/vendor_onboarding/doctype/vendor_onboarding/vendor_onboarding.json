@@ -17,6 +17,7 @@
   "mandatory_data_filled",
   "registered_by",
   "register_by_account_team",
+  "awaiting_approval_status",
   "onboarding_form_status",
   "rejection_comment",
   "vendor_country",
@@ -565,12 +566,17 @@
    "fieldname": "accounts_head_undertaking",
    "fieldtype": "Check",
    "label": "Accounts Head approved"
+  },
+  {
+   "fieldname": "awaiting_approval_status",
+   "fieldtype": "Data",
+   "label": "Awaiting Approval Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-12 06:21:06.121368",
+ "modified": "2025-08-12 16:31:54.962675",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

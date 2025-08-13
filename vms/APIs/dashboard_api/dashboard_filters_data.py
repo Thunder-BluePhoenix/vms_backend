@@ -14,7 +14,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
                 "code": 404
             }
 
-        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+        allowed_roles = {"Purchase Team", "Accounts Team", "Accounts Head", "Purchase Head", "QA Team", "QA Head"}
         user_roles = frappe.get_roles(usr)
 
         if not any(role in allowed_roles for role in user_roles):
@@ -28,19 +28,36 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
         conditions = []
         values = {}
 
-        if "Accounts Team" in user_roles:
-            employee = frappe.get_doc("Employee", {"user_id": usr})
-            company_list = [row.company_name for row in employee.company]
+        if "Accounts Team" in user_roles or "Accounts Head" in user_roles:
+            # employee = frappe.get_doc("Employee", {"user_id": usr})
+            
+            # company_list = [row.company_name for row in employee.company]
 
-            if not company_list:
+            # if not company_list:
+            #     return {
+            #         "status": "error",
+            #         "message": "No company records found in Employee.",
+            #         "vendor_onboarding": []
+            #     }
+
+            # conditions.append("vo.company_name IN %(company_list)s")
+            # values["company_list"] = company_list
+
+            vend_onb = frappe.get_all(
+                "Vendor Onboarding",
+                filters={"register_by_account_team": 1},
+                pluck="name"  
+            )
+
+            if not vend_onb:
                 return {
                     "status": "error",
-                    "message": "No company records found in Employee.",
+                    "message": "No vendor onboarding records found for Accounts Team/Head.",
                     "vendor_onboarding": []
                 }
 
-            conditions.append("vo.company_name IN %(company_list)s")
-            values["company_list"] = company_list
+            conditions.append("vo.name IN %(vend_onb)s")
+            values["vend_onb"] = vend_onb
 
         else:
             team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
@@ -100,12 +117,12 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
 
         onboarding_docs = frappe.db.sql(f"""
             SELECT
-                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.modified,
+                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, vo.modified,
                 vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
                 vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver, vo.qms_form_filled, vo.sent_qms_form_link,
-                vo.registered_by, vo.vendor_country, vo.rejected_by, vo.rejected_by_designation, vo.reason_for_rejection
+                vo.registered_by, vo.register_by_account_team, vo.vendor_country, vo.rejected_by, vo.rejected_by_designation, vo.reason_for_rejection
             FROM `tabVendor Onboarding` vo
             WHERE {filter_clause}
             ORDER BY vo.modified DESC
@@ -345,7 +362,7 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
         if not usr:
             usr = frappe.session.user
 
-        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+        allowed_roles = {"Purchase Team", "Accounts Team", "Accounts Head", "Purchase Head", "QA Team", "QA Head"}
         user_roles = frappe.get_roles(usr)
 
         if not any(role in allowed_roles for role in user_roles):
@@ -358,17 +375,34 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
         values = {}
         filters = []
 
-        if "Accounts Team" in user_roles:
-            employee = frappe.get_doc("Employee", {"user_id": usr})
-            company_list = [row.company_name for row in employee.company]
-            if not company_list:
+        if "Accounts Team" in user_roles or "Accounts Head" in user_roles:
+            # employee = frappe.get_doc("Employee", {"user_id": usr})
+            # company_list = [row.company_name for row in employee.company]
+            # if not company_list:
+            #     return {
+            #         "status": "error",
+            #         "message": "No company records found in Employee.",
+            #         "vendor_onboarding": []
+            #     }
+            # filters.append("company_name IN %(company_list)s")
+            # values["company_list"] = company_list
+            
+            vo_names = frappe.get_all(
+                "Vendor Onboarding",
+                filters={"register_by_account_team": 1},
+                pluck="name"
+            )
+
+            if not vo_names:
                 return {
                     "status": "error",
-                    "message": "No company records found in Employee.",
+                    "message": "No vendor onboarding records found for Accounts Team/Head.",
                     "vendor_onboarding": []
                 }
-            filters.append("company_name IN %(company_list)s")
-            values["company_list"] = company_list
+
+            filters.append("name IN %(vo_names)s")
+            values["vo_names"] = vo_names
+
         else:
             team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
             if not team:
@@ -422,10 +456,10 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
 
         onboarding_docs = frappe.db.sql(f"""
             SELECT
-                vo.name, vo.ref_no, vo.company_name, vo.company, vo.vendor_name, vo.onboarding_form_status,
+                vo.name, vo.ref_no, vo.company_name, vo.company, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, 
                 vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
-                vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+                vo.form_fully_submitted_by_vendor, vo.register_by_account_team, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
                 vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver,
                 vo.creation, vo.modified
             FROM `tabVendor Onboarding` vo
