@@ -90,7 +90,7 @@ def create_rfq_service(data):
                 "moq_head": item.get("moq_head"),
                 "lead_time_head": item.get("lead_time_head"),
                 "tax": item.get("tax"),
-                "remarks": item.get("remarks")
+                "remarks": item.get("remarks") or ""
             }
 
             subheads = item.get("subhead_fields", [])

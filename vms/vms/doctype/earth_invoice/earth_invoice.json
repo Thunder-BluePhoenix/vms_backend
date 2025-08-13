@@ -66,12 +66,22 @@
   "service_charges",
   "sgst_amount",
   "grand_total",
+  "remarks",
+  "section_break_qiwx",
   "confirmation_voucher",
   "invoice_attachment",
   "debit_note_attachment",
-  "remarks",
   "section_break_derz",
-  "doc_upload_status"
+  "doc_upload_status",
+  "approval_matrix_tab",
+  "approval_matrix",
+  "current_approval_level",
+  "next_approver",
+  "column_break_yuew",
+  "approval_status",
+  "workflow_state",
+  "section_break_ooxj",
+  "approval_history"
  ],
  "fields": [
   {
@@ -99,11 +109,6 @@
   {
    "fieldname": "column_break_bqok",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "booking_date",
-   "fieldtype": "Data",
-   "label": "BOOKING DATE"
   },
   {
    "fieldname": "no_of_passengers",
@@ -371,18 +376,21 @@
   },
   {
    "fieldname": "confirmation_voucher",
-   "fieldtype": "Attach",
-   "label": "CONFIRMATION VOUCHER"
+   "fieldtype": "Table",
+   "label": "CONFIRMATION VOUCHER",
+   "options": "Confirmation Voucher"
   },
   {
    "fieldname": "invoice_attachment",
-   "fieldtype": "Attach",
-   "label": "INVOICE ATTACHMENT"
+   "fieldtype": "Table",
+   "label": "INVOICE ATTACHMENT",
+   "options": "Invoice Attachment"
   },
   {
    "fieldname": "debit_note_attachment",
-   "fieldtype": "Attach",
-   "label": "DEBIT NOTE ATTACHMENT"
+   "fieldtype": "Table",
+   "label": "DEBIT NOTE ATTACHMENT",
+   "options": "Debit Note Attachment"
   },
   {
    "fieldname": "quota",
@@ -402,13 +410,85 @@
    "label": "Doc Upload Status",
    "options": "\nFully Uploaded\nPartially Uploaded\nNot Uploaded",
    "read_only": 1
+  },
+  {
+   "fieldname": "approval_matrix_tab",
+   "fieldtype": "Tab Break",
+   "hidden": 1,
+   "label": "Approval Matrix"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "approval_matrix",
+   "fieldtype": "Link",
+   "label": "Approval Matrix",
+   "options": "Approval Matrix",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "current_approval_level",
+   "fieldtype": "Int",
+   "label": "Current Approval Level",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Pending",
+   "fieldname": "approval_status",
+   "fieldtype": "Select",
+   "label": "Approval Status",
+   "options": "\nPending\nApproved\nRejected",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_yuew",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "allow_on_submit": 1,
+   "fieldname": "workflow_state",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "next_approver",
+   "fieldtype": "Data",
+   "label": "Next Approver"
+  },
+  {
+   "fieldname": "section_break_ooxj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "approval_history",
+   "fieldtype": "Table",
+   "label": "Approval History",
+   "options": "Approval History"
+  },
+  {
+   "fieldname": "section_break_qiwx",
+   "fieldtype": "Section Break",
+   "label": "ATTACHMENTS"
+  },
+  {
+   "fieldname": "booking_date",
+   "fieldtype": "Data",
+   "label": "BOOKING DATE"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-01 15:24:41.875833",
+ "modified": "2025-08-12 15:18:13.331194",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Earth Invoice",

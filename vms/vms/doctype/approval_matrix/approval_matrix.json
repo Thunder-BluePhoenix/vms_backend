@@ -1,0 +1,91 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:matrix_name",
+ "creation": "2025-08-07 13:11:57.048492",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "matrix_name",
+  "document_type",
+  "column_break_uaud",
+  "invoice_type",
+  "is_active",
+  "is_default",
+  "section_break_dvaz",
+  "approval_levels"
+ ],
+ "fields": [
+  {
+   "fieldname": "matrix_name",
+   "fieldtype": "Data",
+   "label": "Matrix Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "invoice_type",
+   "fieldtype": "Select",
+   "label": "Invoice Type",
+   "options": "\nBus Booking\nHotel Booking\nDomestic Air Booking\nInternational Air Booking\nRailway Booking"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "label": "Is Default"
+  },
+  {
+   "fieldname": "column_break_uaud",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_dvaz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "approval_levels",
+   "fieldtype": "Table",
+   "label": "Approval Levels",
+   "options": "Approval Matrix Detail"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-08-07 14:59:34.196652",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Approval Matrix",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

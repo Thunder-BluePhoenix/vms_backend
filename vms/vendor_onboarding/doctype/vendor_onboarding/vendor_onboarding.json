@@ -16,6 +16,7 @@
   "column_break_wagn",
   "mandatory_data_filled",
   "registered_by",
+  "register_by_account_team",
   "onboarding_form_status",
   "rejection_comment",
   "vendor_country",
@@ -28,6 +29,8 @@
   "accounts_team_approval_remarks",
   "purchase_h_approval",
   "purchase_head_approval_remarks",
+  "accounts_head_approval",
+  "accounts_head_approval_remarks",
   "column_break_mkfw",
   "form_fully_submitted_by_vendor",
   "sent_registration_email_link",
@@ -42,9 +45,11 @@
   "purchase_team_undertaking",
   "purchase_head_undertaking",
   "accounts_team_undertaking",
+  "accounts_head_undertaking",
   "mail_sent_to_purchase_team",
   "mail_sent_to_purchase_head",
   "mail_sent_to_account_team",
+  "mail_sent_to_account_head",
   "tables_section",
   "vendor_types",
   "number_of_employee",
@@ -532,12 +537,40 @@
    "fieldname": "rejected_by_designation",
    "fieldtype": "Data",
    "label": "Rejected By Designation"
+  },
+  {
+   "default": "0",
+   "fieldname": "register_by_account_team",
+   "fieldtype": "Check",
+   "label": "Register By Account Team"
+  },
+  {
+   "fieldname": "accounts_head_approval",
+   "fieldtype": "Data",
+   "label": "Accounts Head Approval"
+  },
+  {
+   "fieldname": "accounts_head_approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "Accounts Head Approval Remarks"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_account_head",
+   "fieldtype": "Check",
+   "label": "Mail Sent to Account Head"
+  },
+  {
+   "default": "0",
+   "fieldname": "accounts_head_undertaking",
+   "fieldtype": "Check",
+   "label": "Accounts Head approved"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-08 13:31:41.529007",
+ "modified": "2025-08-12 06:21:06.121368",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

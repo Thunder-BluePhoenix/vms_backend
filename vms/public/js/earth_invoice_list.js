@@ -2,7 +2,6 @@
 
 frappe.listview_settings['Earth Invoice'] = {
     onload: function(listview) {
-       
         if (frappe.user_roles.includes('Earth')) {
            
             listview.page.add_menu_item(__('Import Excel Data'), function() {
@@ -13,24 +12,331 @@ frappe.listview_settings['Earth Invoice'] = {
             listview.page.add_inner_button(__('Import Excel'), function() {
                 show_import_dialog();
             }, __('Actions'));
+            
+           
         }
+        listview.page.add_inner_button(__('Export Selected'), function() {
+            export_selected_records(listview);
+        }, __('Actions'));
+            
+        listview.page.add_inner_button(__('Export Filtered'), function() {
+            export_filtered_records(listview);
+        }, __('Actions'));
     },
     
-    
     get_indicator: function(doc) {
-        const colors = {
+        if (doc.approval_status === "Approved") {
+            return [__("Approved"), "green", "approval_status,=,Approved"];
+        } else if (doc.approval_status === "Rejected") {
+            return [__("Rejected"), "red", "approval_status,=,Rejected"];
+        } else if (doc.approval_status === "Pending") {
+            return [__("Pending"), "orange", "approval_status,=,Pending"];
+        }
+        
+        
+        const type_colors = {
             'Bus Booking': 'blue',
-            'Domestic Air Booking': 'green', 
-            'Hotel Booking': 'orange',
+            'Domestic Air Booking': 'green',
+            'Hotel Booking': 'orange', 
             'International Air Booking': 'red',
             'Railway Booking': 'purple'
         };
         
         if (doc.type) {
-            return [doc.type, colors[doc.type] || 'gray', 'type,=,' + doc.type];
+            return [doc.type, type_colors[doc.type] || 'gray', 'type,=,' + doc.type];
         }
     }
 };
+
+
+function show_export_dialog(listview) {
+    let dialog = new frappe.ui.Dialog({
+        title: __('Export Earth Invoice Data'),
+        size: 'large',
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'export_help',
+                options: `
+                    <div class="alert alert-info">
+                        <h5><i class="fa fa-download"></i> Export Options</h5>
+                        <ul>
+                            <li><strong>Export All:</strong> Export all Earth Invoice records</li>
+                            <li><strong>Export by Date Range:</strong> Export records within specific dates</li>
+                            <li><strong>Export by Type:</strong> Export records of specific booking types</li>
+                            <li><strong>Export by Status:</strong> Export records with specific approval status</li>
+                        </ul>
+                    </div>
+                `
+            },
+            {
+                fieldtype: 'Section Break',
+                label: __('Export Filters')
+            },
+            {
+                fieldtype: 'Select',
+                fieldname: 'export_type',
+                label: __('Export Type'),
+                options: '\nAll Records\nDate Range\nBy Booking Type\nBy Approval Status\nCustom Filters',
+                default: 'All Records',
+                onchange: function() {
+                    toggle_export_filters(dialog);
+                }
+            },
+            {
+                fieldtype: 'Column Break'
+            },
+            {
+                fieldtype: 'Select',
+                fieldname: 'export_format',
+                label: __('Export Format'),
+                options: 'Excel\nCSV',
+                default: 'Excel'
+            },
+            {
+                fieldtype: 'Section Break',
+                label: __('Date Range'),
+                depends_on: 'eval:doc.export_type=="Date Range"'
+            },
+            {
+                fieldtype: 'Date',
+                fieldname: 'from_date',
+                label: __('From Date'),
+                depends_on: 'eval:doc.export_type=="Date Range"'
+            },
+            {
+                fieldtype: 'Column Break'
+            },
+            {
+                fieldtype: 'Date',
+                fieldname: 'to_date',
+                label: __('To Date'),
+                depends_on: 'eval:doc.export_type=="Date Range"'
+            },
+            {
+                fieldtype: 'Section Break',
+                label: __('Booking Type'),
+                depends_on: 'eval:doc.export_type=="By Booking Type"'
+            },
+            {
+                fieldtype: 'Select',
+                fieldname: 'booking_type',
+                label: __('Select Booking Type'),
+                options: '\nBus Booking\nDomestic Air Booking\nHotel Booking\nInternational Air Booking\nRailway Booking',
+                depends_on: 'eval:doc.export_type=="By Booking Type"'
+            },
+            {
+                fieldtype: 'Section Break',
+                label: __('Approval Status'),
+                depends_on: 'eval:doc.export_type=="By Approval Status"'
+            },
+            {
+                fieldtype: 'Select',
+                fieldname: 'approval_status',
+                label: __('Select Approval Status'),
+                options: '\nApproved\nPending\nRejected',
+                depends_on: 'eval:doc.export_type=="By Approval Status"'
+            },
+            {
+                fieldtype: 'Section Break',
+                label: __('Field Selection')
+            },
+            {
+                fieldtype: 'Check',
+                fieldname: 'include_child_tables',
+                label: __('Include Child Table Data (Attachments)')
+            },
+            {
+                fieldtype: 'Column Break'
+            },
+            {
+                fieldtype: 'Check',
+                fieldname: 'include_system_fields',
+                label: __('Include System Fields (Created, Modified, etc.)')
+            }
+        ],
+        primary_action: function(values) {
+            start_export(values, listview);
+            dialog.hide();
+        },
+        primary_action_label: __('Export Data'),
+        secondary_action_label: __('Cancel')
+    });
+    
+    dialog.show();
+}
+
+function toggle_export_filters(dialog) {
+    dialog.refresh();
+}
+
+function export_selected_records(listview) {
+    let selected = listview.get_checked_items();
+    if (selected.length === 0) {
+        frappe.msgprint(__('Please select records to export'));
+        return;
+    }
+    
+    let docnames = selected.map(doc => doc.name);
+    
+    frappe.confirm(
+        __('Export {0} selected records?', [docnames.length]),
+        function() {
+            start_export({
+                export_type: 'Selected Records',
+                export_format: 'Excel',
+                selected_records: docnames
+            }, listview);
+        }
+    );
+}
+
+function export_filtered_records(listview) {
+  
+    let filters = listview.get_filters_for_args();
+    
+    if (!filters || Object.keys(filters).length === 0) {
+        frappe.msgprint(__('No filters applied. This will export all records.'));
+    }
+    
+    frappe.confirm(
+        __('Export records with current filters applied?'),
+        function() {
+            start_export({
+                export_type: 'Filtered Records',
+                export_format: 'Excel',
+                current_filters: filters
+            }, listview);
+        }
+    );
+}
+
+function start_export(export_options, listview) {
+    frappe.show_progress(__('Exporting Data'), 0, 100, __('Preparing export...'));
+    
+    frappe.call({
+        method: 'vms.APIs.import_api.import_api.export_earth_invoice_data', 
+        args: {
+            export_options: export_options
+        },
+        timeout: 300, 
+        callback: function(r) {
+            frappe.hide_progress();
+            
+            if (r.message && r.message.success) {
+                show_export_success(r.message);
+            } else {
+                frappe.msgprint({
+                    title: __('Export Failed'),
+                    message: __('Error occurred during export. Please try again.'),
+                    indicator: 'red'
+                });
+            }
+        },
+        error: function(r) {
+            frappe.hide_progress();
+            frappe.msgprint({
+                title: __('Export Error'),
+                message: __('Failed to export data: {0}', [r.message || 'Unknown error']),
+                indicator: 'red'
+            });
+        }
+    });
+}
+
+function show_export_success(result) {
+    let dialog = new frappe.ui.Dialog({
+        title: __('Export Successful'),
+        size: 'large',
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'export_summary',
+                options: `
+                    <div class="export-results">
+                        <div class="alert alert-success">
+                            <h5><i class="fa fa-check-circle"></i> Export Completed Successfully</h5>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card text-center" style="border: 1px solid #dee2e6; margin: 5px;">
+                                    <div class="card-body">
+                                        <h3 class="text-primary">${result.total_records || 0}</h3>
+                                        <p><strong>Total Records</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center" style="border: 1px solid #dee2e6; margin: 5px;">
+                                    <div class="card-body">
+                                        <h3 class="text-info">${result.file_size || 'Unknown'}</h3>
+                                        <p><strong>File Size</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center" style="border: 1px solid #dee2e6; margin: 5px;">
+                                    <div class="card-body">
+                                        <h3 class="text-success">${result.export_format || 'Excel'}</h3>
+                                        <p><strong>Format</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center" style="margin-top: 20px;">
+                            <a href="${result.file_url}" class="btn btn-primary btn-lg" download>
+                                <i class="fa fa-download"></i> Download Export File
+                            </a>
+                        </div>
+                        
+                        ${result.export_details ? `
+                            <div style="margin-top: 20px;">
+                                <h6>Export Details:</h6>
+                                <ul>
+                                    ${result.export_details.map(detail => `<li>${detail}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                `
+            }
+        ],
+        primary_action_label: __('Close')
+    });
+    
+    dialog.show();
+    
+   
+    setTimeout(function() {
+        if (result.file_url) {
+            window.open(result.file_url, '_blank');
+        }
+    }, 2000);
+}
+
+
+
+
+
+function show_my_pending_approvals() {
+    frappe.call({
+        method: 'vms.APIs.approval_matrix.approval_matrix.get_pending_approvals_for_user',
+        callback: function(r) {
+            if (r.message && r.message.length > 0) {
+                
+                frappe.route_options = {
+                    "name": ["in", r.message.map(doc => doc.name)]
+                };
+                frappe.set_route("List", "Earth Invoice");
+            } else {
+                frappe.msgprint(__('No pending documents found for your approval'));
+            }
+        }
+    });
+}
+
 
 function show_import_dialog() {
     let dialog = new frappe.ui.Dialog({
@@ -98,10 +404,10 @@ function show_import_dialog() {
 }
 
 function start_import(file_url) {
-    // Show progress with more details
+    
     frappe.show_progress(__('Importing Data'), 0, 100, __('Uploading and processing Excel file...'));
     
-    // First test file access
+    
     frappe.call({
         method: 'vms.APIs.import_api.import_api.test_file_access',
         args: {

@@ -9,11 +9,22 @@ class EarthInvoice(Document):
         self.update_upload_status()
     
     def update_upload_status(self):
-        attach_fields = ['confirmation_voucher', 'invoice_attachment', 'debit_note_attachment']
+        child_tables = {
+            'confirmation_voucher': 'confirmation_voucher',  
+            'invoice_attachment': 'invoice_attachment',   
+            'debit_note_attachment': 'debit_note_attachment' 
+        }
         
         uploaded_count = 0
-        for field in attach_fields:
-            if self.get(field):
+        
+        for table_field, attachment_field in child_tables.items():
+            child_table = self.get(table_field) or []
+            
+            has_attachment = any(
+                row.get(attachment_field) for row in child_table
+            )
+            
+            if has_attachment:
                 uploaded_count += 1
         
         if uploaded_count == 3:

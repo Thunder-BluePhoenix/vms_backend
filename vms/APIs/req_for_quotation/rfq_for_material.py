@@ -253,6 +253,7 @@ def create_rfq_material(data):
 		rfq.validity_start_date = data.get("validity_start_date") or None
 		rfq.validity_end_date = data.get("validity_end_date") or None
 		rfq.bidding_person = data.get("bidding_person") or ""
+		rfq.requestor_name = data.get("requestor_name") or ""
 
 		# Material/Service Details
 		rfq.service_code = data.get("service_code") or ""
@@ -293,7 +294,7 @@ def create_rfq_material(data):
 				"moq_head": item.get("moq_head") or 0,
 				"lead_time_head": item.get("lead_time_head") or 0,
 				"tax": item.get("tax") or 0,
-				"remarks": item.get("remarks") or 0
+				"remarks": item.get("remarks") or ""
 			})
 
 		# Vendor Details Table

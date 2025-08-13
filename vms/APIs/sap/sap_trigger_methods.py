@@ -38,16 +38,27 @@ def send_vendor_data_to_sap(doc_name):
         # Validate conditions
         validation_errors = []
         
-        if not doc.purchase_team_undertaking:
-            validation_errors.append("Purchase team undertaking is required")
-        if not doc.accounts_team_undertaking:
-            validation_errors.append("Accounts team undertaking is required")
-        if not doc.purchase_head_undertaking:
-            validation_errors.append("Purchase head undertaking is required")
-        if doc.rejected:
-            validation_errors.append("Cannot send rejected vendor data")
-        # if not doc.mandatory_data_filled:
-        #     validation_errors.append("Mandatory data must be filled")
+        if doc.register_by_account_team == 0:
+            if not doc.purchase_team_undertaking:
+                validation_errors.append("Purchase team undertaking is required")
+            if not doc.accounts_team_undertaking:
+                validation_errors.append("Accounts team undertaking is required")
+            if not doc.purchase_head_undertaking:
+                validation_errors.append("Purchase head undertaking is required")
+            if doc.rejected:
+                validation_errors.append("Cannot send rejected vendor data")
+            if not doc.mandatory_data_filled:
+                validation_errors.append("Mandatory data must be filled")
+        elif doc.register_by_account_team == 1:
+           
+            if not doc.accounts_team_undertaking:
+                validation_errors.append("Accounts team undertaking is required")
+            if not doc.accounts_head_undertaking:
+                validation_errors.append("Purchase head undertaking is required")
+            if doc.rejected:
+                validation_errors.append("Cannot send rejected vendor data")
+            if not doc.mandatory_data_filled:
+                validation_errors.append("Mandatory data must be filled")
         
         if validation_errors:
             response_data["message"] = "Validation failed: " + "; ".join(validation_errors)

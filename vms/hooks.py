@@ -164,7 +164,9 @@ doc_events = {
     "Purchase Requisition Form":{"on_update":"vms.APIs.sap.erp_to_sap_pr.onupdate_pr"},
     "Version":{"after_insert":"vms.overrides.versions.get_version_data_universal"},
     "Earth Invoice": {
-        "has_permission": "vms.APIs.import_api.premission_api.has_permission"
+        "has_permission": "vms.APIs.import_api.premission_api.has_permission",
+        "validate": "vms.APIs.approval_matrix.approval_matrix.set_approval_matrix",
+        
     }
 }
 # doc_events = {

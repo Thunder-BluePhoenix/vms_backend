@@ -564,6 +564,24 @@ def get_quotations_by_rfq(rfq_number, page_no=1, page_length=5, vendor_name=None
                     }
                     formatted_attachments.append(attachment_data)
 
+                # Fetch quotation's item list
+                rfq_item_lists = frappe.get_all(
+                    "RFQ Items",
+                    filters={
+                        "parent": quotation.get('name'),
+                        "parenttype": "Quotation"
+                    },
+                    fields=[
+                       "name", "head_unique_field", "purchase_requisition_number", "material_code_head", "delivery_date_head", "material_name_head",
+                       "quantity_head", "uom_head", "price_head", "rate_with_tax", "rate_without_tax", "moq_head", "lead_time_head", "tax",
+                       "remarks"
+                    ]
+                )
+
+                pr_items = []
+                for item in rfq_item_lists:
+                    pr_items.append(item)
+
                 formatted_quotation = {
                     "name": quotation.get('name'),
                     "rfq_number": quotation.get('rfq_number'),
@@ -599,7 +617,21 @@ def get_quotations_by_rfq(rfq_number, page_no=1, page_length=5, vendor_name=None
                     "logistic_type": quotation.get('logistic_type'),
                     "bidding_status": quotation.get('bidding_status'),
                     "status": quotation.get('status'),
-                    "attachments": formatted_attachments
+                    "approved": quotation.get('approved'),
+
+                    # material vendor fields
+                    "rfq_date": quotation.get('rfq_date') or "",
+                    "contact_person": quotation.get('contact_person') or "",
+                    "validity_start_date": quotation.get('validity_start_date') or "",
+                    "validity_end_date": quotation.get('validity_end_date') or "",
+                    "currency": quotation.get('currency') or "",
+                    "negotiation": quotation.get('negotiation') or "",
+                    "payment_terms": quotation.get('payment_terms') or "",
+
+                    # table
+                    "attachments": formatted_attachments,
+                    "quotation_item_list": pr_items
+
                 }
                 formatted_quotations.append(formatted_quotation)
 
