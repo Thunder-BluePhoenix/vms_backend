@@ -424,6 +424,10 @@ def process_token(token):
                     "quantity_unit": rfq_doc.quantity_unit,
                     "delivery_date": rfq_doc.delivery_date,
                     "estimated_price": rfq_doc.estimated_price,
+                    "requestor_name": rfq_doc.requestor_name,
+                    "first_reminder": rfq_doc.first_reminder,
+                    "second_reminder": rfq_doc.second_reminder,
+                    "third_reminder": rfq_doc.third_reminder,
                     "pr_items": pr_items,
                     "attachments": get_attachments(),
                     "ref_no": ref_no,
@@ -433,32 +437,43 @@ def process_token(token):
                 }
 
             elif rfq_doc.rfq_type == "Service Vendor":
-                pr_items = []
-                for row in rfq_doc.rfq_items:
-                    pr_items.append({
-                        "row_id": row.name,
-                        "head_unique_field": row.head_unique_field,
-                        "purchase_requisition_number": row.purchase_requisition_number,
-                        "material_code_head": row.material_code_head,
-                        "delivery_date_head": row.delivery_date_head,
-                        "material_name_head": row.material_name_head,
-                        "quantity_head": row.quantity_head,
-                        "uom_head": row.uom_head,
-                        "price_head": row.price_head,
-						"rate_with_tax": row.rate_with_tax,
-                        "rate_without_tax": row.rate_without_tax,
-                        "moq_head": row.moq_head,
-                        "lead_time_head": row.lead_time_head,
-                        "tax": row.tax,
+                # Child Tables
+                grouped_data = {}
 
-                        "subhead_unique_field": row.subhead_unique_field,
-                        "material_code_subhead": row.material_code_subhead,
-                        "material_name_subhead": row.material_name_subhead,
-                        "quantity_subhead": row.quantity_subhead,
-                        "uom_subhead": row.uom_subhead,
-                        "price_subhead": row.price_subhead,
-                        "delivery_date_subhead": row.delivery_date_subhead
-                    })
+                for row in sorted(rfq_doc.rfq_items, key=lambda x: x.idx):
+                    head_id = row.head_unique_field
+                    if not head_id:
+                        continue
+
+                    if head_id not in grouped_data:
+                            grouped_data[head_id] = {
+                            "row_id": row.name,
+                            "head_unique_field": row.head_unique_field,
+                            "purchase_requisition_number": row.purchase_requisition_number,
+                            "material_code_head": row.material_code_head,
+                            "delivery_date_head": row.delivery_date_head,
+                            "material_name_head": row.material_name_head,
+                            "quantity_head": row.quantity_head,
+                            "uom_head": row.uom_head,
+                            "price_head": row.price_head,
+                            "rate_with_tax": row.rate_with_tax,
+                            "rate_without_tax": row.rate_without_tax,
+                            "moq_head": row.moq_head,
+                            "lead_time_head": row.lead_time_head,
+                            "tax": row.tax,
+                            "remarks": row.remarks,
+                            "subhead_fields": []
+                        }
+                    subhead_data = {
+                            "subhead_unique_field": row.subhead_unique_field,
+                            "material_code_subhead": row.material_code_subhead,
+                            "material_name_subhead": row.material_name_subhead,
+                            "quantity_subhead": row.quantity_subhead,
+                            "uom_subhead": row.uom_subhead,
+                            "price_subhead": row.price_subhead,
+                            "delivery_date_subhead": row.delivery_date_subhead
+                    }
+                    grouped_data[head_id]["subhead_fields"].append(subhead_data)
 
                 return {
                     "status": "success",
@@ -482,7 +497,12 @@ def process_token(token):
                     "quantity_unit": rfq_doc.quantity_unit,
                     "delivery_date": rfq_doc.delivery_date,
                     "estimated_price": rfq_doc.estimated_price,
-                    "pr_items": pr_items,
+                    "plant_code": rfq_doc.plant_code,
+                    "material_code": rfq_doc.material_code,
+                    "first_reminder": rfq_doc.first_reminder,
+                    "second_reminder": rfq_doc.second_reminder,
+                    "third_reminder": rfq_doc.third_reminder,
+                    "pr_items": list(grouped_data.values()),
                     "attachments": get_attachments(),
                     "ref_no": ref_no,
                     "email": email,
