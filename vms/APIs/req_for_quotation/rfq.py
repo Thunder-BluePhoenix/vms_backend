@@ -21,33 +21,42 @@ def get_full_rfq_data(unique_id):
 		doc = frappe.get_doc("Request For Quotation", rfq_name)
 
 		# Child Tables
-		pr_items = []
-		for row in doc.rfq_items:
-			pr_items.append({
-				"row_id": row.name,
-				"head_unique_field": row.head_unique_field,
-				"purchase_requisition_number": row.purchase_requisition_number,
-				"material_code_head": row.material_code_head,
-				"delivery_date_head": row.delivery_date_head,
-				"material_name_head": row.material_name_head,
-				"quantity_head": row.quantity_head,
-				"uom_head": row.uom_head,
-				"price_head": row.price_head,
-				"rate_with_tax": row.rate_with_tax,
-				"rate_without_tax": row.rate_without_tax,
-				"moq_head": row.moq_head,
-				"lead_time_head": row.lead_time_head,
-				"tax": row.tax,
-				"remarks": row.remarks,
+		grouped_data = {}
 
-				"subhead_unique_field": row.subhead_unique_field,
-				"material_code_subhead": row.material_code_subhead,
-				"material_name_subhead": row.material_name_subhead,
-				"quantity_subhead": row.quantity_subhead,
-				"uom_subhead": row.uom_subhead,
-				"price_subhead": row.price_subhead,
-				"delivery_date_subhead": row.delivery_date_subhead
-			})
+		for row in sorted(doc.rfq_items, key=lambda x: x.idx):
+			head_id = row.head_unique_field
+			if not head_id:
+				continue
+
+			if head_id not in grouped_data:
+					grouped_data[head_id] = {
+					"row_id": row.name,
+					"head_unique_field": row.head_unique_field,
+					"purchase_requisition_number": row.purchase_requisition_number,
+					"material_code_head": row.material_code_head,
+					"delivery_date_head": row.delivery_date_head,
+					"material_name_head": row.material_name_head,
+					"quantity_head": row.quantity_head,
+					"uom_head": row.uom_head,
+					"price_head": row.price_head,
+					"rate_with_tax": row.rate_with_tax,
+					"rate_without_tax": row.rate_without_tax,
+					"moq_head": row.moq_head,
+					"lead_time_head": row.lead_time_head,
+					"tax": row.tax,
+					"remarks": row.remarks,
+					"subhead_fields": []
+				}
+			subhead_data = {
+					"subhead_unique_field": row.subhead_unique_field,
+					"material_code_subhead": row.material_code_subhead,
+					"material_name_subhead": row.material_name_subhead,
+					"quantity_subhead": row.quantity_subhead,
+					"uom_subhead": row.uom_subhead,
+					"price_subhead": row.price_subhead,
+					"delivery_date_subhead": row.delivery_date_subhead
+			}
+			grouped_data[head_id]["subhead_fields"].append(subhead_data)
 
 		# Onboarded Vendor Details Table
 		vendor_details_data = []
@@ -220,7 +229,7 @@ def get_full_rfq_data(unique_id):
 			"third_reminder": doc.third_reminder,
 
 			# Tables
-			"pr_items": pr_items,
+			"pr_items": list(grouped_data.values()),
 			"vendor_details": vendor_details_data,
 			"all_vendors": all_vendors,
 			"attachments": attachments,
@@ -924,8 +933,8 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 		values = {}
 
 		if company_name:
-			conditions.append("(company_name = %(company_name)s OR company_name_logistic = %(company_name)s)")
-			values["company_name"] = company_name
+			conditions.append("(company_name LIKE %(company_name)s OR company_name_logistic LIKE %(company_name)s)")
+			values["company_name"] = f"%{company_name}%"
 
 		if name:
 			conditions.append("name LIKE %(name)s")
@@ -1036,8 +1045,8 @@ def purchase_team_rfq_dashboard(company_name, name, page_no, page_length, rfq_ty
 		values = {}
 
 		if company_name:
-			conditions.append("(company_name = %(company_name)s OR company_name_logistic = %(company_name)s)")
-			values["company_name"] = company_name
+			conditions.append("(company_name LIKE %(company_name)s OR company_name_logistic LIKE %(company_name)s)")
+			values["company_name"] = f"%{company_name}%"
 
 		if name:
 			conditions.append("name LIKE %(name)s")
