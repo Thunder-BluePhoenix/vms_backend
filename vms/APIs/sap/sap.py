@@ -1884,6 +1884,11 @@ def erp_to_sap_vendor_data(onb_ref):
                 com_vcd = frappe.get_doc("Company Master", vcd.company_name)
                 sap_client_code = com_vcd.sap_client_code
                 vcd_state = frappe.get_doc("State Master", vcd.state)
+                Zuawa = ""
+                if sap_client_code == "100":
+                    Zuawa = "000"
+                else:
+                    Zuawa = ""
                 
                 print(f"   📋 Company: {vcd.company_name}")
                 print(f"   📋 SAP Client Code: {sap_client_code}")
@@ -1971,7 +1976,7 @@ def erp_to_sap_vendor_data(onb_ref):
                             "MobNumber": onb_vm.mobile_number,
                             "SmtpAddr": onb_vm.office_email_primary,
                             "SmtpAddr1": onb_vm.office_email_secondary or "",
-                            "Zuawa": "",
+                            "Zuawa": Zuawa,
                             "Akont": onb_reco.reconcil_account_code,
                             "Waers": onb_pmd.currency_code,
                             "Zterm": onb_pm_term.terms_of_payment_code,
