@@ -68,6 +68,7 @@ class VendorOnboarding(Document):
             on_update_check_fields(self,method=None)
             update_ven_onb_record_table(self, method=None)
             update_van_core_docs(self, method=None)
+            set_qms_required_value(self, method=None)
         #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
 	
@@ -620,7 +621,8 @@ def send_mail_purchase_head(doc, method=None):
                 cc=doc.registered_by, 
                 message=f"""
                     <p>Dear Purchase Head,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The purchase team already approved the process.</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The <strong>{ frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") }</strong>
+                        (Purchase Team) already approved the process.</p>
                     <p>Please review the details and take necessary actions.</p>
                     <p>
                         <a href="{http_server}" style="
@@ -725,7 +727,8 @@ def send_mail_account_team(doc, method=None):
                 cc=doc.registered_by,
                 message=f"""
                     <p>Dear Accounts Team,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The purchase Head already approved the process.</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The <strong>{ frappe.db.get_value("Employee", {"user_id": doc.purchase_h_approval}, "full_name") }</strong> 
+                        (Purchase Head) already approved the process.</p>
                     <p>Please review the details and take necessary actions.</p>
                     <p>
                         <a href="{http_server}" style="
@@ -814,7 +817,7 @@ def send_rejection_email(doc, method=None):
             subject="Vendor Onboarding has been Rejected",
             message=f"""
                 <p>Dear {vendor_master.vendor_name},</p>
-                <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has been rejected because of {doc.reason_for_rejection}.</p>
+                <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has been rejected because of <strong>{doc.reason_for_rejection}</strong>.</p>
                 
                 <p>Please review the details and take necessary actions.</p>
                 
@@ -1056,31 +1059,35 @@ def send_approval_mail_accounts_team(doc, method=None):
             
             recipient_emails = []
             
-            company_name = doc.company_name
+            # company_name = doc.company_name
             
-            if company_name:
-                employees = frappe.get_all(
-                    "Employee", 
-                    filters={
-                        "designation": "Accounts Team"
-                    }, 
-                    fields=["name", "user_id"]
-                )
-                
-                for employee in employees:
-                    if employee.user_id:
-                        emp_doc = frappe.get_doc("Employee", employee.name)
+            # if company_name:
+            employees = frappe.get_all(
+                "Employee", 
+                filters={
+                    "designation": "Accounts Team"
+                }, 
+                fields=["name", "user_id"]
+            )
+            
+                # for employee in employees:
+                #     if employee.user_id:
+                #         emp_doc = frappe.get_doc("Employee", employee.name)
                         
-                        if hasattr(emp_doc, 'company') and emp_doc.company:
-                            for company_row in emp_doc.company:
-                                try:
-                                    if company_row.company_name == company_name:
-                                        if employee.user_id not in recipient_emails:
-                                            recipient_emails.append(employee.user_id)
-                                        break  # Found match, no need to check other companies
-                                except Exception as row_error:
-                                    continue
-            
+                #         if hasattr(emp_doc, 'company') and emp_doc.company:
+                #             for company_row in emp_doc.company:
+                #                 try:
+                #                     if company_row.company_name == company_name:
+                #                         if employee.user_id not in recipient_emails:
+                #                             recipient_emails.append(employee.user_id)
+                #                         break  # Found match, no need to check other companies
+                #                 except Exception as row_error:
+                #                     continue
+
+            for emp in employees:
+                if emp.get("user_id") and emp["user_id"] not in recipient_emails:
+                    recipient_emails.append(emp["user_id"])
+
             # Check if we found any recipients
             if not recipient_emails:
                 return {
@@ -1143,31 +1150,35 @@ def send_approval_mail_accounts_head(doc, method=None):
             
             recipient_emails = []
             
-            company_name = doc.company_name
+            # company_name = doc.company_name
             
-            if company_name:
-                employees = frappe.get_all(
-                    "Employee", 
-                    filters={
-                        "designation": "Accounts Head"
-                    }, 
-                    fields=["name", "user_id"]
-                )
+            # if company_name:
+            employees = frappe.get_all(
+                "Employee", 
+                filters={
+                    "designation": "Accounts Head"
+                }, 
+                fields=["name", "user_id"]
+            )
                 
-                for employee in employees:
-                    if employee.user_id:
-                        emp_doc = frappe.get_doc("Employee", employee.name)
+                # for employee in employees:
+                #     if employee.user_id:
+                #         emp_doc = frappe.get_doc("Employee", employee.name)
                         
-                        if hasattr(emp_doc, 'company') and emp_doc.company:
-                            for company_row in emp_doc.company:
-                                try:
-                                    if company_row.company_name == company_name:
-                                        if employee.user_id not in recipient_emails:
-                                            recipient_emails.append(employee.user_id)
-                                        break  # Found match, no need to check other companies
-                                except Exception as row_error:
-                                    continue
+                #         if hasattr(emp_doc, 'company') and emp_doc.company:
+                #             for company_row in emp_doc.company:
+                #                 try:
+                #                     if company_row.company_name == company_name:
+                #                         if employee.user_id not in recipient_emails:
+                #                             recipient_emails.append(employee.user_id)
+                #                         break  # Found match, no need to check other companies
+                #                 except Exception as row_error:
+                #                     continue
             
+            for emp in employees:
+                if emp.get("user_id") and emp["user_id"] not in recipient_emails:
+                    recipient_emails.append(emp["user_id"])
+
             # Check if we found any recipients
             if not recipient_emails:
                 return {
@@ -1177,7 +1188,7 @@ def send_approval_mail_accounts_head(doc, method=None):
             
             conf = frappe.conf
             http_server = conf.get("frontend_http")
-            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", recipient_emails)
+
 
             # Send email to all recipients
             frappe.sendmail(
@@ -1185,7 +1196,8 @@ def send_approval_mail_accounts_head(doc, method=None):
                 subject="Vendor Onboarding Approved by Accounts Team",
                 message=f"""
                     <p>Dear Accounts Head,</p>
-                    <p>The vendor <strong>{vendor_master.vendor_name} ({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
+                    <p>The vendor <strong>{vendor_master.vendor_name} ({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The <strong>{ frappe.db.get_value("Employee", {"user_id": doc.accounts_t_approval}, "full_name") }</strong> 
+                        (Accounts Team) already approved the process.</p></p>
                     <p>Please review the details and take necessary actions.</p>
                     
                     <p>
@@ -1222,3 +1234,15 @@ def send_approval_mail_accounts_head(doc, method=None):
             "message": "Failed to send email.",
             "error": str(e)
         }
+    
+
+#set qms required value for mul company code
+def set_qms_required_value(doc, method=None):
+    if doc.registered_for_multi_companies == 1:
+        for row in doc.multiple_company:
+            if row.company == doc.company_name and row.qms_required == "Yes":
+                doc.qms_required = "Yes"
+            elif row.company == doc.company_name and row.qms_required == "No":
+                doc.qms_required = "No"
+            else:
+                pass
