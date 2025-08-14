@@ -30,7 +30,6 @@ def get_purchase_team_details(company_name=None):
         )
 
         # Fetch Purchase Groups
-
         purchase_groups = []
         if emp.show_all_purchase_groups == 1:
             purchase_groups = frappe.get_all(
@@ -52,13 +51,39 @@ def get_purchase_team_details(company_name=None):
             fields=["name", "terms_of_payment_name", "description"]
         )
 
+        # Fetch Incoterms filtered by company from child table
+        incoterms = []
+        try:
+            query = """
+                SELECT DISTINCT 
+                    im.name, 
+                    im.incoterm_code, 
+                    im.incoterm_name,
+                    im.delivery_point,
+                    im.transportation_costs,
+                    im.risk_transfer,
+                    im.note
+                FROM `tabIncoterm Master` im
+                INNER JOIN `tabIncoterm Company Table` ict ON im.name = ict.parent
+                WHERE ict.company = %s
+                ORDER BY im.incoterm_name
+            """
+            
+            incoterms = frappe.db.sql(query, (company_name,), as_dict=True)
+            
+        except Exception as incoterm_error:
+            frappe.log_error(frappe.get_traceback(), "Error fetching Incoterms in get_purchase_team_details")
+            # Continue without incoterms if there's an error, don't fail the entire API
+            incoterms = []
+
         return {
             "status": "success",
             "message": "Purchase team details fetched successfully.",
             "data": {
                 "purchase_organizations": purchase_organizations,
                 "purchase_groups": purchase_groups,
-                "terms_of_payment": terms_of_payment
+                "terms_of_payment": terms_of_payment,
+                "incoterms": incoterms
             }
         }
 
