@@ -68,7 +68,7 @@ app_include_js = [
 # }
 fixtures = [
     # {"dt": "SAP Mapper PR"},
-    {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor"]]}},
+    {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab"]]}},
     {"dt": "Role Profile", "filters": {"name": ["in", ["Vendor"]]}},
     {"dt": "Module Profile", "filters": {"name": ["in", ["Vendor"]]}},
     {"dt": "QMS Quality Control System"},
@@ -77,8 +77,7 @@ fixtures = [
     {"dt": "QMS Batch Record Details"},
     {"dt": "QMS Inspection Reports"},
     {"dt": "Workflow","filters": {"name": ["in", ["Earth Invoice Workflow"]]}},
-    {"dt": "Role","filters": {"name": ["in", ["Panjikar","Tyab"]]}},
-    {"dt": "Workflow State","filters": {"name": ["in", ["Approve By Travel Desk","Reject By Travel Desk","Reject By Tyab Sir","Reject By Panjikar Sir","Approve By Panjikar Sir","Approve By Tyab Sir"]]}},
+    {"dt": "Workflow State","filters": {"name": ["in", ["Approve By Travel Desk","Reject By Travel Desk","Reject By Tyab Sir","Reject By Panjikar Sir","Approve By Panjikar Sir","Approve By Tyab Sir", "Approve By Earth Upload", "Reject By Earth Upload"]]}},
 ]
 # Generators
 # ----------

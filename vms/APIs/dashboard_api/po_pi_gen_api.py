@@ -359,7 +359,7 @@ def vendor_data_for_purchase(usr, user_roles):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None):
+def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_id=None):
     try:
         purchase_team_user = frappe.session.user
         
@@ -385,14 +385,19 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None):
         
        
         if cart_category_names:
-            all_filters.append({"category_type": ("in", cart_category_names)})
-        
-        
+            filter_dict = {"category_type": ("in", cart_category_names)}
+            if cart_id:
+                filter_dict["name"] = ["like", f"%{cart_id}%"]
+            all_filters.append(filter_dict)
+            
         if alternate_cart_category_names:
-            all_filters.append([
+            filter_list = [
                 {"category_type": ("in", alternate_cart_category_names)},
                 {"mailed_to_alternate_purchase_team": 1}
-            ])
+            ]
+            if cart_id:
+                filter_list.append({"name": ["like", f"%{cart_id}%"]})
+            all_filters.append(filter_list)
         
         if not all_filters:
             return {
@@ -409,15 +414,13 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None):
         
         if cart_category_names:
             primary_count = frappe.db.count("Cart Details", 
-                                           filters={"category_type": ("in", cart_category_names)})
+                                           filters=all_filters[0])
             total_count += primary_count
         
         if alternate_cart_category_names:
             alternate_count = frappe.db.count("Cart Details", 
-                                             filters=[
-                                                 {"category_type": ("in", alternate_cart_category_names)},
-                                                 {"mailed_to_alternate_purchase_team": 1}
-                                             ])
+                                             filters=all_filters[1]
+                                            )
             total_count += alternate_count
         
         
@@ -426,7 +429,7 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None):
         
         if cart_category_names:
             primary_pi = frappe.get_all("Cart Details",
-                                       filters={"category_type": ("in", cart_category_names)},
+                                       filters=all_filters[0],
                                        fields="*",
                                        order_by="modified desc")
             all_cart_details.extend(primary_pi)
@@ -434,10 +437,7 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None):
         
         if alternate_cart_category_names:
             alternate_pi = frappe.get_all("Cart Details",
-                                         filters=[
-                                             {"category_type": ("in", alternate_cart_category_names)},
-                                             {"mailed_to_alternate_purchase_team": 1}
-                                         ],
+                                         filters=all_filters[1],
                                          fields="*",
                                          order_by="modified desc")
             all_cart_details.extend(alternate_pi)
@@ -487,7 +487,7 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_pi(page_no=None, page_length=None):
+def get_pi(page_no=None, page_length=None, cart_id = None):
     try:
         usr = frappe.session.user
         if not usr:
@@ -504,17 +504,22 @@ def get_pi(page_no=None, page_length=None):
         page_no = int(page_no) if page_no else 1
         page_length = int(page_length) if page_length else 5
 
+        # Apply filter for cart_id if provided
+        filters = {"user": usr}
+        if cart_id:
+            filters["name"] = ["like", f"%{cart_id}%"]
+
         if allowed_roles.intersection(user_roles):
-            return get_pi_for_pt(purchase_team_user=usr, page_no=page_no, page_length=page_length)
+            return get_pi_for_pt(purchase_team_user=usr, page_no=page_no, page_length=page_length, cart_id=cart_id)
         else:
             # Total count for pagination
-            total_count = frappe.db.count("Cart Details", filters={"user": usr})
+            total_count = frappe.db.count("Cart Details", filters=filters)
             
             # Calculate start position
             start = (page_no - 1) * page_length
             
             all_pi = frappe.get_all("Cart Details",
-                                    filters={"user": usr},
+                                    filters=filters,
                                     fields="*",
                                     order_by="modified desc",
                                     start=start,

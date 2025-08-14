@@ -52,5 +52,23 @@
   "name": "Reject By Panjikar Sir",
   "style": "Danger",
   "workflow_state_name": "Reject By Panjikar Sir"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-08-14 10:01:32.860967",
+  "name": "Approve By Earth Upload",
+  "style": "",
+  "workflow_state_name": "Approve By Earth Upload"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-08-14 10:02:09.415733",
+  "name": "Reject By Earth Upload",
+  "style": "",
+  "workflow_state_name": "Reject By Earth Upload"
  }
 ]
