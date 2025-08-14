@@ -11,6 +11,9 @@
   "delivery_point",
   "transportation_costs",
   "risk_transfer",
+  "column_break_ahym",
+  "company",
+  "section_break_dujv",
   "note"
  ],
  "fields": [
@@ -45,12 +48,26 @@
    "fieldname": "note",
    "fieldtype": "Long Text",
    "label": "Note"
+  },
+  {
+   "fieldname": "column_break_ahym",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Table",
+   "label": "Company",
+   "options": "Incoterm Company Table"
+  },
+  {
+   "fieldname": "section_break_dujv",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:35:36.122300",
+ "modified": "2025-08-14 10:19:30.809347",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Incoterm Master",
