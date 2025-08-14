@@ -319,6 +319,14 @@ def purchase_head_check(data):
 
 
 
+
+
+# @frappe.whitelist()
+# def vendor_onboarding_amendment():
+#     usr = frappe.session
+
+
+
 # Accounts team approval flow -----------------------------------------
 
 # @frappe.whitelist(allow_guest=True)
