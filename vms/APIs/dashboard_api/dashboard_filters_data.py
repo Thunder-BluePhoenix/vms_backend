@@ -353,6 +353,44 @@ def expired_vendor_details(page_no=None, page_length=None, company=None, refno=N
             "error": str(e),
             "vendor_onboarding": []
         }
+    
+@frappe.whitelist(allow_guest=False)
+def sap_error_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
+    try:
+        if not usr:
+            usr = frappe.session.user
+
+        status = "SAP Error"
+
+        result = filtering_total_vendor_details(
+            page_no=page_no,
+            page_length=page_length,
+            company=company,
+            refno=refno,
+            status=status,
+            usr=usr,
+            vendor_name=vendor_name
+        )
+        if result.get("status") != "success":
+            return result
+        
+        onboarding_docs = result.get("total_vendor_onboarding", [])
+        return {
+            "status": "success",
+            "message": "SAP Error vendor onboarding records fetched successfully.",
+            "sap_error_vendor_onboarding": onboarding_docs,
+            "total_count": result.get("total_count"),
+            "page_no": result.get("page_no"),
+            "page_length": result.get("page_length")
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "SAP Error Vendor Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch SAP Error vendor onboarding data.",
+            "error": str(e),
+            "vendor_onboarding": []
+        }
 
  
 # apply a different query so cannot use the above filteration function
