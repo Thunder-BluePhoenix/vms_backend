@@ -321,9 +321,7 @@ def purchase_head_check(data):
 
 
 
-# @frappe.whitelist()
-# def vendor_onboarding_amendment():
-#     usr = frappe.session
+
 
 
 
