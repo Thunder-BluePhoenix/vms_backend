@@ -2,6 +2,51 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2025-07-18 15:05:47.012403",
+  "name": "Purchase Team",
+  "role_profile": "Purchase Team",
+  "roles": [
+   {
+    "parent": "Purchase Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Purchase Team"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-07-18 15:06:00.691648",
+  "name": "Purchase Head",
+  "role_profile": "Purchase Head",
+  "roles": [
+   {
+    "parent": "Purchase Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Purchase Head"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-07-23 17:38:03.394527",
+  "name": "Enquirer",
+  "role_profile": "Enquirer",
+  "roles": [
+   {
+    "parent": "Enquirer",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Enquirer"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "modified": "2025-06-05 20:01:14.388701",
   "name": "Vendor",
   "role_profile": "Vendor",
@@ -11,6 +56,36 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Vendor"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-08-16 00:30:05.581648",
+  "name": "Super Head",
+  "role_profile": "Super Head",
+  "roles": [
+   {
+    "parent": "Super Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Super Head"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-07-26 12:58:24.557251",
+  "name": "Accounts Team",
+  "role_profile": "Accounts Team",
+  "roles": [
+   {
+    "parent": "Accounts Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts Team"
    }
   ]
  }
