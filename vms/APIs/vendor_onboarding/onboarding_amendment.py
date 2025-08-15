@@ -91,6 +91,8 @@ def create_vendor_onboarding_amendment(data):
         
         # Commit the transaction
         frappe.db.commit()
+
+        email_result = send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by)
         
         # Get amended by user details for response
         amended_by_details = frappe.get_value("User", amended_by, 
@@ -109,7 +111,8 @@ def create_vendor_onboarding_amendment(data):
                 "remarks": remarks,
                 "rejected": vendor_onboarding_doc.rejected,
                 "rejected_by": vendor_onboarding_doc.rejected_by,
-                "rejected_by_designation": vendor_onboarding_doc.rejected_by_designation
+                "rejected_by_designation": vendor_onboarding_doc.rejected_by_designation,
+                "email_notification": email_result
             }
         }
         
