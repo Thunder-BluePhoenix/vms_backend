@@ -1057,18 +1057,18 @@ def send_approval_mail_accounts_team(doc, method=None):
         if doc:
             vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
             
-            recipient_emails = []
+            recipient_emails = doc.registered_by
             
             # company_name = doc.company_name
             
             # if company_name:
-            employees = frappe.get_all(
-                "Employee", 
-                filters={
-                    "designation": "Accounts Team"
-                }, 
-                fields=["name", "user_id"]
-            )
+            # employees = frappe.get_all(
+            #     "Employee", 
+            #     filters={
+            #         "designation": "Accounts Team"
+            #     }, 
+            #     fields=["name", "user_id"]
+            # )
             
                 # for employee in employees:
                 #     if employee.user_id:
@@ -1084,15 +1084,15 @@ def send_approval_mail_accounts_team(doc, method=None):
                 #                 except Exception as row_error:
                 #                     continue
 
-            for emp in employees:
-                if emp.get("user_id") and emp["user_id"] not in recipient_emails:
-                    recipient_emails.append(emp["user_id"])
+            # for emp in employees:
+            #     if emp.get("user_id") and emp["user_id"] not in recipient_emails:
+            #         recipient_emails.append(emp["user_id"])
 
             # Check if we found any recipients
             if not recipient_emails:
                 return {
                     "status": "error",
-                    "message": "No employees found with designation 'Accounts Team' in the specified company."
+                    "message": "No User ID present in Registered_by field ."
                 }
             conf = frappe.conf
             http_server = conf.get("frontend_http")
@@ -1150,34 +1150,34 @@ def send_approval_mail_accounts_head(doc, method=None):
             
             recipient_emails = []
             
-            # company_name = doc.company_name
+            company_name = doc.company_name
             
-            # if company_name:
-            employees = frappe.get_all(
-                "Employee", 
-                filters={
-                    "designation": "Accounts Head"
-                }, 
-                fields=["name", "user_id"]
-            )
+            if company_name:
+                employees = frappe.get_all(
+                    "Employee", 
+                    filters={
+                        "designation": "Accounts Head"
+                    }, 
+                    fields=["name", "user_id"]
+                )
                 
-                # for employee in employees:
-                #     if employee.user_id:
-                #         emp_doc = frappe.get_doc("Employee", employee.name)
+                for employee in employees:
+                    if employee.user_id:
+                        emp_doc = frappe.get_doc("Employee", employee.name)
                         
-                #         if hasattr(emp_doc, 'company') and emp_doc.company:
-                #             for company_row in emp_doc.company:
-                #                 try:
-                #                     if company_row.company_name == company_name:
-                #                         if employee.user_id not in recipient_emails:
-                #                             recipient_emails.append(employee.user_id)
-                #                         break  # Found match, no need to check other companies
-                #                 except Exception as row_error:
-                #                     continue
+                        if hasattr(emp_doc, 'company') and emp_doc.company:
+                            for company_row in emp_doc.company:
+                                try:
+                                    if company_row.company_name == company_name:
+                                        if employee.user_id not in recipient_emails:
+                                            recipient_emails.append(employee.user_id)
+                                        break  # Found match, no need to check other companies
+                                except Exception as row_error:
+                                    continue
             
-            for emp in employees:
-                if emp.get("user_id") and emp["user_id"] not in recipient_emails:
-                    recipient_emails.append(emp["user_id"])
+            # for emp in employees:
+            #     if emp.get("user_id") and emp["user_id"] not in recipient_emails:
+            #         recipient_emails.append(emp["user_id"])
 
             # Check if we found any recipients
             if not recipient_emails:
