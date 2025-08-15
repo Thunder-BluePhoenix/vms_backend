@@ -59,6 +59,8 @@ def create_vendor_onboarding_amendment(data):
         
         # Get the vendor onboarding document
         vendor_onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding_name)
+
+        prev_rej_reason = vendor_onboarding_doc.reason_for_rejection or None
         
         # Check permissions
         if not vendor_onboarding_doc.has_permission("write"):
@@ -81,6 +83,8 @@ def create_vendor_onboarding_amendment(data):
         amendment_row.datetime = now()
         amendment_row.amended_by = amended_by
         amendment_row.remarks = remarks
+        amendment_row.previous_rejected_reason = prev_rej_reason
+        amendment_row.amended_by_name = frappe.get_value("User", amended_by, "full_name")
         
         # Save the document
         vendor_onboarding_doc.save(ignore_permissions=True)
