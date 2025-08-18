@@ -126,3 +126,185 @@ def asa_dashboard(vendor_name=None, page_no=1, page_length=5):
             "message": "Failed to fetch ASA dashboard data."
         }
     
+
+@frappe.whitelist(allow_guest=False)
+def approved_vendor_count():
+    try:
+        # Get all Vendor Onboarding docs with status = Approved
+        vendor_master = frappe.get_all(
+            "Vendor Onboarding",
+            filters={"onboarding_form_status": "Approved"},
+            pluck="ref_no"   # fetch only ref_no values
+        )
+
+        # Count matching records in Vendor Master
+        approved_vendor = frappe.db.count(
+            "Vendor Master",
+            {"name": ["in", vendor_master]}
+        )
+
+        return {
+            "status": "success",
+            "approved_vendor_count": approved_vendor
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Approved Vendor Count Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+# no of pending asa
+@frappe.whitelist(allow_guest=False)
+def pending_asa_count():
+    try:
+        # Get all Approved Vendor Onboarding ref_nos
+        vendor_onboarding = frappe.get_all(
+            "Vendor Onboarding",
+            filters={"onboarding_form_status": "Approved"},
+            pluck="ref_no"
+        )
+
+        if not vendor_onboarding:
+            return {
+                "status": "success",
+                "pending_asa_count": 0
+            }
+
+        # Get all Vendor Master docs with matching ref_nos
+        vendor_masters = frappe.get_all(
+            "Vendor Master",
+            filters={"name": ["in", vendor_onboarding]},
+            pluck="name"
+        )
+
+        pending_count = 0
+
+        # Loop through vendor masters and check child table
+        for vm in vendor_masters:
+            child_records = frappe.get_all(
+                "Assessment Form Records",
+                filters={"parent": vm},
+                limit=1
+            )
+            if not child_records:  # No assessment form records
+                pending_count += 1
+
+        return {
+            "status": "success",
+            "pending_asa_count": pending_count
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Pending ASA Count Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+@frappe.whitelist(allow_guest=False)
+def pending_asa_vendor_list():
+    try:
+        # Get all Approved Vendor Onboarding ref_nos
+        vendor_onboarding = frappe.get_all(
+            "Vendor Onboarding",
+            filters={"onboarding_form_status": "Approved"},
+            pluck="ref_no"
+        )
+
+        if not vendor_onboarding:
+            return {
+                "status": "success",
+                "pending_asa_count": 0,
+                "pending_asa_vendors": []
+            }
+
+        pending_vendors = []
+
+        # Loop through Vendor Masters with matching ref_no
+        vendor_masters = frappe.get_all(
+            "Vendor Master",
+            filters={"name": ["in", vendor_onboarding]},
+            fields=["name", "vendor_name", "office_email_primary", "country", "mobile_number", "registered_date"]
+        )
+
+        for vm in vendor_masters:
+            # Check if child table has any records
+            has_child = frappe.get_all(
+                "Assessment Form Records",
+                filters={"parent": vm.name},
+                limit=1
+            )
+            if not has_child:
+                # Append only those vendors with NO child records
+                pending_vendors.append(vm)
+
+        return {
+            "status": "success",
+            "pending_asa_count": len(pending_vendors),
+            "pending_asa_vendors": pending_vendors
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Pending ASA Count Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+@frappe.whitelist(allow_guest=False)
+def send_asa_reminder_email(name):
+    try:
+        if not name:
+            frappe.local.response["http_status_code"] = 404
+            return {
+                "status": "error",
+                "message": "Email not found"
+            }
+
+        vendor_master = frappe.get_doc("Vendor Master", name)
+        recipient = vendor_master.office_email_primary or vendor_master.office_email_secondary
+
+        if not recipient:
+            frappe.local.response["http_status_code"] = 404
+            return {
+                "status": "error",
+                "message": "No recipient email found"
+            }
+        
+        subject = "Reminder: Please Fill the Annual Supplier Assessment (ASA) Questionnaire"
+        message = f"""
+        Dear {vendor_master.vendor_name},
+
+        As your onboarding process has been completed, you are kindly requested to fill the
+        Annual Supplier Assessment (ASA) Questionnaire, which is an essential part of the
+        vendor onboarding compliance.
+
+        We request you to complete the form at the earliest.
+
+        Regards,  
+        Vendor Management Team
+        """
+
+        frappe.sendmail(
+            recipients=[recipient],
+            subject=subject,
+            message=message,
+            now=True
+        )
+
+        return {
+            "status": "success",
+            "message": f"Reminder email sent successfully to {recipient}"
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "ASA Reminder Email Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
