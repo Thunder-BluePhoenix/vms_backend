@@ -656,6 +656,94 @@ def create_or_update_quotation_non_onboarded():
                     frappe.log_error(f"Error processing item {i+1}: {str(item_error)[:80]}", "Item Error")
                     continue
 
+        def process_service_vendor_items(quotation, rfq_item_list, child_table_name):
+          
+            if not rfq_item_list or not child_table_name:
+                return
+            
+            quotation.set(child_table_name, [])
+            
+            for i, item in enumerate(rfq_item_list):
+                try:
+                    
+                    head_fields = {
+                        "head_unique_field": item.get("head_unique_field"),
+                        "requisition_no": item.get("requisition_no"),
+                        "material_code_head": item.get("material_code_head"),
+                        "material_name_head": item.get("material_name_head"),
+                        "quantity_head": item.get("quantity_head"),
+                        "uom_head": item.get("uom_head"),
+                        "price_head": item.get("price_head"),
+                        "delivery_date_head": item.get("delivery_date_head"),
+                        "plant_head": item.get("plant_head"),
+                        "rate_with_tax": item.get("rate_with_tax"),
+                        "rate_without_tax": item.get("rate_without_tax"),
+                        "moq_head": item.get("moq_head"),
+                        "lead_time_head": item.get("lead_time_head"),
+                        "tax": item.get("tax"),
+                        "remarks": item.get("remarks") or ""
+                    }
+
+                    
+                    numeric_fields = ['quantity_head', 'price_head', 'rate_with_tax', 'rate_without_tax', 'moq_head', 'lead_time_head', 'tax']
+                    for field in numeric_fields:
+                        if field in head_fields and head_fields[field] is not None:
+                            try:
+                                head_fields[field] = float(head_fields[field]) if head_fields[field] != '' else 0
+                            except (ValueError, TypeError):
+                                head_fields[field] = 0
+
+                    subheads = item.get("subhead_fields", [])
+
+                    if subheads:
+                        
+                        for sub in subheads:
+                            quotation_item = quotation.append(child_table_name, {
+                                **head_fields,
+                                "is_subhead": 1,
+                                "subhead_unique_field": sub.get("subhead_unique_field"),
+                                "material_code_subhead": sub.get("material_code_subhead"),
+                                "material_name_subhead": sub.get("material_name_subhead"),
+                                "quantity_subhead": sub.get("quantity_subhead", 0),
+                                "uom_subhead": sub.get("uom_subhead"),
+                                "price_subhead": sub.get("price_subhead", 0),
+                                "delivery_date_subhead": sub.get("delivery_date_subhead")
+                            })
+
+                        
+                            subhead_numeric_fields = ['quantity_subhead', 'price_subhead']
+                            for field in subhead_numeric_fields:
+                                if hasattr(quotation_item, field) and getattr(quotation_item, field) is not None:
+                                    try:
+                                        value = getattr(quotation_item, field)
+                                        setattr(quotation_item, field, float(value) if value != '' else 0)
+                                    except (ValueError, TypeError):
+                                        setattr(quotation_item, field, 0)
+
+                            if hasattr(quotation_item, 'rfq_type'):
+                                quotation_item.rfq_type = data.get('rfq_type', '')
+                    else:
+                        quotation_item = quotation.append(child_table_name, {
+                            **head_fields,
+                            "is_subhead": 0,
+                            "subhead_unique_field": "",
+                            "material_code_subhead": "",
+                            "material_name_subhead": "",
+                            "quantity_subhead": 0,
+                            "uom_subhead": "",
+                            "price_subhead": 0,
+                            "delivery_date_subhead": ""
+                        })
+
+                        if hasattr(quotation_item, 'rfq_type'):
+                            quotation_item.rfq_type = data.get('rfq_type', '')
+                        
+                except Exception as item_error:
+                    frappe.log_error(f"Error processing service vendor item {i+1}: {str(item_error)[:80]}", "Service Item Error")
+                    continue
+
+        
+        
         data = apply_field_mapping_logic(data)
         data = apply_rfq_logistic_logic(data)
         rfq_item_list = data.pop('rfq_item_list', [])
@@ -684,9 +772,14 @@ def create_or_update_quotation_non_onboarded():
                 if hasattr(quotation, key) and key != 'name':
                     setattr(quotation, key, value)
 
-         
-            if data.get('rfq_type', '').lower() == 'material vendor' and rfq_item_list and child_table_name:
-                process_material_vendor_items(quotation, rfq_item_list, child_table_name)
+            if rfq_item_list and child_table_name:
+                current_rfq_type = data.get('rfq_type', '').lower()
+                if current_rfq_type == 'material vendor':
+                    process_material_vendor_items(quotation, rfq_item_list, child_table_name)
+                elif current_rfq_type == 'service vendor':
+                    process_service_vendor_items(quotation, rfq_item_list, child_table_name)
+            # if data.get('rfq_type', '').lower() == 'material vendor' and rfq_item_list and child_table_name:
+            #     process_material_vendor_items(quotation, rfq_item_list, child_table_name)
 
             quotation.asked_to_revise = 0
             quotation.flags.ignore_version = True
@@ -730,8 +823,14 @@ def create_or_update_quotation_non_onboarded():
             quotation.flags.ignore_version = True
             quotation.flags.ignore_links = True
             
-            if data.get('rfq_type', '').lower() == 'material vendor' and rfq_item_list and child_table_name:
-                process_material_vendor_items(quotation, rfq_item_list, child_table_name)
+            # if data.get('rfq_type', '').lower() == 'material vendor' and rfq_item_list and child_table_name:
+            #     process_material_vendor_items(quotation, rfq_item_list, child_table_name)
+            if rfq_item_list and child_table_name:
+                current_rfq_type = data.get('rfq_type', '').lower()
+                if current_rfq_type == 'material vendor':
+                    process_material_vendor_items(quotation, rfq_item_list, child_table_name)
+                elif current_rfq_type == 'service vendor':
+                    process_service_vendor_items(quotation, rfq_item_list, child_table_name)
 
           
             
