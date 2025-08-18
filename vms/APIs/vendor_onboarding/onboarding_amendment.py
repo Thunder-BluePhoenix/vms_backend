@@ -207,13 +207,16 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
         
         # Create amendment review link with parameters
         from urllib.parse import urlencode
+
         query_params = urlencode({
+            "tabtype": "Company Detail",   # space will be encoded as %20
+            "refno": onboarding_doc.ref_no,
             "vendor_onboarding": onboarding_doc.name,
-            "ref_no": onboarding_doc.ref_no,
             "action": "amendment_review"
         })
-        
-        amendment_review_link = f"{http_server}/vendor-form?{query_params}"
+
+        amendment_review_link = f"{http_server}/vendor-details-form?{query_params}"
+
         
         # Create QMS section if QMS is required
         qms_section = ""
