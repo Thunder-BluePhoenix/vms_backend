@@ -157,5 +157,71 @@
     "role": "Accounts Team"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-08-18 11:09:13.404874",
+  "name": "QA Head",
+  "role_profile": "QA Head",
+  "roles": [
+   {
+    "parent": "QA Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "QA Head"
+   },
+   {
+    "parent": "QA Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "System Manager"
+   },
+   {
+    "parent": "QA Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "ASA"
+   },
+   {
+    "parent": "QA Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Dashboard Manager"
+   },
+   {
+    "parent": "QA Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Enquirer"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-08-18 11:09:39.775890",
+  "name": "QA Team",
+  "role_profile": "QA Team",
+  "roles": [
+   {
+    "parent": "QA Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "ASA"
+   },
+   {
+    "parent": "QA Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Enquirer"
+   },
+   {
+    "parent": "QA Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "QA Team"
+   }
+  ]
  }
 ]

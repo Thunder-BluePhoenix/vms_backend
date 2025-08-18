@@ -69,7 +69,7 @@ app_include_js = [
 fixtures = [
     # {"dt": "SAP Mapper PR"},
     {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab", "Super Head", "Accounts Head", "ASA"]]}},
-    {"dt": "Role Profile", "filters": {"name" :["in", ["Accounts Head", "Super Head", "Accounts Team", "Enquirer", "Purchase Head", "Purchase Team", "Vendor"]]}},
+    {"dt": "Role Profile", "filters": {"name" :["in", ["Accounts Head", "Super Head", "Accounts Team", "Enquirer", "Purchase Head", "Purchase Team", "Vendor", "QA Team", "QA Head"]]}},
     {"dt": "Module Profile", "filters": {"name": ["in", ["Vendor"]]}},
     {"dt": "QMS Quality Control System"},
     {"dt": "QMS Procedure Doc Name"},
