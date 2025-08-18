@@ -189,6 +189,7 @@ def accounts_team_check(data):
             onb_doc.rejected_by_designation = "Rejected By Accounts Team"
             onb_doc.accounts_t_approval = user
             onb_doc.reason_for_rejection = rejection_reason
+            onb_doc.is_amendment = 0
             message = _("Onboarding rejected by Accounts Team.")
         else:
             frappe.throw(_("Invalid request: either approve or reject must be set."))
