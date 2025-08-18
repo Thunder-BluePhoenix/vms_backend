@@ -239,6 +239,7 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
             qms_query_params = urlencode({
                 "vendor_onboarding": onboarding_doc.name,
                 "ref_no": onboarding_doc.ref_no,
+                # "mobile_number": vendor_master.mobile_number,
                 "company_code": ",".join(qms_company_code)
             })
             
