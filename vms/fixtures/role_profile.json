@@ -2,6 +2,51 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2025-08-14 23:15:56.624226",
+  "name": "Accounts Head",
+  "role_profile": "Accounts Head",
+  "roles": [
+   {
+    "parent": "Accounts Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Accounts Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Accounts Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Chatnext AI User"
+   },
+   {
+    "parent": "Accounts Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Dashboard Manager"
+   },
+   {
+    "parent": "Accounts Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Accounts Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts Head"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "modified": "2025-07-18 15:05:47.012403",
   "name": "Purchase Team",
   "role_profile": "Purchase Team",
@@ -62,7 +107,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-08-16 00:30:05.581648",
+  "modified": "2025-08-16 23:52:46.749288",
   "name": "Super Head",
   "role_profile": "Super Head",
   "roles": [
@@ -71,6 +116,30 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Super Head"
+   },
+   {
+    "parent": "Super Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Super Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Chatnext AI User"
+   },
+   {
+    "parent": "Super Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Dashboard Manager"
+   },
+   {
+    "parent": "Super Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Website Manager"
    }
   ]
  },
