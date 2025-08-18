@@ -565,6 +565,23 @@ def get_quotations_by_rfq(rfq_number, page_no=1, page_length=5, vendor_name=None
                     formatted_attachments.append(attachment_data)
 
                 # Fetch quotation's item list
+                # rfq_item_lists = frappe.get_all(
+                #     "RFQ Items",
+                #     filters={
+                #         "parent": quotation.get('name'),
+                #         "parenttype": "Quotation"
+                #     },
+                #     fields=[
+                #        "name", "head_unique_field", "purchase_requisition_number", "material_code_head", "delivery_date_head", "material_name_head",
+                #        "quantity_head", "uom_head", "price_head", "rate_with_tax", "rate_without_tax", "moq_head", "lead_time_head", "tax",
+                #        "remarks"
+                #     ]
+                # )
+
+                # pr_items = []
+                # for item in rfq_item_lists:
+                #     pr_items.append(item)
+
                 rfq_item_lists = frappe.get_all(
                     "RFQ Items",
                     filters={
@@ -572,15 +589,55 @@ def get_quotations_by_rfq(rfq_number, page_no=1, page_length=5, vendor_name=None
                         "parenttype": "Quotation"
                     },
                     fields=[
-                       "name", "head_unique_field", "purchase_requisition_number", "material_code_head", "delivery_date_head", "material_name_head",
-                       "quantity_head", "uom_head", "price_head", "rate_with_tax", "rate_without_tax", "moq_head", "lead_time_head", "tax",
-                       "remarks"
+                    "name", "head_unique_field", "purchase_requisition_number", "material_code_head", "delivery_date_head", "material_name_head",
+                    "quantity_head", "uom_head", "price_head", "rate_with_tax", "rate_without_tax", "moq_head", "lead_time_head", "tax",
+                    "remarks",
+                    # subhead fields
+                    "subhead_unique_field", "material_code_subhead", "material_name_subhead",
+                    "quantity_subhead", "uom_subhead", "price_subhead", "delivery_date_subhead", "rate_subhead"
                     ]
                 )
 
-                pr_items = []
-                for item in rfq_item_lists:
-                    pr_items.append(item)
+                grouped_data = {}
+
+                for row in sorted(rfq_item_lists, key=lambda x: x.name):
+                    head_id = row.head_unique_field
+                    if not head_id:
+                        continue
+
+                    if head_id not in grouped_data:
+                        grouped_data[head_id] = {
+                            "row_id": row.name,
+                            "head_unique_field": row.head_unique_field,
+                            "purchase_requisition_number": row.purchase_requisition_number,
+                            "material_code_head": row.material_code_head,
+                            "delivery_date_head": row.delivery_date_head,
+                            "material_name_head": row.material_name_head,
+                            "quantity_head": row.quantity_head,
+                            "uom_head": row.uom_head,
+                            "price_head": row.price_head,
+                            "rate_with_tax": row.rate_with_tax,
+                            "rate_without_tax": row.rate_without_tax,
+                            "moq_head": row.moq_head,
+                            "lead_time_head": row.lead_time_head,
+                            "tax": row.tax,
+                            "remarks": row.remarks,
+                            "subhead_fields": []
+                        }
+
+                    subhead_data = {
+                        "subhead_unique_field": row.subhead_unique_field,
+                        "material_code_subhead": row.material_code_subhead,
+                        "material_name_subhead": row.material_name_subhead,
+                        "quantity_subhead": row.quantity_subhead,
+                        "uom_subhead": row.uom_subhead,
+                        "price_subhead": row.price_subhead,
+                        "delivery_date_subhead": row.delivery_date_subhead
+                    }
+
+                    grouped_data[head_id]["subhead_fields"].append(subhead_data)
+
+                pr_items = list(grouped_data.values())
 
                 formatted_quotation = {
                     "name": quotation.get('name'),
