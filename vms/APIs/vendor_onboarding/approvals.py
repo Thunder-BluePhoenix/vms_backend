@@ -59,64 +59,64 @@ def purchase_team_check(data):
         is_rejected = int(data.get("reject"))
         rejection_reason = data.get("rejected_reason")
         comments = data.get("comments")
-        reconciliation_account = data.get("reconciliation_account") or ""
+        # reconciliation_account = data.get("reconciliation_account") or ""
 
         if is_approved and is_rejected:
             frappe.throw(_("Cannot approve and reject at the same time."))
 
         # Fetch onboarding document
         onb_doc = frappe.get_doc("Vendor Onboarding", onboard_id)
-        if onb_doc.register_by_account_team == 0:
-            if is_approved:
-                onb_doc.purchase_t_approval = user
-                onb_doc.purchase_team_undertaking = 1
-                onb_doc.purchase_team_approval_remarks = comments
-                message = _("Onboarding approved by Purchase Team.")
-            elif is_rejected:
-                if not rejection_reason:
-                    frappe.throw(_("Rejection reason is required."))
-                onb_doc.rejected = 1
-                onb_doc.rejected_by = user
-                onb_doc.rejected_by_designation = "Rejected By Purchase Team"
-                onb_doc.purchase_t_approval = user
-                onb_doc.reason_for_rejection = rejection_reason
-                message = _("Onboarding rejected by Purchase Team.")
-            else:
-                frappe.throw(_("Invalid request: either approve or reject must be set."))
+        # if onb_doc.register_by_account_team == 0:
+        if is_approved:
+            onb_doc.purchase_t_approval = user
+            onb_doc.purchase_team_undertaking = 1
+            onb_doc.purchase_team_approval_remarks = comments
+            message = _("Onboarding approved by Purchase Team.")
+        elif is_rejected:
+            if not rejection_reason:
+                frappe.throw(_("Rejection reason is required."))
+            onb_doc.rejected = 1
+            onb_doc.rejected_by = user
+            onb_doc.rejected_by_designation = "Rejected By Purchase Team"
+            onb_doc.purchase_t_approval = user
+            onb_doc.reason_for_rejection = rejection_reason
+            message = _("Onboarding rejected by Purchase Team.")
+        else:
+            frappe.throw(_("Invalid request: either approve or reject must be set."))
 
-            if onb_doc.payment_detail:
-                payment_detail = frappe.get_doc("Vendor Onboarding Payment Details", onb_doc.payment_detail)
+        if onb_doc.payment_detail:
+            payment_detail = frappe.get_doc("Vendor Onboarding Payment Details", onb_doc.payment_detail)
 
-                if "bank_proof_by_purchase_team" in frappe.request.files:
-                    file = frappe.request.files["bank_proof_by_purchase_team"]
-                    saved = save_file(file.filename, file.stream.read(), payment_detail.doctype, payment_detail.name, is_private=0)
-                    payment_detail.bank_proof_by_purchase_team = saved.file_url
-                    payment_detail.save(ignore_permissions=True)
+            if "bank_proof_by_purchase_team" in frappe.request.files:
+                file = frappe.request.files["bank_proof_by_purchase_team"]
+                saved = save_file(file.filename, file.stream.read(), payment_detail.doctype, payment_detail.name, is_private=0)
+                payment_detail.bank_proof_by_purchase_team = saved.file_url
+                payment_detail.save(ignore_permissions=True)
 
-            onb_doc.save(ignore_permissions=True)
-            frappe.db.commit()
+        onb_doc.save(ignore_permissions=True)
+        frappe.db.commit()
 
-        elif onb_doc.register_by_account_team == 1:
-            if is_approved:
-                onb_doc.accounts_t_approval = user
-                onb_doc.accounts_team_undertaking = 1
-                onb_doc.accounts_team_approval_remarks = comments
-                onb_doc.reconciliation_account = reconciliation_account
-                message = _("Onboarding approved by Accounts Team.")
-            elif is_rejected:
-                if not rejection_reason:
-                    frappe.throw(_("Rejection reason is required."))
-                onb_doc.rejected = 1
-                onb_doc.rejected_by = user
-                onb_doc.rejected_by_designation = "Rejected By Accounts Team"
-                onb_doc.accounts_t_approval = user
-                onb_doc.reason_for_rejection = rejection_reason
-                message = _("Onboarding rejected by Accounts Team.")
-            else:
-                frappe.throw(_("Invalid request: either approve or reject must be set."))
+        # elif onb_doc.register_by_account_team == 1:
+        #     if is_approved:
+        #         onb_doc.accounts_t_approval = user
+        #         onb_doc.accounts_team_undertaking = 1
+        #         onb_doc.accounts_team_approval_remarks = comments
+        #         onb_doc.reconciliation_account = reconciliation_account
+        #         message = _("Onboarding approved by Accounts Team.")
+        #     elif is_rejected:
+        #         if not rejection_reason:
+        #             frappe.throw(_("Rejection reason is required."))
+        #         onb_doc.rejected = 1
+        #         onb_doc.rejected_by = user
+        #         onb_doc.rejected_by_designation = "Rejected By Accounts Team"
+        #         onb_doc.accounts_t_approval = user
+        #         onb_doc.reason_for_rejection = rejection_reason
+        #         message = _("Onboarding rejected by Accounts Team.")
+        #     else:
+        #         frappe.throw(_("Invalid request: either approve or reject must be set."))
 
-            onb_doc.save(ignore_permissions=True)
-            frappe.db.commit()
+        #     onb_doc.save(ignore_permissions=True)
+        #     frappe.db.commit()
 
         return {
             "success": True,
@@ -245,7 +245,7 @@ def purchase_head_check(data):
         is_rejected = int(data.get("reject"))
         rejection_reason = data.get("rejected_reason")
         comments = data.get("comments")
-        reconciliation_account = data.get("reconciliation_account") or ""
+        # reconciliation_account = data.get("reconciliation_account") or ""
 
         if is_approved and is_rejected:
             frappe.throw(_("Cannot approve and reject at the same time."))
@@ -253,48 +253,48 @@ def purchase_head_check(data):
         # Fetch onboarding document
         onb_doc = frappe.get_doc("Vendor Onboarding", onboard_id)
 
-        if onb_doc.register_by_account_team == 0:
-            if is_approved:
-                onb_doc.purchase_h_approval = user
-                onb_doc.purchase_head_undertaking = 1
-                onb_doc.purchase_head_approval_remarks = comments
-                message = _("Onboarding approved by Purchase Head.")
-            elif is_rejected:
-                if not rejection_reason:
-                    frappe.throw(_("Rejection reason is required."))
-                onb_doc.rejected = 1
-                onb_doc.rejected_by = user
-                onb_doc.rejected_by_designation = "Rejected By Purchase Head"
-                onb_doc.purchase_h_approval = user
-                onb_doc.reason_for_rejection = rejection_reason
-                message = _("Onboarding rejected by Purchase Head.")
-            else:
-                frappe.throw(_("Invalid request: either approve or reject must be set."))
+        # if onb_doc.register_by_account_team == 0:
+        if is_approved:
+            onb_doc.purchase_h_approval = user
+            onb_doc.purchase_head_undertaking = 1
+            onb_doc.purchase_head_approval_remarks = comments
+            message = _("Onboarding approved by Purchase Head.")
+        elif is_rejected:
+            if not rejection_reason:
+                frappe.throw(_("Rejection reason is required."))
+            onb_doc.rejected = 1
+            onb_doc.rejected_by = user
+            onb_doc.rejected_by_designation = "Rejected By Purchase Head"
+            onb_doc.purchase_h_approval = user
+            onb_doc.reason_for_rejection = rejection_reason
+            message = _("Onboarding rejected by Purchase Head.")
+        else:
+            frappe.throw(_("Invalid request: either approve or reject must be set."))
 
-            onb_doc.save(ignore_permissions=True)
-            frappe.db.commit()
+        onb_doc.save(ignore_permissions=True)
+        frappe.db.commit()
 
-        elif onb_doc.register_by_account_team == 1:
-            if is_approved:
-                onb_doc.accounts_head_approval = user
-                onb_doc.accounts_head_undertaking = 1
-                onb_doc.accounts_head_approval_remarks = comments
-                onb_doc.reconciliation_account = reconciliation_account
-                message = _("Onboarding approved by Accounts Team.")
-            elif is_rejected:
-                if not rejection_reason:
-                    frappe.throw(_("Rejection reason is required."))
-                onb_doc.rejected = 1
-                onb_doc.rejected_by = user
-                onb_doc.rejected_by_designation = "Rejected By Accounts Head"
-                onb_doc.accounts_head_approval = user
-                onb_doc.reason_for_rejection = rejection_reason
-                message = _("Onboarding rejected by Accounts Head.")
-            else:
-                frappe.throw(_("Invalid request: either approve or reject must be set."))
+        # elif onb_doc.register_by_account_team == 1:
+        #     if is_approved:
+        #         onb_doc.accounts_head_approval = user
+        #         onb_doc.accounts_head_undertaking = 1
+        #         onb_doc.accounts_head_approval_remarks = comments
+        #         onb_doc.reconciliation_account = reconciliation_account
+        #         message = _("Onboarding approved by Accounts Team.")
+        #     elif is_rejected:
+        #         if not rejection_reason:
+        #             frappe.throw(_("Rejection reason is required."))
+        #         onb_doc.rejected = 1
+        #         onb_doc.rejected_by = user
+        #         onb_doc.rejected_by_designation = "Rejected By Accounts Head"
+        #         onb_doc.accounts_head_approval = user
+        #         onb_doc.reason_for_rejection = rejection_reason
+        #         message = _("Onboarding rejected by Accounts Head.")
+        #     else:
+        #         frappe.throw(_("Invalid request: either approve or reject must be set."))
 
-            onb_doc.save(ignore_permissions=True)
-            frappe.db.commit()
+        #     onb_doc.save(ignore_permissions=True)
+        #     frappe.db.commit()
 
         return {
             "success": True,
@@ -387,68 +387,68 @@ def purchase_head_check(data):
 #         return {
 #             "success": False,
 #             "message": _("An unexpected error occurred. Please try again later.")
-#         }
+#   }
     
 
 
-# @frappe.whitelist(allow_guest=True)
-# def accounts_head_approval(data):
-#     try:
-#         if isinstance(data, str):
-#             data = json.loads(data)
+@frappe.whitelist(allow_guest=True)
+def accounts_head_check(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
 
-#         onboard_id = data.get("onboard_id")
-#         user = data.get("user")
-#         is_approved = int(data.get("approve")) 
-#         is_rejected = int(data.get("reject"))
-#         rejection_reason = data.get("rejected_reason")
-#         comments = data.get("comments")
-#         reconciliation_account = data.get("reconciliation_account")
+        onboard_id = data.get("onboard_id")
+        user = data.get("user")
+        is_approved = int(data.get("approve")) 
+        is_rejected = int(data.get("reject"))
+        rejection_reason = data.get("rejected_reason")
+        comments = data.get("comments")
+        reconciliation_account = data.get("reconciliation_account")
         
-#         if is_approved and is_rejected:
-#             frappe.throw(_("Cannot approve and reject at the same time."))
+        if is_approved and is_rejected:
+            frappe.throw(_("Cannot approve and reject at the same time."))
 
-#         # Fetch onboarding document
-#         onb_doc = frappe.get_doc("Vendor Onboarding", onboard_id)
+        # Fetch onboarding document
+        onb_doc = frappe.get_doc("Vendor Onboarding", onboard_id)
 
-#         if is_approved:
-#             onb_doc.accounts_head_approval = user
-#             onb_doc.accounts_head_undertaking = 1
-#             onb_doc.accounts_head_approval_remarks = comments
-#             onb_doc.reconciliation_account = reconciliation_account
-#             message = _("Onboarding approved by Accounts Team.")
-#         elif is_rejected:
-#             if not rejection_reason:
-#                 frappe.throw(_("Rejection reason is required."))
-#             onb_doc.rejected = 1
-#             onb_doc.rejected_by = user
-#             onb_doc.rejected_by_designation = "Rejected By Accounts Head"
-#             onb_doc.accounts_head_approval = user
-#             onb_doc.reason_for_rejection = rejection_reason
-#             message = _("Onboarding rejected by Accounts Head.")
-#         else:
-#             frappe.throw(_("Invalid request: either approve or reject must be set."))
+        if is_approved:
+            onb_doc.accounts_head_approval = user
+            onb_doc.accounts_head_undertaking = 1
+            onb_doc.accounts_head_approval_remarks = comments
+            onb_doc.reconciliation_account = reconciliation_account
+            message = _("Onboarding approved by Accounts Team.")
+        elif is_rejected:
+            if not rejection_reason:
+                frappe.throw(_("Rejection reason is required."))
+            onb_doc.rejected = 1
+            onb_doc.rejected_by = user
+            onb_doc.rejected_by_designation = "Rejected By Accounts Head"
+            onb_doc.accounts_head_approval = user
+            onb_doc.reason_for_rejection = rejection_reason
+            message = _("Onboarding rejected by Accounts Head.")
+        else:
+            frappe.throw(_("Invalid request: either approve or reject must be set."))
 
-#         onb_doc.save(ignore_permissions=True)
-#         frappe.db.commit()
+        onb_doc.save(ignore_permissions=True)
+        frappe.db.commit()
 
-#         return {
-#             "success": True,
-#             "message": message,
-#             "onboarding_id": onboard_id
-#         }
+        return {
+            "success": True,
+            "message": message,
+            "onboarding_id": onboard_id
+        }
 
-#     except frappe.ValidationError as ve:
-#         frappe.local.response["http_status_code"] = 400
-#         return {
-#             "success": False,
-#             "message": str(ve)
-#         }
+    except frappe.ValidationError as ve:
+        frappe.local.response["http_status_code"] = 400
+        return {
+            "success": False,
+            "message": str(ve)
+        }
 
-#     except Exception as e:
-#         frappe.log_error(frappe.get_traceback(), "Purchase Accounts Approval Error")
-#         frappe.local.response["http_status_code"] = 500
-#         return {
-#             "success": False,
-#             "message": _("An unexpected error occurred. Please try again later.")
-#         }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Purchase Accounts Approval Error")
+        frappe.local.response["http_status_code"] = 500
+        return {
+            "success": False,
+            "message": _("An unexpected error occurred. Please try again later.")
+        }
