@@ -78,8 +78,8 @@
   "current_approval_level",
   "next_approver",
   "column_break_yuew",
-  "approval_status",
   "workflow_state",
+  "approval_status",
   "section_break_ooxj",
   "approval_history"
  ],
@@ -488,7 +488,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-12 15:18:13.331194",
+ "modified": "2025-08-19 10:54:31.641620",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Earth Invoice",
