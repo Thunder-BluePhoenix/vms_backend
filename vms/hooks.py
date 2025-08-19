@@ -68,8 +68,8 @@ app_include_js = [
 # }
 fixtures = [
     # {"dt": "SAP Mapper PR"},
-    {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab"]]}},
-    {"dt": "Role Profile", "filters": {"name": ["in", ["Vendor"]]}},
+    {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab", "Super Head", "Accounts Head", "ASA", "IT Head","International Air Accounts","Domestic Air Accounts","Hotel Accounts","Bus Accounts","Railway Accounts"]]}},
+    {"dt": "Role Profile", "filters": {"name" :["in", ["Accounts Head", "Super Head", "Accounts Team", "Enquirer", "Purchase Head", "Purchase Team", "Vendor", "QA Team", "QA Head"]]}},
     {"dt": "Module Profile", "filters": {"name": ["in", ["Vendor"]]}},
     {"dt": "QMS Quality Control System"},
     {"dt": "QMS Procedure Doc Name"},
@@ -152,6 +152,10 @@ permission_query_conditions = {
     "Earth Invoice": "vms.APIs.import_api.premission_api.get_permission_query_conditions"
 }
 
+has_permission = {
+    "Earth Invoice": "vms.APIs.import_api.premission_api.has_permission"
+}
+
 
 doc_events = {
     "Vendor Master": {
@@ -162,11 +166,6 @@ doc_events = {
                          "before_save": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_vendor_onboarding_status"},
     "Purchase Requisition Form":{"on_update":"vms.APIs.sap.erp_to_sap_pr.onupdate_pr"},
     "Version":{"after_insert":"vms.overrides.versions.get_version_data_universal"},
-    "Earth Invoice": {
-        "has_permission": "vms.APIs.import_api.premission_api.has_permission",
-        "validate": "vms.APIs.approval_matrix.approval_matrix.set_approval_matrix",
-        
-    }
 }
 # doc_events = {
 # 	"*": {

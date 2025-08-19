@@ -90,7 +90,7 @@ from frappe.utils import today, get_first_day, get_last_day
 def dashboard_card(usr):
     try:
         
-        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "Accounts Head", "Super Head", "QA Team", "QA Head"}
         user_roles = frappe.get_roles(usr)
 
         if not any(role in allowed_roles for role in user_roles):
@@ -99,9 +99,10 @@ def dashboard_card(usr):
                 "message": "User does not have the required role.",
                 "vendor_master": []
             }
-
-        if "Accounts Team" in user_roles:
+        if "Accounts Team" in user_roles or "Accounts Head" in user_roles:
             return vendor_data_for_accounts(usr, user_roles)
+        elif "Super Head" in user_roles:
+            return vendor_data_for_super_head(usr, user_roles)
         else:
             return vendor_data_for_purchase(usr, user_roles)
 
@@ -132,6 +133,7 @@ def vendor_data_for_accounts(usr, user_roles):
         #     pluck="ref_no"
         # )
 
+
         values = {"company_list": company_list}
         total_vendor_count = frappe.db.sql("""
             SELECT COUNT(*) FROM (
@@ -148,6 +150,8 @@ def vendor_data_for_accounts(usr, user_roles):
         #     "Vendor Master",
         #     filters={"name": ["in", vendor_onboarding]}
         # )
+        
+        # counts for Purchase team flow
 
         approved_vendor_count = frappe.db.count(
             "Vendor Onboarding",
@@ -182,6 +186,14 @@ def vendor_data_for_accounts(usr, user_roles):
             }
         )
 
+        sap_error_vendor_count = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "SAP Error",
+                "company_name": ["in", company_list]
+            }
+        )
+
         current_month_vendor = frappe.db.count(
             "Vendor Onboarding",
             filters={
@@ -189,6 +201,67 @@ def vendor_data_for_accounts(usr, user_roles):
                 "company_name": ["in", company_list]
             }
         )
+
+        # counts for accounts team flow
+
+        vend_onb = frappe.get_all(
+            "Vendor Onboarding",
+            filters={"register_by_account_team": 1},  
+            pluck="name"
+        )
+
+        approved_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Approved",
+                "name": ["in", vend_onb]
+            }
+        )
+
+        pending_vendor_count_by_accounts_team = []
+        if "Accounts Head" in user_roles:
+            pending_vendor_count_by_accounts_team = frappe.db.count(
+                "Vendor Onboarding",
+                filters={
+                    "onboarding_form_status": "Pending",
+                    "name": ["in", vend_onb],
+                    "accounts_team_undertaking": 1, "mail_sent_to_account_head": 1
+                }
+            )
+        else:
+            pending_vendor_count_by_accounts_team = frappe.db.count(
+                "Vendor Onboarding",
+                filters={
+                    "onboarding_form_status": "Pending",
+                    "name": ["in", vend_onb]
+                }
+            )
+
+
+        rejected_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Rejected",
+                "name": ["in", vend_onb]
+            }
+        )
+
+        sap_error_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "SAP Error",
+                "name": ["in", vend_onb]
+            }
+        )
+
+        expired_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Expired",
+                "name": ["in", vend_onb]
+            }
+        )
+
 
         return {
             "status": "success",
@@ -200,7 +273,15 @@ def vendor_data_for_accounts(usr, user_roles):
             "approved_vendor_count": approved_vendor_count,
             "rejected_vendor_count": rejected_vendor_count,
             "expired_vendor_count": expired_vendor_count,
-            "current_month_vendor": current_month_vendor
+            "sap_error_vendor_count": sap_error_vendor_count,
+            "current_month_vendor": current_month_vendor,
+            
+            # for accounts team flow
+            "approved_vendor_count_by_accounts_team": approved_vendor_count_by_accounts_team,
+            "pending_vendor_count_by_accounts_team": pending_vendor_count_by_accounts_team,
+            "rejected_vendor_count_by_accounts_team": rejected_vendor_count_by_accounts_team,
+            "sap_error_vendor_count_by_accounts_team": sap_error_vendor_count_by_accounts_team,
+            "expired_vendor_count_by_accounts_team": expired_vendor_count_by_accounts_team
         }
 
     except Exception as e:
@@ -301,6 +382,11 @@ def vendor_data_for_purchase(usr, user_roles):
             filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Expired"}
         )
 
+        sap_error_vendor_count = frappe.db.count(
+            "Vendor Onboarding",
+            filters={"registered_by": ["in", user_ids], "onboarding_form_status": "SAP Error"}
+        )
+
         current_month_vendor = frappe.db.count(
             "Vendor Onboarding",
             filters={
@@ -360,6 +446,7 @@ def vendor_data_for_purchase(usr, user_roles):
             "approved_vendor_count": approved_vendor_count,
             "rejected_vendor_count": rejected_vendor_count,
             "expired_vendor_count": expired_vendor_count,
+            "sap_error_vendor_count": sap_error_vendor_count,
             "current_month_vendor": current_month_vendor,
             "po_count": po_count
         }
@@ -373,7 +460,132 @@ def vendor_data_for_purchase(usr, user_roles):
             "vendor_count": 0
         }
 
- 
+def vendor_data_for_super_head (usr, user_roles):
+    try:
+        # for Purchase team
+        vend_onb_by_pur_team = frappe.get_all(
+                "Vendor Onboarding",
+                filters={"register_by_account_team": 0},  
+                pluck="name"
+            )
+
+        approved_vendor_count_by_pur_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Approved",
+                "name": ["in", vend_onb_by_pur_team]
+            }
+        )
+
+        pending_vendor_count_by_pur_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Pending",
+                "name": ["in", vend_onb_by_pur_team]
+            }
+        )
+
+        rejected_vendor_count_by_pur_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Rejected",
+                "name": ["in", vend_onb_by_pur_team]
+            }
+        )
+
+        sap_error_vendor_count_by_pur_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "SAP Error",
+                "name": ["in", vend_onb_by_pur_team]
+            }
+        )
+
+        expired_vendor_count_by_pur_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Expired",
+                "name": ["in", vend_onb_by_pur_team]
+            }
+        )
+
+
+        # for accounts team flow
+        vend_onb_by_acc_team = frappe.get_all(
+                "Vendor Onboarding",
+                filters={"register_by_account_team": 1},  
+                pluck="name"
+            )
+
+        approved_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Approved",
+                "name": ["in", vend_onb_by_acc_team]
+            }
+        )
+
+        pending_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Pending",
+                "name": ["in", vend_onb_by_acc_team]
+            }
+        )
+
+        rejected_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Rejected",
+                "name": ["in", vend_onb_by_acc_team]
+            }
+        )
+
+        sap_error_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "SAP Error",
+                "name": ["in", vend_onb_by_acc_team]
+            }
+        )
+
+        expired_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Expired",
+                "name": ["in", vend_onb_by_acc_team]
+            }
+        )
+
+
+        return {
+            "status": "success",
+            "message": "Vendor Onboarding dashboard counts fetched successfully.",
+            "role": user_roles,
+            # for Purchase team
+            "pending_vendor_count_by_pur_team": pending_vendor_count_by_pur_team,
+            "approved_vendor_count_by_pur_team": approved_vendor_count_by_pur_team,
+            "rejected_vendor_count_by_pur_team": rejected_vendor_count_by_pur_team,
+            "expired_vendor_count_by_pur_team": expired_vendor_count_by_pur_team,
+            "sap_error_vendor_count_by_pur_team": sap_error_vendor_count_by_pur_team,
+            
+            # for accounts team
+            "approved_vendor_count_by_accounts_team": approved_vendor_count_by_accounts_team,
+            "pending_vendor_count_by_accounts_team": pending_vendor_count_by_accounts_team,
+            "rejected_vendor_count_by_accounts_team": rejected_vendor_count_by_accounts_team,
+            "sap_error_vendor_count_by_accounts_team": sap_error_vendor_count_by_accounts_team,
+            "expired_vendor_count_by_accounts_team": expired_vendor_count_by_accounts_team
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Dashboard Card API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch vendor onboarding dashboard data.",
+            "error": str(e),
+            "vendor_count": 0
+        }
+
     
 
 # get vendor onboarding vendor details based on status

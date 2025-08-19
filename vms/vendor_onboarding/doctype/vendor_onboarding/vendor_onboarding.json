@@ -36,6 +36,7 @@
   "rejected",
   "data_sent_to_sap",
   "expired",
+  "is_amendment",
   "purchase_t_approval",
   "accounts_t_approval",
   "purchase_h_approval",
@@ -584,12 +585,18 @@
    "label": "Amendment Details",
    "options": "Vendor Onboarding Amendment",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_amendment",
+   "fieldtype": "Check",
+   "label": "Is Amendment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-14 12:39:38.569544",
+ "modified": "2025-08-18 17:24:44.540394",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

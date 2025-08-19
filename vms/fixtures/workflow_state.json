@@ -3,46 +3,10 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-08-01 14:33:47.585085",
-  "name": "Approve By Travel Desk",
-  "style": "Success",
-  "workflow_state_name": "Approve By Travel Desk"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-08-01 14:31:40.756508",
-  "name": "Reject By Travel Desk",
-  "style": "Danger",
-  "workflow_state_name": "Reject By Travel Desk"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-08-01 14:31:56.228961",
-  "name": "Approve By Tyab Sir",
-  "style": "Success",
-  "workflow_state_name": "Approve By Tyab Sir"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-08-01 14:33:36.294575",
   "name": "Reject By Tyab Sir",
   "style": "Danger",
   "workflow_state_name": "Reject By Tyab Sir"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-08-01 14:32:29.563704",
-  "name": "Approve By Panjikar Sir",
-  "style": "Success",
-  "workflow_state_name": "Approve By Panjikar Sir"
  },
  {
   "docstatus": 0,
@@ -57,18 +21,54 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-08-14 10:01:32.860967",
-  "name": "Approve By Earth Upload",
+  "modified": "2025-08-14 10:02:09.415733",
+  "name": "Reject By Earth Upload",
   "style": "",
-  "workflow_state_name": "Approve By Earth Upload"
+  "workflow_state_name": "Reject By Earth Upload"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-08-14 10:02:09.415733",
-  "name": "Reject By Earth Upload",
+  "modified": "2025-08-01 14:31:40.756508",
+  "name": "Reject By Travel Desk",
+  "style": "Danger",
+  "workflow_state_name": "Reject By Travel Desk"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-08-01 14:33:47.585085",
+  "name": "Approve By Travel Desk",
+  "style": "Success",
+  "workflow_state_name": "Approve By Travel Desk"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-08-01 14:31:56.228961",
+  "name": "Approve By Tyab Sir",
+  "style": "Success",
+  "workflow_state_name": "Approve By Tyab Sir"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-08-01 14:32:29.563704",
+  "name": "Approve By Panjikar Sir",
+  "style": "Success",
+  "workflow_state_name": "Approve By Panjikar Sir"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-08-14 10:01:32.860967",
+  "name": "Approve By Earth Upload",
   "style": "",
-  "workflow_state_name": "Reject By Earth Upload"
+  "workflow_state_name": "Approve By Earth Upload"
  }
 ]
