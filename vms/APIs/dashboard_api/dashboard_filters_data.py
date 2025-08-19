@@ -3,7 +3,7 @@ from frappe.utils import today, get_first_day, get_last_day
 
 
 @frappe.whitelist(allow_guest=False)
-def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None):
+def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None, purchase_head_filter=False, accounts_team_filter=False):
     try:
         if usr is None:
             usr = frappe.session.user
@@ -98,6 +98,12 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
         if status:
             conditions.append("vo.onboarding_form_status = %(status)s")
             values["status"] = status
+
+        if purchase_head_filter:
+            conditions.append("vo.purchase_team_undertaking = 1")
+
+        if accounts_team_filter:
+            conditions.append("vo.purchase_head_undertaking = 1")
 
         filter_clause = " AND ".join(conditions)
 
@@ -273,9 +279,14 @@ def pending_vendor_details(page_no=None, page_length=None, company=None, refno=N
         if not usr:
             usr = frappe.session.user
 
+        user_roles = frappe.get_roles(usr)
+
         # Always set status to Pending for this API
         status = "Pending"
 
+        purchase_head_filter = "Purchase Head" in user_roles
+        accounts_team_filter = "Accounts Team" in user_roles or "Accounts Head" in user_roles
+    
         # Call reusable filter function
         result = filtering_total_vendor_details(
             page_no=page_no,
@@ -284,7 +295,9 @@ def pending_vendor_details(page_no=None, page_length=None, company=None, refno=N
             refno=refno,
             status=status,
             usr=usr,
-            vendor_name=vendor_name
+            vendor_name=vendor_name,
+            purchase_head_filter=purchase_head_filter,
+            accounts_team_filter=accounts_team_filter
         )
 
         if result.get("status") != "success":
@@ -828,7 +841,7 @@ def filtering_total_vendor_details_for_pending(page_no=None, page_length=None, c
 # ---------------------------- Accounts team and Accounts head dashboard -----------------------------
 
 @frappe.whitelist(allow_guest=False)
-def filtering_total_vendor_details_by_accounts(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None):
+def filtering_total_vendor_details_by_accounts(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None, accounts_head_filter=False):
     try:
         if usr is None:
             usr = frappe.session.user
@@ -899,6 +912,10 @@ def filtering_total_vendor_details_by_accounts(page_no=None, page_length=None, c
         if status:
             conditions.append("vo.onboarding_form_status = %(status)s")
             values["status"] = status
+
+        if accounts_head_filter:
+            conditions.append("vo.accounts_team_undertaking = 1")
+            conditions.append("vo.mail_sent_to_account_head = 1")
 
         filter_clause = " AND ".join(conditions)
 
@@ -1074,8 +1091,12 @@ def pending_vendor_details_by_accounts(page_no=None, page_length=None, company=N
         if not usr:
             usr = frappe.session.user
 
+        user_roles = frappe.get_roles(usr)
+
         # Always set status to Pending for this API
         status = "Pending"
+
+        accounts_head_filter = "Accounts Head" in user_roles
 
         # Call reusable filter function
         result = filtering_total_vendor_details_by_accounts(
@@ -1085,7 +1106,8 @@ def pending_vendor_details_by_accounts(page_no=None, page_length=None, company=N
             refno=refno,
             status=status,
             usr=usr,
-            vendor_name=vendor_name
+            vendor_name=vendor_name,
+            accounts_head_filter=accounts_head_filter
         )
 
         if result.get("status") != "success":
