@@ -880,7 +880,7 @@ def get_pr_w(page_no=None, page_length=None):
         user = frappe.session.user
         emp_team = frappe.get_value("Employee", {"user_id": user}, "team") 
         pur_grp = frappe.get_all("Purchase Group Master", {"team": emp_team}, "*")
-        print("dfgv@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@hbjk", pur_grp)
+        # print("dfgv@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@hbjk", pur_grp)
         
         # Set pagination parameters
         page_no = int(page_no) if page_no else 1
