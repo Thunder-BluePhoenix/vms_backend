@@ -1,245 +1,313 @@
+
 import frappe
 from frappe import _
 
-def get_permission_query_conditions(user=None):
-    if not user:
-        user = frappe.session.user
+class DynamicWorkflowPermissions:
+    
+    @staticmethod
+    def get_workflow_role_mapping(doctype="Earth Invoice"):
+
+        try:
+            workflows = frappe.get_all(
+                "Workflow",
+                filters={
+                    "document_type": doctype,
+                    "is_active": 1
+                },
+                fields=["name"]
+            )
+            
+            if not workflows:
+                return {}
+            
+            
+            all_transitions = []
+            for workflow in workflows:
+                transitions = frappe.get_all(
+                    "Workflow Transition",
+                    filters={"parent": workflow.name},
+                    fields=["state", "next_state", "allowed", "action"]
+                )
+                all_transitions.extend(transitions)
+            
+           
+            role_states_mapping = {}
+            
+            for transition in all_transitions:
+                role = transition.get("allowed")
+                current_state = transition.get("state")
+                next_state = transition.get("next_state")
+                
+                if not role:
+                    continue
+                
+              
+                if role not in role_states_mapping:
+                    role_states_mapping[role] = set()
+                
+                
+                if current_state:
+                    role_states_mapping[role].add(current_state)
+                
+                
+                if next_state:
+                    role_states_mapping[role].add(next_state)
+            
+            
+            for role in role_states_mapping:
+                role_states_mapping[role] = list(role_states_mapping[role])
+            
+            return role_states_mapping
+            
+        except Exception as e:
+            frappe.log_error(f"Error building dynamic workflow mapping: {str(e)}")
+            return {}
+
+def get_enhanced_role_workflow_states(doctype="Earth Invoice"):
+    
+    
+    dynamic_mapping = DynamicWorkflowPermissions.get_workflow_role_mapping(doctype)
     
   
-    if 'System Manager' in frappe.get_roles(user):
-        return None
-    
-    user_roles = frappe.get_roles(user)
-    
-    conditions = []
-    
-    if 'Earth' in user_roles:
-        # conditions.append(f"`tabEarth Invoice`.owner = '{user}'")
-        conditions.append("`tabEarth Invoice`.workflow_state = 'Pending'")
-    
-    approval_conditions = get_approval_matrix_conditions(user_roles)
-    if approval_conditions:
-        conditions.extend(approval_conditions)
-    
-    if conditions:
-        return f"({' OR '.join(conditions)})"
-    else:
-        return "`tabEarth Invoice`.name = 'NEVER_MATCH'"
-
-def get_approval_matrix_conditions(user_roles):
-   
-    conditions = []
-    
-
-    matrices = frappe.get_all("Approval Matrix", 
-        filters={"document_type": "Earth Invoice", "is_active": 1})
-    
-    for matrix_info in matrices:
-        matrix = frappe.get_doc("Approval Matrix", matrix_info.name)
-
-
-        for level in matrix.approval_levels:
-            if level.approver_type == "Role" and level.approver_value in user_roles:
-                level_conditions = [
-                    
-                ]
-
-                if level.status_when_approved:
-                    level_conditions.append(
-                        f"`tabEarth Invoice`.workflow_state = '{level.status_when_approved}'"
-                    )
-                if level.status_when_rejected:
-                    level_conditions.append(
-                        f"`tabEarth Invoice`.workflow_state = '{level.status_when_rejected}'"
-                    )
-                
-                previous_level = None
-                for check_level in matrix.approval_levels:
-                    if check_level.sequence == level.sequence - 1: 
-                        previous_level = check_level
-                        break
-                
-              
-                if previous_level:
-                    print(f"Current level: {level.sequence}, Previous level: {previous_level.sequence}")
-                    print(f"Status when approved: {previous_level.status_when_approved}, Status when rejected: {previous_level.status_when_rejected}")
-                    if previous_level.status_when_approved:
-                        level_conditions.append(
-                            f"`tabEarth Invoice`.workflow_state = '{previous_level.status_when_approved}'"
-                        )
-                    if previous_level.status_when_rejected:
-                        level_conditions.append(
-                            f"`tabEarth Invoice`.workflow_state = '{previous_level.status_when_rejected}'"
-                        )
-                
-                max_sequence = max(l.sequence for l in matrix.approval_levels)
-                if level.sequence == max_sequence:
-                    level_conditions.extend([
-                        "`tabEarth Invoice`.workflow_state = 'Approved'",
-                        "`tabEarth Invoice`.workflow_state = 'Rejected'"
-                    ])
-                
-                if level_conditions:
-                    conditions.append(f"({' OR '.join(level_conditions)})")
-            
-            elif level.approver_type == "User" and level.approver_value == frappe.session.user:
-                level_conditions = []
-
-                if level.status_when_approved:
-                    level_conditions.append(
-                        f"`tabEarth Invoice`.workflow_state = '{level.status_when_approved}'"
-                    )
-                if level.status_when_rejected:
-                    level_conditions.append(
-                        f"`tabEarth Invoice`.workflow_state = '{level.status_when_rejected}'"
-                    )
-                
-              
-                previous_level = None
-                for check_level in matrix.approval_levels:
-                    if check_level.sequence == level.sequence - 1:
-                        previous_level = check_level
-                        break
-                
-                if previous_level:
-                    if previous_level.status_when_approved:
-                        level_conditions.append(
-                            f"`tabEarth Invoice`.workflow_state = '{previous_level.status_when_approved}'"
-                        )
-                    if previous_level.status_when_rejected:
-                        level_conditions.append(
-                            f"`tabEarth Invoice`.workflow_state = '{previous_level.status_when_rejected}'"
-                        )
-                
-                
-                max_sequence = max(l.sequence for l in matrix.approval_levels)
-                if level.sequence == max_sequence:
-                    level_conditions.extend([
-                        "`tabEarth Invoice`.workflow_state = 'Approved'",
-                        "`tabEarth Invoice`.workflow_state = 'Rejected'"
-                    ])
-                
-                conditions.append(f"({' OR '.join(level_conditions)})")
-
-        return conditions
-
+    pre_workflow_roles = {
+        
+        'Earth': ['Pending'],  
+        
+      
+        'Earth Upload': ['Pending'], 
+        
        
-def has_permission(doc, user=None, permission_type=None):
+        'System Manager': get_all_workflow_states(doctype) + ['Draft'],
+        'Administrator': get_all_workflow_states(doctype) + ['Draft']
+    }
+    
+    
+    combined_mapping = {**dynamic_mapping, **pre_workflow_roles}
+    
+    return combined_mapping
+
+def get_all_workflow_states(doctype="Earth Invoice"):
+  
+    try:
+        workflows = frappe.get_all(
+            "Workflow",
+            filters={
+                "document_type": doctype,
+                "is_active": 1
+            },
+            fields=["name"]
+        )
+        
+        all_states = set()
+        for workflow in workflows:
+            states = frappe.get_all(
+                "Workflow Document State",
+                filters={"parent": workflow.name},
+                fields=["state"]
+            )
+            all_states.update([state.state for state in states])
+        
+        return list(all_states)
+        
+    except Exception as e:
+        frappe.log_error(f"Error getting workflow states: {str(e)}")
+        return []
+
+@frappe.whitelist()
+def get_allowed_workflow_states_for_user(doctype="Earth Invoice"):
+
+    try:
+        user_roles = frappe.get_roles()
+        role_workflow_mapping = get_enhanced_role_workflow_states(doctype)
+        allowed_states = set()
+        
+        for role in user_roles:
+            if role in role_workflow_mapping:
+                allowed_states.update(role_workflow_mapping[role])
+        
+       
+        if 'System Manager' in user_roles or 'Administrator' in user_roles:
+            all_states = get_all_workflow_states(doctype)
+            allowed_states.update(all_states)
+            allowed_states.add('Draft')
+        
+        return list(allowed_states)
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_allowed_workflow_states_for_user: {str(e)}")
+        return []
+
+def get_permission_query_conditions(user=None, doctype="Earth Invoice"):
+ 
     if not user:
         user = frappe.session.user
     
-    if 'System Manager' in frappe.get_roles(user):
-        return True
+    try:
+   
+        user_roles = frappe.get_roles(user)
+        if 'System Manager' in user_roles or 'Administrator' in user_roles:
+            return None
+        
+       
+        role_workflow_mapping = get_enhanced_role_workflow_states(doctype)
+        allowed_states = set()
+        
+        for role in user_roles:
+            if role in role_workflow_mapping:
+                allowed_states.update(role_workflow_mapping[role])
+        
     
-    user_roles = frappe.get_roles(user)
-    
-    if 'Earth' in user_roles and doc.owner == user:
-        return True
-    
-    
-    return check_approval_matrix_permission(doc, user_roles)
+        additional_conditions = []
+        
+       
+        if 'Earth' in user_roles:
+            additional_conditions.append(
+                f"(`tab{doctype}`.workflow_state = 'Pending' AND `tab{doctype}`.owner = '{user}')"
+            )
+        
+       
+        if 'Earth Upload' in user_roles:
+            additional_conditions.append(
+                f"`tab{doctype}`.workflow_state = 'Pending'"
+            )
+        
+  
+        workflow_condition = ""
+        if allowed_states:
+            
+            filtered_states = allowed_states.copy()
+            if 'Earth' in user_roles or 'Earth Upload' in user_roles:
+                filtered_states.discard('Pending')
+            
+            if filtered_states:
+                clean_states = [frappe.db.escape(state) for state in filtered_states]
+                states_condition = ", ".join(clean_states)
+                workflow_condition = f"`tab{doctype}`.workflow_state in ({states_condition})"
+        
+     
+        all_conditions = []
+        if workflow_condition:
+            all_conditions.append(workflow_condition)
+        if additional_conditions:
+            all_conditions.extend(additional_conditions)
+        
+        if all_conditions:
+            return " OR ".join([f"({condition})" for condition in all_conditions])
+        else:
+            return f"`tab{doctype}`.workflow_state = 'NEVER_MATCH'"
+            
+    except Exception as e:
+        frappe.log_error(f"Error in get_permission_query_conditions: {str(e)}")
+        return f"`tab{doctype}`.workflow_state = 'NEVER_MATCH'"
 
-def check_approval_matrix_permission(doc, user_roles):
-    """Check if user can access document based on approval matrix"""
-    if not hasattr(doc, 'approval_matrix') or not doc.approval_matrix:
-        return False
+def has_permission(doc, user=None, permission_type=None):
+   
+    if not user:
+        user = frappe.session.user
     
     try:
-        matrix = frappe.get_doc("Approval Matrix", doc.approval_matrix)
-        current_workflow_state = getattr(doc, 'workflow_state', 'Pending')
+     
+        user_roles = frappe.get_roles(user)
+        if 'System Manager' in user_roles or 'Administrator' in user_roles:
+            return True
         
-        # Check if user can access document at current state
-        for level in matrix.approval_levels:
-            if level.approver_type == "Role" and level.approver_value in user_roles:
-                # Check if this user can see document at current state
-                allowed_states = ['Pending']
-                
-                for check_level in matrix.approval_levels:
-                    if check_level.sequence <= level.sequence:
-                        if check_level.status_when_approved:
-                            allowed_states.append(check_level.status_when_approved)
-                        if check_level.status_when_rejected:
-                            allowed_states.append(check_level.status_when_rejected)
-                
-                # Final level users can see approved/rejected
-                max_sequence = max(l.sequence for l in matrix.approval_levels)
-                if level.sequence == max_sequence:
-                    allowed_states.extend(['Approved', 'Rejected'])
-                
-                if current_workflow_state in allowed_states:
-                    return True
-    except:
-        pass
-    
-    return False
+        
+        doctype = doc.doctype if hasattr(doc, 'doctype') else "Earth Invoice"
+        role_workflow_mapping = get_enhanced_role_workflow_states(doctype)
+        allowed_states = set()
+        
+        for role in user_roles:
+            if role in role_workflow_mapping:
+                allowed_states.update(role_workflow_mapping[role])
+        
+     
+        if 'Earth' in user_roles and hasattr(doc, 'workflow_state'):
+            if doc.workflow_state == 'Pending' and doc.owner == user:
+                return True
+          
+            elif doc.workflow_state != 'Pending':
+                return False
+        
+      
+        if 'Earth Upload' in user_roles and hasattr(doc, 'workflow_state'):
+            if doc.workflow_state == 'Pending':
+                return True
+        
+        
+        if hasattr(doc, 'workflow_state') and doc.workflow_state:
+            return doc.workflow_state in allowed_states
+        
+     
+        return len(allowed_states) > 0
+        
+    except Exception as e:
+        frappe.log_error(f"Error in has_permission: {str(e)}")
+        return False
 
 @frappe.whitelist()
-def get_user_access_summary():
-    """Get summary of what current user can access"""
-    user = frappe.session.user
-    user_roles = frappe.get_roles(user)
-    
-    # Count documents based on permission query
-    query_conditions = get_permission_query_conditions(user)
-    
-    if query_conditions:
-        total_accessible = frappe.db.count("Earth Invoice", filters=query_conditions)
-    else:
-        total_accessible = frappe.db.count("Earth Invoice")  
-    
-    pending_for_user = len(get_pending_for_current_user())
-    
-    return {
-        "total_accessible": total_accessible,
-        "pending_for_user": pending_for_user,
-        "user_roles": user_roles
-    }
-
-def get_pending_for_current_user():
-    """Get documents pending for current user's approval"""
-    user = frappe.session.user
-    
-    pending_docs = frappe.get_all("Earth Invoice", 
-        filters={"approval_status": "Pending", "docstatus": 0},
-        fields=["name", "approval_matrix", "current_approval_level"]
-    )
-    
-    user_can_approve = []
-    for doc_info in pending_docs:
-        try:
-            doc = frappe.get_doc("Earth Invoice", doc_info.name)
-            if can_user_approve_document(doc, user):
-                user_can_approve.append(doc_info.name)
-        except:
-            continue
-    
-    return user_can_approve
-
-def can_user_approve_document(doc, user):
-    """Check if specific user can approve specific document"""
-    if not doc.approval_matrix or doc.approval_status != "Pending":
-        return False
-        
+def get_current_workflow_mapping(doctype="Earth Invoice"):
+   
     try:
-        matrix = frappe.get_doc("Approval Matrix", doc.approval_matrix)
-        current_level = None
+        dynamic_mapping = DynamicWorkflowPermissions.get_workflow_role_mapping(doctype)
+        enhanced_mapping = get_enhanced_role_workflow_states(doctype)
+        user_states = get_allowed_workflow_states_for_user(doctype)
         
-        for level in matrix.approval_levels:
-            if level.sequence == doc.current_approval_level:
-                current_level = level
-                break
+        return {
+            "dynamic_from_workflow": dynamic_mapping,
+            "enhanced_with_pre_workflow": enhanced_mapping,
+            "current_user_states": user_states,
+            "workflow_states": get_all_workflow_states(doctype)
+        }
+    except Exception as e:
+        frappe.log_error(f"Error in get_current_workflow_mapping: {str(e)}")
+        return {"error": str(e)}
+
+@frappe.whitelist()
+def test_permission_for_user(user_email, doctype="Earth Invoice"):
+   
+    try:
+      
+        original_user = frappe.session.user
+        frappe.set_user(user_email)
         
-        if not current_level:
-            return False
+        query = get_permission_query_conditions(user_email, doctype)
+        allowed_states = get_allowed_workflow_states_for_user(doctype)
+        user_roles = frappe.get_roles(user_email)
         
-        user_roles = frappe.get_roles(user)
         
-        if current_level.approver_type == "Role":
-            return current_level.approver_value in user_roles
-        elif current_level.approver_type == "User":
-            return current_level.approver_value == user
-            
-    except:
-        pass
-    
-    return False
+        frappe.set_user(original_user)
+        
+        return {
+            "user": user_email,
+            "roles": user_roles,
+            "allowed_states": allowed_states,
+            "permission_query": query
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error testing permission for user {user_email}: {str(e)}")
+        return {"error": str(e)}
+
+
+def set_document_to_pending_workflow(doc):
+
+    try:
+        doc.db_set("workflow_state", "Pending")
+        
+
+        frappe.get_doc({
+            "doctype": "Comment",
+            "comment_type": "Comment",
+            "reference_doctype": doc.doctype,
+            "reference_name": doc.name,
+            "content": "Document moved to workflow. Ready for Travel Desk approval.",
+            "comment_email": frappe.session.user,
+            "comment_by": frappe.session.user_fullname or frappe.session.user
+        }).insert(ignore_permissions=True)
+        
+        return True
+        
+    except Exception as e:
+        frappe.log_error(f"Error setting document to pending workflow: {str(e)}")
+        return False
+

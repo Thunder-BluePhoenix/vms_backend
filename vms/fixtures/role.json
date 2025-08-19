@@ -154,5 +154,70 @@
   "restrict_to_domain": null,
   "role_name": "IT Head",
   "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": "app/earth-approval",
+  "is_custom": 0,
+  "modified": "2025-08-19 17:11:21.666547",
+  "name": "Railway Accounts",
+  "restrict_to_domain": null,
+  "role_name": "Railway Accounts",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": "app/earth-approval",
+  "is_custom": 0,
+  "modified": "2025-08-19 17:11:34.956272",
+  "name": "Bus Accounts",
+  "restrict_to_domain": null,
+  "role_name": "Bus Accounts",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": "app/earth-approval",
+  "is_custom": 0,
+  "modified": "2025-08-19 17:11:29.363325",
+  "name": "Hotel Accounts",
+  "restrict_to_domain": null,
+  "role_name": "Hotel Accounts",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": "app/earth-approval",
+  "is_custom": 0,
+  "modified": "2025-08-19 17:10:17.286471",
+  "name": "Domestic Air Accounts",
+  "restrict_to_domain": null,
+  "role_name": "Domestic Air Accounts",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": "app/earth-approval",
+  "is_custom": 0,
+  "modified": "2025-08-19 17:10:10.160557",
+  "name": "International Air Accounts",
+  "restrict_to_domain": null,
+  "role_name": "International Air Accounts",
+  "two_factor_auth": 0
  }
 ]
