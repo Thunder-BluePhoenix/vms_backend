@@ -485,6 +485,7 @@ def erp_to_sap_vendor_data(onb_ref):
         onb_pm_term = frappe.get_doc("Terms of Payment Master", onb.terms_of_payment)
         onb_inco = frappe.get_doc("Incoterm Master", onb.incoterms)
         onb_bank = frappe.get_doc("Bank Master", onb_pmd.bank_name)
+        onb_legal_doc = frappe.get_doc("Legal Documents", onb.document_details)
 
         # Boolean flags
         payee = 'X' if onb.payee_in_document == 1 else ''
@@ -623,13 +624,14 @@ def erp_to_sap_vendor_data(onb_ref):
                             "Stcd3": gst_num or "",
                             "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                             "J1ipanno": vcd.company_pan_number,
-                            "J1ipanref": onb_vm.vendor_name,
+                            "J1ipanref": onb_legal_doc.name_on_company_pan,
                             "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                             "Name11": safe_get(onb, "contact_details", 0, "last_name"),
                             "Bankl": onb_bank.bank_code,
                             "Bankn": onb_pmd.account_number,
-                            "Bkref": onb_bank.bank_name,
-                            "Banka": onb_pmd.ifsc_code,
+                            "Bkref": onb_pmd.ifsc_code,
+                            "Banka": onb_bank.bank_name,
+                            "Koinh": onb_pmd.name_of_account_holder,
                             "Xezer": "",
                             "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
                             "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
