@@ -572,6 +572,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 "purchase_team_remarks": vonb.purchase_team_approval_remarks or None,
                 "purchase_head_remarks": vonb.purchase_head_approval_remarks or None,
                 "account_team_remarks": vonb.accounts_team_approval_remarks or None,
+                "account_head_remarks": vonb.accounts_head_approval_remarks or None,
                 "incoterms": vonb.incoterms or None,
             }
 
