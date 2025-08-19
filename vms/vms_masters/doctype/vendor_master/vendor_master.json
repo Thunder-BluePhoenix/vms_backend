@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:VMS-{YYYY}-{MM}-{####}",
+ "autoname": "format:V{YY}{#######}",
  "creation": "2025-05-04 18:50:24.683825",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -280,6 +280,7 @@
   {
    "fieldname": "form_records",
    "fieldtype": "Table",
+   "label": "ASA Form Records",
    "options": "Assessment Form Records"
   },
   {
@@ -315,7 +316,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-06 15:52:59.605799",
+ "modified": "2025-08-19 13:39:45.851344",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
