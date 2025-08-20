@@ -6,6 +6,7 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException, JSONDecodeError
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 
@@ -1007,7 +1008,7 @@ def send_failure_notification(onb_name, failure_type, error_details):
         # Send email to all recipients
         for recipient in recipients:
             try:
-                frappe.sendmail(
+                frappe.custom_sendmail(
                     recipients=[recipient["email"]],
                     subject=subject,
                     message=message,

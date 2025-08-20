@@ -9,6 +9,7 @@ from frappe.utils import get_datetime, now_datetime
 from datetime import datetime
 from frappe import _
 from datetime import datetime, timedelta
+from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist(allow_guest=True)
 def fetch_rfq_data(name, ref_no):
@@ -969,7 +970,7 @@ def send_quotation_notification_email(quotation_name, rfq_number, action):
         email_template = get_quotation_email_template(quotation, rfq, action, team, employee_full_name)
         
     
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=recipients,
             subject=email_subject,
             message=email_template,
@@ -1153,7 +1154,7 @@ def send_quotation_access_email_simple(quotation, vendor_email, action,rfq_numbe
         <p>Thank you,<br>VMS Team</p>
         """
         
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[vendor_email],
             subject=subject,
             message=message,

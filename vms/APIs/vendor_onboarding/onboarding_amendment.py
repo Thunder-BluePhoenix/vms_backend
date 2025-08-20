@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.utils import now, getdate, get_fullname
 import json
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 @frappe.whitelist()
@@ -274,7 +275,7 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
         #     """
         
         # Send amendment notification email
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[recipient_email],
             cc=[onboarding_doc.registered_by, amended_by] if amended_by != onboarding_doc.registered_by else [onboarding_doc.registered_by],
             subject=f"Vendor Onboarding Amendment - {vendor_master.vendor_name} - VMS Ref {vendor_master.name}",

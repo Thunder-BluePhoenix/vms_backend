@@ -6,6 +6,7 @@ import time
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 import json
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 class CartDetails(Document):
@@ -181,7 +182,7 @@ def send_mail_hod(doc, method=None):
 				"""
 
 				# Send to HOD
-				frappe.sendmail(
+				frappe.custom_sendmail(
 					recipients=[hod_email],
 					subject=subject,
 					message=hod_message,
@@ -189,7 +190,7 @@ def send_mail_hod(doc, method=None):
 				)
 
 				# Send to User separately (without buttons)
-				frappe.sendmail(
+				frappe.custom_sendmail(
 					recipients=[doc.user],
 					subject=subject,
 					message=user_message,
@@ -264,7 +265,7 @@ def send_mail_purchase(doc, method=None):
 					{table_html}
 					<p>Thank you!</p>
 				"""
-				frappe.sendmail(recipients=[purchase_team_email], subject=subject, message=message, now=True)
+				frappe.custom_sendmail(recipients=[purchase_team_email], subject=subject, message=message, now=True)
 
 				# doc.mail_sent_to_purchase_team = 1
 				frappe.db.set_value("Cart Details", doc.name, "mail_sent_to_purchase_team", 1)
@@ -332,7 +333,7 @@ def send_mail_user(doc, method=None):
 			{table_html}
 			<p>Thank you!</p>
 		"""
-		frappe.sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
+		frappe.custom_sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
 
 		# doc.ack_mail_to_user = 1
 		frappe.db.set_value("Cart Details", doc.name, "ack_mail_to_user", 1)
@@ -399,7 +400,7 @@ def rejection_mail_to_user(doc, method=None):
 			{table_html}
 			<p>Thank you!</p>
 		"""
-		frappe.sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
+		frappe.custom_sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
 
 		# doc.ack_mail_to_user = 1
 		frappe.db.set_value("Cart Details", doc.name, "ack_mail_to_user", 1)
@@ -529,7 +530,7 @@ def send_mail_alternate_purchase(doc, method=None):
 					{table_html}
 					<p>Thank you!</p>
 				"""
-				frappe.sendmail(recipients=[purchase_team_email], subject=subject, message=message, now=True)
+				frappe.custom_sendmail(recipients=[purchase_team_email], subject=subject, message=message, now=True)
 
 				# doc.mail_sent_to_purchase_team = 1
 				frappe.db.set_value("Cart Details", doc.name, "mailed_to_alternate_purchase_team", 1)
@@ -636,7 +637,7 @@ def send_mail_purchase_hod(doc, method=None):
 			"""
 			
 			# Send email to all Purchase Heads
-			frappe.sendmail(
+			frappe.custom_sendmail(
 				recipients=purchase_head_emails, 
 				subject=subject, 
 				message=message, 

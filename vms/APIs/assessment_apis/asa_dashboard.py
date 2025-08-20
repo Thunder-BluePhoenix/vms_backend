@@ -1,4 +1,5 @@
 import frappe
+from vms.utils.custom_send_mail import custom_sendmail
 
 # @frappe.whitelist(allow_guest=True)
 # def asa_dashboard(vendor_name=None, page_no=1, page_length=5):
@@ -452,20 +453,23 @@ def send_asa_reminder_email(name, remarks=None):
         
         subject = "Reminder: Please Fill the Annual Supplier Assessment (ASA) Questionnaire"
         message = f"""
-        Dear {vendor_master.vendor_name}<br>,
+        Dear {vendor_master.vendor_name},<br><br>
 
-        As your onboarding process has been completed, you are kindly requested to fill the
+        As your onboarding process has been completed, you are kindly requested to fill out the
         Annual Supplier Assessment (ASA) Questionnaire, which is an essential part of the
-        vendor onboarding compliance. Below is the Remarks<br>
-        {remarks}<br>
+        vendor onboarding compliance.<br><br>
 
-        We request you to complete the form at the earliest.<br>
+        Below are the remarks:<br>
+        {remarks}<br><br>
 
-        Regards,<br>  
+        We request you to complete the form at the earliest.<br><br>
+
+        Best regards,<br>  
         Vendor Management Team
         """
 
-        frappe.sendmail(
+
+        frappe.custom_sendmail(
             recipients=[recipient],
             subject=subject,
             message=message,

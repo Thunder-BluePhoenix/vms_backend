@@ -2,6 +2,7 @@ import frappe
 import json
 from frappe.utils.file_manager import save_file
 from frappe.utils import now_datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist(allow_guest=True)
 def update_dispatch_item(data=None):
@@ -514,18 +515,19 @@ def submit_dispatch_item(data):
 				if row.purchase_number:
 					pur_team_email = frappe.db.get_value("Purchase Order", row.purchase_number, "email")
 					if pur_team_email:
-						frappe.sendmail(
+						frappe.custom_sendmail(
 							recipients=[pur_team_email],
 							subject="Dispatch Item Submitted",
 							message="""
 								Dear Purchase Team,<br><br>
-								A user has submitted a Dispatch Item.<br>
-								Please review it and take necessary action.<br><br>
-								Regards,<br>
+								A dispatch item has been submitted.<br>
+								Kindly review it and take the necessary action.<br><br>
+								Best regards,<br>
 								VMS Team
 							""",
 							now=True
 						)
+
 
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()

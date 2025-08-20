@@ -1,6 +1,7 @@
 import frappe
 import json
 # from frappe.utils import parse_date
+from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist(allow_guest=True)
 def get_field_mappings():
@@ -396,10 +397,34 @@ def po_creation_send_mail(po_id):
         file_name = f"{po_doc.name}.pdf"
 
         # Send email with attachment
-        frappe.sendmail(
+        message = f"""
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #28a745;">New Purchase Order Created</h2>
+                        
+                        <p>Dear {vendor_name},</p>
+                        
+                        <p>We are pleased to inform you that a new Purchase Order has been created. Please find the attached document for your reference.</p>
+                        
+                        <div style="background-color: #e9f7ef; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;">
+                            <h3 style="margin-top: 0;">Purchase Order Details:</h3>
+                            <p><strong>Purchase Order Number:</strong> {po_doc.name}</p>
+                        </div>
+                        
+                        <p>Kindly review the attached Purchase Order and proceed with the necessary arrangements at your earliest convenience.</p>
+                        
+                        <p>For any queries or clarifications, please feel free to reach out to us.</p>
+                        
+                        <p>Thank you for your continued support.</p>
+                        
+                        <p>Best regards,<br>
+                        VMS Team</p>
+                    </div>
+                    """
+
+        frappe.custom_sendmail(
             recipients=[vendor_email],
             subject="New Purchase Order Created",
-            message=f"Dear {vendor_name},<br><br>A new Purchase Order <strong>{po_doc.name}</strong> has been created. Please find the attached document.",
+            message=message,
             attachments=[{
                 "fname": file_name,
                 "fcontent": pdf_data
@@ -455,7 +480,7 @@ def po_update_send_mail(po_id):
         file_name = f"{po_doc.name}.pdf"
 
         # Send email with attachment
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[vendor_email],
             subject="New Purchase Order Created",
             message=f"Dear {vendor_name},<br><br>A Purchase Order <strong>{po_doc.name}</strong> has been Updated. Please find the attached document.",
@@ -514,7 +539,7 @@ def send_mail_for_po(data):
         file_name = f"{po_doc.name}.pdf"
 
         # Send email with attachment
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[vendor_email],
             subject="New Purchase Order Created",
             message=f"Dear {vendor_name}, Please find the attached document for the Purchase Order <strong>{po_doc.name}</strong>",
@@ -568,17 +593,18 @@ def revocked_po_details_mail(po_id):
         subject = f"Purchase Order {po.name} - Access Revoked"
         body = f"""
         Dear Vendor,<br><br>
-        Please note that access to your Purchase Order <strong>{po.name}</strong> has been revoked.<br>
-        If you have any questions, please contact the purchasing team.<br><br>
-        Regards,<br>
-        Purchase Department
+        Please note that access to your Purchase Order <strong>{po.name}</strong> has been revoked.<br><br>
+        If you have any questions or require clarification, please feel free to contact the Purchasing Team.<br><br>
+        Best regards,<br>
+        VMS Team
         """
+
 
         # Send email to vendor and CC purchase team (if provided)
         recipients = [vendor_email]
         cc_list = [purchase_team_email] if purchase_team_email else []
 
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=recipients,
             cc=cc_list,
             subject=subject,

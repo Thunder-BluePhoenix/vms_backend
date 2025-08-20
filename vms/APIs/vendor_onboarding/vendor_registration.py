@@ -4,6 +4,7 @@ from frappe.model.document import Document
 from urllib.parse import urlencode
 import json
 from datetime import datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 
@@ -660,7 +661,7 @@ def send_registration_email_link(vendor_onboarding, refno):
                     "message": "No recipient email found for the vendor."
                 }
 
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=[recipient_email], cc=[onboarding_doc.registered_by],
                 subject=f"""New Vendor Appointment for Meril Group -{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
                 message=f"""

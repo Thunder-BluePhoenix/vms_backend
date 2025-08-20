@@ -4,6 +4,7 @@ import string
 import frappe
 from frappe.exceptions import DoesNotExistError
 from frappe import _
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 
@@ -71,7 +72,7 @@ def send_otp(data):
         VMS Team
         """
 
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[reciever_email],
             subject=subject,
             message=message,

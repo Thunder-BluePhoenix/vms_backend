@@ -2,6 +2,7 @@ import frappe
 import json
 from frappe.utils import now_datetime
 from frappe import _
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 # cart details masters
@@ -263,14 +264,20 @@ def modified_peq(data):
             subject = f"Cart Details Modification Request - {doc.name}"
             message = f"""
                 <p>Dear {employee_name},</p>
+
                 <p>A modification request has been submitted for the following <strong>Cart Details</strong>:</p>
+
                 <p><strong>Cart ID:</strong> {doc.name}<br>
                 <strong>Cart Date:</strong> {doc.cart_date}</p>
+
                 {table_html}
-                <p>Regards,<br>VMS Team</p>
-            """
+
+                <p>Best regards,<br>
+                VMS Team</p>
+                """
+
             
-            frappe.sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
+            frappe.custom_sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
             
             return {
                 "status": "success",
@@ -340,16 +347,22 @@ def acknowledge_purchase_inquiry(data):
             subject = f"Acknowledgement for the Cart Details Submitted by {employee_name}"
             message = f"""
                 <p>Dear {employee_name},</p>		
-                <p>Your cart details has been <b>acknowledged</b>.</p>
+
+                <p>Your cart details have been <b>acknowledged</b>.</p>
+
                 <p><b>Cart ID:</b> {doc.name}</p>
                 <p><b>Cart Date:</b> {doc.cart_date}</p>
                 <p><b>Acknowledged Date:</b> {doc.acknowledged_date}</p>
-                <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks} </p>
-                
+                <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks}</p>
+
                 {table_html}
-                <p>Thank you!</p>
-            """
-            frappe.sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
+
+                <p>Thank you.<br>
+                Best regards,<br>
+                VMS Team</p>
+                """
+
+            frappe.custom_sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
 
             return {
                 "status": "success",

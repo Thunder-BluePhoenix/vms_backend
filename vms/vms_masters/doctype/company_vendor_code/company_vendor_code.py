@@ -6,6 +6,7 @@ from frappe.utils import get_url
 from frappe.utils.pdf import get_pdf
 import io
 import base64
+from vms.utils.custom_send_mail import custom_sendmail
 
 class CompanyVendorCode(Document):
 	def on_update(self):
@@ -210,7 +211,7 @@ class CompanyVendorCode(Document):
 			
 			# Debug logging
 			frappe.logger().info(f"Sending email to: {email}")
-			frappe.logger().info(f"Vendor code data count: {len(vendor_code_data) if vendor_code_data else 0}")
+			frappe.logger().info(f"Vendor code data count: {len(vendor_code_data) if vqendor_code_data else 0}")
 			frappe.logger().info(f"Vendor code data type: {type(vendor_code_data)}")
 			
 			# Create PDF attachment
@@ -275,7 +276,7 @@ class CompanyVendorCode(Document):
 			}]
 			
 			# Send email
-			frappe.sendmail(
+			frappe.custom_sendmail(
 				recipients=[email],
 				subject=subject,
 				message=message,
