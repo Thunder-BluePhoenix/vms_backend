@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:V{YY}{#######}",
+ "autoname": "format:V-{YY}{######}",
  "creation": "2025-05-04 18:50:24.683825",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -316,7 +316,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-19 13:39:45.851344",
+ "modified": "2025-08-20 11:40:59.796809",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
