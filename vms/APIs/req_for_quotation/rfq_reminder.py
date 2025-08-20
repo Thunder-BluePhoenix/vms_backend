@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import getdate, today
 from frappe.utils import now_datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 # send reminder notification to vendor
 def send_reminder_notification():
@@ -29,17 +30,23 @@ def send_reminder_notification():
 
         subject = f"{reminder_type} Reminder: Please Submit Quotation for {rfq.name}"
         body = f"""
-            <p>Dear Vendor,</p>
-            <p>This is a gentle reminder to fill in the quotation details for RFQ <b>{rfq.name}</b>.</p>
-            <p>Please complete it as soon as possible. If you have already submitted, please ignore this email.</p>
-            <p>Thank you.</p>
+        <p>Dear Vendor,</p>
+
+        <p>This is a gentle reminder to complete the quotation details for RFQ <b>{rfq.name}</b>.</p>
+
+        <p>We request you to submit the details at the earliest. If you have already submitted, please disregard this message.</p>
+
+        <p>Thank you.<br>
+        Best regards,<br>
+        VMS Team</p>
         """
+
 
         sent = False
 
         for row in rfq.vendor_details:
             if row.office_email_primary and row.mail_sent:
-                frappe.sendmail(
+                frappe.custom_sendmail(
                     recipients=row.office_email_primary,
                     subject=subject,
                     message=body,
@@ -50,7 +57,7 @@ def send_reminder_notification():
 
         for row in rfq.non_onboarded_vendor_details:
             if row.office_email_primary and row.mail_sent:
-                frappe.sendmail(
+                frappe.custom_sendmail(
                     recipients=row.office_email_primary,
                     subject=subject,
                     message=body,

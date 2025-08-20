@@ -1,5 +1,6 @@
 import frappe
 from frappe.utils import now_datetime, get_datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 def sent_asa_form_link():
     try:
@@ -45,7 +46,7 @@ def sent_asa_form_link():
 
                 recipients = vm_doc.office_email_primary or vm_doc.office_email_secondary
                 if recipients:
-                    frappe.sendmail(
+                    frappe.custom_sendmail(
                         recipients=recipients,
                         subject=subject,
                         message=message

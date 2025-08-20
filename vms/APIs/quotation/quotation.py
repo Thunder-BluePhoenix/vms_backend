@@ -2,6 +2,7 @@ import frappe
 import json
 from frappe import _
 from frappe.utils import now_datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 
@@ -130,7 +131,7 @@ def send_revision_email_to_vendor(quotation):
         """
         
         
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[vendor_email],
             subject=subject,
             message=message,
@@ -396,7 +397,7 @@ def send_approval_email_to_vendor(quotation):
         """
         
         
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[vendor_email],
             subject=subject,
             message=message,
@@ -451,7 +452,7 @@ def send_thank_you_email_to_vendor(quotation):
         """
         
     
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[vendor_email],
             subject=subject,
             message=message,
@@ -833,15 +834,21 @@ def update_final_negotiated_rate(data):
         subject = f"Final Negotiated Rate for Quotation {quotation.name}"
         message = f"""
         <p>Dear {quotation.vendor_name},</p>
+
         <p>The final negotiated rates for your quotation <b>{quotation.name}</b> have been finalized. Please find the comparison below:</p>
+
         {table_html}
-        <p>Regards,<br>Procurement Team</p>
-        # """
+
+        <p>Best regards,<br>
+        VMS Team</p>
+        """
+
+       
 
         if not quotation.office_email_primary:
             frappe.throw(_("Vendor email is missing. Cannot send email."))
 
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[quotation.office_email_primary],
             subject=subject,
             message=message,

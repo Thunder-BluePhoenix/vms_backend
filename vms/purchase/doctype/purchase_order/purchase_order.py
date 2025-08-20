@@ -10,7 +10,7 @@ from frappe.utils import today, getdate
 from frappe.utils import now_datetime, get_datetime
 import datetime
 import time
-
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 class PurchaseOrder(Document):
@@ -132,7 +132,7 @@ def send_mail_to_vendor(doc, method=None):
 		if vendor_email:
 			subject = "Send the notification for dispatch item" + doc.name
 			message = "Send the notification for dispatch item"
-			frappe.sendmail(
+			frappe.custom_sendmail(
 				recipients=vendor_email,
 				subject=subject,
 				message=message
@@ -283,7 +283,7 @@ def update_dispatch_qty(doc, method=None):
 					<p>Regards,<br>VMS Team</p>
 				"""
 
-				frappe.sendmail(
+				frappe.custom_sendmail(
 					recipients=doc.email,
 					subject=f"Dispatch Quantities Updated for PO {doc.name}",
 					message=email_body,

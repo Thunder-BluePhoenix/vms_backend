@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist(allow_guest=True)
 def send_po_user_confirmation():
@@ -183,7 +184,7 @@ def send_po_user_confirmation():
             </div>
         """
         
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[requisitioner_email],
             subject=subject,
             message=message,
@@ -426,7 +427,7 @@ def send_payment_release_notification_api():
                     </div>
                 """
                 
-                frappe.sendmail(
+                frappe.custom_sendmail(
                     recipients=[member['email']],
                     subject=subject,
                     message=message,
@@ -548,7 +549,7 @@ def send_vendor_delivery_issue_email():
                     <p>Regards,<br>VMS Team</p>
                 </div>
             """
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=[vendor_email],
                 subject=vendor_subject,
                 message=vendor_message,

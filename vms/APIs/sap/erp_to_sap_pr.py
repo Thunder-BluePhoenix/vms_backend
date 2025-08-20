@@ -844,6 +844,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException, JSONDecodeError
 from datetime import datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist(allow_guest=True)
 def erp_to_sap_pr(doc_name, method=None):
@@ -1699,7 +1700,7 @@ def send_pr_failure_notification(doc_name, failure_type, error_details):
         
         # Send email to thunder00799@gmail.com
         try:
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=["thunder00799@gmail.com", "rishi.hingad@merillife.com", "abhishek@mail.hybrowlabs.com"],
                 subject=subject,
                 message=message,
@@ -1795,7 +1796,7 @@ def send_pr_success_notification(doc_name, pr_code, name_for_sap, pr_type):
         
         # Send success email to thunder00799@gmail.com
         try:
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=["thunder00799@gmail.com", "rishi.hingadd@merillife.com", "abhishek@mail.hybrowlabs.com"],
                 subject=subject,
                 message=message,

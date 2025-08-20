@@ -3,6 +3,7 @@ from frappe import _
 import json
 import requests
 from requests.auth import HTTPBasicAuth
+from vms.utils.custom_send_mail import custom_sendmail
 
 # @frappe.whitelist(allow_guest=True)
 # def erp_to_sap_vendor_data(onb_ref):
@@ -1169,7 +1170,7 @@ from requests.auth import HTTPBasicAuth
 #         # Send email to all recipients
 #         for recipient in recipients:
 #             try:
-#                 frappe.sendmail(
+#                 frappe.custom_sendmail(
 #                     recipients=[recipient["email"]],
 #                     subject=subject,
 #                     message=message,
@@ -2375,7 +2376,7 @@ def send_failure_notification(onb_name, failure_type, error_details):
         # Send email to all recipients
         for recipient in recipients:
             try:
-                frappe.sendmail(
+                frappe.custom_sendmail(
                     recipients=[recipient["email"]],
                     subject=subject,
                     message=message,

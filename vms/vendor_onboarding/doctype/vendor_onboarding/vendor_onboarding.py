@@ -6,6 +6,7 @@ import time
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 import json
+from vms.utils.custom_send_mail import custom_sendmail
 
 class VendorOnboarding(Document):
     def after_save(self):
@@ -537,7 +538,7 @@ def send_mail_purchase_team(doc, method=None):
             conf = frappe.conf
             http_server = conf.get("frontend_http")
             
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=[purchase_team_id],
                 subject="Vendor has completed the onboarding form",
                 message=f"""
@@ -615,7 +616,7 @@ def send_mail_purchase_head(doc, method=None):
             http_server = conf.get("frontend_http")
 
             # Send email
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=recipient_emails,
                 subject="Vendor Approved by Purchase Team",
                 cc=doc.registered_by, 
@@ -721,7 +722,7 @@ def send_mail_account_team(doc, method=None):
             http_server = conf.get("frontend_http")
 
             # Send email to all recipients
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=recipient_emails,
                 subject="Vendor Approved by Purchase Head",
                 cc=doc.registered_by,
@@ -811,7 +812,7 @@ def send_rejection_email(doc, method=None):
         # Remove duplicates and empty values
         cc_list = list({email for email in cc_list if email})
 
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[vendor_email],
             cc=cc_list,
             subject="Vendor Onboarding has been Rejected",
@@ -998,7 +999,7 @@ def sent_asa_form_link(doc, method=None):
 
                 recipients = vendor_master.office_email_primary or vendor_master.office_email_secondary
                 if recipients:
-                    frappe.sendmail(
+                    frappe.custom_sendmail(
                         recipients=recipients,
                         subject=subject,
                         message=message
@@ -1098,7 +1099,7 @@ def send_approval_mail_accounts_team(doc, method=None):
             http_server = conf.get("frontend_http")
 
             # Send email to all recipients
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=recipient_emails,
                 subject="Vendor has completed the onboarding form",
                 message=f"""
@@ -1191,7 +1192,7 @@ def send_approval_mail_accounts_head(doc, method=None):
 
 
             # Send email to all recipients
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=recipient_emails,
                 subject="Vendor Onboarding Approved by Accounts Team",
                 message=f"""
