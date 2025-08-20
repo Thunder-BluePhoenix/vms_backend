@@ -520,7 +520,7 @@ def send_revised_rfq(data):
     rfq.rfq_type = data.get("rfq_type")
 
     # Logistic Vendor RFQ
-    if data.get("rfq_type") == "Logistic Vendor":
+    if data.get("rfq_type") == "Logistics Vendor":
         rfq.logistic_type = data.get("logistic_type")
         rfq.company_name_logistic = data.get("company_name_logistic")
         rfq.service_provider = data.get("service_provider")

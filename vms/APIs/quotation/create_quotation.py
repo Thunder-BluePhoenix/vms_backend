@@ -42,7 +42,7 @@ def fetch_rfq_data(name, ref_no):
 			"vendor_code": vendor_code_list
 		}
 
-		if rfq.rfq_type == "Logistic Vendor":
+		if rfq.rfq_type == "Logistics Vendor":
 			attachments = []
 			for row in rfq.multiple_attachments:
 				file_url = row.get("attachment_name")
@@ -564,7 +564,7 @@ def create_or_update_quotation_non_onboarded():
             rfq_type = data_dict.get('rfq_type', '').lower()
             logistic_type = data_dict.get('logistic_type', '').lower()
             
-            if rfq_type == 'logistic vendor':
+            if rfq_type == 'logistics vendor':
                 if logistic_type == 'import':
                     total_landing_price = data_dict.get('total_landing_price')
                     if total_landing_price:

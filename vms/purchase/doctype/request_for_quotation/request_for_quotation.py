@@ -342,7 +342,7 @@ def process_token(token):
                 return attachments
 
             # Based on RFQ Type
-            if rfq_doc.rfq_type == "Logistic Vendor":
+            if rfq_doc.rfq_type == "Logistics Vendor":
                 return {
                     "status": "success",
                     "unique_id": rfq_doc.unique_id,
