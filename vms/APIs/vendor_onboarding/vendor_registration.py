@@ -733,7 +733,7 @@ def send_registration_email_link(vendor_onboarding, refno):
                     "message": "No recipient email found for the vendor."
                 }
 
-            frappe.custom_sendmail(
+            frappe.sendmail(
                 recipients=[recipient_email], cc=[onboarding_doc.registered_by],
                 subject=f"""New Vendor Appointment for Meril Group -{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
                 message=f"""
@@ -754,7 +754,7 @@ def send_registration_email_link(vendor_onboarding, refno):
 
                     <p>Thanking you,<br>VMS Team</p>
                 """,
-                delayed=False
+                now=True
             )
 
             onboarding_doc.sent_registration_email_link = 1
