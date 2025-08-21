@@ -95,7 +95,9 @@
   "unique_multi_comp_id",
   "head_target",
   "column_break_jyil",
-  "multiple_company"
+  "multiple_company",
+  "section_break_monu",
+  "mandatory_data_for_sap"
  ],
  "fields": [
   {
@@ -598,12 +600,21 @@
    "fieldname": "rejected_mail_sent",
    "fieldtype": "Check",
    "label": "Rejected Mail sent"
+  },
+  {
+   "fieldname": "section_break_monu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "mandatory_data_for_sap",
+   "fieldtype": "Code",
+   "label": "Mandatory Data For Sap"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-21 13:14:28.383832",
+ "modified": "2025-08-21 21:59:30.967788",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
@@ -638,5 +649,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
