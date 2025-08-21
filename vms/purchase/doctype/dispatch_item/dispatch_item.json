@@ -18,6 +18,7 @@
   "packing_list_attachment",
   "e_way_bill_attachment",
   "dispatch_form_submitted",
+  "e_way_bill_no",
   "column_break_rtsd",
   "docket_number",
   "dispatch_date",
@@ -192,12 +193,17 @@
    "fieldname": "qr_code_data",
    "fieldtype": "JSON",
    "label": "QR Code Data"
+  },
+  {
+   "fieldname": "e_way_bill_no",
+   "fieldtype": "Data",
+   "label": "E-way Bill No"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-21 12:11:44.024045",
+ "modified": "2025-08-21 15:17:17.369612",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Dispatch Item",

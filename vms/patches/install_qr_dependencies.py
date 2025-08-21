@@ -90,7 +90,7 @@ def install_dependencies(missing_deps):
             
             # Use pip to install the dependency
             result = subprocess.run([
-                sys.executable, '-m', 'bench', 'pip', 'install', dep, '--upgrade'
+                sys.executable, '-m', 'pip', 'install', dep, '--upgrade'
             ], capture_output=True, text=True, timeout=300)
             
             if result.returncode == 0:
