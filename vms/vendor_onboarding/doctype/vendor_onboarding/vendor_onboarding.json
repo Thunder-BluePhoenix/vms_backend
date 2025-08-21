@@ -608,13 +608,14 @@
   {
    "fieldname": "mandatory_data_for_sap",
    "fieldtype": "Code",
-   "label": "Mandatory Data For Sap"
+   "label": "Mandatory Data For Sap",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-21 21:59:30.967788",
+ "modified": "2025-08-21 22:43:58.416692",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
