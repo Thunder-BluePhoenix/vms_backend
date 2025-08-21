@@ -619,11 +619,12 @@ def send_mail_purchase_head(doc, method=None):
                 }
             conf = frappe.conf
             http_server = conf.get("frontend_http")
+            full_name = frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") 
 
             # Send email
             frappe.custom_sendmail(
                 recipients=recipient_emails,
-                subject=f"Vendor {vendor_master.vendor_name} approved by Purchase Team { frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") }",
+                subject=f"Vendor {vendor_master.vendor_name} approved by Purchase Team {full_name} ",
                 cc=doc.registered_by, 
                 message=f"""
                     <p>Dear Purchase Head,</p>
@@ -725,11 +726,12 @@ def send_mail_account_team(doc, method=None):
                 }
             conf = frappe.conf
             http_server = conf.get("frontend_http")
+            full_name = frappe.db.get_value("Employee", {"user_id": doc.purchase_h_approval}, "full_name") 
 
             # Send email to all recipients
             frappe.custom_sendmail(
                 recipients=recipient_emails,
-                subject=f"Vendor {vendor_master.vendor_name} approved by Purchase Head { frappe.db.get_value("Employee", {"user_id": doc.purchase_h_approval}, "full_name") }",
+                subject=f"Vendor {vendor_master.vendor_name} approved by Purchase Head ",
                 cc=doc.registered_by,
                 message=f"""
                     <p>Dear Accounts Team,</p>
@@ -1199,12 +1201,13 @@ def send_approval_mail_accounts_head(doc, method=None):
             
             conf = frappe.conf
             http_server = conf.get("frontend_http")
+            full_name = frappe.db.get_value("Employee", {"user_id": doc.accounts_t_approval}, "full_name")
 
 
             # Send email to all recipients
             frappe.custom_sendmail(
                 recipients=recipient_emails,
-                subject=f"Vendor {vendor_master.vendor_name} Onboarding details has been approved by Accounts Team { frappe.db.get_value("Employee", {"user_id": doc.accounts_t_approval}, "full_name") }",
+                subject=f"Vendor {vendor_master.vendor_name} Onboarding details has been approved by Accounts Team {full_name} ",
                 message=f"""
                     <p>Dear Accounts Head,</p>
                     <p>The vendor <strong>{vendor_master.vendor_name} ({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br><strong>{ frappe.db.get_value("Employee", {"user_id": doc.accounts_t_approval}, "full_name") }</strong> 
