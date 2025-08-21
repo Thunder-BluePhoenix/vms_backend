@@ -94,6 +94,7 @@
   "registered_for_multi_companies",
   "unique_multi_comp_id",
   "head_target",
+  "synced_vendor_master",
   "column_break_jyil",
   "multiple_company",
   "sap_details_tab",
@@ -617,12 +618,18 @@
    "fieldname": "sap_validation_html",
    "fieldtype": "HTML",
    "label": "SAP Validation"
+  },
+  {
+   "default": "0",
+   "fieldname": "synced_vendor_master",
+   "fieldtype": "Check",
+   "label": "Synced Vendor Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 01:21:23.171206",
+ "modified": "2025-08-22 02:08:45.413661",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

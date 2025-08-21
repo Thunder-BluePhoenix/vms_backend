@@ -45,7 +45,15 @@ frappe.ui.form.on('Vendor Onboarding', {
         add_validation_indicator(frm);
         
         // Hide the empty HTML field since we're rendering dynamically
-        hide_html_field(frm);
+        // hide_html_field(frm);
+    },
+    onload: function(frm) {
+        // Listen for real-time updates
+        frappe.realtime.on("vendor_onboarding_updated", function(data) {
+            if (data.name === frm.doc.name) {
+                frm.refresh();
+            }
+        });
     },
     
     after_save: function(frm) {
@@ -53,6 +61,7 @@ frappe.ui.form.on('Vendor Onboarding', {
         setTimeout(() => {
             render_sap_validation_display(frm);
         }, 500);
+        // frm.refresh();
     },
     
     // Trigger re-render when key fields change
