@@ -731,7 +731,7 @@ def send_mail_account_team(doc, method=None):
             # Send email to all recipients
             frappe.custom_sendmail(
                 recipients=recipient_emails,
-                subject=f"Vendor {vendor_master.vendor_name} approved by Purchase Head ",
+                subject=f"Vendor {vendor_master.vendor_name} approved by Purchase Head {full_name} ",
                 cc=doc.registered_by,
                 message=f"""
                     <p>Dear Accounts Team,</p>
