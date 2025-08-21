@@ -94,8 +94,12 @@
   "registered_for_multi_companies",
   "unique_multi_comp_id",
   "head_target",
+  "synced_vendor_master",
   "column_break_jyil",
-  "multiple_company"
+  "multiple_company",
+  "sap_details_tab",
+  "sap_validation_html",
+  "mandatory_data_for_sap"
  ],
  "fields": [
   {
@@ -598,12 +602,34 @@
    "fieldname": "rejected_mail_sent",
    "fieldtype": "Check",
    "label": "Rejected Mail sent"
+  },
+  {
+   "fieldname": "mandatory_data_for_sap",
+   "fieldtype": "Code",
+   "label": "Mandatory Data For Sap",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sap_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "SAP Details"
+  },
+  {
+   "fieldname": "sap_validation_html",
+   "fieldtype": "HTML",
+   "label": "SAP Validation"
+  },
+  {
+   "default": "0",
+   "fieldname": "synced_vendor_master",
+   "fieldtype": "Check",
+   "label": "Synced Vendor Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-21 13:14:28.383832",
+ "modified": "2025-08-22 02:08:45.413661",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
@@ -638,5 +664,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

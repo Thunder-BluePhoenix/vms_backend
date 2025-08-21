@@ -161,9 +161,8 @@ doc_events = {
     "Vendor Master": {
         "on_update": "vms.vendor_onboarding.vendor_document_management.vendor_master_on_update"
     },
-    "Vendor Onboarding":{"on_update": ["vms.APIs.sap.sap.update_sap_vonb",
-                                       "vms.vendor_onboarding.vendor_document_management.on_vendor_onboarding_submit"],
-                         "before_save": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_vendor_onboarding_status"},
+    # "Vendor Onboarding":{
+    #                      "before_save": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_vendor_onboarding_status"},
     "Purchase Requisition Form":{"on_update":"vms.APIs.sap.erp_to_sap_pr.onupdate_pr"},
     "Version":{"after_insert":"vms.overrides.versions.get_version_data_universal"},
 }
