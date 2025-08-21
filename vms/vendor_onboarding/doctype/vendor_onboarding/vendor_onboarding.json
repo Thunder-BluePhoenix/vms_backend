@@ -96,10 +96,9 @@
   "head_target",
   "column_break_jyil",
   "multiple_company",
-  "section_break_monu",
-  "mandatory_data_for_sap",
-  "column_break_vlwh",
-  "sap_validation_html"
+  "sap_details_tab",
+  "sap_validation_html",
+  "mandatory_data_for_sap"
  ],
  "fields": [
   {
@@ -604,29 +603,26 @@
    "label": "Rejected Mail sent"
   },
   {
-   "fieldname": "section_break_monu",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "mandatory_data_for_sap",
    "fieldtype": "Code",
    "label": "Mandatory Data For Sap",
    "read_only": 1
   },
   {
-   "fieldname": "column_break_vlwh",
-   "fieldtype": "Column Break"
+   "fieldname": "sap_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "SAP Details"
   },
   {
    "fieldname": "sap_validation_html",
    "fieldtype": "HTML",
-   "label": "Sap Validation Html"
+   "label": "SAP Validation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-21 23:00:51.281034",
+ "modified": "2025-08-22 01:21:23.171206",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

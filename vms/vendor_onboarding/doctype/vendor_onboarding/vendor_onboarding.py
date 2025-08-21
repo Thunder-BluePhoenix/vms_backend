@@ -7,6 +7,9 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 import json
 from vms.utils.custom_send_mail import custom_sendmail
+# from vms.vendor_onboarding.doctype.vendor_onboarding.onboarding_sap_validation import generate_sap_validation_html
+
+
 
 class VendorOnboarding(Document):
     def after_save(self):
@@ -1007,6 +1010,9 @@ def on_update_check_fields(self, method=None):
         
         self.mandatory_data_for_sap = error_message
         frappe.db.set_value("Vendor Onboarding", self.name, "mandatory_data_for_sap", error_message)
+
+    # html_content = generate_sap_validation_html(result)
+    # frappe.db.set_value("Vendor Onboarding", self.name, "sap_validation_html", html_content)
     
     # Commit the database changes
     frappe.db.commit()
