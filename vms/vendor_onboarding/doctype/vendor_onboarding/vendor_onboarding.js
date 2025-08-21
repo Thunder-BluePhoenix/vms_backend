@@ -20,6 +20,44 @@ frappe.ui.form.on('Vendor Onboarding', {
                 );
             }).addClass('btn-primary');
         }
+
+        if (!frm.doc.__islocal && frm.doc.name) {
+            render_sap_validation_display(frm);
+        }
+        
+        // Add manual validation button
+        if (!frm.doc.__islocal) {
+            frm.add_custom_button(__('Refresh SAP Validation'), function() {
+                refresh_sap_validation_display(frm);
+            }, __('Actions'));
+            
+            // Add quick validation status button
+            frm.add_custom_button(__('Quick Validation Check'), function() {
+                quick_validation_check(frm);
+            }, __('Actions'));
+            frm.add_custom_button(__('Detailed Validation Report'), function() {
+                show_detailed_validation_report(frm);
+            }, __('Actions'));
+        }
+        
+        
+        // Add validation indicator to form header
+        add_validation_indicator(frm);
+        
+        // Hide the empty HTML field since we're rendering dynamically
+        hide_html_field(frm);
+    },
+    
+    after_save: function(frm) {
+        // Re-render validation display after save
+        setTimeout(() => {
+            render_sap_validation_display(frm);
+        }, 500);
+    },
+    
+    // Trigger re-render when key fields change
+    mandatory_data_filled: function(frm) {
+        render_sap_validation_display(frm);
     }
 });
 
@@ -266,3 +304,502 @@ function handle_sap_response(response, frm) {
     }
 }
 
+function render_sap_validation_display(frm) {
+    if (!frm.doc.name || frm.doc.__islocal) return;
+    
+    // Get validation data from backend
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_onboarding.onboarding_sap_validation.get_sap_validation_display_data',
+        args: {
+            onb_ref: frm.doc.name
+        },
+        callback: function(r) {
+            if (r.message && r.message.success) {
+                // Generate and inject HTML
+                inject_validation_html(frm, r.message.display_data);
+                
+                // Update form indicators
+                update_validation_indicator(frm, r.message.display_data.validation_passed);
+            } else {
+                console.error('Failed to get validation data:', r.message);
+                inject_error_html(frm, r.message ? r.message.message : 'Unknown error');
+            }
+        }
+    });
+}
+
+// Function to inject HTML into the form
+function inject_validation_html(frm, validation_data) {
+    // Remove any existing validation display
+    frm.page.wrapper.find('.sap-validation-container').remove();
+    
+    let html_content = generate_validation_html(validation_data);
+    
+    // Find the target location (after mandatory_data_for_sap field)
+    let target_field = frm.get_field('mandatory_data_for_sap');
+    if (target_field && target_field.$wrapper) {
+        target_field.$wrapper.after(html_content);
+    } else {
+        // Fallback: add to form body
+        frm.fields_dict.company_details_tab.$wrapper.append(html_content);
+    }
+    
+    // Add click handlers for interactive elements
+    add_validation_interactions(frm);
+}
+
+// Generate HTML content based on validation data
+function generate_validation_html(validation_data) {
+    if (validation_data.validation_passed) {
+        return generate_success_html(validation_data);
+    } else {
+        return generate_error_html(validation_data);
+    }
+}
+
+// Generate success HTML
+function generate_success_html(validation_data) {
+    return `
+        <div class="sap-validation-container" style="margin: 20px 0;">
+            <div style="border: 2px solid #10b981; border-radius: 12px; padding: 20px; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                        ✓
+                    </div>
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0; color: #065f46; font-size: 20px; font-weight: 700;">✅ SAP Validation Successful</h3>
+                        <p style="margin: 4px 0 0 0; color: #047857; font-size: 14px;">All mandatory data validated and ready for SAP integration</p>
+                        <div style="margin-top: 8px;">
+                            <span style="background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; margin-right: 8px;">
+                                🚀 Ready for SAP
+                            </span>
+                            <span style="color: #6b7280; font-size: 11px;">
+                                Validated: ${new Date().toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #d1fae5; text-align: center;">
+                        <div style="width: 40px; height: 40px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#2563eb" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <div style="font-size: 12px; color: #065f46; margin-bottom: 4px;">Vendor Type</div>
+                        <div style="font-weight: 600; color: #047857; font-size: 14px;">${validation_data.vendor_type}</div>
+                    </div>
+                    
+                    <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #d1fae5; text-align: center;">
+                        <div style="width: 40px; height: 40px; background: #dcfce7; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#16a34a" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <div style="font-size: 12px; color: #065f46; margin-bottom: 4px;">Companies Processed</div>
+                        <div style="font-weight: 600; color: #047857; font-size: 14px;">${validation_data.companies_count}</div>
+                    </div>
+                    
+                    <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #d1fae5; text-align: center;">
+                        <div style="width: 40px; height: 40px; background: #e0e7ff; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#4f46e5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div style="font-size: 12px; color: #065f46; margin-bottom: 4px;">Validation Status</div>
+                        <div style="font-weight: 600; color: #047857; font-size: 14px;">✅ Complete</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Generate error HTML
+function generate_error_html(validation_data) {
+    let missing_fields_html = '';
+    
+    if (validation_data.missing_fields_summary && validation_data.missing_fields_summary.length > 0) {
+        missing_fields_html = validation_data.missing_fields_summary.slice(0, 8).map(field => {
+            let fieldName = field.split('(')[0].trim();
+            let doctype = field.includes('(') ? field.split('(')[1].replace(')', '').trim() : '';
+            
+            return `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; margin-bottom: 4px; background: white; border-radius: 6px; border-left: 3px solid #ef4444;">
+                    <div>
+                        <div style="font-weight: 500; color: #111827; font-size: 13px;">${fieldName}</div>
+                        ${doctype ? `<div style="font-size: 11px; color: #6b7280;">Source: ${doctype}</div>` : ''}
+                    </div>
+                    <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 500;">Required</span>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    return `
+        <div class="sap-validation-container" style="margin: 20px 0;">
+            <div style="border: 2px solid #ef4444; border-radius: 12px; padding: 20px; background: linear-gradient(135deg, #fef2f2 0%, #fef2f2 100%); box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                        !
+                    </div>
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0; color: #991b1b; font-size: 20px; font-weight: 700;">❌ SAP Validation Failed</h3>
+                        <p style="margin: 4px 0 0 0; color: #dc2626; font-size: 14px;">${validation_data.total_missing_count || 0} mandatory fields require attention</p>
+                        <div style="margin-top: 8px;">
+                            <span style="background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; margin-right: 8px;">
+                                🔧 Action Required
+                            </span>
+                            <span style="color: #6b7280; font-size: 11px;">
+                                Last checked: ${new Date().toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                    <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #fecaca; text-align: center;">
+                        <div style="width: 40px; height: 40px; background: #fee2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#dc2626" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <div style="font-size: 12px; color: #991b1b; margin-bottom: 4px;">Vendor Type</div>
+                        <div style="font-weight: 600; color: #dc2626; font-size: 14px;">${validation_data.vendor_type}</div>
+                    </div>
+                    
+                    <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #fecaca; text-align: center;">
+                        <div style="width: 40px; height: 40px; background: #fee2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#dc2626" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <div style="font-size: 12px; color: #991b1b; margin-bottom: 4px;">Companies</div>
+                        <div style="font-weight: 600; color: #dc2626; font-size: 14px;">${validation_data.companies_count}</div>
+                    </div>
+                    
+                    <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #fecaca; text-align: center;">
+                        <div style="width: 40px; height: 40px; background: #fee2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#dc2626" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <div style="font-size: 12px; color: #991b1b; margin-bottom: 4px;">Missing Fields</div>
+                        <div style="font-weight: 600; color: #dc2626; font-size: 14px;">${validation_data.total_missing_count || 0} errors</div>
+                    </div>
+                </div>
+                
+                ${missing_fields_html ? `
+                    <div style="background: white; border-radius: 8px; padding: 16px; border: 1px solid #fecaca;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h4 style="margin: 0; color: #991b1b; font-size: 16px; font-weight: 600;">
+                                🔍 Missing Required Fields
+                            </h4>
+                            <button class="btn btn-xs btn-primary sap-show-all-fields" style="font-size: 11px;">
+                                Show All Details
+                            </button>
+                        </div>
+                        <div style="max-height: 200px; overflow-y: auto;">
+                            ${missing_fields_html}
+                        </div>
+                        ${validation_data.total_missing_count > 8 ? `
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #fecaca; font-size: 12px; color: #991b1b; text-align: center;">
+                                ... and ${validation_data.total_missing_count - 8} more fields. Check "Mandatory Data For SAP" for complete list.
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+                
+                <div style="background: #f8fafc; border-radius: 8px; padding: 16px; margin-top: 16px; border: 1px solid #e5e7eb;">
+                    <h4 style="margin: 0 0 12px 0; color: #374151; font-size: 14px; font-weight: 600;">
+                        🛠️ Quick Resolution Steps:
+                    </h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 20px; height: 20px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">1</span>
+                            <span style="font-size: 12px; color: #374151;">Complete missing fields above</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 20px; height: 20px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">2</span>
+                            <span style="font-size: 12px; color: #374151;">Verify banking details</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 20px; height: 20px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">3</span>
+                            <span style="font-size: 12px; color: #374151;">Save to re-validate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Function to inject error HTML when API call fails
+function inject_error_html(frm, error_message) {
+    frm.page.wrapper.find('.sap-validation-container').remove();
+    
+    let error_html = `
+        <div class="sap-validation-container" style="margin: 20px 0;">
+            <div style="border: 2px solid #f59e0b; border-radius: 8px; padding: 16px; background: #fffbeb;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; background: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">⚠</div>
+                    <div>
+                        <h3 style="margin: 0; color: #92400e;">⚠️ Validation Check Error</h3>
+                        <p style="margin: 4px 0 0 0; color: #b45309; font-size: 14px;">Unable to retrieve validation status: ${error_message}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    let target_field = frm.get_field('mandatory_data_for_sap');
+    if (target_field && target_field.$wrapper) {
+        target_field.$wrapper.after(error_html);
+    }
+}
+
+// Function to refresh validation with user feedback
+function refresh_sap_validation_display(frm) {
+    // Show loading state
+    frm.page.wrapper.find('.sap-validation-container').remove();
+    
+    let loading_html = `
+        <div class="sap-validation-container" style="margin: 20px 0;">
+            <div style="border: 2px solid #3b82f6; border-radius: 8px; padding: 16px; background: #eff6ff; text-align: center;">
+                <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;"></div>
+                <p style="margin: 10px 0 0 0; color: #1d4ed8;">Refreshing SAP validation...</p>
+            </div>
+        </div>
+    `;
+    
+    let target_field = frm.get_field('mandatory_data_for_sap');
+    if (target_field && target_field.$wrapper) {
+        target_field.$wrapper.after(loading_html);
+    }
+    
+    // Re-render after a brief delay
+    setTimeout(() => {
+        render_sap_validation_display(frm);
+    }, 1000);
+    
+    frappe.show_alert({
+        message: __('SAP validation refreshed'),
+        indicator: 'blue'
+    }, 3);
+}
+
+// Add interactive elements
+function add_validation_interactions(frm) {
+    // Handle "Show All Details" button
+    frm.page.wrapper.find('.sap-show-all-fields').off('click').on('click', function() {
+        // Scroll to the mandatory_data_for_sap field
+        let target_field = frm.get_field('mandatory_data_for_sap');
+        if (target_field && target_field.$wrapper) {
+            target_field.$wrapper[0].scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            
+            // Highlight the field
+            target_field.$wrapper.animate({
+                backgroundColor: '#fef3c7'
+            }, 500).animate({
+                backgroundColor: 'transparent'
+            }, 1000);
+        }
+    });
+}
+
+// Hide the original HTML field since we're rendering dynamically
+function hide_html_field(frm) {
+    setTimeout(() => {
+        let html_field = frm.get_field('sap_validation_html');
+        if (html_field && html_field.$wrapper) {
+            html_field.$wrapper.hide();
+        }
+    }, 100);
+}
+
+// Add validation indicator to form header
+function add_validation_indicator(frm) {
+    if (frm.doc.mandatory_data_filled === 1) {
+        frm.page.set_indicator(__('SAP Ready'), 'green');
+    } else if (frm.doc.mandatory_data_filled === 0) {
+        frm.page.set_indicator(__('SAP Validation Pending'), 'red');
+    }
+}
+
+// Update validation indicator
+function update_validation_indicator(frm, validation_status) {
+    frm.page.clear_indicator();
+    
+    if (validation_status) {
+        frm.page.set_indicator(__('SAP Ready'), 'green');
+    } else {
+        frm.page.set_indicator(__('SAP Validation Failed'), 'red');
+    }
+}
+
+// Auto-trigger validation on key field changes
+frappe.ui.form.on('Vendor Onboarding', {
+    ref_no: function(frm) {
+        if (!frm.doc.__islocal) {
+            setTimeout(() => render_sap_validation_display(frm), 1000);
+        }
+    },
+    
+    payment_detail: function(frm) {
+        if (!frm.doc.__islocal) {
+            setTimeout(() => render_sap_validation_display(frm), 1000);
+        }
+    },
+    
+    purchase_organization: function(frm) {
+        if (!frm.doc.__islocal) {
+            setTimeout(() => render_sap_validation_display(frm), 1000);
+        }
+    }
+});
+
+// Debug function for console
+window.debug_sap_validation = function(frm) {
+    console.log('Current form doc:', frm.doc);
+    console.log('Mandatory data filled:', frm.doc.mandatory_data_filled);
+    render_sap_validation_display(frm);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Quick validation check without updating HTML
+function quick_validation_check(frm) {
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_onboarding.onboarding_sap_validation.get_validation_summary',
+        args: {
+            onb_ref: frm.doc.name
+        },
+        callback: function(r) {
+            if (r.message && r.message.success) {
+                show_validation_summary_dialog(r.message.summary);
+            }
+        }
+    });
+}
+
+// Show validation summary in a dialog
+function show_validation_summary_dialog(summary) {
+    let html = `
+        <div style="padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; ${summary.validation_passed ? 'background: #10b981; color: white;' : 'background: #ef4444; color: white;'}">
+                    ${summary.validation_passed ? '✓' : '!'}
+                </div>
+                <div>
+                    <h3 style="margin: 0; color: ${summary.validation_passed ? '#065f46' : '#991b1b'};">
+                        ${summary.validation_passed ? 'Validation Successful' : 'Validation Failed'}
+                    </h3>
+                    <p style="margin: 5px 0 0 0; color: #6b7280;">
+                        ${summary.validation_passed ? 'Ready for SAP integration' : `${summary.error_count} fields need attention`}
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div style="text-align: center; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 5px;">Vendor Type</div>
+                    <div style="font-weight: 600; color: #374151;">${summary.vendor_type}</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 5px;">Companies</div>
+                    <div style="font-weight: 600; color: #374151;">${summary.companies_count}</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 5px;">Status</div>
+                    <div style="font-weight: 600; color: ${summary.validation_passed ? '#065f46' : '#991b1b'};">
+                        ${summary.validation_passed ? 'Ready' : `${summary.error_count} errors`}
+                    </div>
+                </div>
+            </div>
+    `;
+    
+    if (!summary.validation_passed && summary.missing_fields.length > 0) {
+        html += `
+            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px;">
+                <h4 style="margin: 0 0 10px 0; color: #991b1b; font-size: 14px;">Top Missing Fields:</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #7f1d1d;">
+        `;
+        
+        summary.missing_fields.forEach(field => {
+            let fieldName = field.split('(')[0].trim();
+            html += `<li style="margin-bottom: 5px; font-size: 13px;">${fieldName}</li>`;
+        });
+        
+        html += `
+                </ul>
+                <p style="margin: 10px 0 0 0; font-size: 12px; color: #991b1b; font-style: italic;">
+                    Check "Mandatory Data For SAP" field for complete details
+                </p>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    
+    let dialog = new frappe.ui.Dialog({
+        title: __('SAP Validation Summary'),
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'summary_html',
+                options: html
+            }
+        ],
+        primary_action_label: summary.validation_passed ? __('Close') : __('Fix Issues'),
+        primary_action: function() {
+            dialog.hide();
+            if (!summary.validation_passed) {
+                // Scroll to validation section
+                scroll_to_validation(cur_frm);
+            }
+        }
+    });
+    
+    dialog.show();
+}
+
+
+// Scroll to validation section
+function scroll_to_validation(frm) {
+    let validation_field = frm.get_field('sap_validation_html');
+    if (validation_field && validation_field.$wrapper && validation_field.$wrapper[0]) {
+        validation_field.$wrapper[0].scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+        
+        // Add a subtle highlight effect
+        validation_field.$wrapper.animate({
+            backgroundColor: '#fef3c7'
+        }, 500).animate({
+            backgroundColor: 'transparent'
+        }, 1000);
+    }
+}
