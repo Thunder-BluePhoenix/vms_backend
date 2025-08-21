@@ -501,7 +501,7 @@ def check_vnonb_send_mails(doc, method=None):
             else:
                 pass
             
-        elif doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 1:
+        elif doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 1 and doc.rejected_mail_sent == 0 :
             send_rejection_email(doc, method=None)
 
         else:
@@ -511,15 +511,20 @@ def check_vnonb_send_mails(doc, method=None):
         if doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 0:
             if doc.accounts_team_undertaking == 0 and doc.mail_sent_to_account_team == 0 :
                 send_approval_mail_accounts_team(doc, method=None)
-                print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_approval_mail_accounts_team")
+                # print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_approval_mail_accounts_team")
             elif doc.accounts_team_undertaking == 1 and doc.accounts_head_undertaking == 0 and doc.mail_sent_to_account_head == 0:
                 send_approval_mail_accounts_head(doc, method=None)
-                print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_approval_mail_accounts_head")
+                # print("@@@@@@@@@@@@@@@@@@@@@@@@@@send_approval_mail_accounts_head")
             else:
                 pass
             
-        elif doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 1:
+        elif doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 1 and doc.rejected_mail_sent == 0:
             send_rejection_email(doc, method=None)
+
+        else:
+            pass
+    else:
+        pass
 
 
 
@@ -840,6 +845,7 @@ def send_rejection_email(doc, method=None):
             """,
             now=True,
         )
+        frappe.db.set_value("Vendor Onboarding", doc.name, "rejected_mail_sent", 1)
 
         return {
             "status": "success",

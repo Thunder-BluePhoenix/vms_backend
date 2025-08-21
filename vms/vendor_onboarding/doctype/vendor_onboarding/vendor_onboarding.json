@@ -36,6 +36,7 @@
   "rejected",
   "data_sent_to_sap",
   "expired",
+  "rejected_mail_sent",
   "is_amendment",
   "purchase_t_approval",
   "accounts_t_approval",
@@ -591,12 +592,18 @@
    "fieldname": "is_amendment",
    "fieldtype": "Check",
    "label": "Is Amendment"
+  },
+  {
+   "default": "0",
+   "fieldname": "rejected_mail_sent",
+   "fieldtype": "Check",
+   "label": "Rejected Mail sent"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-18 17:24:44.540394",
+ "modified": "2025-08-21 10:36:43.084509",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
