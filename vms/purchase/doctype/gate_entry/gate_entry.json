@@ -1,0 +1,271 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-08-21 11:27:06.540705",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "details_section",
+  "naming_series",
+  "inward_location",
+  "scan_barcode",
+  "name_of_company",
+  "currency",
+  "column_break_otww",
+  "gate_entry_no",
+  "gate_entry_date",
+  "posting_time",
+  "column_break_efws",
+  "vendor",
+  "name_of_vendor",
+  "vendor_address",
+  "vendor_gst",
+  "section_break_wewd",
+  "challan_no",
+  "challan_date",
+  "column_break_wyyd",
+  "bill_of_entry_no",
+  "bill_of_entry_date",
+  "section_break_nzqk",
+  "eway_bill_no",
+  "eway_bill_date",
+  "transport",
+  "airway_bill",
+  "column_break_vzsc",
+  "vehicle_type",
+  "vehicle_no",
+  "driver_name",
+  "driver_mobile_no",
+  "section_break_npxo",
+  "gate_entry_details",
+  "section_break_vlid",
+  "created_by",
+  "invoice_value",
+  "column_break_pvvq",
+  "created_date",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Gate Entry series",
+   "options": "GEN-.###"
+  },
+  {
+   "fieldname": "inward_location",
+   "fieldtype": "Data",
+   "label": "Inward Location"
+  },
+  {
+   "fieldname": "scan_barcode",
+   "fieldtype": "Data",
+   "label": "Scan Barcode",
+   "options": "Barcode"
+  },
+  {
+   "fieldname": "name_of_company",
+   "fieldtype": "Link",
+   "label": "Name Of Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "column_break_otww",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gate_entry_no",
+   "fieldtype": "Data",
+   "label": "Gate Entry No (Manual)"
+  },
+  {
+   "fieldname": "gate_entry_date",
+   "fieldtype": "Date",
+   "label": "Gate Entry Date"
+  },
+  {
+   "fieldname": "posting_time",
+   "fieldtype": "Time",
+   "label": "Posting Time"
+  },
+  {
+   "fieldname": "column_break_efws",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Link",
+   "label": "Vendor",
+   "options": "Vendor Master"
+  },
+  {
+   "fieldname": "name_of_vendor",
+   "fieldtype": "Data",
+   "label": "Name of Vendor"
+  },
+  {
+   "fieldname": "vendor_address",
+   "fieldtype": "Small Text",
+   "label": "Vendor Address"
+  },
+  {
+   "fieldname": "vendor_gst",
+   "fieldtype": "Data",
+   "label": "Vendor GST"
+  },
+  {
+   "fieldname": "section_break_wewd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "challan_no",
+   "fieldtype": "Data",
+   "label": "Challan/Invoice No"
+  },
+  {
+   "fieldname": "challan_date",
+   "fieldtype": "Date",
+   "label": "Challan/Invoice Date"
+  },
+  {
+   "fieldname": "column_break_wyyd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bill_of_entry_no",
+   "fieldtype": "Data",
+   "label": "Bill of Entry No"
+  },
+  {
+   "fieldname": "bill_of_entry_date",
+   "fieldtype": "Date",
+   "label": "Bill of Entry Date"
+  },
+  {
+   "fieldname": "section_break_nzqk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "eway_bill_no",
+   "fieldtype": "Data",
+   "label": "E-Way Bill No"
+  },
+  {
+   "fieldname": "eway_bill_date",
+   "fieldtype": "Date",
+   "label": "E-Way Bill Date"
+  },
+  {
+   "fieldname": "transport",
+   "fieldtype": "Data",
+   "label": "Transport/Courier"
+  },
+  {
+   "fieldname": "column_break_vzsc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "airway_bill",
+   "fieldtype": "Data",
+   "label": "LR/Airway Bill"
+  },
+  {
+   "fieldname": "vehicle_type",
+   "fieldtype": "Data",
+   "label": "Vehicle Type"
+  },
+  {
+   "fieldname": "vehicle_no",
+   "fieldtype": "Data",
+   "label": "Vehicle No"
+  },
+  {
+   "fieldname": "driver_name",
+   "fieldtype": "Data",
+   "label": "Driver Name"
+  },
+  {
+   "fieldname": "driver_mobile_no",
+   "fieldtype": "Data",
+   "label": "Driver Mobile No"
+  },
+  {
+   "fieldname": "section_break_vlid",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "created_by",
+   "fieldtype": "Data",
+   "label": "Created By"
+  },
+  {
+   "fieldname": "invoice_value",
+   "fieldtype": "Data",
+   "label": "Invoice Value"
+  },
+  {
+   "fieldname": "column_break_pvvq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "created_date",
+   "fieldtype": "Date",
+   "label": "Created Date"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "section_break_npxo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "gate_entry_details",
+   "fieldtype": "Table",
+   "label": "Gate Entry Details",
+   "options": "Gate Entry Details"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-08-21 14:28:02.983593",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Gate Entry",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
