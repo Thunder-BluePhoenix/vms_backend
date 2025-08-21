@@ -272,7 +272,7 @@ def validate_mandatory_data(onb_ref):
 
             # Define fields that are intentionally allowed to be empty (these won't be validated)
             allowed_empty_fields = {
-                "Title", "Name2", "StrSuppl1", "StrSuppl2", "StrSuppl3", "TelNumber", "Namev", "Name11",
+                "Title", "Name2", "StrSuppl1", "StrSuppl2", "StrSuppl3", "TelNumber",
                 "SmtpAddr1", "J1kftind", "Zuawa", "Kalsk", "Xezer", "Vedno", "Zmsg"
             }
             
