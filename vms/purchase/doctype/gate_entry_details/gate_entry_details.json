@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-08-21 12:42:39.197908",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "purchase_order",
+  "purchase_order_date",
+  "rate",
+  "received_qty",
+  "po_pending_qty",
+  "column_break_wayo",
+  "uom",
+  "amount",
+  "product_code",
+  "product_name",
+  "section_break_soog",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "purchase_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Purchase Order No",
+   "options": "Purchase Order"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Rate",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "received_qty",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Received Qty"
+  },
+  {
+   "fieldname": "po_pending_qty",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PO Pending Qty"
+  },
+  {
+   "fieldname": "column_break_wayo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "UOM",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Data",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "product_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Product Code"
+  },
+  {
+   "fieldname": "product_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Product Name"
+  },
+  {
+   "fieldname": "section_break_soog",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "purchase_order_date",
+   "fieldtype": "Date",
+   "label": "Purchase Order Date"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-21 14:32:10.493085",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Gate Entry Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

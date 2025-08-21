@@ -18,6 +18,7 @@
   "packing_list_attachment",
   "e_way_bill_attachment",
   "dispatch_form_submitted",
+  "e_way_bill_no",
   "column_break_rtsd",
   "docket_number",
   "dispatch_date",
@@ -27,7 +28,16 @@
   "commercial_attachment",
   "test_certificates_attachment",
   "section_break_tmxv",
-  "items"
+  "items",
+  "tab_sec",
+  "qr_code_generated",
+  "column_break_crvc",
+  "qr_generation_date",
+  "section_break_lkfh",
+  "qr_code_image",
+  "qr_code_view",
+  "column_break_aqqg",
+  "qr_code_data"
  ],
  "fields": [
   {
@@ -139,12 +149,61 @@
    "fieldname": "dispatch_form_submitted",
    "fieldtype": "Check",
    "label": "Dispatch Form Submitted"
+  },
+  {
+   "fieldname": "tab_sec",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "default": "0",
+   "fieldname": "qr_code_generated",
+   "fieldtype": "Check",
+   "label": "QR Code Generated"
+  },
+  {
+   "fieldname": "column_break_crvc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "qr_generation_date",
+   "fieldtype": "Datetime",
+   "label": "QR Code Generation Date"
+  },
+  {
+   "fieldname": "section_break_lkfh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "qr_code_image",
+   "fieldtype": "Attach Image",
+   "label": "QR Code"
+  },
+  {
+   "fieldname": "qr_code_view",
+   "fieldtype": "Image",
+   "label": "QR Code View",
+   "options": "qr_code_image"
+  },
+  {
+   "fieldname": "column_break_aqqg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "qr_code_data",
+   "fieldtype": "JSON",
+   "label": "QR Code Data"
+  },
+  {
+   "fieldname": "e_way_bill_no",
+   "fieldtype": "Data",
+   "label": "E-way Bill No"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-30 11:26:35.110592",
+ "modified": "2025-08-21 15:17:17.369612",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Dispatch Item",

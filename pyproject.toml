@@ -9,6 +9,11 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # "frappe~=15.0.0" # Installed and managed by bench.
+    "qrcode[pil]",
+    "pyzbar",
+    "pandas",
+    "openpyxl"
+
 ]
 
 [build-system]
@@ -57,3 +62,10 @@ typing-modules = ["frappe.types.DF"]
 quote-style = "double"
 indent-style = "tab"
 docstring-code-format = true
+
+
+[deploy.dependencies.apt]
+packages = [
+    "cmake",
+    "libgl-mesa-glx"
+]
