@@ -62,3 +62,10 @@ typing-modules = ["frappe.types.DF"]
 quote-style = "double"
 indent-style = "tab"
 docstring-code-format = true
+
+
+[deploy.dependencies.apt]
+packages = [
+    "cmake",
+    "libgl-mesa-glx"
+]
