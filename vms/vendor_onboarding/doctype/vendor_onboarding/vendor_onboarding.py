@@ -549,7 +549,7 @@ def send_mail_purchase_team(doc, method=None):
                 message=f"""
                     <p>Dear Purchase Team,</p>
                     <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed its Onboarding form.</p>
-                    <p>Please review the details and take necessary actions.</p>
+                    <p>Please Log-in into Portal, Review the details and take necessary actions.</p>
                     
                     <p>
                         <a href="{http_server}" style="
@@ -561,7 +561,7 @@ def send_mail_purchase_team(doc, method=None):
                             display: inline-block;
                             font-weight: bold;
                         ">
-                            Review Onboarding
+                            Log-in into Portal
                         </a>
                     </p>
                     
@@ -630,7 +630,7 @@ def send_mail_purchase_head(doc, method=None):
                     <p>Dear Purchase Head,</p>
                     <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed its onboarding form.<br><strong>{ frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") }</strong>
                         from <strong>Purchase Team</strong> has approved the Vendor Onboarding form.</p>
-                    <p>Please review the details and take necessary actions.</p>
+                    <p>Please Log-in into Portal, Review the details and take necessary actions.</p>
                     <p>
                         <a href="{http_server}" style="
                             background-color: #28a745;
@@ -641,7 +641,7 @@ def send_mail_purchase_head(doc, method=None):
                             display: inline-block;
                             font-weight: bold;
                         ">
-                            Review Onboarding
+                            Log-in into Portal
                         </a>
                     </p>
                     
@@ -737,7 +737,7 @@ def send_mail_account_team(doc, method=None):
                     <p>Dear Accounts Team,</p>
                     <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br><strong>{ frappe.db.get_value("Employee", {"user_id": doc.purchase_h_approval}, "full_name") }</strong> 
                         (Purchase Head) has approved the Vendor Onboarding form.</p>
-                    <p>Please review the details and take necessary actions.</p>
+                    <p>Please Log-in into Portal, Review the details and take necessary actions.</p>
                     <p>
                         <a href="{http_server}" style="
                             background-color: #28a745;
@@ -748,7 +748,7 @@ def send_mail_account_team(doc, method=None):
                             display: inline-block;
                             font-weight: bold;
                         ">
-                            Review Onboarding
+                            Log-in into Portal
                         </a>
                     </p>
                     <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
@@ -831,7 +831,7 @@ def send_rejection_email(doc, method=None):
                 <p>Dear Sir/Madam,</p>
                 <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has been rejected because of <strong>{doc.reason_for_rejection}</strong>.</p>
                 
-                <p>Please review the details and take necessary actions.</p>
+                <p>Please Log-in into Portal, Review the details and take necessary actions.</p>
                 
                 <p>
                     <a href="{document_details}" style="
@@ -843,7 +843,7 @@ def send_rejection_email(doc, method=None):
                         display: inline-block;
                         font-weight: bold;
                     ">
-                        Review Onboarding
+                        Log-in into Portal
                     </a>
                 </p>
                 
@@ -1117,7 +1117,7 @@ def send_approval_mail_accounts_team(doc, method=None):
                 message=f"""
                     <p>Dear Accounts Team,</p>
                     <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed its onboarding form.</p>
-                    <p>Please review the details and take necessary actions.</p>
+                    <p>Please Log-in into Portal, Review the details and take necessary actions.</p>
                     
                     <p>
                         <a href="{http_server}" style="
@@ -1129,7 +1129,7 @@ def send_approval_mail_accounts_team(doc, method=None):
                             display: inline-block;
                             font-weight: bold;
                         ">
-                            Review Onboarding
+                            Log-in into Portal
                         </a>
                     </p>
                     
@@ -1212,7 +1212,7 @@ def send_approval_mail_accounts_head(doc, method=None):
                     <p>Dear Accounts Head,</p>
                     <p>The vendor <strong>{vendor_master.vendor_name} ({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br><strong>{ frappe.db.get_value("Employee", {"user_id": doc.accounts_t_approval}, "full_name") }</strong> 
                         from (Accounts Team) has approved the vendor onboarding form.</p></p>
-                    <p>Please review the details and take necessary actions.</p>
+                    <p>Please Log-in into Portal, Review the details and take necessary actions.</p>
                     
                     <p>
                         <a href="{http_server}" style="
@@ -1224,7 +1224,7 @@ def send_approval_mail_accounts_head(doc, method=None):
                             display: inline-block;
                             font-weight: bold;
                         ">
-                            Review Onboarding
+                            Log-in into Portal
                         </a>
                     </p>
                     
