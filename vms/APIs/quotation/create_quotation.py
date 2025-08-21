@@ -975,7 +975,7 @@ def send_quotation_notification_email(quotation_name, rfq_number, action):
             subject=email_subject,
             message=email_template,
             header="New Quotation Created",
-            delayed=False  
+            now=True  
         )
         
         

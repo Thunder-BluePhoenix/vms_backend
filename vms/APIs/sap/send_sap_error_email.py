@@ -110,7 +110,7 @@ def send_sap_error_email(doctype, docname):
                 "message": "No recipients found with role IT Head."
             }
 
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=recipient_emails,
             subject=subject,
             message=message
