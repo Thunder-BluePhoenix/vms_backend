@@ -813,16 +813,20 @@ def send_rejection_email(doc, method=None):
                 cc_list.append(doc.purchase_t_approval)
             if doc.purchase_h_approval:
                 cc_list.append(doc.purchase_h_approval)
+            
+        if doc.accounts_head_approval:
+            if doc.accounts_t_approval:
+                cc_list.append(doc.accounts_t_approval)
 
         # Remove duplicates and empty values
         cc_list = list({email for email in cc_list if email})
 
         frappe.custom_sendmail(
-            recipients=[vendor_email],
-            cc=cc_list,
+            recipients=cc_list,
+            cc=[vendor_email],
             subject="Vendor Onboarding has been Rejected",
             message=f"""
-                <p>Dear {vendor_master.vendor_name},</p>
+                <p>Dear Sir/Madam,</p>
                 <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has been rejected because of <strong>{doc.reason_for_rejection}</strong>.</p>
                 
                 <p>Please review the details and take necessary actions.</p>
