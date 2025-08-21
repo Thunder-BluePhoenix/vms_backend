@@ -545,10 +545,10 @@ def send_mail_purchase_team(doc, method=None):
             
             frappe.custom_sendmail(
                 recipients=[purchase_team_id],
-                subject="Vendor has completed the onboarding form",
+                subject=f"Vendor {vendor_master.vendor_name} has completed its Onboarding Form.",
                 message=f"""
                     <p>Dear Purchase Team,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed its Onboarding form.</p>
                     <p>Please review the details and take necessary actions.</p>
                     
                     <p>
@@ -623,12 +623,12 @@ def send_mail_purchase_head(doc, method=None):
             # Send email
             frappe.custom_sendmail(
                 recipients=recipient_emails,
-                subject="Vendor Approved by Purchase Team",
+                subject=f"Vendor {vendor_master.vendor_name} approved by Purchase Team { frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") }",
                 cc=doc.registered_by, 
                 message=f"""
                     <p>Dear Purchase Head,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The <strong>{ frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") }</strong>
-                        (Purchase Team) already approved the process.</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed its onboarding form.<br><strong>{ frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") }</strong>
+                        from <strong>Purchase Team</strong> has approved the Vendor Onboarding form.</p>
                     <p>Please review the details and take necessary actions.</p>
                     <p>
                         <a href="{http_server}" style="
@@ -729,12 +729,12 @@ def send_mail_account_team(doc, method=None):
             # Send email to all recipients
             frappe.custom_sendmail(
                 recipients=recipient_emails,
-                subject="Vendor Approved by Purchase Head",
+                subject=f"Vendor {vendor_master.vendor_name} approved by Purchase Head { frappe.db.get_value("Employee", {"user_id": doc.purchase_h_approval}, "full_name") }",
                 cc=doc.registered_by,
                 message=f"""
                     <p>Dear Accounts Team,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The <strong>{ frappe.db.get_value("Employee", {"user_id": doc.purchase_h_approval}, "full_name") }</strong> 
-                        (Purchase Head) already approved the process.</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br><strong>{ frappe.db.get_value("Employee", {"user_id": doc.purchase_h_approval}, "full_name") }</strong> 
+                        (Purchase Head) has approved the Vendor Onboarding form.</p>
                     <p>Please review the details and take necessary actions.</p>
                     <p>
                         <a href="{http_server}" style="
@@ -824,7 +824,7 @@ def send_rejection_email(doc, method=None):
         frappe.custom_sendmail(
             recipients=cc_list,
             cc=[vendor_email],
-            subject="Vendor Onboarding has been Rejected",
+            subject=f"Vendor {vendor_master.vendor_name} has been Rejected",
             message=f"""
                 <p>Dear Sir/Madam,</p>
                 <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has been rejected because of <strong>{doc.reason_for_rejection}</strong>.</p>
@@ -1111,10 +1111,10 @@ def send_approval_mail_accounts_team(doc, method=None):
             # Send email to all recipients
             frappe.custom_sendmail(
                 recipients=recipient_emails,
-                subject="Vendor has completed the onboarding form",
+                subject=f"Vendor {vendor_master.vendor_name} has completed its Onboarding form.",
                 message=f"""
                     <p>Dear Accounts Team,</p>
-                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).</p>
+                    <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed its onboarding form.</p>
                     <p>Please review the details and take necessary actions.</p>
                     
                     <p>
@@ -1204,11 +1204,11 @@ def send_approval_mail_accounts_head(doc, method=None):
             # Send email to all recipients
             frappe.custom_sendmail(
                 recipients=recipient_emails,
-                subject="Vendor Onboarding Approved by Accounts Team",
+                subject=f"Vendor {vendor_master.vendor_name} Onboarding details has been approved by Accounts Team { frappe.db.get_value("Employee", {"user_id": doc.accounts_t_approval}, "full_name") }",
                 message=f"""
                     <p>Dear Accounts Head,</p>
-                    <p>The vendor <strong>{vendor_master.vendor_name} ({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br>The <strong>{ frappe.db.get_value("Employee", {"user_id": doc.accounts_t_approval}, "full_name") }</strong> 
-                        (Accounts Team) already approved the process.</p></p>
+                    <p>The vendor <strong>{vendor_master.vendor_name} ({doc.ref_no})</strong> has completed the onboarding form ({doc.name}).<br><strong>{ frappe.db.get_value("Employee", {"user_id": doc.accounts_t_approval}, "full_name") }</strong> 
+                        from (Accounts Team) has approved the vendor onboarding form.</p></p>
                     <p>Please review the details and take necessary actions.</p>
                     
                     <p>
