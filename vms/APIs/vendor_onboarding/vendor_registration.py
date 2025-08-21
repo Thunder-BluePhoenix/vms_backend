@@ -734,18 +734,28 @@ def send_registration_email_link(vendor_onboarding, refno):
                 }
 
             frappe.custom_sendmail(
-                recipients=[recipient_email], cc=[onboarding_doc.registered_by],
+                recipients=[recipient_email], 
+                cc=[onboarding_doc.registered_by],
                 subject=f"""New Vendor Appointment for Meril Group -{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
                 message=f"""
-                    <p>Dear Sir/Madam,</p>
+                    <p>Dear Vendor,</p>
                     <p>Greetings for the Day!</p>
-                    <p>You have been added by <strong>{frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")}</strong> to Onboard as a Vendor/Supplier for {company_names}.</p>
-                    <p> Founded in 2006, Meril Life Sciences Pvt. Ltd. is a global medtech company based in India, dedicated to designing and manufacturing innovative, 
+                    <p>You have been added by <strong>{frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")}</strong> to Onboard as a Vendor/Supplier for <strong> {company_names}.</strong></p>
+                    <p> Founded in 2006, Meril Group of Companies is a global MEDTECH company based in India, dedicated to designing and manufacturing innovative, 
                     patient-centric medical devices. We focus on advancing healthcare through cutting-edge R&D, quality manufacturing, and clinical excellence 
                     to help people live longer, healthier lives. We are a family of 3000+ Vendors/Sub – Vendors across India. </p>
                     <p>Please click here to fill details!</p>
                     <p style="margin: 15px 0px;">
-                        <a href="{registration_link}" rel="nofollow" class="btn btn-primary">Complete Registration</a>
+                        <a href="{registration_link}" 
+                        style="display: inline-block; 
+                                padding: 10px 20px; 
+                                background-color: #007bff; 
+                                color: white; 
+                                text-decoration: none; 
+                                border-radius: 4px; 
+                                font-weight: bold;
+                                border: 1px solid #007bff;"
+                        rel="nofollow">Complete Registration</a>
                     </p>
                     <p>You may also copy and paste this link into your browser:<br>
                     <a href="{registration_link}">{registration_link}</a></p>

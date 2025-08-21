@@ -1,6 +1,7 @@
 import frappe
 import smtplib
 from email.message import EmailMessage
+from email.utils import formataddr
 
 
 def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=None, **kwargs):
@@ -62,7 +63,10 @@ def _send_email_with_cc_bcc(subject, body, to_emails, cc_emails=None, bcc_emails
     
     msg = EmailMessage()
     msg["Subject"] = subject
-    msg["From"] = "noreply@merillife.com"
+    
+    # FIX: Set sender with display name using formataddr
+    msg["From"] = formataddr(("VMS", "noreply@merillife.com"))
+    
     msg["To"] = ", ".join(to_emails)
     
     if cc_emails:
@@ -79,8 +83,14 @@ def _send_email_with_cc_bcc(subject, body, to_emails, cc_emails=None, bcc_emails
     try:
         with smtplib.SMTP_SSL("smtp.zeptomail.in", 465) as server:
             server.login("noreply@merillife.com", "4sxLpHrd3YNj__29edd5373fd7a")
+            
+            # Use formataddr for from_addr as well
+            sender_with_name = formataddr(("VMS", "noreply@merillife.com"))
+            
             server.send_message(
-                msg, from_addr="noreply@merillife.com", to_addrs=all_recipients
+                msg, 
+                from_addr=sender_with_name, 
+                to_addrs=all_recipients
             )
             
             # Create Email Queue record with system permissions (bypass user permissions)
@@ -95,7 +105,8 @@ def _send_email_with_cc_bcc(subject, body, to_emails, cc_emails=None, bcc_emails
                         "message": body,
                         "status": "Sent",
                         "show_as_cc": ",".join(cc_emails) if cc_emails else "",
-                        "sender": "noreply@merillife.com"
+                        "sender": "noreply@merillife.com",
+                        "sender_full_name": "VMS",  # Fixed: Added space and proper name
                     }
                 )
                 
@@ -119,7 +130,8 @@ def _send_email_with_cc_bcc(subject, body, to_emails, cc_emails=None, bcc_emails
                             "message": body,
                             "status": "Sent",
                             "show_as_cc": ",".join(cc_emails) if cc_emails else "",
-                            "sender": "noreply@merillife.com"
+                            "sender": "noreply@merillife.com",
+                            "sender_full_name": "VMS",
                         }
                     )
                     
