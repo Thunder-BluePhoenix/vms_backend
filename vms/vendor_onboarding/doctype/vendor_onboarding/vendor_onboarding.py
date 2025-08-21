@@ -6,15 +6,17 @@ import time
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 import json
-from vms.utils.custom_send_mail import custom_sendmail
+# from vms.utils.custom_send_mail import custom_sendmail
 # from vms.vendor_onboarding.doctype.vendor_onboarding.onboarding_sap_validation import generate_sap_validation_html
+from vms.APIs.sap.sap import update_sap_vonb
+from vms.vendor_onboarding.vendor_document_management import on_vendor_onboarding_submit
 
 
 
 class VendorOnboarding(Document):
-    def after_save(self):
-        sync_maintain(self, method= None)
-        frappe.clear_cache(doctype=self.doctype, name=self.name)
+    # def after_save(self):
+    #     sync_maintain(self, method= None)
+    #     frappe.clear_cache(doctype=self.doctype, name=self.name)
         # frappe.db.commit()
         # self.reload()
         
@@ -79,15 +81,21 @@ class VendorOnboarding(Document):
 
 
     def on_update(self):
-            
+            # print("update hook start@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
             vendor_company_update(self,method=None)
-            check_vnonb_send_mails(self, method=None)
+            
             on_update_check_fields(self,method=None)
             update_ven_onb_record_table(self, method=None)
             update_van_core_docs(self, method=None)
-            set_qms_required_value(self, method=None)
+            set_qms_required_value(self, method=None)            
+            update_sap_vonb(self, method= None)
+            set_vonb_status_onupdate(self, method=None)
+            check_vnonb_send_mails(self, method=None)
+            sync_maintain(self, method= None)
+            on_vendor_onboarding_submit(self, method=None)
         #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
+            # print("control reload@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
             self.reload()
             
             # Notify frontend about the update
@@ -102,10 +110,62 @@ class VendorOnboarding(Document):
 	
 
 
+
+
+def set_vonb_status_onupdate(doc, method=None):
+    # print("status reload@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2Status")
+    
+    new_status = None
+    new_rejected = None
+    
+    if doc.register_by_account_team == 0 and doc.rejected == 0:
+        if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and doc.data_sent_to_sap:
+            new_status = "Approved"
+            new_rejected = False
+        elif doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and doc.data_sent_to_sap != 1:
+            new_status = "SAP Error"
+            new_rejected = False
+        elif doc.rejected:
+            new_status = "Rejected"
+        else:
+            new_status = "Pending"
+
+    elif doc.register_by_account_team == 1 and doc.rejected == 0:
+        if doc.accounts_team_undertaking and doc.accounts_head_undertaking and doc.data_sent_to_sap:
+            new_status = "Approved"
+            new_rejected = False
+        elif doc.accounts_team_undertaking and doc.accounts_head_undertaking and doc.data_sent_to_sap != 1:
+            new_status = "SAP Error"
+            new_rejected = False
+        elif doc.rejected:
+            new_status = "Rejected"
+        else:
+            new_status = "Pending"
+    
+    elif doc.rejected:
+        new_status = "Rejected"
+    else:
+        new_status = "Pending"
+
+    # Update database directly
+    if new_status and new_status != doc.onboarding_form_status:
+        frappe.db.set_value(doc.doctype, doc.name, "onboarding_form_status", new_status)
+        doc.onboarding_form_status = new_status  # Update the doc object too
+    
+    if new_rejected is not None and new_rejected != doc.rejected:
+        frappe.db.set_value(doc.doctype, doc.name, "rejected", new_rejected)
+        doc.rejected = new_rejected  # Update the doc object too
+    
+    frappe.db.commit()
+
+
+
+
 @frappe.whitelist(allow_guest=True)
 def set_vendor_onboarding_status(doc, method=None):
+    # print("before save start@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     try:
-        if doc.register_by_account_team == 0:
+        if doc.register_by_account_team == 0 and doc.rejected ==0:
             if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and doc.data_sent_to_sap:
                 doc.onboarding_form_status = "Approved"
                 doc.rejected = False
@@ -118,7 +178,7 @@ def set_vendor_onboarding_status(doc, method=None):
             else:
                 doc.onboarding_form_status = "Pending"
 
-        elif doc.register_by_account_team == 1:
+        elif doc.register_by_account_team == 1 and doc.rejected ==0:
             if doc.accounts_team_undertaking and doc.accounts_head_undertaking and doc.data_sent_to_sap:
                 doc.onboarding_form_status = "Approved"
                 doc.rejected = False
@@ -130,6 +190,12 @@ def set_vendor_onboarding_status(doc, method=None):
                 doc.onboarding_form_status = "Rejected"
             else:
                 doc.onboarding_form_status = "Pending"
+        
+        elif doc.rejected:
+            doc.onboarding_form_status = "Rejected"
+
+        else:
+            doc.onboarding_form_status = "Pending"
 
 
         # doc.save(ignore_permissions=True)
@@ -194,6 +260,7 @@ def vendor_company_update(doc, method=None):
 
 @frappe.whitelist()
 def check_vnonb_send_mails(doc, method=None):
+    # print("Mail function shoot@@@@@@@@@@@@@@@@@@@@@@@@@@")
     if doc.register_by_account_team == 0:
         if doc.form_fully_submitted_by_vendor == 1 and doc.rejected == 0:   #doc.mandatory_data_filled == 1 and 
             if doc.purchase_team_undertaking == 0 and doc.mail_sent_to_purchase_team == 0 :
@@ -755,9 +822,9 @@ def sent_asa_form_link(doc, method=None):
 
 def sync_maintain(doc, method= None):
     # Server Script for Vendor Onboarding
-    if doc.onboarding_form_status == "Approved":
+    if doc.onboarding_form_status == "Approved" and doc.data_sent_to_sap==1:
         # Check if not already synced
-        if not frappe.db.get_value("Vendor Onboarding", doc.name, "data_sent_to_sap"):
+        if not frappe.db.get_value("Vendor Onboarding", doc.name, "synced_vendor_master"):
             frappe.call(
                 "vms.vendor_onboarding.vendor_document_management.sync_vendor_documents_on_approval",
                 vendor_onboarding_name=doc.name
@@ -765,7 +832,7 @@ def sync_maintain(doc, method= None):
             
             # Mark as synced
             frappe.db.set_value("Vendor Onboarding", doc.name, {
-                "data_sent_to_sap": 1
+                "synced_vendor_master": 1
             }, update_modified=False)
             
             frappe.msgprint("Vendor documents synced to Vendor Master successfully")
