@@ -6,6 +6,7 @@ import time
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 import json
+from vms.utils.custom_send_mail import custom_sendmail
 
 class VendorOnboarding(Document):
     def after_save(self):

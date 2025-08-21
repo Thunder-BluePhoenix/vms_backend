@@ -1,6 +1,7 @@
 import frappe
 import json
 from frappe import _
+from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist()
 def send_po_to_pr(data=None):
@@ -189,7 +190,7 @@ def send_po_to_pr(data=None):
         if cc_list:
             email_params["cc"] = cc_list
         
-        frappe.sendmail(**email_params)
+        frappe.custom_sendmail(**email_params)
         
         
         frappe.logger().info(f"Purchase Order email sent successfully to {', '.join(to_emails)}")

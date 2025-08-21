@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 import uuid
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 class PurchaseRequisitionWebform(Document):
@@ -151,15 +152,20 @@ def send_mail_hod_pt(doc, method=None):
 				subject = f"New Purchase Requisition Raised by {employee_name}"
 				message = f"""
 					<p>Dear {hod_name},</p>		
-					<p>A new <b>Purchase Requisition</b> has been raised by <b>{employee_name}</b>. Please review the details and take necessary actions.</p>
-					<p>Thank you!</p>
+
+					<p>A new <b>Purchase Requisition</b> has been raised by <b>{employee_name}</b>. Kindly review the details and take the necessary action.</p>
+
+					<p>Thank you.<br>
+					Best regards,<br>
+					VMS Team</p>
 				"""
+
 
 				# Combine HOD and Purchase Team emails
 				recipient_emails = [hod_email] + [p["user_id"] for p in pur_team if p.get("user_id")]
 				recipient_emails = list(set(recipient_emails))
 
-				frappe.sendmail(
+				frappe.custom_sendmail(
 					recipients=recipient_emails,
 					subject=subject,
 					message=message,
@@ -216,7 +222,7 @@ def send_mail_purchase_head(doc, method=None):
 			recipient_emails = [p["user_id"] for p in pur_head if p.get("user_id")]
 			recipient_emails = list(set(recipient_emails))
 
-			frappe.sendmail(
+			frappe.custom_sendmail(
 				recipients=recipient_emails,
 				subject=subject,
 				message=message,
@@ -253,10 +259,15 @@ def send_mail_user(doc, method=None):
 		subject = f"Purchase Requisition has been Approved by Purchase Head"
 		message = f"""
 			<p>Dear {employee_name},</p>		
-			<p>Your <b>Purchase Requisition</b> has been Approved by <b>Purchase Head</b>. Please review the details and take necessary actions.</p>
-			<p>Thank you!</p>
+
+			<p>Your <b>Purchase Requisition</b> has been approved by the <b>Purchase Head</b>. Kindly review the details and take the necessary action.</p>
+
+			<p>Thank you.<br>
+			Best regards,<br>
+			VMS Team</p>
 		"""
-		frappe.sendmail(
+
+		frappe.custom_sendmail(
 			recipients=[doc.requisitioner, hod_email],
 			subject=subject,
 			message=message,

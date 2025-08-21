@@ -5,6 +5,7 @@ import frappe
 from frappe.model.document import Document
 import json
 from datetime import datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 class SupplierQMSAssessmentForm(Document):
@@ -131,7 +132,7 @@ def send_mail_qa_team(doc, method=None):
 
 		# Send the email
 		if not doc.mail_sent_to_qa_team:
-			frappe.sendmail(
+			frappe.custom_sendmail(
 				recipients=emails,
 				subject=subject,
 				message=message,

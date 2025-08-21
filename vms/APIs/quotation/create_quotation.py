@@ -9,6 +9,7 @@ from frappe.utils import get_datetime, now_datetime
 from datetime import datetime
 from frappe import _
 from datetime import datetime, timedelta
+from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist(allow_guest=True)
 def fetch_rfq_data(name, ref_no):
@@ -42,7 +43,7 @@ def fetch_rfq_data(name, ref_no):
 			"vendor_code": vendor_code_list
 		}
 
-		if rfq.rfq_type == "Logistic Vendor":
+		if rfq.rfq_type == "Logistics Vendor":
 			attachments = []
 			for row in rfq.multiple_attachments:
 				file_url = row.get("attachment_name")
@@ -564,7 +565,7 @@ def create_or_update_quotation_non_onboarded():
             rfq_type = data_dict.get('rfq_type', '').lower()
             logistic_type = data_dict.get('logistic_type', '').lower()
             
-            if rfq_type == 'logistic vendor':
+            if rfq_type == 'logistics vendor':
                 if logistic_type == 'import':
                     total_landing_price = data_dict.get('total_landing_price')
                     if total_landing_price:
@@ -969,7 +970,7 @@ def send_quotation_notification_email(quotation_name, rfq_number, action):
         email_template = get_quotation_email_template(quotation, rfq, action, team, employee_full_name)
         
     
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=recipients,
             subject=email_subject,
             message=email_template,
@@ -1153,7 +1154,7 @@ def send_quotation_access_email_simple(quotation, vendor_email, action,rfq_numbe
         <p>Thank you,<br>VMS Team</p>
         """
         
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=[vendor_email],
             subject=subject,
             message=message,

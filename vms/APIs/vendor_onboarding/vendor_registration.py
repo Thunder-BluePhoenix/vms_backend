@@ -4,6 +4,7 @@ from frappe.model.document import Document
 from urllib.parse import urlencode
 import json
 from datetime import datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 
@@ -610,44 +611,116 @@ def send_registration_email_link(vendor_onboarding, refno):
         )
 
         # Construct QMS form link if required
+        # qms_section = ""
+        # qms_mul_company_code = []
+
+        # qms_mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name") and d.get("qms_required") == "Yes"]
+
+        # for name in qms_mul_company_names:
+        #     if frappe.db.exists("Company Master", name):
+        #         comp = frappe.db.get_value("Company Master", name, ["company_code"], as_dict=True)
+        #         if comp:
+        #             qms_mul_company_code.append(comp.company_code)
+
+        # if qms_mul_company_code:
+        #     qms_company_code = qms_mul_company_code
+        # else:
+        #     comp = frappe.db.get_value("Company Master", onboarding_doc.company_name, ["company_code"], as_dict=True)
+        #     qms_company_code = [comp.company_code] if comp else []
+
+        qms_company_codes = []
         qms_section = ""
-        qms_mul_company_code = []
 
-        qms_mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name") and d.get("qms_required") == "Yes"]
+        if onboarding_doc.registered_for_multi_companies == 1:
+            qms_mul_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id,
+                    "registered_for_multi_companies": 1
+                },
+                fields=["company_name", "qms_required"]
+            )
 
-        for name in qms_mul_company_names:
-            if frappe.db.exists("Company Master", name):
-                comp = frappe.db.get_value("Company Master", name, ["company_code"], as_dict=True)
-                if comp:
-                    qms_mul_company_code.append(comp.company_code)
+            # Collect only companies where QMS is required
+            qms_company_names = [
+                d["company_name"] for d in qms_mul_docs
+                if d.get("company_name") and d.get("qms_required") == "Yes"
+            ]
 
-        if qms_mul_company_code:
-            qms_company_code = qms_mul_company_code
+            for name in qms_company_names:
+                if frappe.db.exists("Company Master", name):
+                    comp = frappe.db.get_value(
+                        "Company Master", name, ["company_name", "company_code"], as_dict=True
+                    )
+                    if comp:
+                        qms_company_codes.append(comp.company_code)
+
+            # Build QMS link only if some codes exist
+            if qms_company_codes:
+                query_params = urlencode({
+                    "vendor_onboarding": onboarding_doc.name,
+                    "ref_no": onboarding_doc.ref_no,
+                    "company_code": ",".join(qms_company_codes)
+                })
+
+                webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
+
+                qms_section = f"""
+                    <p>As part of your registration, please also complete the QMS Form at the link below:</p>
+                    <p style="margin: 15px 0px;">
+                        <a href="{webform_link}" rel="nofollow" class="btn btn-secondary">Fill QMS Form</a>
+                    </p>
+                    <p>You may also copy and paste this link into your browser:<br>
+                    <a href="{webform_link}">{webform_link}</a></p>
+                """
+
         else:
-            comp = frappe.db.get_value("Company Master", onboarding_doc.company_name, ["company_code"], as_dict=True)
-            qms_company_code = [comp.company_code] if comp else []
+            # Single company onboarding
+            if onboarding_doc.qms_required == "Yes":
+                comp = frappe.db.get_value(
+                    "Company Master", onboarding_doc.company_name, ["company_name", "company_code"], as_dict=True
+                )
+                if comp:
+                    qms_company_codes = [comp.company_code]
+
+                    query_params = urlencode({
+                        "vendor_onboarding": onboarding_doc.name,
+                        "ref_no": onboarding_doc.ref_no,
+                        "company_code": ",".join(qms_company_codes)
+                    })
+
+                    webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
+
+                    qms_section = f"""
+                        <p>As part of your registration, please also complete the QMS Form at the link below:</p>
+                        <p style="margin: 15px 0px;">
+                            <a href="{webform_link}" rel="nofollow" class="btn btn-secondary">Fill QMS Form</a>
+                        </p>
+                        <p>You may also copy and paste this link into your browser:<br>
+                        <a href="{webform_link}">{webform_link}</a></p>
+                    """
 
         # if onboarding_doc.qms_required == "Yes":
-        query_params = urlencode({
-            "vendor_onboarding": onboarding_doc.name,
-            "ref_no": onboarding_doc.ref_no,
-            # "mobile_number": vendor_master.mobile_number,
-            "company_code": ",".join(qms_company_code) 
-        })
+        # query_params = urlencode({
+        #     "vendor_onboarding": onboarding_doc.name,
+        #     "ref_no": onboarding_doc.ref_no,
+        #     # "mobile_number": vendor_master.mobile_number,
+        #     "company_code": ",".join(qms_company_codes) 
+        # })
 
-        http_backend_server = frappe.conf.get("backend_http")
-        # webform_link = f"{http_backend_server}/qms-webform/new?{query_params}"
+        # http_backend_server = frappe.conf.get("backend_http")
+        # # webform_link = f"{http_backend_server}/qms-webform/new?{query_params}"
 
-        webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
+        # webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
 
-        qms_section = f"""
-            <p>As part of your registration, please also complete the QMS Form at the link below:</p>
-            <p style="margin: 15px 0px;">
-                <a href="{webform_link}" rel="nofollow" class="btn btn-secondary">Fill QMS Form</a>
-            </p>
-            <p>You may also copy and paste this link into your browser:<br>
-            <a href="{webform_link}">{webform_link}</a></p>
-        """
+        # qms_section = f"""
+        #     <p>As part of your registration, please also complete the QMS Form at the link below:</p>
+        #     <p style="margin: 15px 0px;">
+        #         <a href="{webform_link}" rel="nofollow" class="btn btn-secondary">Fill QMS Form</a>
+        #     </p>
+        #     <p>You may also copy and paste this link into your browser:<br>
+        #     <a href="{webform_link}">{webform_link}</a></p>
+        # """
 
         # Send registration email only once
         if not onboarding_doc.sent_registration_email_link:
@@ -681,7 +754,7 @@ def send_registration_email_link(vendor_onboarding, refno):
 
                     <p>Thanking you,<br>VMS Team</p>
                 """,
-                delayed=False
+                now=True
             )
 
             onboarding_doc.sent_registration_email_link = 1

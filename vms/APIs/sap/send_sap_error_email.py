@@ -1,5 +1,6 @@
 import frappe
 import json
+from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist(allow_guest=False)
 def send_sap_error_email(doctype, docname):

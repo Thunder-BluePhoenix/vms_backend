@@ -3,6 +3,7 @@ import json
 from frappe import _
 from frappe.utils import nowdate, format_date
 from datetime import datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist(allow_guest=False)
 def update_purchase_team_remarks(data, **kwargs):
@@ -156,7 +157,7 @@ def send_po_update_notification(po_name, vendor_name, po_email, updated_items_de
         cc = [po_data.get('email2')] if po_data.get('email2') else None
         
         # Send email
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=recipients,
             cc=cc,
             subject=subject,
@@ -530,7 +531,7 @@ def po_details_mail(po_id):
         if po.email:
             subject = "Here is your PO details"
             body = "Please check your PO details."
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=[po.email],
                 subject=subject,
                 message=body

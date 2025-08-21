@@ -8,6 +8,7 @@ from frappe.utils import get_datetime, now_datetime
 from datetime import datetime
 from frappe import _
 from datetime import datetime, timedelta
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 class RequestForQuotation(Document):
@@ -168,7 +169,7 @@ def send_mail_on_revised_quotation(doc):
 					<p><a href="{link}">Click here to fill the quotation</a></p>
 				"""
 
-			frappe.sendmail(
+			frappe.custom_sendmail(
 				recipients=[email],
 				subject=f"Revised RFQ Notification - {doc.name}",
 				message=body,
@@ -199,7 +200,7 @@ def send_mail_on_revised_quotation(doc):
 					<p><a href="{link}">Click here to fill the quotation</a></p>
 				"""
 
-			frappe.sendmail(
+			frappe.custom_sendmail(
 				recipients=[email],
 				subject=f"Revised RFQ Notification - {doc.name}",
 				message=body,
@@ -236,7 +237,7 @@ def send_quotation_email(doc):
                 <p>Thank you,<br>VMS Team</p>
             """
 
-            frappe.sendmail(
+            frappe.custom_sendmail(
                 recipients=row.office_email_primary,
 				cc= doc.raised_by,
                 subject=subject,
@@ -258,12 +259,19 @@ def send_quotation_email(doc):
             subject = "Request for Quotation - Action Required"
             message = f"""
                 <p>Dear {row.vendor_name},</p>
-                <p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
-                <p>Please get in touch with our procurement team to complete the onboarding process before submitting your quotation.</p>
-                <p>Thank you,<br>VMS Team</p><br>
-                <a href="{link}" target="_blank">Click here to fill quotation</a>
+
+                <p>You have been invited to submit a quotation for the requested items in our RFQ document.</p>
+
+                <p>Kindly get in touch with our Procurement Team to complete the onboarding process before submitting your quotation.</p>
+
+                <p><a href="{link}" target="_blank">Click here to submit your quotation</a></p>
+
+                <p>Thank you.<br>
+                Best regards,<br>
+                VMS Team</p>
             """
-            frappe.sendmail(
+
+            frappe.custom_sendmail(
                 recipients=row.office_email_primary,
 				cc= doc.raised_by,
                 subject=subject,
@@ -342,7 +350,7 @@ def process_token(token):
                 return attachments
 
             # Based on RFQ Type
-            if rfq_doc.rfq_type == "Logistic Vendor":
+            if rfq_doc.rfq_type == "Logistics Vendor":
                 return {
                     "status": "success",
                     "unique_id": rfq_doc.unique_id,
