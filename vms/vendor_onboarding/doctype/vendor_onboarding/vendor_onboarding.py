@@ -14,6 +14,19 @@ from vms.utils.custom_send_mail import custom_sendmail
 class VendorOnboarding(Document):
     def after_save(self):
         sync_maintain(self, method= None)
+        frappe.clear_cache(doctype=self.doctype, name=self.name)
+        # frappe.db.commit()
+        # self.reload()
+        
+        # # Notify frontend about the update
+        # frappe.publish_realtime(
+        #     event="vendor_onboarding_updated",
+        #     message={
+        #         "name": self.name,
+        #         "modified": self.modified
+        #     },
+        #     user=frappe.session.user
+        # )
 
     
      
@@ -75,6 +88,17 @@ class VendorOnboarding(Document):
             set_qms_required_value(self, method=None)
         #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
+            self.reload()
+            
+            # Notify frontend about the update
+            frappe.publish_realtime(
+                event="vendor_onboarding_updated",
+                message={
+                    "name": self.name,
+                    "modified": self.modified
+                },
+                user=frappe.session.user
+            )
 	
 
 
