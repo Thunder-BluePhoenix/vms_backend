@@ -97,7 +97,9 @@
   "column_break_jyil",
   "multiple_company",
   "section_break_monu",
-  "mandatory_data_for_sap"
+  "mandatory_data_for_sap",
+  "column_break_vlwh",
+  "sap_validation_html"
  ],
  "fields": [
   {
@@ -610,12 +612,21 @@
    "fieldtype": "Code",
    "label": "Mandatory Data For Sap",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_vlwh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sap_validation_html",
+   "fieldtype": "HTML",
+   "label": "Sap Validation Html"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-21 22:43:58.416692",
+ "modified": "2025-08-21 23:00:51.281034",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
