@@ -41,7 +41,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 14:47:25.959184",
+ "modified": "2025-08-22 14:38:38.333488",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Account Category Master",
@@ -66,5 +66,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "account_category_name"
+ "title_field": "account_category_name",
+ "track_changes": 1
 }

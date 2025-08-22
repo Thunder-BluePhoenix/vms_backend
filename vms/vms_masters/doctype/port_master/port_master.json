@@ -32,7 +32,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-15 16:55:09.683403",
+ "modified": "2025-08-22 14:38:32.705551",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Port Master",
@@ -67,5 +67,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "port_name"
+ "title_field": "port_name",
+ "track_changes": 1
 }

@@ -39,7 +39,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:36:15.709737",
+ "modified": "2025-08-22 14:38:40.047168",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Country Master",
@@ -74,5 +74,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "country_name"
+ "title_field": "country_name",
+ "track_changes": 1
 }

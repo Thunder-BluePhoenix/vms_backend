@@ -35,7 +35,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-17 14:44:44.750446",
+ "modified": "2025-08-22 14:38:46.720140",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Code",
@@ -44,5 +44,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

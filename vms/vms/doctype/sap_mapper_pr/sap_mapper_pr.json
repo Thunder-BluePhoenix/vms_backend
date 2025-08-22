@@ -28,7 +28,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 12:41:51.561532",
+ "modified": "2025-08-22 14:39:50.015198",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "SAP Mapper PR",
@@ -53,5 +53,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "doctype_name"
+ "title_field": "doctype_name",
+ "track_changes": 1
 }

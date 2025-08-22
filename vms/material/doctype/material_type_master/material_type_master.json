@@ -77,7 +77,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-04 13:09:26.741705",
+ "modified": "2025-08-22 14:36:54.300478",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Type Master",
@@ -100,5 +100,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

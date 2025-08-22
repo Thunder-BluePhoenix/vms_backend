@@ -19,7 +19,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-30 17:02:36.702975",
+ "modified": "2025-08-22 14:36:34.009296",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Assessment Form Settings",
@@ -39,5 +39,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

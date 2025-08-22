@@ -333,7 +333,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-09 12:53:04.084349",
+ "modified": "2025-08-22 14:37:59.347081",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GRN Items",
@@ -342,5 +342,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

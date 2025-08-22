@@ -45,7 +45,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-07 15:54:33.750828",
+ "modified": "2025-08-22 14:39:46.501227",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Reconciliation Account",
@@ -80,5 +80,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "reconcil_account"
+ "title_field": "reconcil_account",
+ "track_changes": 1
 }

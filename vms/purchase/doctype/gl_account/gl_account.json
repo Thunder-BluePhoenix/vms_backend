@@ -46,7 +46,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 14:11:49.386167",
+ "modified": "2025-08-22 14:38:01.422780",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GL Account",
@@ -71,5 +71,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "gl_account_name"
+ "title_field": "gl_account_name",
+ "track_changes": 1
 }

@@ -36,6 +36,10 @@ def validate_mandatory_data(onb_ref):
                 vendor_type_names.append(vendor_type_doc.vendor_type_name)
         vendor_type_names_str = ", ".join(vendor_type_names)
 
+        for row in onb.contact_details:
+            first_name = row.first_name
+            last_name = row.last_name
+
         validation_errors = []
 #--------------------------- impt bnk details check
         # Check for missing table validations first
@@ -104,8 +108,8 @@ def validate_mandatory_data(onb_ref):
                 "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                 "J1ipanno": vcd.company_pan_number,
                 "J1ipanref": onb_vm.vendor_name,
-                "Namev": onb_vm.first_name or "",
-                "Name11": onb_vm.last_name or "",
+                "Namev": first_name or "",
+                "Name11": last_name or "",
                 "Bankl": onb_bank.bank_code,
                 "Bankn": onb_pmd.account_number,
                 "Bkref": onb_bank.bank_name,
@@ -174,7 +178,7 @@ def validate_mandatory_data(onb_ref):
 
             # Define fields that are intentionally allowed to be empty (these won't be validated)
             allowed_empty_fields = {
-                "Title", "Name2", "StrSuppl1", "StrSuppl2", "StrSuppl3", "TelNumber", "Namev", "Name11",
+                "Title", "Name2", "StrSuppl1", "StrSuppl2", "StrSuppl3", "TelNumber", 
                 "SmtpAddr1", "J1kftind", "Zuawa", "Kalsk", "Xezer", "Vedno", "Zmsg"
             }
             
@@ -206,8 +210,8 @@ def validate_mandatory_data(onb_ref):
                 "J1ivtyp": "Vendor Type (Vendor Type Master)",
                 "J1ipanno": "Company PAN Number (Vendor Onboarding Company Details)",
                 "J1ipanref": "PAN Reference Name (Vendor Master)",
-                "Namev": "First Name (Vendor Master)",
-                "Name11": "Last Name (Vendor Master)",
+                "Namev": "First Name (Contact Details)",
+                "Name11": "Last Name (Contact Details)",
                 "Bankl": "Bank Code (Bank Master)",
                 "Bankn": "Account Number (Vendor Onboarding Payment Details)",
                 "Bkref": "Bank Name (Bank Master)",

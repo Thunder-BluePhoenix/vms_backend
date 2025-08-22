@@ -44,7 +44,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-20 11:02:04.513692",
+ "modified": "2025-08-22 14:38:32.160757",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "State Master",
@@ -79,5 +79,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "state_name"
+ "title_field": "state_name",
+ "track_changes": 1
 }

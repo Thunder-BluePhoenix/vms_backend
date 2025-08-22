@@ -49,7 +49,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 14:28:46.811396",
+ "modified": "2025-08-22 14:38:37.202707",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Purchase Organization Master",
@@ -84,5 +84,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "purchase_organization_name"
+ "title_field": "purchase_organization_name",
+ "track_changes": 1
 }

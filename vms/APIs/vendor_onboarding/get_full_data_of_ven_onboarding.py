@@ -388,7 +388,11 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         payment_details["intermediate_bank_details"] = intermediate_bank_details
 
+        if ven_onb_doc.form_fully_submitted_by_vendor==1 and ven_onb_doc.onboarding_form_status == "Pending" and ven_onb_doc.purchase_team_undertaking == 0:
+            payment_details["bank_proof_upload_status"] = "Pending"
 
+        if ven_onb_doc.form_fully_submitted_by_vendor==1 and ven_onb_doc.register_by_account_team==1 and ven_onb_doc.onboarding_form_status == "Pending" and ven_onb_doc.accounts_team_undertaking == 0:
+            payment_details["bank_proof_upload_status"] = "Pending"
 
         #----------contact details tab-----------------
 
@@ -743,6 +747,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         return {
             "status": "success",
             "message": "Vendor onboarding company and address details fetched successfully.",
+            "onboarding_form_status": vonb.onboarding_form_status,
             "company_details_tab": company_details,
             "company_address_tab": address_details,
             "document_details_tab": document_details,

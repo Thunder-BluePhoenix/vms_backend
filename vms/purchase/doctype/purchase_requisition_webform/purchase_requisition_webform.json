@@ -238,7 +238,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-21 15:18:28.805526",
+ "modified": "2025-08-22 14:37:57.675513",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",
@@ -287,5 +287,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
