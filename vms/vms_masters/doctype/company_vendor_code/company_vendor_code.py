@@ -303,7 +303,7 @@ class CompanyVendorCode(Document):
 			}]
 			
 			# Send email
-			frappe.sendmail(
+			frappe.custom_sendmail(
 				recipients=[email],
 				cc = cc,
 				subject=subject,
