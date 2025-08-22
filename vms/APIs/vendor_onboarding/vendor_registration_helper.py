@@ -416,12 +416,12 @@ def populate_company_details(source_onboarding_name, target_onboarding_name, new
         
         # Copy vendor company details table
         if hasattr(source_onboarding, 'vendor_company_details'):
-            target_onboarding.set("vendor_company_details", [])
+            # target_onboarding.set("vendor_company_details", [])
             for row in source_onboarding.vendor_company_details:
                 # Find the corresponding Company Details document
                 company_details_doc = frappe.db.get_value(
                     "Vendor Onboarding Company Details",
-                    {"vendor_onboarding": source_onboarding_name, "company_name": row.company_name},
+                    {"vendor_onboarding": source_onboarding_name},
                     "name"
                 )
                 
@@ -431,15 +431,15 @@ def populate_company_details(source_onboarding_name, target_onboarding_name, new
                         company_details_doc,
                         target_onboarding_name,
                         new_vendor_master_name,
-                        row.company_name
+                        # row.company_name
                     )
                     
-                    if result == "Success":
+                    # if result == "Success":
                         # Add to vendor_company_details table
-                        target_onboarding.append("vendor_company_details", {
-                            "company_name": row.company_name,
-                            "qms_required": row.qms_required
-                        })
+                        # target_onboarding.append("vendor_company_details", {
+                        #     "company_name": row.company_name,
+                        #     "qms_required": row.qms_required
+                        # })
         
         target_onboarding.save(ignore_permissions=True)
         return "Success"
@@ -449,7 +449,7 @@ def populate_company_details(source_onboarding_name, target_onboarding_name, new
         return f"Failed: {str(e)}"
 
 
-def populate_vendor_onboarding_company_details(source_doc_name, target_vendor_onboarding, target_ref_no, company_name):
+def populate_vendor_onboarding_company_details(source_doc_name, target_vendor_onboarding, target_ref_no):
     """Populate Vendor Onboarding Company Details"""
     try:
         source_doc = frappe.get_doc("Vendor Onboarding Company Details", source_doc_name)
@@ -458,7 +458,7 @@ def populate_vendor_onboarding_company_details(source_doc_name, target_vendor_on
         target_doc = frappe.new_doc("Vendor Onboarding Company Details")
         target_doc.vendor_onboarding = target_vendor_onboarding
         target_doc.ref_no = target_ref_no
-        target_doc.company_name = company_name
+        # target_doc.company_name = company_name
         
         # Fields to copy
         fields_to_copy = [
