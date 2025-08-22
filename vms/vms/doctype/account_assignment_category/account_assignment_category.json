@@ -31,7 +31,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-24 20:15:01.592022",
+ "modified": "2025-08-22 14:39:51.171461",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Account Assignment Category",
@@ -56,5 +56,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "account_assignment_category_name"
+ "title_field": "account_assignment_category_name",
+ "track_changes": 1
 }

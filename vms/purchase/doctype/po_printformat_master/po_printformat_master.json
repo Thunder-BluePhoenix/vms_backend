@@ -28,7 +28,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-25 10:40:24.341822",
+ "modified": "2025-08-22 14:37:55.241348",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "PO PrintFormat Master",
@@ -64,5 +64,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

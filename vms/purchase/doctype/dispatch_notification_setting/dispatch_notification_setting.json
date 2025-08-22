@@ -18,7 +18,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-26 15:04:12.218408",
+ "modified": "2025-08-22 14:38:00.934198",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Dispatch Notification Setting",
@@ -38,5 +38,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -510,7 +510,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-26 19:02:53.611624",
+ "modified": "2025-08-22 14:37:52.967752",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform Table",
@@ -519,5 +519,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

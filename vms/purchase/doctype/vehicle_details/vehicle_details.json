@@ -91,7 +91,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 11:18:45.456039",
+ "modified": "2025-08-22 14:37:47.309104",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Vehicle Details",
@@ -114,5 +114,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

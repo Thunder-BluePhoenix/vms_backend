@@ -65,7 +65,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 17:45:18.065684",
+ "modified": "2025-08-22 14:38:31.377274",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Plant Master",
@@ -100,5 +100,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "plant_name"
+ "title_field": "plant_name",
+ "track_changes": 1
 }

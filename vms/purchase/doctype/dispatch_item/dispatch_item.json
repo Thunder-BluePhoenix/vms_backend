@@ -203,7 +203,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-21 15:17:17.369612",
+ "modified": "2025-08-22 14:37:48.049019",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Dispatch Item",
@@ -226,5 +226,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

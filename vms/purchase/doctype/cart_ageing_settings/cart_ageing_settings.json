@@ -18,7 +18,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-07-20 16:05:14.845891",
+ "modified": "2025-08-22 14:37:58.170747",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Cart Ageing Settings",
@@ -38,5 +38,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -85,7 +85,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-25 15:51:58.722958",
+ "modified": "2025-08-22 14:39:48.866317",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Signature Record",
@@ -107,5 +107,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

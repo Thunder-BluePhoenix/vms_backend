@@ -271,7 +271,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-23 12:34:23.135930",
+ "modified": "2025-08-22 14:38:02.014442",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Item",
@@ -280,5 +280,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

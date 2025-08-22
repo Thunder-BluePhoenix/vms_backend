@@ -26,7 +26,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-15 12:47:02.806277",
+ "modified": "2025-08-22 14:37:59.023268",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Mode Of Shipment",
@@ -49,5 +49,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

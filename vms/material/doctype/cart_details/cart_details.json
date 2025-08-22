@@ -358,7 +358,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 19:32:05.414822",
+ "modified": "2025-08-22 14:36:55.427334",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
@@ -407,5 +407,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
