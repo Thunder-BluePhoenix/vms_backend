@@ -743,6 +743,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         return {
             "status": "success",
             "message": "Vendor onboarding company and address details fetched successfully.",
+            "onboarding_form_status": vonb.onboarding_form_status,
             "company_details_tab": company_details,
             "company_address_tab": address_details,
             "document_details_tab": document_details,
