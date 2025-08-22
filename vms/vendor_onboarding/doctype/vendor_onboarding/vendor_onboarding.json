@@ -95,6 +95,7 @@
   "unique_multi_comp_id",
   "head_target",
   "synced_vendor_master",
+  "multi_records_populated",
   "column_break_jyil",
   "multiple_company",
   "sap_details_tab",
@@ -624,12 +625,18 @@
    "fieldname": "synced_vendor_master",
    "fieldtype": "Check",
    "label": "Synced Vendor Master"
+  },
+  {
+   "default": "0",
+   "fieldname": "multi_records_populated",
+   "fieldtype": "Check",
+   "label": "Multi Records Populated"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:39:04.003264",
+ "modified": "2025-08-23 03:06:29.494541",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

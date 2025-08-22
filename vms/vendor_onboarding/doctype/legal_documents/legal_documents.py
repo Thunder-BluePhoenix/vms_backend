@@ -60,6 +60,10 @@ class LegalDocuments(Document):
 			# else:
 			# 	frappe.log_error(f"No GST records found matching company: {vonb_comp.company_name}", "on_update")
 		else:
+
+			vonb_comp.set("comp_gst_table", [])
+			vonb_comp.save()
+			frappe.db.commit()
 			frappe.log_error("GST table is empty or missing in Legal Documents", "on_update")
 		
 		

@@ -10,7 +10,7 @@ import json
 # from vms.vendor_onboarding.doctype.vendor_onboarding.onboarding_sap_validation import generate_sap_validation_html
 from vms.APIs.sap.sap import update_sap_vonb
 from vms.vendor_onboarding.vendor_document_management import on_vendor_onboarding_submit
-
+from vms.APIs.vendor_onboarding.vendor_registration_helper import populate_vendor_data_from_existing_onboarding
 
 
 class VendorOnboarding(Document):
@@ -1728,3 +1728,14 @@ def preview_sap_data_structure(onb_ref):
         return {
             "error": f"Preview failed: {str(e)}"
         }
+    
+
+
+
+
+def update_van_core_docs_multi_case(doc, method=None):
+    if doc.head_target == 1 and doc.registered_for_multi_companies == 1 and doc.form_fully_submitted_by_vendor == 1:
+        core_docs = frappe.get_all("Vendor Onboarding", filters = {"unique_multi_comp_id":doc.unique_multi_comp_id, "head_target": 0}, fields=["name"])
+        if len(core_docs)<1:
+            return
+        
