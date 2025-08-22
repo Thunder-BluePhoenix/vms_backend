@@ -6,7 +6,7 @@ import os
 from urllib.parse import urlparse
 
 
-def populate_vendor_data_from_existing_onboarding(vendor_master_name, office_email_primary):
+def populate_vendor_data_from_existing_onboarding(vendor_master_name, office_email_primary, new_onboarding_record_given = None):
     """
     Function to populate vendor data from existing approved onboarding records
     
@@ -63,7 +63,11 @@ def populate_vendor_data_from_existing_onboarding(vendor_master_name, office_ema
         new_vendor_master = frappe.get_doc("Vendor Master", vendor_master_name)
         
         # Step 6: Get all related documents created during new registration
-        new_onboarding = frappe.get_doc("Vendor Onboarding", new_vendor_master.onboarding_ref_no)
+        new_onboarding = None
+        if new_onboarding_record_given == None:
+            new_onboarding = frappe.get_doc("Vendor Onboarding", new_vendor_master.onboarding_ref_no)   
+        else:
+            new_onboarding = frappe.get_doc("Vendor Onboarding", new_onboarding_record_given)
         
         # Step 7: Populate data for all related documents
         populated_docs = []

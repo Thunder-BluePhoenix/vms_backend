@@ -689,15 +689,18 @@ def vendor_registration_multi(data):
         if vendor_onboarding_docs:
             try:
                 send_registration_email_link(vendor_onboarding_docs[0], vendor_master.name)
-            except Exception as e:
+            except Exception:
                 frappe.log_error(frappe.get_traceback(), "Error sending registration email")
                 # Don't fail the entire process for email errors
                 pass
 
-        population_result = populate_vendor_data_from_existing_onboarding(
-            vendor_master.name, 
-            vendor_master.office_email_primary
-        )
+            for vend_onb_doc in vendor_onboarding_docs:
+                population_result = populate_vendor_data_from_existing_onboarding(
+                    vendor_master.name, 
+                    vendor_master.office_email_primary,
+                    vend_onb_doc
+                )
+
         return {
             "status": "success",
             "message": _("Vendor registration completed successfully"),
