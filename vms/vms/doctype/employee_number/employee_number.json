@@ -61,7 +61,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-05 16:56:05.618212",
+ "modified": "2025-08-22 14:39:55.803157",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee Number",
@@ -70,5 +70,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

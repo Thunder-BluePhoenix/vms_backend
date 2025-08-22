@@ -22,7 +22,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-15 18:15:31.248891",
+ "modified": "2025-08-22 14:36:29.859120",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "QMS Inspection Report Table",
@@ -31,5 +31,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

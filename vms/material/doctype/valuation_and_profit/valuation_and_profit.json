@@ -37,7 +37,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-04 12:30:09.436050",
+ "modified": "2025-08-22 14:36:54.734349",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Valuation and Profit",
@@ -46,5 +46,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

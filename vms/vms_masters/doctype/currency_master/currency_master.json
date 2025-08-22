@@ -34,7 +34,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-03 15:44:11.924870",
+ "modified": "2025-08-22 14:38:39.214238",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Currency Master",
@@ -69,5 +69,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "currency_name"
+ "title_field": "currency_name",
+ "track_changes": 1
 }

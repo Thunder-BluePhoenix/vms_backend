@@ -19,7 +19,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-08 11:49:13.122524",
+ "modified": "2025-08-22 14:39:50.296596",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Purchase Requisition From SubHead Table",
@@ -28,5 +28,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

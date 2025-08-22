@@ -67,7 +67,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-28 17:49:24.189695",
+ "modified": "2025-08-22 14:37:51.284105",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Revision",
@@ -90,5 +90,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

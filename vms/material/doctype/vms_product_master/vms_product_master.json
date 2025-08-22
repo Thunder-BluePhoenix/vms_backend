@@ -93,7 +93,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-14 16:22:29.247116",
+ "modified": "2025-08-22 14:36:53.885963",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "VMS Product Master",
@@ -119,5 +119,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "product_price"
+ "title_field": "product_price",
+ "track_changes": 1
 }

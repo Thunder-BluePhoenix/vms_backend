@@ -321,7 +321,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-26 13:01:50.026270",
+ "modified": "2025-08-22 14:39:48.330347",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",
@@ -346,5 +346,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "full_name"
+ "title_field": "full_name",
+ "track_changes": 1
 }

@@ -25,7 +25,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:25:38.938058",
+ "modified": "2025-08-22 14:38:40.359787",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Type of Business",
@@ -60,5 +60,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "type_of_business"
+ "title_field": "type_of_business",
+ "track_changes": 1
 }

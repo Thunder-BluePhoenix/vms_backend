@@ -206,7 +206,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-06 15:33:22.561506",
+ "modified": "2025-08-22 14:38:30.728846",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Bank Details",
@@ -255,5 +255,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -6,24 +6,24 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-    "vendor_onboarding_no",
-    "onboarding_form_status",
-    "registered_by",
-    "purchase_team_approval",
-    "purchase_head_approval",
-    "accounts_team_approval",
-    "onboarding_date",
-    "onboarding_status",
-    "column_break_1",
-    "vendor_onboarding",
-    "payment_details",
-    "document_details",
-    "certificate_details",
-    "manufacturing_details",
-    "section_break_1",
-    "is_current",
-    "synced_date",
-    "synced_by"
+  "vendor_onboarding_no",
+  "onboarding_form_status",
+  "registered_by",
+  "purchase_team_approval",
+  "purchase_head_approval",
+  "accounts_team_approval",
+  "onboarding_date",
+  "onboarding_status",
+  "column_break_1",
+  "vendor_onboarding",
+  "payment_details",
+  "document_details",
+  "certificate_details",
+  "manufacturing_details",
+  "section_break_1",
+  "is_current",
+  "synced_date",
+  "synced_by"
  ],
  "fields": [
   {
@@ -64,85 +64,85 @@
    "label": "Accounts Team Approval"
   },
   {
-      "fieldname": "vendor_onboarding",
-      "fieldtype": "Link",
-      "label": "Vendor Onboarding",
-      "options": "Vendor Onboarding",
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "onboarding_date",
-      "fieldtype": "Datetime",
-      "label": "Onboarding Date",
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "onboarding_status",
-      "fieldtype": "Data",
-      "label": "Status",
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "column_break_1",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "payment_details",
-      "fieldtype": "Link",
-      "label": "Payment Details",
-      "options": "Vendor Onboarding Payment Details",
-      "read_only": 1
-    },
-    {
-      "fieldname": "document_details",
-      "fieldtype": "Link",
-      "label": "Legal Documents",
-      "options": "Legal Documents",
-      "read_only": 1
-    },
-    {
-      "fieldname": "certificate_details",
-      "fieldtype": "Link",
-      "label": "Certificate Details",
-      "options": "Vendor Onboarding Certificates",
-      "read_only": 1
-    },
-    {
-      "fieldname": "manufacturing_details",
-      "fieldtype": "Link",
-      "label": "Manufacturing Details",
-      "options": "Vendor Onboarding Manufacturing Details",
-      "read_only": 1
-    },
-    {
-      "fieldname": "section_break_1",
-      "fieldtype": "Section Break"
-    },
-    {
-      "fieldname": "is_current",
-      "fieldtype": "Check",
-      "label": "Is Current",
-      "default": 0,
-      "description": "Indicates if these documents are currently synced to vendor master"
-    },
-    {
-      "fieldname": "synced_date",
-      "fieldtype": "Datetime",
-      "label": "Last Synced Date",
-      "read_only": 1
-    },
-    {
-      "fieldname": "synced_by",
-      "fieldtype": "Data",
-      "label": "Synced By",
-      "read_only": 1
-    }
+   "fieldname": "vendor_onboarding",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vendor Onboarding",
+   "options": "Vendor Onboarding"
+  },
+  {
+   "fieldname": "onboarding_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Onboarding Date"
+  },
+  {
+   "fieldname": "onboarding_status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "payment_details",
+   "fieldtype": "Link",
+   "label": "Payment Details",
+   "options": "Vendor Onboarding Payment Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "document_details",
+   "fieldtype": "Link",
+   "label": "Legal Documents",
+   "options": "Legal Documents",
+   "read_only": 1
+  },
+  {
+   "fieldname": "certificate_details",
+   "fieldtype": "Link",
+   "label": "Certificate Details",
+   "options": "Vendor Onboarding Certificates",
+   "read_only": 1
+  },
+  {
+   "fieldname": "manufacturing_details",
+   "fieldtype": "Link",
+   "label": "Manufacturing Details",
+   "options": "Vendor Onboarding Manufacturing Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "Indicates if these documents are currently synced to vendor master",
+   "fieldname": "is_current",
+   "fieldtype": "Check",
+   "label": "Is Current"
+  },
+  {
+   "fieldname": "synced_date",
+   "fieldtype": "Datetime",
+   "label": "Last Synced Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "synced_by",
+   "fieldtype": "Data",
+   "label": "Synced By",
+   "read_only": 1
+  }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-12 13:11:19.687868",
+ "modified": "2025-08-22 14:39:05.341915",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Records",
@@ -151,5 +151,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
