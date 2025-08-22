@@ -10,18 +10,27 @@ def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=No
     Drop-in replacement for frappe.sendmail with same parameters
     """
     
-    # If no CC or BCC, use standard frappe.sendmail
+    # FIXED: Only use standard frappe.sendmail when NO CC/BCC functionality is needed
+    # Use custom function if either CC or BCC is provided
     if not cc and not bcc:
-        return frappe.sendmail(
-            recipients=recipients,
-            subject=subject, 
-            message=message,
-            **kwargs
-        )
+        # Check if always_bcc will be applied from Email Account
+        try:
+            email_account = frappe.get_doc("Email Account", {"email_id": "noreply@merillife.com"})
+            has_always_bcc = email_account and hasattr(email_account, 'always_bcc') and email_account.always_bcc
+        except:
+            has_always_bcc = False
+        
+        # If no CC, no BCC, and no always_bcc, use standard frappe.sendmail
+        if not has_always_bcc:
+            return frappe.sendmail(
+                recipients=recipients,
+                subject=subject, 
+                message=message,
+                **kwargs
+            )
     
     
     if kwargs.get('now', False):
-     
         _send_email_with_cc_bcc(
             subject=subject,
             body=message,
@@ -30,7 +39,6 @@ def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=No
             bcc_emails=_normalize_recipients(bcc)
         )
     else:
-    
         frappe.enqueue(
             method=_send_email_with_cc_bcc,
             subject=subject,
@@ -46,7 +54,7 @@ def _send_email_with_cc_bcc(subject, body, to_emails, cc_emails=None, bcc_emails
     cc_emails = cc_emails or []
     bcc_emails = bcc_emails or []
     
-
+    # Get always_bcc from Email Account if no BCC provided
     if not bcc_emails:
         try:
             email_account = frappe.get_doc("Email Account", {"email_id": "noreply@merillife.com"})
@@ -58,13 +66,12 @@ def _send_email_with_cc_bcc(subject, body, to_emails, cc_emails=None, bcc_emails
                     
                 frappe.logger("debug").info(f"Using always_bcc from Email Account: {bcc_emails}")
         except Exception as e:
-        
             frappe.logger("debug").info(f"Could not get always_bcc from Email Account: {str(e)}")
     
     msg = EmailMessage()
     msg["Subject"] = subject
     
-    # FIX: Set sender with display name using formataddr
+    # Set sender with display name using formataddr
     msg["From"] = formataddr(("VMS", "noreply@merillife.com"))
     
     msg["To"] = ", ".join(to_emails)
@@ -106,7 +113,7 @@ def _send_email_with_cc_bcc(subject, body, to_emails, cc_emails=None, bcc_emails
                         "status": "Sent",
                         "show_as_cc": ",".join(cc_emails) if cc_emails else "",
                         "sender": "noreply@merillife.com",
-                        "sender_full_name": "VMS",  # Fixed: Added space and proper name
+                        "sender_full_name": "VMS",
                     }
                 )
                 
