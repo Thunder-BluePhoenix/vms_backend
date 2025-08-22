@@ -1,30 +1,30 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:vehicle_no",
+ "autoname": "naming_series:",
  "creation": "2025-08-21 11:55:28.811535",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series",
   "vehicle_no",
   "driver_phone",
   "loading_state",
   "transporter_name",
   "lr_number",
-  "attachment",
   "column_break_jtby",
   "driver_name",
   "driver_license",
   "loading_location",
   "destination_plant",
-  "lr_date"
+  "lr_date",
+  "attachment"
  ],
  "fields": [
   {
    "fieldname": "vehicle_no",
    "fieldtype": "Data",
-   "label": "Vehicle No",
-   "unique": 1
+   "label": "Vehicle No"
   },
   {
    "fieldname": "loading_state",
@@ -80,16 +80,22 @@
    "fieldname": "attachment",
    "fieldtype": "Attach",
    "label": "Attachment"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Vehicle Details Series",
+   "options": "VDN-.###"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-21 12:28:08.213631",
+ "modified": "2025-08-22 11:18:45.456039",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Vehicle Details",
- "naming_rule": "By fieldname",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
