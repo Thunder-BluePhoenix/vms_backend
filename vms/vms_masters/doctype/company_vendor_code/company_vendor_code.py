@@ -23,6 +23,26 @@ class CompanyVendorCode(Document):
 				"company_vendor_code": self.name
 			})
 		# vend.db_update()
+		cc = []
+
+		if vend.vendor_onb_records:
+			ven_onb = frappe.get_doc(
+				"Vendor Onboarding", 
+				safe_get(vend, "vendor_onb_records", -1, "vendor_onboarding_no")
+			)
+
+			approvers = [
+				ven_onb.registered_by,
+				ven_onb.purchase_t_approval,
+				ven_onb.purchase_h_approval,
+				ven_onb.accounts_t_approval,
+				ven_onb.accounts_head_approval,
+			]
+
+			# keep unique emails in original order
+			seen = set()
+			cc = [email for email in approvers if email and not (email in seen or seen.add(email))]
+
 		
 		# Collect all vendor code data for PDF
 		vendor_code_data = self.collect_vendor_code_data(vend)
@@ -49,7 +69,8 @@ class CompanyVendorCode(Document):
 				password=password,
 				vendor_name=vend.vendor_name or "Vendor",
 				vendor_code_data=vendor_code_data,
-				is_new_user=True
+				is_new_user=True,
+				cc = cc
 			)
 			
 			# Update vendor master
@@ -66,7 +87,8 @@ class CompanyVendorCode(Document):
 				password=None,
 				vendor_name=vend.vendor_name or "Vendor",
 				vendor_code_data=vendor_code_data,
-				is_new_user=False
+				is_new_user=False,
+				cc = cc
 			)
 			vend.user_create = 1
 			vend.save(ignore_permissions=True)
@@ -202,7 +224,7 @@ class CompanyVendorCode(Document):
 		pdf_content = get_pdf(html_content)
 		return pdf_content
 
-	def send_vendor_email_with_pdf(self, email, username, password, vendor_name, vendor_code_data, is_new_user=True):
+	def send_vendor_email_with_pdf(self, email, username, password, vendor_name, vendor_code_data, is_new_user=True, cc = None):
 		"""Send email with credentials (if new user) and PDF attachment"""
 		try:
 			conf = frappe.conf
@@ -211,7 +233,7 @@ class CompanyVendorCode(Document):
 			
 			# Debug logging
 			frappe.logger().info(f"Sending email to: {email}")
-			frappe.logger().info(f"Vendor code data count: {len(vendor_code_data) if vqendor_code_data else 0}")
+			frappe.logger().info(f"Vendor code data count: {len(vendor_code_data) if vendor_code_data else 0}")
 			frappe.logger().info(f"Vendor code data type: {type(vendor_code_data)}")
 			
 			# Create PDF attachment
@@ -283,6 +305,7 @@ class CompanyVendorCode(Document):
 			# Send email
 			frappe.custom_sendmail(
 				recipients=[email],
+				cc = cc,
 				subject=subject,
 				message=message,
 				attachments=attachments,
@@ -298,3 +321,9 @@ class CompanyVendorCode(Document):
 			frappe.logger().error(f"Full error details: {frappe.get_traceback()}")
 
 
+def safe_get(obj, list_name, index, attr, default=""):
+    """Helper function to safely get nested attributes"""
+    try:
+        return getattr(getattr(obj, list_name)[index], attr) or default
+    except (AttributeError, IndexError, TypeError):
+        return default
