@@ -72,7 +72,7 @@ def send_otp(data):
         VMS Team
         """
 
-        frappe.custom_sendmail(
+        frappe.sendmail(
             recipients=[reciever_email],
             subject=subject,
             message=message,
