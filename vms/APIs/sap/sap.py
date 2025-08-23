@@ -1844,17 +1844,19 @@ def erp_to_sap_vendor_data(onb_ref):
     
     try:
         # Get main documents
-        onb = frappe.get_doc("Vendor Onboarding", onb_ref)
-        onb_vm = frappe.get_doc("Vendor Master", onb.ref_no)
-        onb_pmd = frappe.get_doc("Vendor Onboarding Payment Details", onb.payment_detail)
-        pur_org = frappe.get_doc("Purchase Organization Master", onb.purchase_organization)
-        pur_grp = frappe.get_doc("Purchase Group Master", onb.purchase_group)
-        acc_grp = frappe.get_doc("Account Group Master", onb.account_group)
-        onb_reco = frappe.get_doc("Reconciliation Account", onb.reconciliation_account)
-        onb_pm_term = frappe.get_doc("Terms of Payment Master", onb.terms_of_payment)
-        onb_inco = frappe.get_doc("Incoterm Master", onb.incoterms)
-        onb_bank = frappe.get_doc("Bank Master", onb_pmd.bank_name)
-        onb_legal_doc = frappe.get_doc("Legal Documents", onb.document_details)
+        onb = safe_get_doc("Vendor Onboarding", onb_ref)
+
+        onb_vm = safe_get_doc("Vendor Master", getattr(onb, "ref_no", None))
+        onb_pmd = safe_get_doc("Vendor Onboarding Payment Details", getattr(onb, "payment_detail", None))
+        pur_org = safe_get_doc("Purchase Organization Master", getattr(onb, "purchase_organization", None))
+        pur_grp = safe_get_doc("Purchase Group Master", getattr(onb, "purchase_group", None))
+        acc_grp = safe_get_doc("Account Group Master", getattr(onb, "account_group", None))
+        onb_reco = safe_get_doc("Reconciliation Account", getattr(onb, "reconciliation_account", None))
+        onb_pm_term = safe_get_doc("Terms of Payment Master", getattr(onb, "terms_of_payment", None))
+        onb_inco = safe_get_doc("Incoterm Master", getattr(onb, "incoterms", None))
+        onb_bank = safe_get_doc("Bank Master", getattr(onb_pmd, "bank_name", None))
+        onb_legal_doc = safe_get_doc("Legal Documents", getattr(onb, "document_details", None))
+
 
         # Boolean flags
         payee = 'X' if onb.payee_in_document == 1 else ''
@@ -2481,6 +2483,18 @@ def log_sap_transaction_enhanced(onb_name, request_data, response_data, status, 
 # =====================================================================================
 # HELPER FUNCTIONS (SAME AS ORIGINAL)
 # =====================================================================================
+
+def safe_get_doc(doctype, name):
+    try:
+        if name:  # only try if not None/empty
+            return frappe.get_doc(doctype, name)
+    except frappe.DoesNotExistError:
+        return None
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), f"Error fetching {doctype} {name}")
+        return None
+    return None
+
 
 def safe_get(obj, list_name, index, attr, default=""):
     """Helper function to safely get nested attributes"""

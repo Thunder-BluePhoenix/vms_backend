@@ -164,6 +164,7 @@ def send_sap_error_email(doctype, docname):
             for r in recipients if frappe.db.get_value("User", r.parent, "email")
         ]
 
+
         if not recipient_emails:
             frappe.local.response["http_status_code"] = 404
             return {
@@ -176,6 +177,7 @@ def send_sap_error_email(doctype, docname):
             ven_onb = frappe.get_doc("Vendor Onboarding", docname)
             vendor_master = frappe.get_doc("Vendor Master", ven_onb.ref_no)
             vendor_details = f"Vendor Name: {vendor_master.vendor_name}, Onboarding ID: {ven_onb.name}"
+            cc = [ven_onb.registered_by, frappe.session.user, ven_onb.purchase_t_approval, ven_onb.purchase_h_approval, ven_onb.accounts_t_approval, ven_onb.accounts_head_approval]
 
             logs = frappe.get_all(
                 "VMS SAP Logs",
@@ -200,7 +202,7 @@ def send_sap_error_email(doctype, docname):
                 """
                 custom_sendmail(
                     recipients=recipient_emails,
-                    cc=[ven_onb.registered_by, frappe.session.user],
+                    cc=cc,
                     subject=subject,
                     message=message,
                     now=True
