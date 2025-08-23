@@ -80,6 +80,22 @@ def create_vendor_onboarding_amendment(data):
         vendor_onboarding_doc.reason_for_rejection = None
         vendor_onboarding_doc.rejected_mail_sent = 0
         vendor_onboarding_doc.is_amendment = 1
+
+        # Reset all approvals
+        vendor_onboarding_doc.purchase_team_undertaking = 0
+        vendor_onboarding_doc.purchase_head_undertaking = 0
+        vendor_onboarding_doc.accounts_team_undertaking = 0
+        vendor_onboarding_doc.accounts_head_undertaking = 0
+
+        vendor_onboarding_doc.mail_sent_to_purchase_team = 0
+        vendor_onboarding_doc.mail_sent_to_purchase_head = 0
+        vendor_onboarding_doc.mail_sent_to_account_team = 0
+        vendor_onboarding_doc.mail_sent_to_account_head = 0
+
+        vendor_onboarding_doc.purchase_team_approval_remarks = None
+        vendor_onboarding_doc.purchase_head_approval_remarks = None
+        vendor_onboarding_doc.accounts_team_approval_remarks = None
+        vendor_onboarding_doc.accounts_head_approval_remarks = None
         
         # Add new amendment entry to the amendment_details table
         amendment_row = vendor_onboarding_doc.append("amendment_details", {})

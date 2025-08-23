@@ -331,7 +331,22 @@ def build_user_response(user, api_credentials):
                     # Add company name to the info
                     company_info["company_name"] = company_name
                     companies_list.append(company_info)
-    
+
+        sidebar = []
+        if employee_doc.designation:
+            frontend_page = frappe.get_all(
+                "Frontend Page",
+                filters={"designation": employee_doc.designation},
+                fields=["name"]
+            )
+            if frontend_page:
+                frontend_page_doc = frappe.get_doc("Frontend Page", frontend_page[0].name)
+                for row in frontend_page_doc.page_urls:
+                    sidebar.append({
+                        "page_name": row.page_name,
+                        "url": row.url
+                    })
+
     # Get vendor details if applicable
     vendor_id = frappe.get_value("Vendor Master", {"office_email_primary": user}, "name") or None
     
@@ -354,6 +369,7 @@ def build_user_response(user, api_credentials):
             "designation": employee_details.get("designation"),
             "company_email": employee_details.get("company_email"),
         },
+        "sidebar": sidebar,
         "company": companies_list,
         "vendor": {
             "id": vendor_id
