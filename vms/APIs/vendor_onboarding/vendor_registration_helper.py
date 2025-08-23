@@ -6,7 +6,7 @@ import os
 from urllib.parse import urlparse
 
 
-def populate_vendor_data_from_existing_onboarding(vendor_master_name, office_email_primary, new_onboarding_record_given = None):
+def populate_vendor_data_from_existing_onboarding(vendor_master_name, office_email_primary, new_onboarding_record_given = None, source_onb_doc = None):
     """
     Function to populate vendor data from existing approved onboarding records
     
@@ -46,18 +46,24 @@ def populate_vendor_data_from_existing_onboarding(vendor_master_name, office_ema
         selected_onboarding = None
         
         # First try to find approved records, get the latest one
-        approved_records = [r for r in onboarding_records if r.onboarding_form_status == "Approved"]
-        if approved_records:
-            selected_onboarding = approved_records[0]  # Latest approved record
+        if source_onb_doc == None:
+            approved_records = [r for r in onboarding_records if r.onboarding_form_status == "Approved"]
+            if approved_records:
+                selected_onboarding = approved_records[0]  # Latest approved record
+            else:
+                # If no approved record, get the latest record
+                selected_onboarding = onboarding_records[0]
         else:
-            # If no approved record, get the latest record
-            selected_onboarding = onboarding_records[0]
+            selected_onboarding = source_onb_doc
         
         if not selected_onboarding:
             return {"status": "info", "message": "No suitable onboarding record found"}
         
         # Step 4: Get the complete onboarding data
-        source_onboarding = frappe.get_doc("Vendor Onboarding", selected_onboarding.name)
+        if source_onb_doc == None:
+            source_onboarding = frappe.get_doc("Vendor Onboarding", selected_onboarding.name)
+        else:
+            source_onboarding = frappe.get_doc("Vendor Onboarding", source_onb_doc)
         
         # Step 5: Get the new vendor master document
         new_vendor_master = frappe.get_doc("Vendor Master", vendor_master_name)
@@ -121,8 +127,8 @@ def populate_vendor_data_from_existing_onboarding(vendor_master_name, office_ema
         
         return {
             "status": "success", 
-            "message": f"Data populated from onboarding record: {selected_onboarding.name}",
-            "source_onboarding": selected_onboarding.name,
+            "message": f"Data populated from onboarding record: {source_onboarding.name}",
+            "source_onboarding": source_onboarding.name,
             "populated_documents": populated_docs
         }
         
@@ -431,7 +437,7 @@ def populate_company_details(source_onboarding_name, target_onboarding_name, new
                 
                 if company_details_doc:
                     # Create new company details for target onboarding
-                    result = populate_vendor_onboarding_company_details(
+                    populate_vendor_onboarding_company_details(
                         company_details_doc,
                         target_onboarding_name,
                         new_vendor_master_name,
