@@ -287,12 +287,15 @@ def _process_attachments(attachments):
 
 
 def _normalize_recipients(recipients):
-    """Convert recipients to a list format"""
     if not recipients:
         return []
+
     if isinstance(recipients, str):
-        return [recipients]
-    return recipients if isinstance(recipients, list) else [recipients]
+        recipients = [recipients]
+
+    # Ensure it's a list of strings, filtering out None/empty
+    return [str(r).strip() for r in recipients if r]
+
 
 
 
