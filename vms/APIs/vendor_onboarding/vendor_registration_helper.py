@@ -240,7 +240,7 @@ def populate_legal_documents(source_doc_name, target_doc_name, new_vendor_master
                 "gst_registration_date": row.gst_registration_date,
                 "gst_ven_type": row.gst_ven_type,
                 "pincode": row.pincode,
-                "company": row.company
+                "company": target_doc.company_name
             }
             
             new_row = target_doc.append("gst_table", new_row_data)

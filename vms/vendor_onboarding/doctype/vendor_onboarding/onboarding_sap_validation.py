@@ -1331,11 +1331,13 @@ def validate_data_fields(data, context_label, is_domestic_vendor, gst_ven_type):
     else:
         # For international vendors, domestic bank fields can be empty, but some international fields are mandatory
         allowed_empty_fields.update({
-            "Bankl", "Bankn", "Bkref", "Banka", "Koinh", "Stcd3", "J1ipanno"
+            "Bankl", "Bankn", "Bkref", "Banka", "Koinh", "Stcd3", "J1ipanno", "J1ipanref",
+            "ZZBENF_IBAN", "ZZBENF_ACH_NO", "ZZBENF_ABA_NO", "ZZBENF_ROUTING"
         })
         
         # Intermediate bank fields are optional for international vendors
         allowed_empty_fields.update({
+            ""
             "ZZINTR_ACCT_NO", "ZZINTR_IBAN", "ZZINTR_BANK_NM",
             "ZZINTR_BANKADDR", "ZZINTR_SHFTADDR", "ZZINTR_ACH_NO", 
             "ZZINTR_ABA_NO", "ZZINTR_ROUTING"
