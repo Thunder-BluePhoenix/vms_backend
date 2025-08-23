@@ -1841,6 +1841,7 @@ def erp_to_sap_vendor_data(onb_ref):
     failed_sap_calls = 0
     connection_errors = 0
     validation_errors = 0
+    duplicate_count = 0
     
     try:
         # Get main documents
@@ -1869,7 +1870,8 @@ def erp_to_sap_vendor_data(onb_ref):
         for row in onb.vendor_types:
             if row.vendor_type:
                 vendor_type_doc = safe_get_doc("Vendor Type Master", getattr(row, "vendor_type", None))
-                vendor_type_names.append(vendor_type_doc.vendor_type_name)
+                if vendor_type_doc:
+                    vendor_type_names.append(vendor_type_doc.vendor_type_name)
 
         # **MAIN LOOP: Process each company**
         print(f"📊 Processing {len(onb.vendor_company_details)} companies...")
@@ -1884,17 +1886,14 @@ def erp_to_sap_vendor_data(onb_ref):
                 # Get company details
                 vcd = safe_get_doc("Vendor Onboarding Company Details", getattr(company, "vendor_company_details", None))
                 country_doc = safe_get_doc("Country Master", onb.vendor_country)
-                country_code = country_doc.country_code
+                country_code = country_doc.country_code if country_doc else "IN"
                 com_vcd = safe_get_doc("Company Master", vcd.company_name)
                 sap_client_code = com_vcd.sap_client_code
                 vcd_state = safe_get_doc("State Master", getattr(vcd, "state", None))
                 Zuawa = "001"
-                # if sap_client_code == "100":
-                #     Zuawa = "000"
-                # else:
-                #     Zuawa = ""
-                if onb.vendor_country == "India":
                 
+                # **DOMESTIC VENDOR PROCESSING (India)**
+                if onb.vendor_country == "India":
                     print(f"   📋 Company: {vcd.company_name}")
                     print(f"   📋 SAP Client Code: {sap_client_code}")
                     print(f"   📋 GST Tables to process: {len(vcd.comp_gst_table)}")
@@ -1929,7 +1928,7 @@ def erp_to_sap_vendor_data(onb_ref):
                         send_failure_notification(onb.name, "SAP Connection Error", error_msg)
                         continue  # Skip to next company
                     
-                    # **SECOND LOOP: Process each GST entry for this company**
+                    # **PROCESS EACH GST ENTRY FOR DOMESTIC VENDOR**
                     gst_counter = 0
                     for gst_table in vcd.comp_gst_table:
                         gst_counter += 1
@@ -1938,32 +1937,36 @@ def erp_to_sap_vendor_data(onb_ref):
                         print(f"\n   🔄 GST ENTRY {gst_counter} (Global #{total_gst_rows_processed}): Processing...")
                         
                         try:
-                            # if gst_table.gst_ven_type == "Not-Registered":
                             # Get GST-specific data
                             gst_ven_type = gst_table.gst_ven_type
                             gst_state = gst_table.gst_state or ""
                             gst_state_doc = safe_get_doc("State Master", gst_state)
                             gst_num = gst_table.gst_number or "0"
                             gst_pin = gst_table.pincode or ""
-                            gst_addrs = gst_addrs = safe_get_doc("Pincode Master", gst_pin)
-                            gst_city = gst_addrs.city or ""
-                            gst_cuntry = gst_addrs.country or ""
-                            gst_district = gst_addrs.district or ""
+                            gst_addrs = safe_get_doc("Pincode Master", gst_pin)
+                            gst_city = gst_addrs.city or "" if gst_addrs else ""
+                            gst_country = gst_addrs.country or "" if gst_addrs else ""
+                            gst_district = gst_addrs.district or "" if gst_addrs else ""
                             
                             # Build address text
-                            gst_adderss_text = ", ".join(filter(None, [
+                            gst_address_text = ", ".join(filter(None, [
                                 gst_city,
                                 gst_district,
                                 gst_state
                             ]))
 
-                            
-                            print(f"      📍 Vendor GST: {gst_ven_type}")
+                            print(f"      📍 Vendor GST Type: {gst_ven_type}")
                             print(f"      📍 GST State: {gst_state}")
                             print(f"      📍 GST Number: {gst_num}")
-                            print(f"      📍 Address: {gst_adderss_text}")
+                            print(f"      📍 Address: {gst_address_text}")
 
-                            # **BUILD SAP PAYLOAD DATA**
+                            # **HANDLE NOT-REGISTERED GST VENDORS**
+                            if gst_ven_type == "Not-Registered":
+                                print(f"      🔄 Processing Not-Registered GST vendor")
+                                # For Not-Registered, GST number should be "0" or empty
+                                gst_num = "0"
+
+                            # **BUILD SAP PAYLOAD DATA FOR DOMESTIC VENDOR**
                             data = {
                                 "Bukrs": com_vcd.company_code,
                                 "Ekorg": pur_org.purchase_organization_code,
@@ -1971,23 +1974,23 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "Title": "",
                                 "Name1": onb_vm.vendor_name,
                                 "Name2": "",
-                                "Sort1": onb_vm.search_term,
+                                "Sort1": onb_vm.search_term or "",
                                 "Street": vcd.address_line_1,
-                                "StrSuppl1": gst_adderss_text or "",
+                                "StrSuppl1": gst_address_text or "",
                                 "StrSuppl2": "",
                                 "StrSuppl3": "",
                                 "PostCode1": gst_pin,
                                 "City1": gst_city,
                                 "Country": country_code,
                                 "J1kftind": "",
-                                "Region": gst_state_doc.sap_state_code,
+                                "Region": gst_state_doc.sap_state_code if gst_state_doc else "",
                                 "TelNumber": "",
-                                "MobNumber": onb_vm.mobile_number,
-                                "SmtpAddr": onb_vm.office_email_primary,
+                                "MobNumber": onb_vm.mobile_number or "",
+                                "SmtpAddr": onb_vm.office_email_primary or "",
                                 "SmtpAddr1": onb_vm.office_email_secondary or "",
                                 "Zuawa": Zuawa,
                                 "Akont": onb_reco.reconcil_account_code,
-                                "Waers": onb_pmd.currency_code,
+                                "Waers": onb_pmd.currency_code if onb_pmd else "INR",
                                 "Zterm": onb_pm_term.terms_of_payment_code,
                                 "Inco1": onb_inco.incoterm_code,
                                 "Inco2": onb_inco.incoterm_name,
@@ -1997,17 +2000,17 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "Reprf": check_double_invoice,
                                 "Webre": gr_based_inv_ver,
                                 "Lebre": service_based_inv_ver,
-                                "Stcd3": gst_num or "",
+                                "Stcd3": gst_num,
                                 "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
-                                "J1ipanno": vcd.company_pan_number,
-                                "J1ipanref": onb_legal_doc.name_on_company_pan,
+                                "J1ipanno": vcd.company_pan_number if vcd else "",
+                                "J1ipanref": onb_legal_doc.name_on_company_pan if onb_legal_doc else "",
                                 "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                                 "Name11": safe_get(onb, "contact_details", 0, "last_name"),
-                                "Bankl": onb_bank.bank_code or "",
-                                "Bankn": onb_pmd.account_number or "",
-                                "Bkref": onb_pmd.ifsc_code or "",
-                                "Banka": onb_bank.bank_name or "",
-                                "Koinh": onb_pmd.name_of_account_holder or "",
+                                "Bankl": onb_bank.bank_code if onb_bank else "",
+                                "Bankn": onb_pmd.account_number if onb_pmd else "",
+                                "Bkref": onb_pmd.ifsc_code if onb_pmd else "",
+                                "Banka": onb_bank.bank_name if onb_bank else "",
+                                "Koinh": onb_pmd.name_of_account_holder if onb_pmd else "",
                                 "Xezer": "",
                                 "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
                                 "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
@@ -2038,7 +2041,7 @@ def erp_to_sap_vendor_data(onb_ref):
                             
                             print(f"      📊 SAP Response: {result}")
                             
-                            # **PROCESS SAP RESPONSE**
+                            # **PROCESS SAP RESPONSE WITH ENHANCED DUPLICATE HANDLING**
                             if result["success"]:
                                 response_data = result["response"]
                                 
@@ -2046,7 +2049,31 @@ def erp_to_sap_vendor_data(onb_ref):
                                 vedno = response_data.get('d', {}).get('Vedno', '') if 'd' in response_data else response_data.get('Vedno', '')
                                 zmsg = response_data.get('d', {}).get('Zmsg', '') if 'd' in response_data else response_data.get('Zmsg', '')
                                 
-                                if vedno == 'E' or vedno == '' or not vedno:
+                                # **ENHANCED DUPLICATE VENDOR HANDLING**
+                                if zmsg and "Duplicate Vendor" in zmsg and vedno and vedno != 'E':
+                                    duplicate_count += 1
+                                    successful_sap_calls += 1  # Count duplicate as success
+                                    print(f"      ✅ DUPLICATE SUCCESS: Vendor code {vedno} already exists (Duplicate)")
+                                    
+                                    # Log successful duplicate transaction
+                                    log_sap_transaction_enhanced(
+                                        onb.name, data, response_data, "Success", 
+                                        f"Duplicate Vendor - {zmsg}", vcd.company_name, sap_client_code, 
+                                        onb.ref_no, gst_num, gst_state, vedno
+                                    )
+                                    
+                                    # **POPULATE VENDOR CODE FOR DUPLICATE**
+                                    try:
+                                        update_result = update_vendor_master(
+                                            onb.ref_no, vcd.company_name, sap_client_code, 
+                                            vedno, gst_num, gst_state, onb.name
+                                        )
+                                        print(f"      📝 Vendor Master Update for Duplicate: {update_result['status']}")
+                                    except Exception as update_err:
+                                        print(f"      ❌ Update Error for Duplicate: {str(update_err)}")
+                                        frappe.log_error(str(update_err), "Vendor Master Update Error - Duplicate")
+                                
+                                elif vedno == 'E' or vedno == '' or not vedno:
                                     failed_sap_calls += 1
                                     error_msg = f"SAP returned error or empty vendor code. Vedno: '{vedno}', Zmsg: '{zmsg}'"
                                     print(f"      ❌ SAP Error: {error_msg}")
@@ -2106,7 +2133,10 @@ def erp_to_sap_vendor_data(onb_ref):
                     
                     print(f"   ✅ Company {company_counter} completed: {gst_counter} GST entries processed")
 
+                # **INTERNATIONAL VENDOR PROCESSING (Non-India)**
                 elif onb.vendor_country != "India":
+                    total_gst_rows_processed += 1  # Count international as 1 entry
+                    
                     print(f"   📋 Company: {vcd.company_name}")
                     print(f"   📋 SAP Client Code: {sap_client_code}")
                     print(f"   📋 International Vendor")
@@ -2118,11 +2148,9 @@ def erp_to_sap_vendor_data(onb_ref):
                     
                     if not session_result["success"]:
                         connection_errors += 1
-                        # failed_sap_calls += len(vcd.comp_gst_table)  # Count all GST entries as failed
+                        failed_sap_calls += 1  # Count as 1 failed call for international
                         error_msg = f"Failed to create SAP session: {session_result.get('error', 'Unknown error')}"
                         print(f"   ❌ SESSION ERROR: {error_msg}")
-                        
-                        # Log connection error for all GST entries in this company
                         
                         try:
                             create_connection_error_sap_log(
@@ -2132,7 +2160,8 @@ def erp_to_sap_vendor_data(onb_ref):
                                 sap_client_code,
                                 vcd.company_name,
                                 onb.ref_no,
-                               
+                                "0",  # International vendors have no GST
+                                "International"
                             )
                         except Exception as log_err:
                             print(f"   ⚠️ Failed to create error log: {str(log_err)}")
@@ -2140,34 +2169,28 @@ def erp_to_sap_vendor_data(onb_ref):
                         send_failure_notification(onb.name, "SAP Connection Error", error_msg)
                         continue  # Skip to next company
                     
-                    # **SECOND LOOP: Process each GST entry for this company**
-                    
-                        
                     print(f"\n   🔄 International vendor data: Processing...")
                     
                     try:
-                        # Get GST-specific data
-                        gst_state = vcd.international_state
-                        # gst_state_doc = frappe.get_doc("State Master", gst_state)
-                        # gst_num = gst_table.gst_number
-                        gst_pin = vcd.international_zipcode
-                        # gst_addrs = frappe.get_doc("Pincode Master", gst_pin)
-                        gst_city = vcd.international_city
-                        gst_cuntry = vcd.international_country
-                        # gst_district = gst_addrs.district
+                        # Get international address data
+                        gst_state = vcd.international_state or ""
+                        gst_pin = vcd.international_zipcode or ""
+                        gst_city = vcd.international_city or ""
+                        gst_country = vcd.international_country or ""
+                        gst_num = "0"  # International vendors have no GST
                         
                         # Build address text
-                        gst_adderss_text = ", ".join(filter(None, [
+                        gst_address_text = ", ".join(filter(None, [
                             gst_city,
-                            gst_cuntry,
+                            gst_country,
                             gst_state
                         ]))
 
-                        print(f"      📍 GST State: {gst_state}")
-                        print(f"      📍 GST Pin: {gst_pin}")
-                        print(f"      📍 Address: {gst_adderss_text}")
+                        print(f"      📍 International State: {gst_state}")
+                        print(f"      📍 International Pin: {gst_pin}")
+                        print(f"      📍 Address: {gst_address_text}")
 
-                        # **BUILD SAP PAYLOAD DATA**
+                        # **BUILD SAP PAYLOAD DATA FOR INTERNATIONAL VENDOR**
                         data = {
                             "Bukrs": com_vcd.company_code,
                             "Ekorg": pur_org.purchase_organization_code,
@@ -2175,23 +2198,23 @@ def erp_to_sap_vendor_data(onb_ref):
                             "Title": "",
                             "Name1": onb_vm.vendor_name,
                             "Name2": "",
-                            "Sort1": onb_vm.search_term,
+                            "Sort1": onb_vm.search_term or "",
                             "Street": vcd.address_line_1,
-                            "StrSuppl1": gst_adderss_text or "",
+                            "StrSuppl1": gst_address_text or "",
                             "StrSuppl2": "",
                             "StrSuppl3": "",
                             "PostCode1": gst_pin,
                             "City1": gst_city,
                             "Country": country_code,
                             "J1kftind": "",
-                            "Region": "ZZ",
+                            "Region": "ZZ",  # Fixed region for international vendors
                             "TelNumber": "",
-                            "MobNumber": onb_vm.mobile_number,
-                            "SmtpAddr": onb_vm.office_email_primary,
+                            "MobNumber": onb_vm.mobile_number or "",
+                            "SmtpAddr": onb_vm.office_email_primary or "",
                             "SmtpAddr1": onb_vm.office_email_secondary or "",
                             "Zuawa": Zuawa,
                             "Akont": onb_reco.reconcil_account_code,
-                            "Waers": onb_pmd.currency_code,
+                            "Waers": onb_pmd.currency_code if onb_pmd else "USD",
                             "Zterm": onb_pm_term.terms_of_payment_code,
                             "Inco1": onb_inco.incoterm_code,
                             "Inco2": onb_inco.incoterm_name,
@@ -2201,18 +2224,19 @@ def erp_to_sap_vendor_data(onb_ref):
                             "Reprf": check_double_invoice,
                             "Webre": gr_based_inv_ver,
                             "Lebre": service_based_inv_ver,
-                            "Stcd3": "0",
+                            "Stcd3": "0",  # No GST for international
                             "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
-                            "J1ipanno": "0",
-                            "J1ipanref": onb_legal_doc.name_on_company_pan or "",
+                            "J1ipanno": "0",  # No PAN for international
+                            "J1ipanref": onb_legal_doc.name_on_company_pan if onb_legal_doc else "",
                             "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                             "Name11": safe_get(onb, "contact_details", 0, "last_name"),
-                            "Bankl": onb_bank.bank_code or "",
-                            "Bankn": onb_pmd.account_number or "",
-                            "Bkref": onb_pmd.ifsc_code or "",
-                            "Banka": onb_bank.bank_name or "",
-                            "Koinh": onb_pmd.name_of_account_holder or "",
+                            "Bankl": "",  # International uses different banking fields
+                            "Bankn": "",
+                            "Bkref": "",
+                            "Banka": "",
+                            "Koinh": "",
                             "Xezer": "",
+                            # International banking details are mandatory for international vendors
                             "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
                             "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
                             "ZZBEN_ACCT_NO": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_account_no"),
@@ -2235,14 +2259,14 @@ def erp_to_sap_vendor_data(onb_ref):
                             "Zmsg": ""
                         }
                         
-                        print(f"      🚀 Sending data to SAP for GST {gst_num} using session...")
+                        print(f"      🚀 Sending international vendor data to SAP using session...")
                         
                         # **SEND DATA TO SAP USING SESSION**
                         result = sap_session.send_data(data)
                         
                         print(f"      📊 SAP Response: {result}")
                         
-                        # **PROCESS SAP RESPONSE**
+                        # **PROCESS SAP RESPONSE WITH DUPLICATE HANDLING FOR INTERNATIONAL**
                         if result["success"]:
                             response_data = result["response"]
                             
@@ -2250,7 +2274,32 @@ def erp_to_sap_vendor_data(onb_ref):
                             vedno = response_data.get('d', {}).get('Vedno', '') if 'd' in response_data else response_data.get('Vedno', '')
                             zmsg = response_data.get('d', {}).get('Zmsg', '') if 'd' in response_data else response_data.get('Zmsg', '')
                             
-                            if vedno == 'E' or vedno == '' or not vedno:
+                            # **ENHANCED DUPLICATE VENDOR HANDLING FOR INTERNATIONAL**
+                            if zmsg and "Duplicate Vendor" in zmsg and vedno and vedno != 'E':
+                                duplicate_count += 1
+                                successful_sap_calls += 1  # Count duplicate as success
+                                print(f"      ✅ DUPLICATE SUCCESS: International vendor code {vedno} already exists")
+                                
+                                # Log successful duplicate transaction
+                                log_sap_transaction_enhanced(
+                                    onb.name, data, response_data, "Success", 
+                                    f"Duplicate International Vendor - {zmsg}", vcd.company_name, sap_client_code, 
+                                    onb.ref_no, gst_num, "International", vedno
+                                )
+                                
+                                # **POPULATE VENDOR CODE FOR INTERNATIONAL DUPLICATE**
+                                try:
+                                    vcc_state = f"International-{gst_state}-{gst_city}"
+                                    update_result = update_vendor_master(
+                                        onb.ref_no, vcd.company_name, sap_client_code, 
+                                        vedno, gst_num, vcc_state, onb.name
+                                    )
+                                    print(f"      📝 Vendor Master Update for International Duplicate: {update_result['status']}")
+                                except Exception as update_err:
+                                    print(f"      ❌ Update Error for International Duplicate: {str(update_err)}")
+                                    frappe.log_error(str(update_err), "Vendor Master Update Error - International Duplicate")
+                            
+                            elif vedno == 'E' or vedno == '' or not vedno:
                                 failed_sap_calls += 1
                                 error_msg = f"SAP returned error or empty vendor code. Vedno: '{vedno}', Zmsg: '{zmsg}'"
                                 print(f"      ❌ SAP Error: {error_msg}")
@@ -2259,27 +2308,28 @@ def erp_to_sap_vendor_data(onb_ref):
                                 log_sap_transaction_enhanced(
                                     onb.name, data, response_data, "SAP Error", 
                                     error_msg, vcd.company_name, sap_client_code, 
-                                    onb.ref_no, gst_num, gst_state
+                                    onb.ref_no, gst_num, "International"
                                 )
                                 
-                                send_failure_notification(onb.name, "SAP Vendor Creation Failed", error_msg)
+                                send_failure_notification(onb.name, "SAP International Vendor Creation Failed", error_msg)
                                 
                             else:
                                 successful_sap_calls += 1
-                                print(f"      ✅ SUCCESS: Vendor code {vedno} created for GST {gst_num}")
+                                print(f"      ✅ SUCCESS: International vendor code {vedno} created")
                                 
                                 # Log successful transaction
                                 log_sap_transaction_enhanced(
                                     onb.name, data, response_data, "Success", 
                                     "", vcd.company_name, sap_client_code, 
-                                    onb.ref_no, gst_num, gst_state, vedno
+                                    onb.ref_no, gst_num, "International", vedno
                                 )
                                 
                                 # Update vendor master
                                 try:
+                                    vcc_state = f"International-{gst_state}-{gst_city}"
                                     update_result = update_vendor_master(
                                         onb.ref_no, vcd.company_name, sap_client_code, 
-                                        vedno, gst_num, gst_state, onb.name
+                                        vedno, gst_num, vcc_state, onb.name
                                     )
                                     print(f"      📝 Vendor Master Update: {update_result['status']}")
                                 except Exception as update_err:
@@ -2295,24 +2345,27 @@ def erp_to_sap_vendor_data(onb_ref):
                             log_sap_transaction_enhanced(
                                 onb.name, data, result.get("response_text", ""), "Failed", 
                                 error_msg, vcd.company_name, sap_client_code, 
-                                onb.ref_no, gst_num, gst_state
+                                onb.ref_no, gst_num, "International"
                             )
                             
                             send_failure_notification(onb.name, "SAP API Error", error_msg)
                     
-                    except Exception as gst_err:
+                    except Exception as intl_err:
                         failed_sap_calls += 1
                         validation_errors += 1
-                        error_msg = f"Error processing GST entry {gst_counter}: {str(gst_err)}"
-                        print(f"      ❌ GST Processing Error: {error_msg}")
-                        frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "GST Processing Error")
+                        error_msg = f"Error processing international vendor: {str(intl_err)}"
+                        print(f"      ❌ International Processing Error: {error_msg}")
+                        frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "International Processing Error")
                         continue
                     
-                    print(f"   ✅ Company {company_counter} completed: {gst_counter} GST entries processed")
+                    print(f"   ✅ Company {company_counter} completed: International vendor processed")
 
                 
             except Exception as company_err:
-                failed_sap_calls += len(vcd.comp_gst_table) if 'vcd' in locals() else 1
+                if 'vcd' in locals() and hasattr(vcd, 'comp_gst_table'):
+                    failed_sap_calls += len(vcd.comp_gst_table)
+                else:
+                    failed_sap_calls += 1
                 validation_errors += 1
                 error_msg = f"Error processing company {company_counter}: {str(company_err)}"
                 print(f"   ❌ Company Processing Error: {error_msg}")
@@ -2335,6 +2388,7 @@ def erp_to_sap_vendor_data(onb_ref):
         print(f"📊 Total GST Rows Processed: {total_gst_rows_processed}")
         print(f"✅ Successful SAP API Calls: {successful_sap_calls}")
         print(f"❌ Failed SAP API Calls: {failed_sap_calls}")
+        print(f"🔄 Duplicate Vendors Found: {duplicate_count}")
         print(f"🔌 Connection Errors: {connection_errors}")
         print(f"⚠️ Validation Errors: {validation_errors}")
         print(f"📈 Success Rate: {success_rate:.1f}%")
@@ -2354,7 +2408,10 @@ def erp_to_sap_vendor_data(onb_ref):
                 
         elif successful_sap_calls > 0 and failed_sap_calls == 0:
             status = "success"
-            message = f"SAP Integration Successful: {successful_sap_calls}/{total_attempts} entries sent to SAP successfully."
+            if duplicate_count > 0:
+                message = f"SAP Integration Successful: {successful_sap_calls}/{total_attempts} entries processed successfully. {duplicate_count} duplicate vendors found and vendor codes populated."
+            else:
+                message = f"SAP Integration Successful: {successful_sap_calls}/{total_attempts} entries sent to SAP successfully."
             
             # **UPDATE ONBOARDING DOCUMENT STATUS**
             try:
@@ -2367,7 +2424,8 @@ def erp_to_sap_vendor_data(onb_ref):
             
         elif successful_sap_calls > 0 and failed_sap_calls > 0:
             status = "partial_success"
-            message = f"SAP Integration Partial Success: {successful_sap_calls}/{total_attempts} successful ({success_rate:.1f}%). {failed_sap_calls} failed."
+            duplicate_msg = f" ({duplicate_count} duplicates found)" if duplicate_count > 0 else ""
+            message = f"SAP Integration Partial Success: {successful_sap_calls}/{total_attempts} successful ({success_rate:.1f}%){duplicate_msg}. {failed_sap_calls} failed."
             
         else:
             status = "error"
@@ -2383,6 +2441,7 @@ def erp_to_sap_vendor_data(onb_ref):
             "gst_rows_processed": total_gst_rows_processed,
             "successful_sap_calls": successful_sap_calls,
             "failed_sap_calls": failed_sap_calls,
+            "duplicate_count": duplicate_count,
             "connection_errors": connection_errors,
             "validation_errors": validation_errors,
             "success_rate": success_rate
@@ -2405,12 +2464,11 @@ def erp_to_sap_vendor_data(onb_ref):
             "gst_rows_processed": total_gst_rows_processed,
             "successful_sap_calls": 0,
             "failed_sap_calls": total_gst_rows_processed,
+            "duplicate_count": 0,
             "connection_errors": 1,
             "validation_errors": 0,
             "success_rate": 0.0
         }
-
-
 # =====================================================================================
 # ENHANCED LOGGING FUNCTIONS
 # =====================================================================================

@@ -19,10 +19,9 @@
   },
   {
    "fieldname": "state",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "State",
-   "options": "State Master"
+   "label": "State"
   },
   {
    "fieldname": "gst_no",
@@ -35,7 +34,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:38:46.720140",
+ "modified": "2025-08-23 21:51:02.105771",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Code",
