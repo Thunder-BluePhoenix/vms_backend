@@ -37,6 +37,7 @@
   "data_sent_to_sap",
   "expired",
   "rejected_mail_sent",
+  "sap_error_mail_sent",
   "is_amendment",
   "purchase_t_approval",
   "purchase_h_approval",
@@ -54,6 +55,7 @@
   "rejected_by",
   "rejected_by_designation",
   "reason_for_rejection",
+  "section_break_yitx",
   "amendment_details",
   "tables_section",
   "vendor_types",
@@ -624,12 +626,22 @@
    "fieldname": "synced_vendor_master",
    "fieldtype": "Check",
    "label": "Synced Vendor Master"
+  },
+  {
+   "default": "0",
+   "fieldname": "sap_error_mail_sent",
+   "fieldtype": "Check",
+   "label": "SAP Error Mail Sent"
+  },
+  {
+   "fieldname": "section_break_yitx",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 02:08:45.413661",
+ "modified": "2025-08-23 09:50:24.110577",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
