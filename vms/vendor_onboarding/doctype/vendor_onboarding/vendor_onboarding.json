@@ -637,6 +637,9 @@
   {
    "fieldname": "section_break_yitx",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
    "fieldname": "multi_records_populated",
    "fieldtype": "Check",
    "label": "Multi Records Populated"
