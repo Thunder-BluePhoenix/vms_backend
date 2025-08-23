@@ -6,6 +6,8 @@ import json
 from datetime import datetime
 from vms.utils.custom_send_mail import custom_sendmail
 
+from vms.APIs.vendor_onboarding.vendor_registration_helper import populate_vendor_data_from_existing_onboarding
+
 
 
 
@@ -198,6 +200,10 @@ def vendor_registration_single(data):
         vendor_onboarding.save()
         frappe.db.commit()
 
+        vendor_master.onboarding_ref_no = vendor_onboarding.name
+        vendor_master.save()
+        frappe.db.commit
+
         # Create and link additional onboarding documents
         def create_related_doc(doctype):
             doc = frappe.new_doc(doctype)
@@ -257,6 +263,12 @@ def vendor_registration_single(data):
         send_registration_email_link(vendor_onboarding.name, vendor_master.name)
         frappe.db.commit()
 
+
+        population_result = populate_vendor_data_from_existing_onboarding(
+            vendor_master.name, 
+            vendor_master.office_email_primary
+        )
+
         return {
             "status": "success",
             "vendor_master": vendor_master.name,
@@ -265,7 +277,8 @@ def vendor_registration_single(data):
             "document_details": document_details,
             "certificate_details": certificate_details,
             "manufacturing_details": manufacturing_details,
-            "company_details": company_details
+            "company_details": company_details,
+            "population_result": population_result
         }
 
     except Exception as e:
@@ -676,10 +689,17 @@ def vendor_registration_multi(data):
         if vendor_onboarding_docs:
             try:
                 send_registration_email_link(vendor_onboarding_docs[0], vendor_master.name)
-            except Exception as e:
+            except Exception:
                 frappe.log_error(frappe.get_traceback(), "Error sending registration email")
                 # Don't fail the entire process for email errors
                 pass
+
+            for vend_onb_doc in vendor_onboarding_docs:
+                population_result = populate_vendor_data_from_existing_onboarding(
+                    vendor_master.name, 
+                    vendor_master.office_email_primary,
+                    vend_onb_doc
+                )
 
         return {
             "status": "success",
@@ -690,7 +710,8 @@ def vendor_registration_multi(data):
             "document_details": document_details_docs,
             "certificate_details": certificate_details_docs,
             "manufacturing_details": manufacturing_details_docs,
-            "company_details": company_details_docs
+            "company_details": company_details_docs,
+            "population_result":population_result
         }
 
     except frappe.ValidationError as e:
@@ -940,6 +961,10 @@ def send_registration_email_link(vendor_onboarding, refno):
             onboarding_doc.sent_qms_form_link = 1
             if onboarding_doc.registered_for_multi_companies == 1:
                 onboarding_doc.head_target = 1
+                vendor_master.onboarding_ref_no = onboarding_doc.name
+                vendor_master.save()
+                frappe.db.commit()
+
             onboarding_doc.save(ignore_permissions=True)
             frappe.db.commit()
 

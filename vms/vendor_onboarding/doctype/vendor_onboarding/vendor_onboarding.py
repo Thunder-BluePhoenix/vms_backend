@@ -10,6 +10,10 @@ import json
 # from vms.vendor_onboarding.doctype.vendor_onboarding.onboarding_sap_validation import generate_sap_validation_html
 from vms.APIs.sap.sap import update_sap_vonb
 from vms.vendor_onboarding.vendor_document_management import on_vendor_onboarding_submit
+from vms.APIs.vendor_onboarding.vendor_registration_helper import populate_vendor_data_from_existing_onboarding
+from vms.vendor_onboarding.doctype.vendor_onboarding.update_related_doc import VendorDataPopulator
+
+populator = VendorDataPopulator()
 
 
 
@@ -76,8 +80,10 @@ class VendorOnboarding(Document):
         # exp_d_sec = exp_t_sec + 300
         frappe.db.commit()
 
-
-    
+    def before_save(self):
+            update_ven_onb_record_table(self, method=None)
+            update_van_core_docs(self, method=None)
+            update_van_core_docs_multi_case(self, method=None) 
 
 
     def on_update(self):
@@ -85,9 +91,11 @@ class VendorOnboarding(Document):
             vendor_company_update(self,method=None)
             
             on_update_check_fields(self,method=None)
-            update_ven_onb_record_table(self, method=None)
-            update_van_core_docs(self, method=None)
-            set_qms_required_value(self, method=None)            
+            # update_ven_onb_record_table(self, method=None)
+            # update_van_core_docs(self, method=None)
+            
+            set_qms_required_value(self, method=None)  
+            # update_van_core_docs_multi_case(self, method=None)        
             update_sap_vonb(self, method= None)
             set_vonb_status_onupdate(self, method=None)
             check_vnonb_send_mails(self, method=None)
@@ -1026,15 +1034,20 @@ def send_approval_mail_accounts_head(doc, method=None):
     
 
 #set qms required value for mul company code
+
+
 def set_qms_required_value(doc, method=None):
     if doc.registered_for_multi_companies == 1:
         for row in doc.multiple_company:
-            if row.company == doc.company_name and row.qms_required == "Yes":
-                doc.qms_required = "Yes"
-            elif row.company == doc.company_name and row.qms_required == "No":
-                doc.qms_required = "No"
-            else:
-                pass
+            if row.company == doc.company_name:
+                frappe.db.set_value(
+                    doc.doctype, 
+                    doc.name, 
+                    "qms_required", 
+                    row.qms_required
+                )
+                break  
+
 
 
 
@@ -1728,3 +1741,169 @@ def preview_sap_data_structure(onb_ref):
         return {
             "error": f"Preview failed: {str(e)}"
         }
+    
+
+
+
+
+def update_van_core_docs_multi_case(doc, method=None):
+    if doc.head_target == 1 and doc.registered_for_multi_companies == 1 and doc.form_fully_submitted_by_vendor == 1:
+        core_docs = frappe.get_all("Vendor Onboarding", filters = {"unique_multi_comp_id":doc.unique_multi_comp_id, "head_target": 0})
+        vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+        if len(core_docs)<1:
+            return
+        if doc.multi_records_populated != 1:
+            for vend_onb_doc in core_docs:
+                result = populate_vendor_data_from_existing_onboarding(
+                    vendor_master.name, 
+                    vendor_master.office_email_primary,
+                    vend_onb_doc,
+                    doc.name
+                )
+            
+            if result['status'] != 'success':
+                frappe.log_error(f"Population failed for {vend_onb_doc}: {result['message']}", 
+                               "Multi Company Population Error")
+                
+            doc.multi_records_populated = 1
+            frappe.db.set_value("Vendor Onboarding", doc.name, "multi_records_populated", 1)
+
+
+
+
+
+def optimized_update_van_core_docs_multi_case(doc, method=None):
+    """
+    Optimized version of your multi-company update function
+    """
+    if not (doc.head_target == 1 and doc.registered_for_multi_companies == 1 and 
+            doc.form_fully_submitted_by_vendor == 1):
+        return
+    
+    if doc.multi_records_populated == 1:
+        return  # Already populated
+    
+    try:
+        # Get all core documents in one query
+        core_docs = frappe.db.sql("""
+            SELECT name 
+            FROM `tabVendor Onboarding` 
+            WHERE unique_multi_comp_id = %s AND head_target = 0
+        """, (doc.unique_multi_comp_id,), as_dict=True)
+        
+        if not core_docs:
+            return
+        
+        # Get vendor master
+        vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+        
+        # Use optimized populator
+        populator = VendorDataPopulator()
+        
+        for vend_onb_doc in core_docs:
+            result = populator.populate_vendor_data_from_existing_onboarding(
+                vendor_master.name, 
+                vendor_master.office_email_primary,
+                vend_onb_doc['name'],
+                doc.name
+            )
+            
+            if result['status'] != 'success':
+                frappe.log_error(f"Population failed for {vend_onb_doc['name']}: {result['message']}", 
+                               "Multi Company Population Error")
+        
+        # Mark as populated
+        frappe.db.set_value("Vendor Onboarding", doc.name, "multi_records_populated", 1)
+        frappe.db.commit()
+        
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(f"Multi company update error: {frappe.get_traceback()}", 
+                        "Multi Company Update Error")
+
+
+# Monitoring and debugging functions
+@frappe.whitelist()
+def get_population_status(vendor_onboarding_name):
+    """
+    Get status of data population for a vendor onboarding record
+    """
+    try:
+        # Get basic info
+        basic_info = frappe.db.sql("""
+            SELECT name, ref_no, onboarding_form_status, multi_records_populated,
+                   document_details, payment_detail, manufacturing_details, certificate_details
+            FROM `tabVendor Onboarding` 
+            WHERE name = %s
+        """, (vendor_onboarding_name,), as_dict=True)
+        
+        if not basic_info:
+            return {"status": "error", "message": "Vendor onboarding record not found"}
+        
+        info = basic_info[0]
+        
+        # Check if related documents have data
+        status = {
+            "vendor_onboarding": info['name'],
+            "vendor_master": info['ref_no'],
+            "form_status": info['onboarding_form_status'],
+            "multi_records_populated": info['multi_records_populated'],
+            "documents": {}
+        }
+        
+        # Check each document type
+        if info['document_details']:
+            legal_data = frappe.db.sql("SELECT COUNT(*) as count FROM `tabGST Table` WHERE parent = %s", 
+                                     (info['document_details'],), as_dict=True)
+            status["documents"]["legal_documents"] = {
+                "name": info['document_details'],
+                "gst_records": legal_data[0]['count'] if legal_data else 0
+            }
+        
+        if info['payment_detail']:
+            banker_data = frappe.db.sql("SELECT COUNT(*) as count FROM `tabBanker Details` WHERE parent = %s", 
+                                      (info['payment_detail'],), as_dict=True)
+            status["documents"]["payment_details"] = {
+                "name": info['payment_detail'],
+                "banker_records": banker_data[0]['count'] if banker_data else 0
+            }
+        
+        if info['manufacturing_details']:
+            material_data = frappe.db.sql("SELECT COUNT(*) as count FROM `tabMaterials Supplied` WHERE parent = %s", 
+                                        (info['manufacturing_details'],), as_dict=True)
+            status["documents"]["manufacturing_details"] = {
+                "name": info['manufacturing_details'],
+                "material_records": material_data[0]['count'] if material_data else 0
+            }
+        
+        if info['certificate_details']:
+            cert_data = frappe.db.sql("SELECT COUNT(*) as count FROM `tabCertificates` WHERE parent = %s", 
+                                    (info['certificate_details'],), as_dict=True)
+            status["documents"]["certificate_details"] = {
+                "name": info['certificate_details'],
+                "certificate_records": cert_data[0]['count'] if cert_data else 0
+            }
+        
+        return {"status": "success", "data": status}
+        
+    except Exception as e:
+        return {"status": "error", "message": f"Status check failed: {str(e)}"}
+
+
+# Integration with your existing code
+def enhanced_update_van_core_docs_multi_case(doc, method=None):
+    """
+    Enhanced version that can replace your existing function
+    """
+    if not (doc.head_target == 1 and doc.registered_for_multi_companies == 1 and 
+            doc.form_fully_submitted_by_vendor == 1):
+        return
+    
+    if doc.multi_records_populated == 1:
+        return
+    
+    # Use the optimized function
+    optimized_update_van_core_docs_multi_case(doc, method)
+    
+    # Log the operation
+    frappe.log_error(f"Multi-company records populated for {doc.name}", "Multi Company Population Success")
