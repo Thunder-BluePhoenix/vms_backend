@@ -9,6 +9,9 @@
   "naming_series",
   "vendor_onboarding_link",
   "purchase_requisition_link",
+  "column_break_inpw",
+  "ref_no",
+  "section_break_tzmc",
   "erp_to_sap_data",
   "sap_response",
   "total_transaction"
@@ -23,6 +26,8 @@
   {
    "fieldname": "vendor_onboarding_link",
    "fieldtype": "Link",
+   "in_filter": 1,
+   "in_standard_filter": 1,
    "label": "Vendor Onboarding Link",
    "options": "Vendor Onboarding",
    "read_only": 1
@@ -48,12 +53,28 @@
    "fieldname": "total_transaction",
    "fieldtype": "Code",
    "label": "Total Transaction"
+  },
+  {
+   "fieldname": "column_break_inpw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "vendor_onboarding_link.ref_no",
+   "fieldname": "ref_no",
+   "fieldtype": "Link",
+   "label": "Ref No",
+   "options": "Vendor Master",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_tzmc",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:39:49.426616",
+ "modified": "2025-08-23 11:47:24.073441",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "VMS SAP Logs",
