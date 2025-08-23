@@ -367,6 +367,44 @@ def expired_vendor_details(page_no=None, page_length=None, company=None, refno=N
             "vendor_onboarding": []
         }
     
+# @frappe.whitelist(allow_guest=False)
+# def sap_error_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
+#     try:
+#         if not usr:
+#             usr = frappe.session.user
+
+#         status = "SAP Error"
+
+#         result = filtering_total_vendor_details(
+#             page_no=page_no,
+#             page_length=page_length,
+#             company=company,
+#             refno=refno,
+#             status=status,
+#             usr=usr,
+#             vendor_name=vendor_name
+#         )
+#         if result.get("status") != "success":
+#             return result
+        
+#         onboarding_docs = result.get("total_vendor_onboarding", [])
+#         return {
+#             "status": "success",
+#             "message": "SAP Error vendor onboarding records fetched successfully.",
+#             "sap_error_vendor_onboarding": onboarding_docs,
+#             "total_count": result.get("total_count"),
+#             "page_no": result.get("page_no"),
+#             "page_length": result.get("page_length")
+#         }
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "SAP Error Vendor Details API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to fetch SAP Error vendor onboarding data.",
+#             "error": str(e),
+#             "vendor_onboarding": []
+#         }
+
 @frappe.whitelist(allow_guest=False)
 def sap_error_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
     try:
@@ -386,8 +424,31 @@ def sap_error_vendor_details(page_no=None, page_length=None, company=None, refno
         )
         if result.get("status") != "success":
             return result
-        
+
         onboarding_docs = result.get("total_vendor_onboarding", [])
+
+        # Loop through each onboarding doc and enrich with Zmsg if present
+        for doc in onboarding_docs:
+            sap_log = frappe.get_all(
+                "VMS SAP Logs",
+                filters={"vendor_onboarding_link": doc.get("name")},
+                fields=["sap_response"],
+                order_by="creation desc",
+                limit=1
+            )
+
+            if sap_log:
+                try:
+                    # Parse only the JSON string from the first row
+                    sap_response = frappe.parse_json(sap_log[0].get("sap_response") or "{}")
+                    zmsg = sap_response.get("d", {}).get("Zmsg")
+                    doc["sap_error_message"] = zmsg
+                except Exception:
+                    doc["sap_error_message"] = None
+            else:
+                doc["sap_error_message"] = "No SAP Error Message Found"
+
+
         return {
             "status": "success",
             "message": "SAP Error vendor onboarding records fetched successfully.",
@@ -396,6 +457,7 @@ def sap_error_vendor_details(page_no=None, page_length=None, company=None, refno
             "page_no": result.get("page_no"),
             "page_length": result.get("page_length")
         }
+
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "SAP Error Vendor Details API Error")
         return {
@@ -404,6 +466,7 @@ def sap_error_vendor_details(page_no=None, page_length=None, company=None, refno
             "error": str(e),
             "vendor_onboarding": []
         }
+
 
  
 # apply a different query so cannot use the above filteration function
@@ -1177,6 +1240,45 @@ def expired_vendor_details_by_accounts(page_no=None, page_length=None, company=N
             "vendor_onboarding": []
         }
     
+# @frappe.whitelist(allow_guest=False)
+# def sap_error_vendor_details_by_accounts(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
+#     try:
+#         if not usr:
+#             usr = frappe.session.user
+
+#         status = "SAP Error"
+
+#         result = filtering_total_vendor_details_by_accounts(
+#             page_no=page_no,
+#             page_length=page_length,
+#             company=company,
+#             refno=refno,
+#             status=status,
+#             usr=usr,
+#             vendor_name=vendor_name
+#         )
+#         if result.get("status") != "success":
+#             return result
+        
+#         onboarding_docs = result.get("total_vendor_onboarding", [])
+#         return {
+#             "status": "success",
+#             "message": "SAP Error vendor onboarding records fetched successfully.",
+#             "sap_error_vendor_onboarding": onboarding_docs,
+#             "total_count": result.get("total_count"),
+#             "page_no": result.get("page_no"),
+#             "page_length": result.get("page_length")
+#         }
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "SAP Error Vendor Details API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to fetch SAP Error vendor onboarding data.",
+#             "error": str(e),
+#             "vendor_onboarding": []
+#         }
+
+
 @frappe.whitelist(allow_guest=False)
 def sap_error_vendor_details_by_accounts(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
     try:
@@ -1198,6 +1300,28 @@ def sap_error_vendor_details_by_accounts(page_no=None, page_length=None, company
             return result
         
         onboarding_docs = result.get("total_vendor_onboarding", [])
+
+        # Loop through each onboarding doc and enrich with Zmsg if present
+        for doc in onboarding_docs:
+            sap_log = frappe.get_all(
+                "VMS SAP Logs",
+                filters={"vendor_onboarding_link": doc.get("name")},
+                fields=["sap_response"],
+                order_by="creation desc",
+                limit=1
+            )
+
+            if sap_log:
+                try:
+                    # Parse only the JSON string from the first row
+                    sap_response = frappe.parse_json(sap_log[0].get("sap_response") or "{}")
+                    zmsg = sap_response.get("d", {}).get("Zmsg")
+                    doc["sap_error_message"] = zmsg
+                except Exception:
+                    doc["sap_error_message"] = None
+            else:
+                doc["sap_error_message"] = "No SAP Error Message Found"
+
         return {
             "status": "success",
             "message": "SAP Error vendor onboarding records fetched successfully.",
@@ -1214,6 +1338,7 @@ def sap_error_vendor_details_by_accounts(page_no=None, page_length=None, company
             "error": str(e),
             "vendor_onboarding": []
         }
+
 
 # -------------------------------------------------------------------------------------------------------------------------------------
 

@@ -326,7 +326,7 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
 
                 <p>Thanking you,<br><strong>VMS Team</strong><br>Meril Life Sciences Pvt. Ltd.</p>
             """,
-            delayed=False
+            now=True
         )
         
         return {

@@ -37,6 +37,7 @@
   "data_sent_to_sap",
   "expired",
   "rejected_mail_sent",
+  "sap_error_mail_sent",
   "is_amendment",
   "purchase_t_approval",
   "purchase_h_approval",
@@ -54,6 +55,7 @@
   "rejected_by",
   "rejected_by_designation",
   "reason_for_rejection",
+  "section_break_yitx",
   "amendment_details",
   "tables_section",
   "vendor_types",
@@ -628,6 +630,13 @@
   },
   {
    "default": "0",
+   "fieldname": "sap_error_mail_sent",
+   "fieldtype": "Check",
+   "label": "SAP Error Mail Sent"
+  },
+  {
+   "fieldname": "section_break_yitx",
+   "fieldtype": "Section Break"
    "fieldname": "multi_records_populated",
    "fieldtype": "Check",
    "label": "Multi Records Populated"
