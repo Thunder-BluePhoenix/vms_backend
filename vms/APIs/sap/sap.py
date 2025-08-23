@@ -1866,9 +1866,9 @@ def erp_to_sap_vendor_data(onb_ref):
 
         # Get vendor types
         vendor_type_names = []
-        for row in onb_vm.vendor_types:
+        for row in onb.vendor_types:
             if row.vendor_type:
-                vendor_type_doc = frappe.get_doc("Vendor Type Master", row.vendor_type)
+                vendor_type_doc = safe_get_doc("Vendor Type Master", getattr(row, "vendor_type", None))
                 vendor_type_names.append(vendor_type_doc.vendor_type_name)
 
         # **MAIN LOOP: Process each company**
@@ -1882,12 +1882,12 @@ def erp_to_sap_vendor_data(onb_ref):
             
             try:
                 # Get company details
-                vcd = frappe.get_doc("Vendor Onboarding Company Details", company.vendor_company_details)
-                country_doc = frappe.get_doc("Country Master", vcd.country)
+                vcd = safe_get_doc("Vendor Onboarding Company Details", getattr(company, "vendor_company_details", None))
+                country_doc = safe_get_doc("Country Master", onb.vendor_country)
                 country_code = country_doc.country_code
-                com_vcd = frappe.get_doc("Company Master", vcd.company_name)
+                com_vcd = safe_get_doc("Company Master", vcd.company_name)
                 sap_client_code = com_vcd.sap_client_code
-                vcd_state = frappe.get_doc("State Master", vcd.state)
+                vcd_state = safe_get_doc("State Master", getattr(vcd, "state", None))
                 Zuawa = "001"
                 # if sap_client_code == "100":
                 #     Zuawa = "000"
@@ -1941,14 +1941,14 @@ def erp_to_sap_vendor_data(onb_ref):
                             # if gst_table.gst_ven_type == "Not-Registered":
                             # Get GST-specific data
                             gst_ven_type = gst_table.gst_ven_type
-                            gst_state = gst_table.gst_state
-                            gst_state_doc = frappe.get_doc("State Master", gst_state)
+                            gst_state = gst_table.gst_state or ""
+                            gst_state_doc = safe_get_doc("State Master", gst_state)
                             gst_num = gst_table.gst_number or "0"
-                            gst_pin = gst_table.pincode
-                            gst_addrs = frappe.get_doc("Pincode Master", gst_pin)
-                            gst_city = gst_addrs.city
-                            gst_cuntry = gst_addrs.country
-                            gst_district = gst_addrs.district
+                            gst_pin = gst_table.pincode or ""
+                            gst_addrs = gst_addrs = safe_get_doc("Pincode Master", gst_pin)
+                            gst_city = gst_addrs.city or ""
+                            gst_cuntry = gst_addrs.country or ""
+                            gst_district = gst_addrs.district or ""
                             
                             # Build address text
                             gst_adderss_text = ", ".join(filter(None, [
