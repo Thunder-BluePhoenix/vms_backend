@@ -98,6 +98,7 @@
   "head_target",
   "synced_vendor_master",
   "multi_records_populated",
+  "sap_error_mail_sent_time",
   "column_break_jyil",
   "multiple_company",
   "sap_details_tab",
@@ -643,12 +644,17 @@
    "fieldname": "multi_records_populated",
    "fieldtype": "Check",
    "label": "Multi Records Populated"
+  },
+  {
+   "fieldname": "sap_error_mail_sent_time",
+   "fieldtype": "Datetime",
+   "label": "SAP Error Mail Sent Time"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-23 03:06:29.494541",
+ "modified": "2025-08-23 23:10:46.396329",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

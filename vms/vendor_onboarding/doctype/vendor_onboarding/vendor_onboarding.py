@@ -606,13 +606,21 @@ def send_rejection_email(doc, method=None):
         # Remove duplicates and empty values
         cc_list = list({email for email in cc_list if email})
 
+        employee_name, employee_designation = frappe.db.get_value(
+            "Employee",
+            {"user_id": doc.rejected_by},
+            ["full_name", "designation"]
+        )
+
         frappe.custom_sendmail(
             recipients=cc_list,
             cc=[vendor_email],
             subject=f"Vendor {vendor_master.vendor_name} has been Rejected",
             message=f"""
                 <p>Dear Sir/Madam,</p>
-                <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has been rejected because of <strong>{doc.reason_for_rejection}</strong>.</p>
+                 <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has been rejected 
+                    by {employee_name} ({employee_designation}). The reason of rejection is : 
+                    <strong>{doc.reason_for_rejection}</strong>.</p>
                 
                 <p>Please Log-in into Portal, Review the details and take necessary actions.</p>
                 
