@@ -1191,11 +1191,11 @@ def validate_mandatory_data(onb_ref):
 
         # Process each company in vendor_company_details
         for company in onb.vendor_company_details:
-            vcd = frappe.get_doc("Vendor Onboarding Company Details", company.vendor_company_details)
-            com_vcd = frappe.get_doc("Company Master", vcd.company_name)
+            vcd = safe_get_doc("Vendor Onboarding Company Details", company.vendor_company_details)
+            com_vcd = safe_get_doc("Company Master", vcd.company_name)
             
             # Get country information for this company
-            country_doc = frappe.get_doc("Country Master", vcd.country)
+            country_doc = safe_get_doc("Country Master", onb.vendor_country)
             country_code = country_doc.country_code
             
             # Set Zuawa based on SAP client code logic from integration
@@ -1219,11 +1219,11 @@ def validate_mandatory_data(onb_ref):
                     gst_pin = gst_table.pincode
                     
                     # Get address details
-                    gst_addrs = frappe.get_doc("Pincode Master", gst_pin)
+                    gst_addrs = safe_get_doc("Pincode Master", gst_pin)
                     gst_city = gst_addrs.city
                     gst_country = gst_addrs.country
                     gst_district = gst_addrs.district
-                    gst_state_doc = frappe.get_doc("State Master", gst_state)
+                    gst_state_doc = safe_get_doc("State Master", gst_state)
                     
                     # Build address text as per integration logic
                     gst_address_text = ", ".join(filter(None, [
