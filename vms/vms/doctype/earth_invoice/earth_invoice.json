@@ -417,7 +417,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-19 17:17:59.070839",
+ "modified": "2025-08-22 14:39:44.219291",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Earth Invoice",
@@ -441,5 +441,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -31,7 +31,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 17:51:16.531100",
+ "modified": "2025-08-22 14:38:37.464687",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Company Code Area",
@@ -56,5 +56,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "company_area_name"
+ "title_field": "company_area_name",
+ "track_changes": 1
 }

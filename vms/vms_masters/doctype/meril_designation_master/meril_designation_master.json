@@ -25,7 +25,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-02 10:19:54.092104",
+ "modified": "2025-08-22 14:38:39.505944",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Meril Designation Master",
@@ -50,5 +50,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "meril_designation"
+ "title_field": "meril_designation",
+ "track_changes": 1
 }

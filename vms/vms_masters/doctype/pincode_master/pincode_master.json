@@ -58,7 +58,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 15:36:24.315069",
+ "modified": "2025-08-22 14:38:39.752488",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Pincode Master",
@@ -93,5 +93,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "pincode"
+ "title_field": "pincode",
+ "track_changes": 1
 }

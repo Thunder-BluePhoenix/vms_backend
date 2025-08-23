@@ -25,7 +25,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-27 12:15:31.865437",
+ "modified": "2025-08-22 14:38:45.440120",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Department",
@@ -50,5 +50,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "department"
+ "title_field": "department",
+ "track_changes": 1
 }

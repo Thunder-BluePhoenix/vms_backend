@@ -22,12 +22,6 @@
     "parent": "Accounts Head",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Chatnext AI User"
-   },
-   {
-    "parent": "Accounts Head",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
     "role": "Dashboard Manager"
    },
    {
@@ -122,12 +116,6 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "System Manager"
-   },
-   {
-    "parent": "Super Head",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Chatnext AI User"
    },
    {
     "parent": "Super Head",

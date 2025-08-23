@@ -25,7 +25,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-27 12:13:42.188455",
+ "modified": "2025-08-22 14:38:45.189701",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Designation",
@@ -50,5 +50,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "designation"
+ "title_field": "designation",
+ "track_changes": 1
 }

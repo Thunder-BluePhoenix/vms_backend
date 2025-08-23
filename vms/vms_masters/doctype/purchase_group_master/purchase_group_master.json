@@ -52,7 +52,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-30 10:23:47.981758",
+ "modified": "2025-08-22 14:38:42.289240",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Purchase Group Master",
@@ -87,5 +87,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "purchase_group_name"
+ "title_field": "purchase_group_name",
+ "track_changes": 1
 }
