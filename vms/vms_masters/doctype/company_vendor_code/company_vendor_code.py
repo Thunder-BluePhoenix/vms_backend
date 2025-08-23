@@ -243,9 +243,7 @@ class CompanyVendorCode(Document):
 			if is_new_user:
 				subject = "Your Vendor Portal Access Credentials & Code Information"
 				credentials_section = f"""
-				<p>Dear {vendor_name},</p>
-				<p>Welcome to Meril's Family and its' Vendor Management System (VMS) Portal!!!</p>
-				<p>Your vendor portal account has been created successfully. Below are your login credentials:</p
+				<p>Below are your login credentials:</p
 				<div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
 					<h3 style="margin-top: 0;">Login Credentials:</h3>
 					<p><strong>Username:</strong> {username}</p>
@@ -263,8 +261,7 @@ class CompanyVendorCode(Document):
 			else:
 				subject = "Updated Vendor Code Information"
 				credentials_section = f"""
-				<p>Dear {vendor_name},</p>
-				<p>Your vendor code information has been updated successfully. Below are the details:</p>
+				<p>Below are the details:</p>
 				<div style="background-color: #e8f4fd; padding: 20px; border-radius: 5px; margin: 20px 0;">
 					<h3 style="margin-top: 0;">Portal Access:</h3>
 					<p>You can access your vendor portal at: <a href="{home_url}" target="_blank">{home_url}</a></p>
@@ -277,10 +274,10 @@ class CompanyVendorCode(Document):
 				<h2 style="color: #333;">{'Welcome to Our Vendor Portal' if is_new_user else 'Vendor Information Update'}</h2>
 				
 				<p>Dear {vendor_name},</p>
-				
+				<p>Welcome to Meril's Family and its' Vendor Management System (VMS) Portal!!!</p>
 				<p>{'Your vendor portal account has been created successfully.' if is_new_user else 'Your vendor code information has been updated.'}</p>
 				
-				{credentials_section}
+				 {credentials_section}
 				
 				<div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
 					<h4 style="margin-top: 0; color: #856404;">Vendor Code Information</h4>
@@ -290,7 +287,7 @@ class CompanyVendorCode(Document):
 				<p>If you have any questions or need assistance, please contact our support team.</p>
 				
 				<p>Best regards,<br>
-				Your Company Team</p>
+				VMS Team</p>
 			</div>
 			"""
 			
