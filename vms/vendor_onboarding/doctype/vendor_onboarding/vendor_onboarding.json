@@ -13,6 +13,7 @@
   "qms_required",
   "qms_form_link",
   "asa_required",
+  "invalid",
   "column_break_wagn",
   "mandatory_data_filled",
   "registered_by",
@@ -649,12 +650,18 @@
    "fieldname": "sap_error_mail_sent_time",
    "fieldtype": "Datetime",
    "label": "SAP Error Mail Sent Time"
+  },
+  {
+   "default": "0",
+   "fieldname": "invalid",
+   "fieldtype": "Check",
+   "label": "Invalid"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-23 23:10:46.396329",
+ "modified": "2025-08-25 13:40:32.594678",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

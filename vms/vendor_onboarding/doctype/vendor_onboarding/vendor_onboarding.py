@@ -120,41 +120,42 @@ class VendorOnboarding(Document):
 
 
 
-
 def set_vonb_status_onupdate(doc, method=None):
-    # print("status reload@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2Status")
-    
     new_status = None
     new_rejected = None
-    
-    if doc.register_by_account_team == 0 and doc.rejected == 0:
-        if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and doc.data_sent_to_sap:
-            new_status = "Approved"
-            new_rejected = False
-        elif doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and doc.data_sent_to_sap != 1:
-            new_status = "SAP Error"
-            new_rejected = False
+
+    if doc.invalid == 0:
+        if doc.register_by_account_team == 0 and doc.rejected == 0:
+            if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and doc.data_sent_to_sap:
+                new_status = "Approved"
+                new_rejected = False
+            elif doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking and doc.data_sent_to_sap != 1:
+                new_status = "SAP Error"
+                new_rejected = False
+            elif doc.rejected:
+                new_status = "Rejected"
+            else:
+                new_status = "Pending"
+
+        elif doc.register_by_account_team == 1 and doc.rejected == 0:
+            if doc.accounts_team_undertaking and doc.accounts_head_undertaking and doc.data_sent_to_sap:
+                new_status = "Approved"
+                new_rejected = False
+            elif doc.accounts_team_undertaking and doc.accounts_head_undertaking and doc.data_sent_to_sap != 1:
+                new_status = "SAP Error"
+                new_rejected = False
+            elif doc.rejected:
+                new_status = "Rejected"
+            else:
+                new_status = "Pending"
+        
         elif doc.rejected:
             new_status = "Rejected"
         else:
             new_status = "Pending"
 
-    elif doc.register_by_account_team == 1 and doc.rejected == 0:
-        if doc.accounts_team_undertaking and doc.accounts_head_undertaking and doc.data_sent_to_sap:
-            new_status = "Approved"
-            new_rejected = False
-        elif doc.accounts_team_undertaking and doc.accounts_head_undertaking and doc.data_sent_to_sap != 1:
-            new_status = "SAP Error"
-            new_rejected = False
-        elif doc.rejected:
-            new_status = "Rejected"
-        else:
-            new_status = "Pending"
-    
-    elif doc.rejected:
-        new_status = "Rejected"
     else:
-        new_status = "Pending"
+        new_status = "Invalid"
 
     # Update database directly
     if new_status and new_status != doc.onboarding_form_status:
@@ -166,6 +167,7 @@ def set_vonb_status_onupdate(doc, method=None):
         doc.rejected = new_rejected  # Update the doc object too
     
     frappe.db.commit()
+
 
 
 
