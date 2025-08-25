@@ -1,6 +1,8 @@
 import frappe
 import json
 from vms.utils.custom_send_mail import custom_sendmail
+from frappe.utils import nowtime
+from frappe.utils import now_datetime
 
 # @frappe.whitelist(allow_guest=False)
 # def send_sap_error_email(doctype, docname):
@@ -133,7 +135,7 @@ from vms.utils.custom_send_mail import custom_sendmail
 
 
 @frappe.whitelist(allow_guest=False)
-def send_sap_error_email(doctype, docname):
+def send_sap_error_email(doctype, docname, remarks=None):
     try:
         if not doctype or not docname:
             frappe.local.response["http_status_code"] = 404
@@ -195,7 +197,8 @@ def send_sap_error_email(doctype, docname):
                 message = f"""
                     Dear IT Head,<br><br>
                     The Vendor Onboarding document <b>{docname}</b> has encountered a SAP error.<br><br>
-                    <b>SAP Response:</b><br>{sap_response or f'⚠️ No SAP logs were found.<br>{vendor_details}'}<br><br>
+                    <b>SAP Response:</b><br>{sap_response or f'⚠️ No SAP logs were found.<br>{vendor_details}'}<br>
+                    <strong>Remarks: {remarks}</strong><br><br>
                     Please look into this as soon as possible.<br><br>
                     Thank you,<br>
                     VMS Team
@@ -207,18 +210,18 @@ def send_sap_error_email(doctype, docname):
                     message=message,
                     now=True
                 )
-                frappe.db.set_value("Vendor Onboarding", docname, "sap_error_mail_sent", 1)
+                frappe.db.set_value("Vendor Onboarding", docname, {"sap_error_mail_sent": 1,"sap_error_mail_sent_time": now_datetime()})
 
                 return {
                     "status": "success",
-                    "message": f"Error email sent to IT Head(s) for Vendor Onboarding {docname}."
+                    "message": f"SAP Error email sent to IT Head(s) for Vendor Onboarding {docname}."
                 }
 
             else:
                 frappe.local.response["http_status_code"] = 409
                 return {
                     "status": "skipped",
-                    "message": f"Error email already sent earlier for Vendor Onboarding {docname}."
+                    "message": f"SAP Error email already sent earlier for Vendor Onboarding {docname}."
                 }
 
         # --- Purchase Requisition Form ---
@@ -273,7 +276,8 @@ def send_sap_error_email(doctype, docname):
             message = f"""
                 Dear IT Head,<br><br>
                 The document <b>{doctype} {docname}</b> has encountered a SAP error.<br><br>
-                ⚠️ No SAP logs were found for this document.<br><br>
+                ⚠️ No SAP logs were found for this document.<br>
+                <strong>Remarks: {remarks} <strong><br><br>
                 Please look into this as soon as possible.<br><br>
                 Thank you,<br>
                 VMS Team
@@ -289,7 +293,7 @@ def send_sap_error_email(doctype, docname):
 
         return {
             "status": "success",
-            "message": f"Error email sent to IT Head(s) for {doctype} {docname}."
+            "message": f"SAP Error email sent to IT Head(s) for {doctype} {docname}."
         }
 
     except Exception as e:
@@ -301,3 +305,38 @@ def send_sap_error_email(doctype, docname):
             "error": str(e)
         }
 
+
+# In vendor onb, uncheck the SAP Error email check if onboarding status is not change form sap error to Approved within one hour
+def uncheck_sap_error_email():
+    try:
+        vendor_list = frappe.get_all(
+            "Vendor Onboarding",
+            filters={"onboarding_form_status": "SAP Error", "sap_error_mail_sent": 1},
+            fields=["name", "sap_error_mail_sent_time"]
+        )
+
+        current_time = now_datetime()
+
+        for ven in vendor_list:
+            if not ven.sap_error_mail_sent_time:
+                continue
+
+            sent_time = ven.sap_error_mail_sent_time
+            time_diff = current_time - sent_time
+
+            if time_diff.total_seconds() >= 3600:  
+                frappe.logger().info(f"Unchecking SAP Error Email for: {ven.name}")
+                frappe.db.set_value(
+                    "Vendor Onboarding",
+                    ven.name,
+                    {
+                        "sap_error_mail_sent": 0,
+                        "sap_error_mail_sent_time": None
+                    }
+                )
+
+        return {"status": "success"}
+
+    except Exception as e:
+        frappe.logger().error(f"Error in uncheck_sap_error_email: {str(e)}")
+        return {"status": "error", "message": str(e)}

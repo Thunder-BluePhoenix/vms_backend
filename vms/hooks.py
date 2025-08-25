@@ -188,7 +188,8 @@ scheduler_events = {
 	],
 	"cron": {
         "*/10 * * * *": [
-            "vms.APIs.req_for_quotation.rfq_reminder.block_quotation_link"
+            "vms.APIs.req_for_quotation.rfq_reminder.block_quotation_link",
+            "vms.APIs.sap.send_sap_error_email.uncheck_sap_error_email"  
         ]
     }    
 	# "hourly": [
