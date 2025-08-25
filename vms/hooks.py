@@ -68,7 +68,7 @@ app_include_js = [
 # }
 fixtures = [
     # {"dt": "SAP Mapper PR"},
-    {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab", "Super Head", "Accounts Head", "ASA", "IT Head","International Air Accounts","Domestic Air Accounts","Hotel Accounts","Bus Accounts","Railway Accounts"]]}},
+    {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab", "Super Head", "Accounts Head", "ASA", "IT Head","Nirav","Earth Upload Railway","Earth Upload International Air","Earth Upload Domestic Air","Earth Upload Bus","Earth Upload Hotel"]]}},
     {"dt": "Role Profile", "filters": {"name" :["in", ["Accounts Head", "Super Head", "Accounts Team", "Enquirer", "Purchase Head", "Purchase Team", "Vendor", "QA Team", "QA Head"]]}},
     {"dt": "Module Profile", "filters": {"name": ["in", ["Vendor"]]}},
     {"dt": "QMS Quality Control System"},
@@ -77,7 +77,7 @@ fixtures = [
     {"dt": "QMS Batch Record Details"},
     {"dt": "QMS Inspection Reports"},
     {"dt": "Workflow","filters": {"name": ["in", ["Earth Invoice Workflow"]]}},
-    {"dt": "Workflow State","filters": {"name": ["in", ["Approve By Travel Desk","Reject By Travel Desk","Reject By Tyab Sir","Reject By Panjikar Sir","Approve By Panjikar Sir","Approve By Tyab Sir", "Approve By Earth Upload", "Reject By Earth Upload"]]}},
+    {"dt": "Workflow State","filters": {"name": ["in", ["Approve By Travel Desk","Reject By Travel Desk","Reject By Tyab Sir","Reject By Panjikar Sir","Approve By Panjikar Sir","Approve By Tyab Sir", "Approve By Earth Upload", "Reject By Earth Upload","Approve By Nirav Sir"]]}},
 ]
 # Generators
 # ----------
@@ -149,11 +149,11 @@ fixtures = [
 
 
 permission_query_conditions = {
-    "Earth Invoice": "vms.APIs.import_api.premission_api.get_permission_query_conditions"
+    "Earth Invoice": "vms.vms.doctype.earth_invoice.earth_invoice.get_permission_query_conditions"
 }
 
 has_permission = {
-    "Earth Invoice": "vms.APIs.import_api.premission_api.has_permission"
+    "Earth Invoice": "vms.vms.doctype.earth_invoice.earth_invoice.has_permission"
 }
 
 
