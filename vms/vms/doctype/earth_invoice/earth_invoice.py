@@ -1,4 +1,3 @@
-# earth_invoice.py - Fixed controller with simplified permissions
 
 import frappe
 from frappe import _
@@ -376,14 +375,14 @@ def reject_invoice(doc_name, rejection_remark,next_state="Pending"):
 
 
 @frappe.whitelist()
-def handle_group_rejection(rejecting_doc_name, booking_date, current_workflow_state, rejection_remark, rejected_by):
+def handle_group_rejection(rejecting_doc_name, inv_date, current_workflow_state, rejection_remark, rejected_by):
     try:
-        if not booking_date or not current_workflow_state:
+        if not inv_date or not current_workflow_state:
             return {"status": "error", "message": "Missing required parameters"}
         
         # Find all invoices from the same date with the same workflow state
         filters = {
-            "booking_date": booking_date,
+            "inv_date": inv_date,
             "workflow_state": current_workflow_state,  
             "name": ["!=", rejecting_doc_name],
             "docstatus": ["!=", 2]
@@ -442,41 +441,122 @@ def handle_group_rejection(rejecting_doc_name, booking_date, current_workflow_st
         return {"status": "error", "message": str(e)}
 
 @frappe.whitelist()
-def send_group_rejection_email(original_invoice, booking_date, billing_company, rejection_remark, affected_invoices, rejected_by):
-    """Send group rejection notification email"""
+def handle_group_approval(approving_doc_name, inv_date, current_workflow_state, approved_by, next_state):
+    try:
+        if not inv_date or not current_workflow_state:
+            return {"status": "error", "message": "Missing required parameters"}
+        
+        # Find all invoices from the same date with the same workflow state
+        filters = {
+            "inv_date": inv_date,
+            "workflow_state": current_workflow_state,  
+            "name": ["!=", approving_doc_name],
+            "docstatus": ["!=", 2]
+        }
+        
+        same_date_same_state_invoices = frappe.get_all(
+            "Earth Invoice",
+            filters=filters,
+            fields=["name", "workflow_state", "billing_company"]
+        )
+        
+        affected_invoices = 0
+        affected_names = []
+        
+        
+        user_roles = frappe.get_roles(approved_by)
+        
+        for invoice in same_date_same_state_invoices:
+            try:
+                # For Accounts Team, check company access
+                if 'Accounts Team' in user_roles and current_workflow_state == 'Approve By Panjikar Sir':
+                    if not user_has_company_access(approved_by, invoice.billing_company):
+                        continue  # Skip this invoice if no company access
+                
+                invoice_doc = frappe.get_doc("Earth Invoice", invoice.name)
+                
+                # Update to next state
+                invoice_doc.workflow_state = next_state
+                if next_state == 'Approved':
+                    invoice_doc.docstatus = 1
+                
+                # Save with ignore permissions
+                invoice_doc.flags.ignore_permissions = True
+                invoice_doc.save()
+                
+                affected_invoices += 1
+                affected_names.append(invoice.name)
+                
+                # Add audit comment for auto-approved invoice
+                add_workflow_comment(
+                    invoice.name, 
+                    f"Auto-approved due to approval of {approving_doc_name} by {approved_by}", 
+                    "Workflow"
+                )
+                
+            except Exception as e:
+                frappe.log_error(f"Error auto-approving invoice {invoice.name}: {str(e)}")
+        
+        return {
+            "status": "success", 
+            "message": f"Group approval completed. {affected_invoices} invoices auto-approved.",
+            "affected_invoices": affected_invoices,
+            "affected_invoice_names": affected_names
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Group approval error: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+@frappe.whitelist()
+def send_group_rejection_email(original_invoice, inv_date, billing_company, rejection_remark, affected_invoices, rejected_by, current_workflow_state):
     try:
         if not affected_invoices or len(affected_invoices) == 0:
             return {"status": "success", "message": "No group notification needed"}
+
+        if isinstance(affected_invoices, str):
+            import json
+            try:
+                affected_invoices = json.loads(affected_invoices)
+            except json.JSONDecodeError:
+                affected_invoices = eval(affected_invoices)
         
-        recipients = get_notification_recipients()
+        
+        recipients = get_previous_approval_recipients(current_workflow_state)
         if not recipients:
-            return {"status": "error", "message": "No recipients found for notification"}
+            return {"status": "success", "message": "No previous approval recipients found"}
         
         total_affected = len(affected_invoices) + 1  
-        subject = f"Group Rejection Alert - {total_affected} invoices affected"
-        
+        subject = f"Group Rejection Alert - {total_affected} invoices rejected for {inv_date}"
         
         invoice_list = f"<li>{original_invoice} (Original - Can be edited)</li>"
         for inv_name in affected_invoices:
             invoice_list += f"<li>{inv_name} (Auto-rejected - Read only)</li>"
         
+        # Get rejector level for display
+        rejector_level = get_rejector_level_name(current_workflow_state)
+        
         message = f"""
-        <h3 style="color: #d73527;">Group Invoice Rejection</h3>
-        <p><strong>Date:</strong> {booking_date}</p>
+        <h3 style="color: #d73527;">Group Invoice Rejection Alert</h3>
+        <p><strong>Date:</strong> {inv_date}</p>
         <p><strong>Company:</strong> {billing_company}</p>
-        <p><strong>Rejected By:</strong> {rejected_by}</p>
+        <p><strong>Rejected By:</strong> {rejected_by} ({rejector_level})</p>
         <p><strong>Reason:</strong> {rejection_remark}</p>
         
-        <h4>Affected Invoice:</h4>
+        <h4>Affected Invoices ({total_affected} total):</h4>
         <ul>{invoice_list}</ul>
         
         <div style="background: #fff3cd; padding: 10px; margin: 10px 0;">
             <strong>Action Required:</strong>
             <ol>
-                <li>Only the original rejected invoice can be edited</li>
-                <li>Fix the issue and resubmit for approval</li>
-                
+                <li>Only the original rejected invoice ({original_invoice}) can be edited</li>
+                <li>Earth team should fix the issue and resubmit for approval</li>
+                <li>Auto-rejected invoices will remain read-only until the original is resubmitted</li>
             </ol>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff;">
+            <strong>Note:</strong> This notification was sent to all previous approval levels in the workflow chain.
         </div>
         """
         
@@ -486,11 +566,192 @@ def send_group_rejection_email(original_invoice, booking_date, billing_company, 
             message=message
         )
         
-        return {"status": "success", "message": "Group rejection notification sent"}
+        return {"status": "success", "message": "Group rejection notification sent to previous approvers"}
         
     except Exception as e:
         frappe.log_error(f"Error sending group rejection email: {str(e)}")
         return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def send_group_approval_email(original_invoice, inv_date, billing_company, affected_invoices, approved_by, next_state):
+    """Send group approval notification email"""
+    try:
+        if not affected_invoices or len(affected_invoices) == 0:
+            return {"status": "success", "message": "No group notification needed"}
+
+        if isinstance(affected_invoices, str):
+            import json
+            try:
+                affected_invoices = json.loads(affected_invoices)
+            except json.JSONDecodeError:
+                affected_invoices = eval(affected_invoices)
+        
+        # Get recipients - next approval step users
+        recipients = get_next_approval_recipients(next_state)
+        if not recipients:
+            return {"status": "success", "message": "No next approval recipients found"}
+        
+        total_affected = len(affected_invoices) + 1  
+        
+        # Get approval step name for email
+        approval_step_names = {
+            'Approve By Nirav Sir': 'Nirav Sir',
+            'Approve By Travel Desk': 'Travel Desk',
+            'Approve By Tyab Sir': 'Tyab Sir', 
+            'Approve By Panjikar Sir': 'Panjikar Sir',
+            'Approved': 'Final Approval'
+        }
+        
+        step_name = approval_step_names.get(next_state, next_state)
+        
+        if next_state == 'Approved':
+            subject = f"Group Final Approval - {total_affected} invoices approved for {inv_date}"
+        else:
+            subject = f"Group Approval - {total_affected} invoices ready for {step_name} approval"
+        
+        invoice_list = f"<li>{original_invoice} (Original)</li>"
+        for inv_name in affected_invoices:
+            invoice_list += f"<li>{inv_name} (Auto-approved)</li>"
+        
+        if next_state == 'Approved':
+            message = f"""
+            <h3 style="color: #28a745;">Group Invoice Final Approval</h3>
+            <p><strong>Date:</strong> {inv_date}</p>
+            <p><strong>Company:</strong> {billing_company}</p>
+            <p><strong>Approved By:</strong> {approved_by}</p>
+            
+            <h4>Approved Invoices ({total_affected} total):</h4>
+            <ul>{invoice_list}</ul>
+            
+            <div style="background: #d4edda; padding: 10px; margin: 10px 0;">
+                <strong><i class="fa fa-check"></i> All invoices have been fully approved and are now finalized.</strong>
+            </div>
+            """
+        else:
+            message = f"""
+            <h3 style="color: #007bff;">Group Invoice Approval - Ready for {step_name}</h3>
+            <p><strong>Date:</strong> {inv_date}</p>
+            <p><strong>Company:</strong> {billing_company}</p>
+            <p><strong>Approved By:</strong> {approved_by}</p>
+            
+            <h4>Invoices Ready for Your Approval ({total_affected} total):</h4>
+            <ul>{invoice_list}</ul>
+            
+            <div style="background: #cce5ff; padding: 10px; margin: 10px 0;">
+                <strong>Action Required:</strong>
+                <p>These invoices are now ready for your approval. Please review and approve/reject as appropriate.</p>
+            </div>
+            """
+        
+        frappe.sendmail(
+            recipients=recipients,
+            subject=subject,
+            message=message
+        )
+        
+        return {"status": "success", "message": "Group approval notification sent"}
+        
+    except Exception as e:
+        frappe.log_error(f"Error sending group approval email: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+
+
+@frappe.whitelist()
+def get_previous_approval_recipients(current_workflow_state):
+    """Get email recipients for previous approval steps only"""
+    try:
+        recipients = []
+        
+        # Define the approval flow hierarchy
+        approval_hierarchy = {
+            'Pending': [],  
+            'Approve By Nirav Sir': ['Earth'],  
+            'Approve By Travel Desk': ['Earth', 'Nirav'],  
+            'Approve By Tyab Sir': ['Earth', 'Nirav', 'Travel Desk'],  
+            'Approve By Panjikar Sir': ['Earth', 'Nirav', 'Travel Desk', 'Tyab'],  
+            'Approved': ['Earth', 'Nirav', 'Travel Desk', 'Tyab', 'Panjikar']  
+        }
+        
+        roles_to_notify = approval_hierarchy.get(current_workflow_state, [])
+        
+       
+        if 'Earth' in roles_to_notify:
+            roles_to_notify.extend([
+                'Earth Upload', 
+                'Earth Upload Hotel', 
+                'Earth Upload Bus', 
+                'Earth Upload Domestic Air',
+                'Earth Upload International Air', 
+                'Earth Upload Railway'
+            ])
+        
+        for role in roles_to_notify:
+            role_users = frappe.get_all(
+                "Has Role",
+                filters={"role": role},
+                fields=["parent"]
+            )
+            
+            for user in role_users:
+                email = frappe.db.get_value("User", user.parent, "email")
+                if email and email not in recipients:
+                    recipients.append(email)
+        
+        return recipients
+        
+    except Exception as e:
+        frappe.log_error(f"Error getting previous approval recipients: {str(e)}")
+        return []
+
+@frappe.whitelist()
+def get_rejector_level_name(current_workflow_state):
+    """Get the display name of the rejector level"""
+    level_names = {
+        'Pending': 'Earth Level',
+        'Approve By Nirav Sir': 'Nirav Sir',
+        'Approve By Travel Desk': 'Travel Desk',
+        'Approve By Tyab Sir': 'Tyab Sir',
+        'Approve By Panjikar Sir': 'Panjikar Sir',
+        'Approved': 'Accounts Team'
+    }
+    return level_names.get(current_workflow_state, current_workflow_state)
+
+@frappe.whitelist()
+def get_next_approval_recipients(next_state):
+    
+    try:
+        recipients = []
+    
+        state_role_mapping = {
+            'Approve By Nirav Sir': 'Nirav',
+            'Approve By Travel Desk': 'Travel Desk', 
+            'Approve By Tyab Sir': 'Tyab',
+            'Approve By Panjikar Sir': 'Panjikar',
+        }
+        
+        role_to_notify = state_role_mapping.get(next_state)
+        if not role_to_notify:
+            return []
+        
+        role_users = frappe.get_all(
+            "Has Role",
+            filters={"role": role_to_notify},
+            fields=["parent"]
+        )
+        
+        for user in role_users:
+            email = frappe.db.get_value("User", user.parent, "email")
+            if email and email not in recipients:
+                recipients.append(email)
+        
+        return recipients
+        
+    except Exception as e:
+        frappe.log_error(f"Error getting next approval recipients: {str(e)}")
+        return []
 
 @frappe.whitelist()
 def get_notification_recipients():
