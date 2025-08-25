@@ -240,7 +240,7 @@ def populate_legal_documents(source_doc_name, target_doc_name, new_vendor_master
                 "gst_registration_date": row.gst_registration_date,
                 "gst_ven_type": row.gst_ven_type,
                 "pincode": row.pincode,
-                "company": target_doc.company_name
+                # "company": target_doc.company_name
             }
             
             new_row = target_doc.append("gst_table", new_row_data)
@@ -304,13 +304,23 @@ def populate_payment_details(source_doc_name, target_doc_name, new_vendor_master
         if hasattr(source_doc, 'international_bank_details'):
             target_doc.set("international_bank_details", [])
             for row in source_doc.international_bank_details:
-                target_doc.append("international_bank_details", {
-                    "bank_name": row.bank_name,
-                    "bank_address": row.bank_address,
-                    "swift_code": row.swift_code,
-                    "country": row.country,
-                    "currency": row.currency
-                })
+                international_bank_details = {
+                    "beneficiary_bank_name": row.beneficiary_bank_name,
+                    "beneficiary_name": row.beneficiary_name,
+                    "beneficiary_account_no": row.beneficiary_account_no,
+                    "beneficiary_swift_code": row.beneficiary_swift_code,
+                    "beneficiary_iban_no": row.beneficiary_iban_no,
+                    "beneficiary_ach_no": row.beneficiary_ach_no,
+                    "beneficiary_aba_no": row.beneficiary_aba_no,
+                    "beneficiary_currency": row.beneficiary_currency,
+                    "beneficiary_bank_address": row.beneficiary_bank_address,
+                    "beneficiary_routing_no": row.beneficiary_routing_no
+                }
+                new_row = target_doc.append("international_bank_details", international_bank_details)
+                if hasattr(row, 'bank_proof_for_beneficiary_bank') and row.bank_proof_for_beneficiary_bank:
+                    new_cert_url = duplicate_attachment_file(row.bank_proof_for_beneficiary_bank, target_doc.doctype, target_doc.name)
+                    if new_cert_url:
+                        new_row.bank_proof_for_beneficiary_bank = new_cert_url
         
         if hasattr(source_doc, 'intermediate_bank_details') and source_doc.add_intermediate_bank_details:
             target_doc.set("intermediate_bank_details", [])
@@ -423,33 +433,38 @@ def populate_company_details(source_onboarding_name, target_onboarding_name, new
     try:
         source_onboarding = frappe.get_doc("Vendor Onboarding", source_onboarding_name)
         target_onboarding = frappe.get_doc("Vendor Onboarding", target_onboarding_name)
+
+        if hasattr(target_onboarding, "vendor_company_details"):
+            for row in target_onboarding.vendor_company_details:
+                target_vendor_company_details_doc = row.vendor_company_details
         
         # Copy vendor company details table
-        if hasattr(source_onboarding, 'vendor_company_details'):
-            # target_onboarding.set("vendor_company_details", [])
-            for row in source_onboarding.vendor_company_details:
-                # Find the corresponding Company Details document
-                company_details_doc = frappe.db.get_value(
-                    "Vendor Onboarding Company Details",
-                    {"vendor_onboarding": source_onboarding_name},
-                    "name"
-                )
-                
-                if company_details_doc:
-                    # Create new company details for target onboarding
-                    populate_vendor_onboarding_company_details(
-                        company_details_doc,
-                        target_onboarding_name,
-                        new_vendor_master_name,
-                        # row.company_name
+            if hasattr(source_onboarding, 'vendor_company_details'):
+                # target_onboarding.set("vendor_company_details", [])
+                for row in source_onboarding.vendor_company_details:
+                    # Find the corresponding Company Details document
+                    company_details_doc = frappe.db.get_value(
+                        "Vendor Onboarding Company Details",
+                        {"vendor_onboarding": source_onboarding_name},
+                        "name"
                     )
                     
-                    # if result == "Success":
-                        # Add to vendor_company_details table
-                        # target_onboarding.append("vendor_company_details", {
-                        #     "company_name": row.company_name,
-                        #     "qms_required": row.qms_required
-                        # })
+                    if company_details_doc:
+                        # Create new company details for target onboarding
+                        populate_vendor_onboarding_company_details(
+                            company_details_doc,
+                            target_onboarding_name,
+                            new_vendor_master_name,
+                            target_vendor_company_details_doc
+                            # row.company_name
+                        )
+                        
+                        # if result == "Success":
+                            # Add to vendor_company_details table
+                            # target_onboarding.append("vendor_company_details", {
+                            #     "company_name": row.company_name,
+                            #     "qms_required": row.qms_required
+                            # })
         
         target_onboarding.save(ignore_permissions=True)
         return "Success"
@@ -459,31 +474,51 @@ def populate_company_details(source_onboarding_name, target_onboarding_name, new
         return f"Failed: {str(e)}"
 
 
-def populate_vendor_onboarding_company_details(source_doc_name, target_vendor_onboarding, target_ref_no):
+def populate_vendor_onboarding_company_details(source_doc_name, target_vendor_onboarding, target_ref_no, target_vendor_company_details_doc):
     """Populate Vendor Onboarding Company Details"""
     try:
         source_doc = frappe.get_doc("Vendor Onboarding Company Details", source_doc_name)
         
         # Create new company details document
-        target_doc = frappe.new_doc("Vendor Onboarding Company Details")
+        target_doc = frappe.get_doc("Vendor Onboarding Company Details", target_vendor_company_details_doc)
         target_doc.vendor_onboarding = target_vendor_onboarding
         target_doc.ref_no = target_ref_no
         # target_doc.company_name = company_name
         
         # Fields to copy
         fields_to_copy = [
-            "vendor_name", "office_email_primary", "telephone_number", "established_year",
-            "nature_of_business", "corporate_identification_number", "address_line_1",
-            "address_line_2", "city", "district", "state", "country", "pincode",
-            "same_as_above", "manufacturing_address_line_1", "manufacturing_address_line_2",
-            "manufacturing_city", "manufacturing_district", "manufacturing_state",
-            "manufacturing_country", "manufacturing_pincode", "multiple_location"
+            "vendor_name", "office_email_primary", "telephone_number", "established_year", "gst", "company_pan_number", "cin_date", "type_of_business", "nature_of_company"
+            "nature_of_business", "corporate_identification_number", "address_line_1", "website", "size_of_company", "registered_office_number", "office_email_secondary"
+            "address_line_2", "city", "district", "state", "country", "pincode", "whatsapp_number", "corporate_identification_number", 
+            "same_as_above", "manufacturing_address_line_1", "manufacturing_address_line_2", "international_city", "international_country",
+            "manufacturing_city", "manufacturing_district", "manufacturing_state", "international_state", "international_zipcode",
+            "manufacturing_country", "manufacturing_pincode", "multiple_location", "inter_manufacture_city", "inter_manufacture_country", "inter_manufacture_state", "inter_manufacture_zipcode"
         ]
         
         # Copy basic fields
         for field in fields_to_copy:
             if hasattr(source_doc, field):
                 target_doc.set(field, source_doc.get(field))
+
+
+        if hasattr(source_doc, 'comp_gst_table'):
+            target_doc.set("comp_gst_table", [])
+            for row in source_doc.comp_gst_table:
+                new_row_data = {
+                    "gst_state": row.gst_state,
+                    "gst_number": row.gst_number,
+                    "gst_registration_date": row.gst_registration_date,
+                    "gst_ven_type": row.gst_ven_type,
+                    "pincode": row.pincode
+                }
+                
+                new_row = target_doc.append("comp_gst_table", new_row_data)
+                
+                # Duplicate certificate attachment
+                if hasattr(row, 'gst_document') and row.gst_document:
+                    new_cert_url = duplicate_attachment_file(row.gst_document, target_doc.doctype, target_doc.name)
+                    if new_cert_url:
+                        new_row.gst_document = new_cert_url
         
         # Copy multiple location table
         if hasattr(source_doc, 'multiple_location_table'):
@@ -497,6 +532,11 @@ def populate_vendor_onboarding_company_details(source_doc_name, target_vendor_on
                     "ma_country": row.ma_country,
                     "ma_pincode": row.ma_pincode
                 })
+
+        if hasattr(source_doc, 'address_proofattachment') and source_doc.address_proofattachment:
+                    new_cert_url = duplicate_attachment_file(source_doc.address_proofattachment, target_doc.doctype, target_doc.name)
+                    if new_cert_url:
+                        target_doc.address_proofattachment = new_cert_url
         
         target_doc.save(ignore_permissions=True)
         return "Success"
