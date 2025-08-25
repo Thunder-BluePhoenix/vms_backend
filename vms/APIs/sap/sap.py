@@ -1952,7 +1952,6 @@ def erp_to_sap_vendor_data(onb_ref):
                             gst_address_text = ", ".join(filter(None, [
                                 gst_city,
                                 gst_district,
-                                gst_state
                             ]))
 
                             print(f"      📍 Vendor GST Type: {gst_ven_type}")
@@ -1967,13 +1966,19 @@ def erp_to_sap_vendor_data(onb_ref):
                                 gst_num = "0"
 
                             # **BUILD SAP PAYLOAD DATA FOR DOMESTIC VENDOR**
+                            # **BUILD SAP PAYLOAD DATA FOR INTERNATIONAL VENDOR**
+                            vendor_name = onb_vm.vendor_name or ""
+
+                            # Split vendor name into Name1 (first 35 chars) and Name2 (remaining)
+                            name1 = vendor_name[:35]
+                            name2 = vendor_name[35:] if len(vendor_name) > 35 else ""
                             data = {
                                 "Bukrs": com_vcd.company_code,
                                 "Ekorg": pur_org.purchase_organization_code,
                                 "Ktokk": acc_grp.account_group_code,
                                 "Title": "",
-                                "Name1": onb_vm.vendor_name,
-                                "Name2": "",
+                                "Name1": name1,
+                                "Name2": name2,
                                 "Sort1": onb_vm.search_term or "",
                                 "Street": vcd.address_line_1,
                                 "StrSuppl1": gst_address_text or "",
@@ -2182,8 +2187,7 @@ def erp_to_sap_vendor_data(onb_ref):
                         # Build address text
                         gst_address_text = ", ".join(filter(None, [
                             gst_city,
-                            gst_country,
-                            gst_state
+                            gst_country
                         ]))
 
                         print(f"      📍 International State: {gst_state}")
@@ -2191,13 +2195,18 @@ def erp_to_sap_vendor_data(onb_ref):
                         print(f"      📍 Address: {gst_address_text}")
 
                         # **BUILD SAP PAYLOAD DATA FOR INTERNATIONAL VENDOR**
+                        vendor_name = onb_vm.vendor_name or ""
+
+                        # Split vendor name into Name1 (first 35 chars) and Name2 (remaining)
+                        name1 = vendor_name[:35]
+                        name2 = vendor_name[35:] if len(vendor_name) > 35 else ""
                         data = {
                             "Bukrs": com_vcd.company_code,
                             "Ekorg": pur_org.purchase_organization_code,
                             "Ktokk": acc_grp.account_group_code,
                             "Title": "",
-                            "Name1": onb_vm.vendor_name,
-                            "Name2": "",
+                            "Name1": name1,
+                            "Name2": name2,
                             "Sort1": onb_vm.search_term or "",
                             "Street": vcd.address_line_1,
                             "StrSuppl1": gst_address_text or "",
