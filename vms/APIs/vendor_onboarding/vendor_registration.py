@@ -283,7 +283,7 @@ def vendor_registration_single(data):
             "certificate_details": certificate_details,
             "manufacturing_details": manufacturing_details,
             "company_details": company_details,
-            "population_result": population_result
+            # "population_result": population_result
         }
 
     except Exception as e:
@@ -745,7 +745,7 @@ def vendor_registration_multi(data):
             "certificate_details": certificate_details_docs,
             "manufacturing_details": manufacturing_details_docs,
             "company_details": company_details_docs,
-            "population_result":population_result
+            # "population_result":population_result
         }
 
     except frappe.ValidationError as e:
