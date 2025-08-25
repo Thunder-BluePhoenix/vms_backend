@@ -2239,8 +2239,8 @@ def erp_to_sap_vendor_data(onb_ref):
                             "J1ipanref": onb_legal_doc.name_on_company_pan if onb_legal_doc else "",
                             "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                             "Name11": safe_get(onb, "contact_details", 0, "last_name"),
-                            "Bankl": "",  # International uses different banking fields
-                            "Bankn": "",
+                            "Bankl": "N.A",  # International uses different banking fields
+                            "Bankn": "N.A",
                             "Bkref": "",
                             "Banka": "",
                             "Koinh": "",
