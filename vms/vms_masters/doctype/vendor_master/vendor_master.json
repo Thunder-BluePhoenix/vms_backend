@@ -26,6 +26,7 @@
   "created_from_registration",
   "user_create",
   "asa_required",
+  "validity_status",
   "multiple_company_data_section",
   "multiple_company_data",
   "vendor_type_section",
@@ -311,12 +312,18 @@
    "fieldtype": "Link",
    "label": "Manufacturing Details",
    "options": "Vendor Manufacturing Details"
+  },
+  {
+   "fieldname": "validity_status",
+   "fieldtype": "Select",
+   "label": "Validity Status",
+   "options": "Valid\nInvalid"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:29.133431",
+ "modified": "2025-08-25 14:00:53.327746",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
