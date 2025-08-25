@@ -266,10 +266,10 @@ def vendor_registration_single(data):
         frappe.db.commit()
 
 
-        population_result = populate_vendor_data_from_existing_onboarding(
-            vendor_master.name, 
-            vendor_master.office_email_primary
-        )
+        # population_result = populate_vendor_data_from_existing_onboarding(
+        #     vendor_master.name, 
+        #     vendor_master.office_email_primary
+        # )
         # vendor_master.onboarding_ref_no = vendor_onboarding.name
         # vendor_master.save()
         # frappe.db.commit
@@ -728,12 +728,12 @@ def vendor_registration_multi(data):
                 # Don't fail the entire process for email errors
                 pass
 
-            for vend_onb_doc in vendor_onboarding_docs:
-                population_result = populate_vendor_data_from_existing_onboarding(
-                    vendor_master.name, 
-                    vendor_master.office_email_primary,
-                    vend_onb_doc
-                )
+            # for vend_onb_doc in vendor_onboarding_docs:
+            #     population_result = populate_vendor_data_from_existing_onboarding(
+            #         vendor_master.name, 
+            #         vendor_master.office_email_primary,
+            #         vend_onb_doc
+            #     )
 
         return {
             "status": "success",
