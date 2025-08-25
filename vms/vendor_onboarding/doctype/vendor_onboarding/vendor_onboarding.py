@@ -81,7 +81,7 @@ class VendorOnboarding(Document):
         frappe.db.commit()
 
     def before_save(self):
-            update_ven_onb_record_table(self, method=None)
+            
             update_van_core_docs(self, method=None)
             update_van_core_docs_multi_case(self, method=None) 
 
@@ -91,6 +91,7 @@ class VendorOnboarding(Document):
             vendor_company_update(self,method=None)
             
             on_update_check_fields(self,method=None)
+            update_ven_onb_record_table(self, method=None)
             # update_ven_onb_record_table(self, method=None)
             # update_van_core_docs(self, method=None)
             
