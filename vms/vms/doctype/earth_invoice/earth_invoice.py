@@ -455,10 +455,10 @@ def send_group_rejection_email(original_invoice, booking_date, billing_company, 
         total_affected = len(affected_invoices) + 1  
         subject = f"Group Rejection Alert - {total_affected} invoices affected"
         
-        # Build email content
+        Build email content
         invoice_list = f"<li>{original_invoice} (Original - Can be edited)</li>"
-        # for inv_name in affected_invoices:
-        #     invoice_list += f"<li>{inv_name} (Auto-rejected - Read only)</li>"
+        for inv_name in affected_invoices:
+            invoice_list += f"<li>{inv_name} (Auto-rejected - Read only)</li>"
         
         message = f"""
         <h3 style="color: #d73527;">Group Invoice Rejection</h3>
@@ -468,7 +468,7 @@ def send_group_rejection_email(original_invoice, booking_date, billing_company, 
         <p><strong>Reason:</strong> {rejection_remark}</p>
         
         <h4>Affected Invoice:</h4>
-        <ul>{original_invoice}</ul>
+        <ul>{invoice_list}</ul>
         
         <div style="background: #fff3cd; padding: 10px; margin: 10px 0;">
             <strong>Action Required:</strong>
