@@ -1859,6 +1859,7 @@ def erp_to_sap_vendor_data(onb_ref):
         onb_legal_doc = safe_get_doc("Legal Documents", getattr(onb, "document_details", None))
 
 
+
         # Boolean flags
         payee = 'X' if onb.payee_in_document == 1 else ''
         gr_based_inv_ver = 'X' if onb.gr_based_inv_ver == 1 else ''
@@ -2223,7 +2224,7 @@ def erp_to_sap_vendor_data(onb_ref):
                             "SmtpAddr1": onb_vm.office_email_secondary or "",
                             "Zuawa": Zuawa,
                             "Akont": onb_reco.reconcil_account_code,
-                            "Waers": onb_pmd.currency_code if onb_pmd else "USD",
+                            "Waers": onb.order_currency if onb.order_currency else "USD",
                             "Zterm": onb_pm_term.terms_of_payment_code,
                             "Inco1": onb_inco.incoterm_code,
                             "Inco2": onb_inco.incoterm_name,

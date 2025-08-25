@@ -72,7 +72,11 @@
   "invoice_attachment",
   "debit_note_attachment",
   "section_break_derz",
-  "doc_upload_status"
+  "doc_upload_status",
+  "auto_rejected",
+  "rejection_remark",
+  "rejected_by",
+  "rejection_date"
  ],
  "fields": [
   {
@@ -411,13 +415,39 @@
    "fieldname": "booking_date",
    "fieldtype": "Data",
    "label": "BOOKING DATE"
+  },
+  {
+   "fieldname": "rejection_remark",
+   "fieldtype": "Small Text",
+   "label": "Rejection Remark",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "auto_rejected",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Auto Rejected"
+  },
+  {
+   "fieldname": "rejected_by",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Rejected By",
+   "options": "User"
+  },
+  {
+   "fieldname": "rejection_date",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Rejection Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-22 14:39:44.219291",
+ "modified": "2025-08-23 11:58:23.742527",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Earth Invoice",
