@@ -1,4 +1,4 @@
-// Updated Client Script for Earth Invoice - No Approve/Reject for Earth/Earth Upload
+
 frappe.ui.form.on('Earth Invoice', {
     refresh: function(frm) {
         
@@ -139,9 +139,15 @@ function add_resubmit_button(frm) {
     }, __('Action')).addClass('btn-primary'); 
 }
 
+
 function approve_invoice(frm, next_state) {
+    let approval_message = 'Are you sure you want to approve this invoice?';
+    
+   
+    approval_message += `<br><br><strong>Note:</strong> This will also approve ALL other invoices from date <strong>${frm.doc.inv_date}</strong> at the same approval stage.`;
+    
     frappe.confirm(
-        __('Are you sure you want to approve this invoice?'),
+        __(approval_message),
         function() {
             frappe.call({
                 method: 'vms.vms.doctype.earth_invoice.earth_invoice.approve_invoice',
@@ -150,14 +156,90 @@ function approve_invoice(frm, next_state) {
                     next_state: next_state
                 },
                 callback: function(r) {
-                    handle_response(r, 'Invoice approved successfully', frm);
+                    if (r.message && r.message.status === 'success') {
+                        handle_group_approval(frm, next_state);
+                    } else {
+                        frappe.msgprint({
+                            title: __('Error'),
+                            message: r.message?.message || 'Approval failed',
+                            indicator: 'red'
+                        });
+                    }
                 }
             });
         }
     );
 }
 
+
+function handle_group_approval(frm, next_state) {
+    frappe.call({
+        method: 'vms.vms.doctype.earth_invoice.earth_invoice.handle_group_approval',
+        args: {
+            approving_doc_name: frm.doc.name,
+            inv_date: frm.doc.inv_date,
+            current_workflow_state: frm.doc.workflow_state,
+            approved_by: frappe.session.user,
+            next_state: next_state
+        },
+        callback: function(r) {
+            if (r.message && r.message.status === 'success') {
+                const affected_count = r.message.affected_invoices || 0;
+                let success_message = 'Invoice approved successfully';
+                
+                if (affected_count > 0) {
+                    success_message += `. ${affected_count} related invoices also auto-approved.`;
+                }
+                
+                frappe.show_alert({
+                    message: __(success_message),
+                    indicator: 'green'
+                });
+                
+                
+                if (affected_count > 0) {
+                    send_group_approval_notification(frm, affected_count, r.message.affected_invoice_names, next_state);
+                }
+                
+                frm.reload_doc();
+            } else {
+                frappe.show_alert({
+                    message: __('Invoice approved, but group approval may have failed'),
+                    indicator: 'orange'
+                });
+                frm.reload_doc();
+            }
+        }
+    });
+}
+
+
+function send_group_approval_notification(frm, affected_count, affected_names, next_state) {
+    frappe.call({
+        method: 'vms.vms.doctype.earth_invoice.earth_invoice.send_group_approval_email',
+        args: {
+            original_invoice: frm.doc.name,
+            inv_date: frm.doc.inv_date,
+            billing_company: frm.doc.billing_company || 'N/A',
+            affected_invoices: affected_names || [],
+            approved_by: frappe.session.user,
+            next_state: next_state
+        },
+        callback: function(r) {
+            if (r.message && r.message.status === 'success') {
+                frappe.show_alert({
+                    message: __('Group approval notification sent'),
+                    indicator: 'green'
+                });
+            }
+        }
+    });
+}
+
 function reject_invoice(frm) {
+    // Get list of previous approval levels for display
+    const previous_levels = get_previous_approval_levels(frm.doc.workflow_state);
+    
     let dialog = new frappe.ui.Dialog({
         title: __('Reject Invoice'),
         fields: [
@@ -172,7 +254,9 @@ function reject_invoice(frm) {
                 options: `
                     <div class="alert alert-warning">
                         <strong>Warning:</strong> This will reject ALL invoices from date 
-                        <strong>${frm.doc.booking_date}</strong> by the same user.
+                        <strong>${frm.doc.inv_date}</strong> at the same approval stage.
+                        <br><br>
+                        <strong>Notifications will be sent to:</strong> ${previous_levels}
                     </div>
                 `
             }
@@ -207,12 +291,26 @@ function reject_invoice(frm) {
     dialog.show();
 }
 
+
+function get_previous_approval_levels(current_state) {
+    const level_hierarchy = {
+        'Pending': 'None (First level)',
+        'Approve By Nirav Sir': 'Earth Team',
+        'Approve By Travel Desk': 'Earth Team, Nirav Sir', 
+        'Approve By Tyab Sir': 'Earth Team, Nirav Sir, Travel Desk',
+        'Approve By Panjikar Sir': 'Earth Team, Nirav Sir, Travel Desk, Tyab Sir',
+        'Approved': 'Earth Team, Nirav Sir, Travel Desk, Tyab Sir, Panjikar Sir'
+    };
+    
+    return level_hierarchy[current_state] || 'Previous approval levels';
+}
+
 function handle_group_rejection(frm, rejection_remark) {
     frappe.call({
         method: 'vms.vms.doctype.earth_invoice.earth_invoice.handle_group_rejection',
         args: {
             rejecting_doc_name: frm.doc.name,
-            booking_date: frm.doc.booking_date,
+            inv_date: frm.doc.inv_date,
             current_workflow_state: frm.doc.workflow_state,
             rejection_remark: rejection_remark,
             rejected_by: frappe.session.user
@@ -231,7 +329,7 @@ function handle_group_rejection(frm, rejection_remark) {
                     indicator: 'green'
                 });
                 
-                // Send group notification email
+                // Send group notification email to all approval levels
                 if (affected_count > 0) {
                     send_group_rejection_notification(frm, affected_count, r.message.affected_invoice_names);
                 }
@@ -248,22 +346,23 @@ function handle_group_rejection(frm, rejection_remark) {
     });
 }
 
-// NEW FUNCTION: Send group rejection notification
+// UPDATED: Send group rejection notification to previous approval levels only
 function send_group_rejection_notification(frm, affected_count, affected_names) {
     frappe.call({
         method: 'vms.vms.doctype.earth_invoice.earth_invoice.send_group_rejection_email',
         args: {
             original_invoice: frm.doc.name,
-            booking_date: frm.doc.booking_date,
+            inv_date: frm.doc.inv_date,
             billing_company: frm.doc.billing_company || 'N/A',
             rejection_remark: frm.doc.rejection_remark,
             affected_invoices: affected_names || [],
-            rejected_by: frappe.session.user
+            rejected_by: frappe.session.user,
+            current_workflow_state: frm.doc.workflow_state
         },
         callback: function(r) {
             if (r.message && r.message.status === 'success') {
                 frappe.show_alert({
-                    message: __('Group rejection notification sent'),
+                    message: __('Group rejection notification sent to previous approval levels'),
                     indicator: 'green'
                 });
             }
