@@ -1438,33 +1438,144 @@ def vendors_brief_details(page_no=None, page_length=None, company=None, vendor_n
                     })
             doc["company_vendor_codes"] = filtered_codes
 
+
+            #  Legal Documents
             if doc.get("document_details"):
                 legal_doc = frappe.get_doc("Legal Documents", doc.get("document_details"))
-                doc["legal_documents"] = {
-                    "company_pan_number": legal_doc.company_pan_number,
-                    "msme_enterprise_type": legal_doc.msme_enterprise_type,
-                    "udyam_number": legal_doc.udyam_number,
-                    "trc_certificate_no": legal_doc.trc_certificate_no
-                }
+                legal_fields = [
+                    "company_pan_number", "name_on_company_pan", "enterprise_registration_number",
+                    "msme_registered", "msme_enterprise_type", "udyam_number",
+                    "name_on_udyam_certificate", "iec", "trc_certificate_no"
+                ]
 
+                document_details = {field: legal_doc.get(field) for field in legal_fields}
+
+                # Attach proof files
+                for field in ["pan_proof", "entity_proof", "msme_proof", "iec_proof",
+                            "form_10f_proof", "trc_certificate", "pe_certificate"]:
+                    file_url = legal_doc.get(field)
+                    if file_url:
+                        file_doc = frappe.get_doc("File", {"file_url": file_url})
+                        document_details[field] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        document_details[field] = {"url": "", "name": "", "file_name": ""}
+
+                # Child Table: GST Table
+                gst_table = []
+                for row in legal_doc.gst_table:
+                    gst_row = row.as_dict()
+                    gst_row["state_details"] = (
+                        frappe.db.get_value("State Master", row.gst_state,
+                                            ["name", "state_code", "state_name"], as_dict=True)
+                        if row.gst_state and frappe.db.exists("State Master", row.gst_state) else {}
+                    )
+                    if row.gst_document:
+                        file_doc = frappe.get_doc("File", {"file_url": row.gst_document})
+                        gst_row["gst_document"] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        gst_row["gst_document"] = {"url": "", "name": "", "file_name": ""}
+                    gst_table.append(gst_row)
+
+                document_details["gst_table"] = gst_table
+                doc["document_details_data"] = document_details  
+
+
+            #  Company Details
             company_detail = frappe.get_all(
                 "Vendor Onboarding Company Details",
                 filters={"vendor_onboarding": vo_id},
-                fields=["address_line_1", "city", "district", "state", "country", "pincode"],
+                fields=["address_line_1", "city", "district", "state", "country", "pincode", 
+                        "international_city", "international_state", "international_country", "international_zipcode"
+                        ],
                 limit=1
             )
             doc["company_details"] = company_detail[0] if company_detail else {}
 
-            if doc.get("payment_detail"):
-                payment_detail = frappe.get_doc("Vendor Onboarding Payment Details", doc.get("payment_detail"))
-                doc["payment_details"] = {
-                    "bank_name": payment_detail.bank_name,
-                    "ifsc_code": payment_detail.ifsc_code,
-                    "account_number": payment_detail.account_number,
-                    "name_of_account_holder": payment_detail.name_of_account_holder,
-                    "currency_code": payment_detail.currency_code
-                }
 
+            #  Payment Details
+            if doc.get("payment_detail"):
+                payment_doc = frappe.get_doc("Vendor Onboarding Payment Details", doc.get("payment_detail"))
+                payment_fields = [
+                    "bank_name", "ifsc_code", "account_number", "name_of_account_holder",
+                    "type_of_account", "currency", "rtgs", "neft", "ift"
+                ]
+                payment_details = {field: payment_doc.get(field) for field in payment_fields}
+
+                payment_details["bank_name_details"] = (
+                    frappe.db.get_value(
+                        "Bank Master",
+                        payment_doc.bank_name,
+                        ["name", "bank_code", "country", "description"],
+                        as_dict=True
+                    ) if payment_doc.bank_name and frappe.db.exists("Bank Master", payment_doc.bank_name) else {}
+                )
+
+                # bank proofs
+                if payment_doc.bank_proof:
+                    file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof})
+                    payment_details["bank_proof"] = {
+                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                        "name": file_doc.name,
+                        "file_name": file_doc.file_name
+                    }
+                else:
+                    payment_details["bank_proof"] = {"url": "", "name": "", "file_name": ""}
+
+                if payment_doc.bank_proof_by_purchase_team:
+                    file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof_by_purchase_team})
+                    payment_details["bank_proof_by_purchase_team"] = {
+                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                        "name": file_doc.name,
+                        "file_name": file_doc.file_name
+                    }
+                else:
+                    payment_details["bank_proof_by_purchase_team"] = {"url": "", "name": "", "file_name": ""}
+
+                payment_details["address"] = {"country": payment_doc.country or ""}
+
+                # International Bank Details
+                international_bank_details = []
+                for row in payment_doc.international_bank_details:
+                    bank_row = row.as_dict()
+                    if row.bank_proof_for_beneficiary_bank:
+                        file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_beneficiary_bank})
+                        bank_row["bank_proof_for_beneficiary_bank"] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        bank_row["bank_proof_for_beneficiary_bank"] = {"url": "", "name": "", "file_name": ""}
+                    international_bank_details.append(bank_row)
+                payment_details["international_bank_details"] = international_bank_details
+
+                # Intermediate Bank Details
+                intermediate_bank_details = []
+                for row in payment_doc.intermediate_bank_details:
+                    bank_row = row.as_dict()
+                    if row.bank_proof_for_intermediate_bank:
+                        file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_intermediate_bank})
+                        bank_row["bank_proof_for_intermediate_bank"] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        bank_row["bank_proof_for_intermediate_bank"] = {"url": "", "name": "", "file_name": ""}
+                    intermediate_bank_details.append(bank_row)
+                payment_details["intermediate_bank_details"] = intermediate_bank_details
+
+                doc["payment_details_data"] = payment_details  #  attach to doc
+
+            # Vendor Master
             vendor_master = frappe.get_all(
                 "Vendor Master",
                 filters={"name": ref_no},
