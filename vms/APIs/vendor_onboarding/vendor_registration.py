@@ -858,7 +858,18 @@ def send_registration_email_link(vendor_onboarding, refno):
                 qms_section = f"""
                     <p>As part of your registration, please also complete the QMS Form at the link below:</p>
                     <p style="margin: 15px 0px;">
-                        <a href="{webform_link}" rel="nofollow" class="btn btn-secondary">Fill QMS Form</a>
+                        <a href="{webform_link}" 
+                            rel="nofollow" 
+                            style="display: inline-block; 
+                                    padding: 8px 16px; 
+                                    background-color: #6c757d; 
+                                    color: white; 
+                                    text-decoration: none; 
+                                    border-radius: 4px; 
+                                    border: none; 
+                                    cursor: pointer;">
+                                Fill QMS Form
+                        </a>
                     </p>
                     <p>You may also copy and paste this link into your browser:<br>
                     <a href="{webform_link}">{webform_link}</a></p>
@@ -884,7 +895,18 @@ def send_registration_email_link(vendor_onboarding, refno):
                     qms_section = f"""
                         <p>As part of your registration, please also complete the QMS Form at the link below:</p>
                         <p style="margin: 15px 0px;">
-                            <a href="{webform_link}" rel="nofollow" class="btn btn-secondary">Fill QMS Form</a>
+                             <a href="{webform_link}" 
+                                rel="nofollow" 
+                                style="display: inline-block; 
+                                        padding: 8px 16px; 
+                                        background-color: #6c757d; 
+                                        color: white; 
+                                        text-decoration: none; 
+                                        border-radius: 4px; 
+                                        border: none; 
+                                        cursor: pointer;">
+                                    Fill QMS Form
+                            </a>
                         </p>
                         <p>You may also copy and paste this link into your browser:<br>
                         <a href="{webform_link}">{webform_link}</a></p>

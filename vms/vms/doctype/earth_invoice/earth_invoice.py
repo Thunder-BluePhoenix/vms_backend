@@ -140,7 +140,7 @@ def has_permission(doc, user=None, permission_type=None):
     if 'Travel Desk' in user_roles:
         if state == 'Rejected':
             return permission_type == 'read'  # Read only for rejected
-        return state in ['Approve By Nirav Sir', 'Approve By Travel Desk']
+        return state in ['Approve By Nirav Sir', 'Approve By Travel Desk','Pending']
     
     # Tyab role - can access approve by travel desk, approve by tyab sir, and view rejected
     if 'Tyab' in user_roles:
@@ -455,7 +455,7 @@ def send_group_rejection_email(original_invoice, booking_date, billing_company, 
         total_affected = len(affected_invoices) + 1  
         subject = f"Group Rejection Alert - {total_affected} invoices affected"
         
-        Build email content
+        
         invoice_list = f"<li>{original_invoice} (Original - Can be edited)</li>"
         for inv_name in affected_invoices:
             invoice_list += f"<li>{inv_name} (Auto-rejected - Read only)</li>"
