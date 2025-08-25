@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 import json
 from datetime import datetime
 from vms.utils.custom_send_mail import custom_sendmail
+import time
 
 from vms.APIs.vendor_onboarding.vendor_registration_helper import populate_vendor_data_from_existing_onboarding
 
@@ -200,9 +201,10 @@ def vendor_registration_single(data):
         vendor_onboarding.save()
         frappe.db.commit()
 
-        vendor_master.onboarding_ref_no = vendor_onboarding.name
-        vendor_master.save()
-        frappe.db.commit
+        # vendor_master.onboarding_ref_no = vendor_onboarding.name
+        # vendor_master.save()
+        # frappe.db.commit
+        vendor_master.db_set('onboarding_ref_no', vendor_onboarding.name, update_modified=False)
 
         # Create and link additional onboarding documents
         def create_related_doc(doctype):
@@ -268,6 +270,9 @@ def vendor_registration_single(data):
             vendor_master.name, 
             vendor_master.office_email_primary
         )
+        # vendor_master.onboarding_ref_no = vendor_onboarding.name
+        # vendor_master.save()
+        # frappe.db.commit
 
         return {
             "status": "success",
@@ -289,6 +294,34 @@ def vendor_registration_single(data):
             "error": str(e)
         }
 
+# @frappe.whitelist(allow_guest = True)
+# def update_vendor_master_doc(vendor_master):
+#     frappe.enqueue(
+#             method=vendor_master.populate_onboard_doc,
+#             queue='default',
+#             timeout=exp_d_sec,
+#             now=False,
+#             job_name=f'vendor_master_doc_update_{vendor_master.name}',
+#             # enqueue_after_commit = False
+#         )
+        
+        
+
+
+# def populate_onboard_doc(vendor_master):
+    
+
+#     exp_t_sec = 5
+#     time.sleep(exp_t_sec)
+#     if vendor_master.form_fully_submitted_by_vendor == 0:
+#         vendor_master.db_set('expired', 1, update_modified=False)
+#         vendor_master.db_set('onboarding_form_status', "Expired", update_modified=False)
+
+#     else:
+#         pass
+
+#     # exp_d_sec = exp_t_sec + 300
+#     frappe.db.commit()
 
 
 
@@ -673,7 +706,8 @@ def vendor_registration_multi(data):
                 vendor_onboarding.manufacturing_details = manufacturing_details
                 
                 vendor_onboarding.save()
-                frappe.db.commit()
+                # frappe.db.commit()
+                # vendor_master.db_set('onboarding_ref_no', vendor_onboarding.name, update_modified=False)
                 
             except Exception as e:
                 frappe.db.rollback()
@@ -961,9 +995,7 @@ def send_registration_email_link(vendor_onboarding, refno):
             onboarding_doc.sent_qms_form_link = 1
             if onboarding_doc.registered_for_multi_companies == 1:
                 onboarding_doc.head_target = 1
-                vendor_master.onboarding_ref_no = onboarding_doc.name
-                vendor_master.save()
-                frappe.db.commit()
+                vendor_master.db_set('onboarding_ref_no', vendor_onboarding.name, update_modified=False)
 
             onboarding_doc.save(ignore_permissions=True)
             frappe.db.commit()
