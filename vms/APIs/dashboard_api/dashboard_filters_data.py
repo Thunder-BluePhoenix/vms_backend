@@ -1519,11 +1519,270 @@ def sap_error_vendor_details_by_accounts(page_no=None, page_length=None, company
 
 # Vendor brief details of company, documents and bank
 
+# @frappe.whitelist(allow_guest=False)
+# def vendors_brief_details(page_no=None, page_length=None, company=None, vendor_name=None):
+#     try:
+#         usr = frappe.session.user
+
+#         if "Purchase Team" not in frappe.get_roles(usr):
+#             return {
+#                 "status": "error",
+#                 "message": "User does not have the required role.",
+#                 "vendor_onboarding": []
+#             }
+
+#         team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+#         if not team:
+#             return {
+#                 "status": "error",
+#                 "message": "No Employee record found for the user.",
+#                 "vendor_onboarding": []
+#             }
+
+#         user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+#         if not user_ids:
+#             return {
+#                 "status": "error",
+#                 "message": "No users found in the same team.",
+#                 "vendor_onboarding": []
+#             }
+
+#         conditions = [
+#             "vo.registered_by IN %(user_ids)s",
+#             "vo.onboarding_form_status = 'Approved'"
+#         ]
+#         values = {"user_ids": user_ids}
+
+#         if company:
+#             conditions.append("vo.company_name = %(company)s")
+#             values["company"] = company
+
+#         if vendor_name:
+#             conditions.append("vo.vendor_name LIKE %(vendor_name)s")
+#             values["vendor_name"] = f"%{vendor_name}%"
+
+#         filter_clause = " AND ".join(conditions)
+
+#         page_no = int(page_no) if page_no else 1
+#         page_length = int(page_length) if page_length else 5
+#         offset = (page_no - 1) * page_length
+#         values["limit"] = page_length
+#         values["offset"] = offset
+
+#         total_count = frappe.db.sql(f"""
+#             SELECT COUNT(*) AS count
+#             FROM `tabVendor Onboarding` vo
+#             WHERE {filter_clause}
+#         """, values)[0][0]
+
+#         onboarding_docs = frappe.db.sql(f"""
+#             SELECT
+#                 vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.modified,
+#                 vo.qms_form_filled, vo.sent_qms_form_link, vo.registered_by, vo.vendor_country,
+#                 vo.document_details, vo.payment_detail
+#             FROM `tabVendor Onboarding` vo
+#             WHERE {filter_clause}
+#             ORDER BY vo.modified DESC
+#             LIMIT %(limit)s OFFSET %(offset)s
+#         """, values, as_dict=True)
+
+#         # ✅ Enrich vendor data
+#         for doc in onboarding_docs:
+#             vo_id = doc.get("name")
+#             main_company = doc.get("company_name")
+#             ref_no = doc.get("ref_no")
+
+#             filtered_codes = []
+#             company_vendor = frappe.get_all(
+#                 "Company Vendor Code",
+#                 filters={"vendor_ref_no": ref_no},
+#                 fields=["name", "company_name", "company_code"]
+#             )
+#             for cvc in company_vendor:
+#                 if cvc.company_name == main_company:
+#                     vendor_code_children = frappe.get_all(
+#                         "Vendor Code",
+#                         filters={"parent": cvc.name},
+#                         fields=["state", "gst_no", "vendor_code"]
+#                     )
+#                     filtered_codes.append({
+#                         "company_name": cvc.company_name,
+#                         "company_code": cvc.company_code,
+#                         "vendor_codes": vendor_code_children
+#                     })
+#             doc["company_vendor_codes"] = filtered_codes
+
+
+#             #  Legal Documents
+#             if doc.get("document_details"):
+#                 legal_doc = frappe.get_doc("Legal Documents", doc.get("document_details"))
+#                 legal_fields = [
+#                     "company_pan_number", "name_on_company_pan", "enterprise_registration_number",
+#                     "msme_registered", "msme_enterprise_type", "udyam_number",
+#                     "name_on_udyam_certificate", "iec", "trc_certificate_no"
+#                 ]
+
+#                 document_details = {field: legal_doc.get(field) for field in legal_fields}
+
+#                 # Attach proof files
+#                 for field in ["pan_proof", "entity_proof", "msme_proof", "iec_proof",
+#                             "form_10f_proof", "trc_certificate", "pe_certificate"]:
+#                     file_url = legal_doc.get(field)
+#                     if file_url:
+#                         file_doc = frappe.get_doc("File", {"file_url": file_url})
+#                         document_details[field] = {
+#                             "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+#                             "name": file_doc.name,
+#                             "file_name": file_doc.file_name
+#                         }
+#                     else:
+#                         document_details[field] = {"url": "", "name": "", "file_name": ""}
+
+#                 # Child Table: GST Table
+#                 gst_table = []
+#                 for row in legal_doc.gst_table:
+#                     gst_row = row.as_dict()
+#                     gst_row["state_details"] = (
+#                         frappe.db.get_value("State Master", row.gst_state,
+#                                             ["name", "state_code", "state_name"], as_dict=True)
+#                         if row.gst_state and frappe.db.exists("State Master", row.gst_state) else {}
+#                     )
+#                     if row.gst_document:
+#                         file_doc = frappe.get_doc("File", {"file_url": row.gst_document})
+#                         gst_row["gst_document"] = {
+#                             "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+#                             "name": file_doc.name,
+#                             "file_name": file_doc.file_name
+#                         }
+#                     else:
+#                         gst_row["gst_document"] = {"url": "", "name": "", "file_name": ""}
+#                     gst_table.append(gst_row)
+
+#                 document_details["gst_table"] = gst_table
+#                 doc["document_details_data"] = document_details  
+
+
+#             #  Company Details
+#             company_detail = frappe.get_all(
+#                 "Vendor Onboarding Company Details",
+#                 filters={"vendor_onboarding": vo_id},
+#                 fields=["address_line_1", "city", "district", "state", "country", "pincode", 
+#                         "international_city", "international_state", "international_country", "international_zipcode"
+#                         ],
+#                 limit=1
+#             )
+#             doc["company_details"] = company_detail[0] if company_detail else {}
+
+
+#             #  Payment Details
+#             if doc.get("payment_detail"):
+#                 payment_doc = frappe.get_doc("Vendor Onboarding Payment Details", doc.get("payment_detail"))
+#                 payment_fields = [
+#                     "bank_name", "ifsc_code", "account_number", "name_of_account_holder",
+#                     "type_of_account", "currency", "rtgs", "neft", "ift"
+#                 ]
+#                 payment_details = {field: payment_doc.get(field) for field in payment_fields}
+
+#                 payment_details["bank_name_details"] = (
+#                     frappe.db.get_value(
+#                         "Bank Master",
+#                         payment_doc.bank_name,
+#                         ["name", "bank_code", "country", "description"],
+#                         as_dict=True
+#                     ) if payment_doc.bank_name and frappe.db.exists("Bank Master", payment_doc.bank_name) else {}
+#                 )
+
+#                 # bank proofs
+#                 if payment_doc.bank_proof:
+#                     file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof})
+#                     payment_details["bank_proof"] = {
+#                         "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+#                         "name": file_doc.name,
+#                         "file_name": file_doc.file_name
+#                     }
+#                 else:
+#                     payment_details["bank_proof"] = {"url": "", "name": "", "file_name": ""}
+
+#                 if payment_doc.bank_proof_by_purchase_team:
+#                     file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof_by_purchase_team})
+#                     payment_details["bank_proof_by_purchase_team"] = {
+#                         "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+#                         "name": file_doc.name,
+#                         "file_name": file_doc.file_name
+#                     }
+#                 else:
+#                     payment_details["bank_proof_by_purchase_team"] = {"url": "", "name": "", "file_name": ""}
+
+#                 payment_details["address"] = {"country": payment_doc.country or ""}
+
+#                 # International Bank Details
+#                 international_bank_details = []
+#                 for row in payment_doc.international_bank_details:
+#                     bank_row = row.as_dict()
+#                     if row.bank_proof_for_beneficiary_bank:
+#                         file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_beneficiary_bank})
+#                         bank_row["bank_proof_for_beneficiary_bank"] = {
+#                             "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+#                             "name": file_doc.name,
+#                             "file_name": file_doc.file_name
+#                         }
+#                     else:
+#                         bank_row["bank_proof_for_beneficiary_bank"] = {"url": "", "name": "", "file_name": ""}
+#                     international_bank_details.append(bank_row)
+#                 payment_details["international_bank_details"] = international_bank_details
+
+#                 # Intermediate Bank Details
+#                 intermediate_bank_details = []
+#                 for row in payment_doc.intermediate_bank_details:
+#                     bank_row = row.as_dict()
+#                     if row.bank_proof_for_intermediate_bank:
+#                         file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_intermediate_bank})
+#                         bank_row["bank_proof_for_intermediate_bank"] = {
+#                             "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+#                             "name": file_doc.name,
+#                             "file_name": file_doc.file_name
+#                         }
+#                     else:
+#                         bank_row["bank_proof_for_intermediate_bank"] = {"url": "", "name": "", "file_name": ""}
+#                     intermediate_bank_details.append(bank_row)
+#                 payment_details["intermediate_bank_details"] = intermediate_bank_details
+
+#                 doc["payment_details_data"] = payment_details  #  attach to doc
+
+#             # Vendor Master
+#             vendor_master = frappe.get_all(
+#                 "Vendor Master",
+#                 filters={"name": ref_no},
+#                 fields=["vendor_name", "mobile_number", "office_email_primary", "service_provider_type"],
+#                 limit=1
+#             )
+#             doc["vendor_master"] = vendor_master[0] if vendor_master else {}
+
+#         return {
+#             "status": "success",
+#             "message": "Filtered records fetched.",
+#             "total_vendor_onboarding": onboarding_docs,
+#             "total_count": total_count,
+#             "page_no": page_no,
+#             "page_length": page_length
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Vendors Brief Details API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to filter vendor onboarding data.",
+#             "error": str(e),
+#             "vendor_onboarding": []
+#         }
+
+
 @frappe.whitelist(allow_guest=False)
 def vendors_brief_details(page_no=None, page_length=None, company=None, vendor_name=None):
     try:
         usr = frappe.session.user
 
+        #  Role check
         if "Purchase Team" not in frappe.get_roles(usr):
             return {
                 "status": "error",
@@ -1531,27 +1790,9 @@ def vendors_brief_details(page_no=None, page_length=None, company=None, vendor_n
                 "vendor_onboarding": []
             }
 
-        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
-        if not team:
-            return {
-                "status": "error",
-                "message": "No Employee record found for the user.",
-                "vendor_onboarding": []
-            }
-
-        user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
-        if not user_ids:
-            return {
-                "status": "error",
-                "message": "No users found in the same team.",
-                "vendor_onboarding": []
-            }
-
-        conditions = [
-            "vo.registered_by IN %(user_ids)s",
-            "vo.onboarding_form_status = 'Approved'"
-        ]
-        values = {"user_ids": user_ids}
+        #  Conditions (no team filter anymore)
+        conditions = ["vo.onboarding_form_status = 'Approved'"]
+        values = {}
 
         if company:
             conditions.append("vo.company_name = %(company)s")
@@ -1563,18 +1804,21 @@ def vendors_brief_details(page_no=None, page_length=None, company=None, vendor_n
 
         filter_clause = " AND ".join(conditions)
 
+        #  Pagination
         page_no = int(page_no) if page_no else 1
         page_length = int(page_length) if page_length else 5
         offset = (page_no - 1) * page_length
         values["limit"] = page_length
         values["offset"] = offset
 
+        #  Count query
         total_count = frappe.db.sql(f"""
             SELECT COUNT(*) AS count
             FROM `tabVendor Onboarding` vo
             WHERE {filter_clause}
         """, values)[0][0]
 
+        # Fetch records
         onboarding_docs = frappe.db.sql(f"""
             SELECT
                 vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.modified,
@@ -1586,7 +1830,7 @@ def vendors_brief_details(page_no=None, page_length=None, company=None, vendor_n
             LIMIT %(limit)s OFFSET %(offset)s
         """, values, as_dict=True)
 
-        # ✅ Enrich vendor data
+        #  Enrich vendor data (your existing logic continues here…)
         for doc in onboarding_docs:
             vo_id = doc.get("name")
             main_company = doc.get("company_name")
@@ -1756,7 +2000,7 @@ def vendors_brief_details(page_no=None, page_length=None, company=None, vendor_n
                 fields=["vendor_name", "mobile_number", "office_email_primary", "service_provider_type"],
                 limit=1
             )
-            doc["vendor_master"] = vendor_master[0] if vendor_master else {}
+            doc["vendor_master"] = vendor_master[0] if vendor_master else {} 
 
         return {
             "status": "success",
