@@ -4,6 +4,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import today, now
 import json
+from vms.utils.custom_send_mail import custom_sendmail
 
 class EarthInvoice(Document):
 
@@ -560,10 +561,11 @@ def send_group_rejection_email(original_invoice, inv_date, billing_company, reje
         </div>
         """
         
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=recipients,
             subject=subject,
-            message=message
+            message=message,
+            now=True
         )
         
         return {"status": "success", "message": "Group rejection notification sent to previous approvers"}
@@ -644,10 +646,11 @@ def send_group_approval_email(original_invoice, inv_date, billing_company, affec
             </div>
             """
         
-        frappe.sendmail(
+        frappe.custom_sendmail(
             recipients=recipients,
             subject=subject,
-            message=message
+            message=message,
+            now=True
         )
         
         return {"status": "success", "message": "Group approval notification sent"}
