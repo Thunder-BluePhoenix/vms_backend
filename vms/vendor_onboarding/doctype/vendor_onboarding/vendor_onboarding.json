@@ -138,6 +138,7 @@
   {
    "fieldname": "rejection_comment",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Rejection Comment"
   },
   {
@@ -667,7 +668,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-25 13:40:32.594678",
+ "modified": "2025-08-26 14:07:49.418945",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
