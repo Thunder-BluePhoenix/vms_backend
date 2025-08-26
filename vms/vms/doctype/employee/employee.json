@@ -38,6 +38,10 @@
   "team",
   "subhead",
   "show_all_purchase_groups",
+  "section_break_zufu",
+  "multiple_purchase_heads",
+  "column_break_zlmb",
+  "purchase_heads",
   "contact_details",
   "cell_number",
   "column_break_deuq",
@@ -316,12 +320,33 @@
    "fieldname": "restricted",
    "fieldtype": "Check",
    "label": "Restricted"
+  },
+  {
+   "fieldname": "section_break_zufu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "multiple_purchase_heads",
+   "fieldtype": "Check",
+   "label": "Multiple Purchase Heads"
+  },
+  {
+   "fieldname": "column_break_zlmb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.multiple_purchase_heads===1;",
+   "fieldname": "purchase_heads",
+   "fieldtype": "Table",
+   "label": "Purchase Heads",
+   "options": "Multiple Purchase Head"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:39:48.330347",
+ "modified": "2025-08-25 17:36:23.217571",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",

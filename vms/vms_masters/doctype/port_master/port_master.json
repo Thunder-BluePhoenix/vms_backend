@@ -9,7 +9,8 @@
   "port_code",
   "port_name",
   "state",
-  "country"
+  "country",
+  "rfq_type"
  ],
  "fields": [
   {
@@ -33,12 +34,18 @@
    "fieldname": "state",
    "fieldtype": "Data",
    "label": "State"
+  },
+  {
+   "fieldname": "rfq_type",
+   "fieldtype": "Link",
+   "label": "RFQ Type",
+   "options": "Vendor Type Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-26 11:22:27.184506",
+ "modified": "2025-08-26 16:42:48.531779",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Port Master",
