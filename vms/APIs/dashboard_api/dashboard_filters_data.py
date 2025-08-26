@@ -2,6 +2,158 @@ import frappe
 from frappe.utils import today, get_first_day, get_last_day
 
 
+# @frappe.whitelist(allow_guest=False)
+# def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None, purchase_head_filter=False, accounts_team_filter=False):
+#     try:
+#         if usr is None:
+#             usr = frappe.session.user
+#         elif usr != frappe.session.user:
+#             return {
+#                 "status": "error",
+#                 "message": "User mismatch or unauthorized access.",
+#                 "code": 404
+#             }
+
+#         allowed_roles = {"Purchase Team", "Accounts Team", "Accounts Head", "Purchase Head", "QA Team", "QA Head"}
+#         user_roles = frappe.get_roles(usr)
+
+#         if not any(role in allowed_roles for role in user_roles):
+#             return {
+#                 "status": "error",
+#                 "message": "User does not have the required role.",
+#                 "vendor_onboarding": []
+#             }
+
+#         # Base filters
+#         conditions = []
+#         values = {}
+
+#         if "Accounts Team" in user_roles or "Accounts Head" in user_roles:
+#             employee = frappe.get_doc("Employee", {"user_id": usr})
+            
+#             company_list = [row.company_name for row in employee.company]
+
+#             if not company_list:
+#                 return {
+#                     "status": "error",
+#                     "message": "No company records found in Employee.",
+#                     "vendor_onboarding": []
+#                 }
+
+#             conditions.append("vo.company_name IN %(company_list)s")
+#             values["company_list"] = company_list
+
+#             # vend_onb = frappe.get_all(
+#             #     "Vendor Onboarding",
+#             #     filters={"register_by_account_team": 1},
+#             #     pluck="name"  
+#             # )
+
+#             # if not vend_onb:
+#             #     return {
+#             #         "status": "error",
+#             #         "message": "No vendor onboarding records found for Accounts Team/Head.",
+#             #         "vendor_onboarding": []
+#             #     }
+
+#             # conditions.append("vo.name IN %(vend_onb)s")
+#             # values["vend_onb"] = vend_onb
+
+#         else:
+#             team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+#             if not team:
+#                 return {
+#                     "status": "error",
+#                     "message": "No Employee record found for the user.",
+#                     "vendor_onboarding": []
+#                 }
+
+#             user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+#             if not user_ids:
+#                 return {
+#                     "status": "error",
+#                     "message": "No users found in the same team.",
+#                     "vendor_onboarding": []
+#                 }
+
+#             conditions.append("vo.registered_by IN %(user_ids)s")
+#             values["user_ids"] = user_ids
+
+#         if company:
+#             conditions.append("vo.company_name = %(company)s")
+#             values["company"] = company
+
+#         # if refno:
+#         #     conditions.append("vo.ref_no = %(refno)s")
+#         #     values["refno"] = refno
+
+#         if refno:
+#             conditions.append("vo.ref_no LIKE %(refno)s")
+#             values["refno"] = f"%{refno}%"
+
+#         if vendor_name:
+#             conditions.append("vo.vendor_name LIKE %(vendor_name)s")
+#             values["vendor_name"] = f"%{vendor_name}%"
+
+#         if status:
+#             conditions.append("vo.onboarding_form_status = %(status)s")
+#             values["status"] = status
+
+#         if purchase_head_filter:
+#             conditions.append("vo.purchase_team_undertaking = 1")
+
+#         if accounts_team_filter:
+#             conditions.append("vo.purchase_head_undertaking = 1")
+
+#         filter_clause = " AND ".join(conditions)
+
+#         # Total count for pagination
+#         total_count = frappe.db.sql(f"""
+#             SELECT COUNT(*) AS count
+#             FROM `tabVendor Onboarding` vo
+#             WHERE {filter_clause}
+#         """, values)[0][0]
+
+#         # Pagination
+#         page_no = int(page_no) if page_no else 1
+#         page_length = int(page_length) if page_length else 5
+#         offset = (page_no - 1) * page_length
+#         values["limit"] = page_length
+#         values["offset"] = offset
+
+#         onboarding_docs = frappe.db.sql(f"""
+#             SELECT
+#                 vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, vo.modified,
+#                 vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+#                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
+#                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
+#                 vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver, vo.qms_form_filled, vo.sent_qms_form_link,
+#                 vo.registered_by, vo.register_by_account_team, vo.vendor_country, vo.rejected_by, vo.rejected_by_designation, vo.reason_for_rejection, 
+#                 vo.sap_error_mail_sent
+#             FROM `tabVendor Onboarding` vo
+#             WHERE {filter_clause}
+#             ORDER BY vo.modified DESC
+#             LIMIT %(limit)s OFFSET %(offset)s
+#         """, values, as_dict=True)
+
+#         return {
+#             "status": "success",
+#             "message": "Filtered records fetched.",
+#             "total_vendor_onboarding": onboarding_docs,
+#             "total_count": total_count,
+#             "page_no": page_no,
+#             "page_length": page_length
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Filtering Total Vendor Details API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to filter vendor onboarding data.",
+#             "error": str(e),
+#             "vendor_onboarding": []
+#         }
+
 @frappe.whitelist(allow_guest=False)
 def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None, purchase_head_filter=False, accounts_team_filter=False):
     try:
@@ -60,7 +212,16 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
             # values["vend_onb"] = vend_onb
 
         else:
-            team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+
+            try:
+                employee = frappe.get_doc("Employee", {"user_id": usr})
+            except frappe.DoesNotExistError:
+                return {
+                    "status": "error",
+                    "message": "No Employee record found for the user.",
+                    "vendor_onboarding": []
+                }
+            team = employee.get("team")
             if not team:
                 return {
                     "status": "error",
@@ -78,6 +239,18 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
 
             conditions.append("vo.registered_by IN %(user_ids)s")
             values["user_ids"] = user_ids
+
+            if employee.get("multiple_purchase_heads"):
+                company_list = [row.company_name for row in employee.company]
+                print(company_list)
+
+                if company_list:  
+                    conditions.append("vo.company_name IN %(company_list)s")
+                   
+                    values["company_list"] = company_list
+                    
+
+            
 
         if company:
             conditions.append("vo.company_name = %(company)s")
@@ -153,6 +326,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
             "error": str(e),
             "vendor_onboarding": []
         }
+
 
 
 @frappe.whitelist(allow_guest=True)

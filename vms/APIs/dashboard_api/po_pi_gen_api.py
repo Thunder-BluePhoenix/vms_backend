@@ -248,13 +248,213 @@ def vendor_data_for_accounts(usr, user_roles):
         }
 
 
+# def vendor_data_for_purchase(usr, user_roles):
+#     try:
+#         team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+#         if not team:
+#             return {
+#                 "status": "error",
+#                 "message": "No Employee record found for the logged-in user.",
+#                 "vendor_count": 0
+#             }
+        
+#         pur_grp = frappe.get_all("Purchase Group Master", {"team": team}, pluck="purchase_group_code")
+
+#         user_ids = frappe.get_all(
+#             "Employee",
+#             filters={"team": team},
+#             pluck="user_id"
+#         )
+
+
+#         if not user_ids:
+#             return {
+#                 "status": "error",
+#                 "message": "No users found in the same team.",
+#                 "vendor_count": 0
+#             }
+        
+#         # vendor_names = frappe.get_all(
+#         #     "Vendor Master",
+#         #     filters={"registered_by": ["in", user_ids]},
+#         #     pluck="name"
+#         # )
+
+#         # if not vendor_names:
+#         #     return {
+#         #         "status": "error",
+#         #         "message": "No vendor records found for this team.",
+#         #         "vendor_onboarding": []
+#         #     }
+
+#         # Dates for current month
+#         start_date = get_first_day(today())
+#         end_date = get_last_day(today())
+
+#         # Count of Vendor Onboarding records by status
+#         # total_vendor_count = frappe.db.count(
+#         #     "Vendor Onboarding",
+#         #     filters={"ref_no": ["in", vendor_names]}
+#         # )
+
+#         values = {"user_ids": user_ids}
+#         total_vendor_count = frappe.db.sql("""
+#             SELECT COUNT(*) FROM (
+#                 SELECT ref_no FROM `tabVendor Onboarding`
+#                 WHERE registered_by IN %(user_ids)s
+#                 GROUP BY ref_no
+#             ) AS grouped
+#         """, values)[0][0]
+
+#         approved_vendor_count = frappe.db.count(
+#             "Vendor Onboarding",
+#             filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Approved"}
+#         )
+
+
+#         purchase_order_count = frappe.db.count(
+#                                                 "Purchase Order",
+#                                                 filters={"purchase_group": ["in", pur_grp]}
+#                                             )
+
+
+
+
+#         pending_vendor_count = []
+#         if "Purchase Head" in user_roles:
+            
+#             pending_vendor_count = frappe.db.count(
+#                 "Vendor Onboarding",
+#                 filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending", "purchase_team_undertaking": 1}
+#             )
+#         else:
+#             pending_vendor_count = frappe.db.count(
+#                 "Vendor Onboarding",
+#                 filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending"}
+#             )
+
+
+
+#         rejected_vendor_count = frappe.db.count(
+#             "Vendor Onboarding",
+#             filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Rejected"}
+#         )
+
+#         expired_vendor_count = frappe.db.count(
+#             "Vendor Onboarding",
+#             filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Expired"}
+#         )
+
+#         sap_error_vendor_count = frappe.db.count(
+#             "Vendor Onboarding",
+#             filters={"registered_by": ["in", user_ids], "onboarding_form_status": "SAP Error"}
+#         )
+
+#         current_month_vendor = frappe.db.count(
+#             "Vendor Onboarding",
+#             filters={
+#                 "registered_by": ["in", user_ids],
+#                 "creation": ["between", [start_date, end_date]]
+#             }
+#         )
+#         # cart_count = frappe.db.count("Cart Details")
+#         cart_query = """
+#             SELECT COUNT(*)
+#             FROM `tabCart Details` cd
+#             JOIN `tabCategory Master` cc ON cd.category_type = cc.name
+#             WHERE cc.purchase_team_user = %s
+#         """
+
+#         cart_count = frappe.db.sql(cart_query, (usr,))[0][0]
+#         pr_count = frappe.db.count("Purchase Requisition Webform")
+
+#         user_cart_count = frappe.db.count("Cart Details",
+#                                     filters= {"user":usr })
+        
+#         user_pr_count = frappe.db.count("Purchase Requisition Webform",
+#                                     filters= {"requisitioner":usr })
+#         # cart_count = len(all_cart)
+
+#         # Count of Vendor Master records created by users from the same team.requisitioner
+#         # total_vendor_count = frappe.db.count(
+#         #     "Vendor Master",
+#         #     filters={"registered_by": ["in", user_ids]}
+#         # )
+
+#         # pending_vendor_count = frappe.db.count(
+#         #     "Vendor Master",
+#         #     filters={"registered_by": ["in", user_ids], "status": "pending"}
+#         # )
+
+#         # approved_vendor_count = frappe.db.count(
+#         #     "Vendor Master",
+#         #     filters={"registered_by": ["in", user_ids], "status": "approved"}
+#         # )
+
+#         # rejected_vendor_count = frappe.db.count(
+#         #     "Vendor Master",
+#         #     filters={"registered_by": ["in", user_ids], "status": "rejected"}
+#         # )
+
+#         # expired_vendor_count = frappe.db.count(
+#         #     "Vendor Master",
+#         #     filters={"registered_by": ["in", user_ids], "status": "expired"}
+#         # )
+
+
+
+#         # current_month_vendor = frappe.db.count(
+#         #     "Vendor Master",
+#         #     filters={
+#         #         "registered_by": ["in", user_ids],
+#         #         "registered_date": ["between", [start_date, end_date]]
+#         #     }
+#         # )
+
+#         return {
+#             "status": "success",
+#             "message": "Vendor Onboarding dashboard counts fetched successfully.",
+#             "role": user_roles,
+#             "team": team,
+#             "total_vendor_count": total_vendor_count,
+#             "pending_vendor_count": pending_vendor_count,
+#             "approved_vendor_count": approved_vendor_count,
+#             "rejected_vendor_count": rejected_vendor_count,
+#             "expired_vendor_count": expired_vendor_count,
+#             "sap_error_vendor_count": sap_error_vendor_count,
+#             "current_month_vendor": current_month_vendor,
+#             "purchase_order_count": purchase_order_count,
+#             "cart_count":cart_count,
+#             "pr_count":pr_count,
+#             "all_carts":user_cart_count,
+#             "all_pr_count":user_pr_count
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Dashboard Card API Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to fetch vendor onboarding dashboard data.",
+#             "error": str(e),
+#             "vendor_count": 0
+#         }
+
 def vendor_data_for_purchase(usr, user_roles):
     try:
-        team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
-        if not team:
+        try:
+            employee = frappe.get_doc("Employee", {"user_id": usr})
+        except frappe.DoesNotExistError:
             return {
                 "status": "error",
                 "message": "No Employee record found for the logged-in user.",
+                "vendor_count": 0
+            }
+        
+        team = employee.get("team")
+        if not team:
+            return {
+                "status": "error",
+                "message": "No team assigned to the user.",
                 "vendor_count": 0
             }
         
@@ -274,18 +474,14 @@ def vendor_data_for_purchase(usr, user_roles):
                 "vendor_count": 0
             }
         
-        # vendor_names = frappe.get_all(
-        #     "Vendor Master",
-        #     filters={"registered_by": ["in", user_ids]},
-        #     pluck="name"
-        # )
-
-        # if not vendor_names:
-        #     return {
-        #         "status": "error",
-        #         "message": "No vendor records found for this team.",
-        #         "vendor_onboarding": []
-        #     }
+        # Build base filter conditions
+        base_filters = {"registered_by": ["in", user_ids]}
+        
+        # Check if multiple_purchase_heads is enabled for additional company filtering
+        if employee.get("multiple_purchase_heads"):
+            company_list = [row.company_name for row in employee.company]
+            if company_list:
+                base_filters["company_name"] = ["in", company_list]
 
         # Dates for current month
         start_date = get_first_day(today())
@@ -298,62 +494,59 @@ def vendor_data_for_purchase(usr, user_roles):
         # )
 
         values = {"user_ids": user_ids}
-        total_vendor_count = frappe.db.sql("""
+        company_condition = ""
+        
+        if employee.get("multiple_purchase_heads"):
+            company_list = [row.company_name for row in employee.company]
+            if company_list:
+                company_condition = "AND company_name IN %(company_list)s"
+                values["company_list"] = company_list
+
+        total_vendor_count = frappe.db.sql(f"""
             SELECT COUNT(*) FROM (
                 SELECT ref_no FROM `tabVendor Onboarding`
-                WHERE registered_by IN %(user_ids)s
+                WHERE registered_by IN %(user_ids)s {company_condition}
                 GROUP BY ref_no
             ) AS grouped
         """, values)[0][0]
 
         approved_vendor_count = frappe.db.count(
             "Vendor Onboarding",
-            filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Approved"}
+            filters={**base_filters, "onboarding_form_status": "Approved"}
         )
 
 
         purchase_order_count = frappe.db.count(
-                                                "Purchase Order",
-                                                filters={"purchase_group": ["in", pur_grp]}
-                                            )
+            "Purchase Order",
+            filters={"purchase_group": ["in", pur_grp]}
+        )
 
-
-
-
-        pending_vendor_count = []
+        # Pending vendor count with role-based logic
+        pending_filters = {**base_filters, "onboarding_form_status": "Pending"}
         if "Purchase Head" in user_roles:
-            
-            pending_vendor_count = frappe.db.count(
-                "Vendor Onboarding",
-                filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending", "purchase_team_undertaking": 1}
-            )
-        else:
-            pending_vendor_count = frappe.db.count(
-                "Vendor Onboarding",
-                filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Pending"}
-            )
-
-
+            pending_filters["purchase_team_undertaking"] = 1
+        
+        pending_vendor_count = frappe.db.count("Vendor Onboarding", filters=pending_filters)
 
         rejected_vendor_count = frappe.db.count(
             "Vendor Onboarding",
-            filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Rejected"}
+            filters={**base_filters, "onboarding_form_status": "Rejected"}
         )
 
         expired_vendor_count = frappe.db.count(
             "Vendor Onboarding",
-            filters={"registered_by": ["in", user_ids], "onboarding_form_status": "Expired"}
+            filters={**base_filters, "onboarding_form_status": "Expired"}
         )
 
         sap_error_vendor_count = frappe.db.count(
             "Vendor Onboarding",
-            filters={"registered_by": ["in", user_ids], "onboarding_form_status": "SAP Error"}
+            filters={**base_filters, "onboarding_form_status": "SAP Error"}
         )
 
         current_month_vendor = frappe.db.count(
             "Vendor Onboarding",
             filters={
-                "registered_by": ["in", user_ids],
+                **base_filters,
                 "creation": ["between", [start_date, end_date]]
             }
         )
