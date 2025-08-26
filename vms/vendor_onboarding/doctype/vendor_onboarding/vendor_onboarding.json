@@ -102,6 +102,7 @@
   "sap_error_mail_sent_time",
   "column_break_jyil",
   "multiple_company",
+  "it_head_remark",
   "sap_details_tab",
   "sap_validation_html",
   "mandatory_data_for_sap"
@@ -656,6 +657,11 @@
    "fieldname": "invalid",
    "fieldtype": "Check",
    "label": "Invalid"
+  },
+  {
+   "fieldname": "it_head_remark",
+   "fieldtype": "Small Text",
+   "label": "IT Head Remark"
   }
  ],
  "grid_page_length": 50,
