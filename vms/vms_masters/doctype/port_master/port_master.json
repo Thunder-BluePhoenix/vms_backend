@@ -8,6 +8,7 @@
  "field_order": [
   "port_code",
   "port_name",
+  "state",
   "country"
  ],
  "fields": [
@@ -27,12 +28,17 @@
    "fieldtype": "Link",
    "label": "Country",
    "options": "Country Master"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:32.705551",
+ "modified": "2025-08-26 11:22:27.184506",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Port Master",
