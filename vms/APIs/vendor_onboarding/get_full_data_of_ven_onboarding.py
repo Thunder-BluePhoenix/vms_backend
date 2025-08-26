@@ -359,6 +359,20 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                     "name": "",
                     "file_name": ""
                 }
+
+            if row.international_bank_proof_by_purchase_team:
+                file_doc = frappe.get_doc("File", {"file_url": row.international_bank_proof_by_purchase_team})
+                bank_row["international_bank_proof_by_purchase_team"] = {
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                }
+            else:
+                bank_row["international_bank_proof_by_purchase_team"] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
             
             international_bank_details.append(bank_row)
 
@@ -379,6 +393,20 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 }
             else:
                 bank_row["bank_proof_for_intermediate_bank"] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
+
+            if row.intermediate_bank_proof_by_purchase_team:
+                file_doc = frappe.get_doc("File", {"file_url": row.intermediate_bank_proof_by_purchase_team})
+                bank_row["intermediate_bank_proof_by_purchase_team"] = {
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                }
+            else:
+                bank_row["intermediate_bank_proof_by_purchase_team"] = {
                     "url": "",
                     "name": "",
                     "file_name": ""

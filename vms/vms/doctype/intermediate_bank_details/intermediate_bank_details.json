@@ -13,6 +13,7 @@
   "intermediate_aba_no",
   "intermediate_bank_address",
   "bank_proof_for_intermediate_bank",
+  "intermediate_bank_proof_by_purchase_team",
   "column_break_heue",
   "intermediate_account_no",
   "intermediate_ach_no",
@@ -120,13 +121,18 @@
    "fieldname": "intermediate_name",
    "fieldtype": "Data",
    "label": "Intermediate Name"
+  },
+  {
+   "fieldname": "intermediate_bank_proof_by_purchase_team",
+   "fieldtype": "Attach",
+   "label": "Bank Proof by Purchase Team"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:39:50.843413",
+ "modified": "2025-08-26 17:26:55.031718",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Intermediate Bank Details",
