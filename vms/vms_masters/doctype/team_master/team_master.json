@@ -7,7 +7,9 @@
  "engine": "InnoDB",
  "field_order": [
   "team_name",
-  "reporting_head"
+  "reporting_head",
+  "section_break_gaeb",
+  "multiple_purchase_heads"
  ],
  "fields": [
   {
@@ -21,12 +23,22 @@
    "fieldtype": "Link",
    "label": "Reporting Head",
    "options": "Employee"
+  },
+  {
+   "fieldname": "section_break_gaeb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "multiple_purchase_heads",
+   "fieldtype": "Check",
+   "label": "Multiple Purchase Heads"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:44.926382",
+ "modified": "2025-08-25 17:24:09.679835",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Team Master",

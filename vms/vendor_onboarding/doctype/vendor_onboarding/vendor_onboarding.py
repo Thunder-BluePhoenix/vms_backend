@@ -374,6 +374,87 @@ def send_mail_purchase_team(doc, method=None):
         }
         
 
+# @frappe.whitelist(allow_guest=True)
+# def send_mail_purchase_head(doc, method=None):
+#     try:
+#         if doc:
+#             vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+
+#             # Get team of the registered_by employee
+#             team = frappe.db.get_value("Employee", {"user_id": doc.registered_by}, "team")
+
+#             if not team:
+#                 return {
+#                     "status": "error",
+#                     "message": "Team not found for the registered_by user."
+#                 }
+
+#             # Get user_ids of employees with designation 'Purchase Head' in the same team
+#             purchase_heads = frappe.get_all(
+#                 "Employee",
+#                 filters={"team": team, "designation": "Purchase Head"},
+#                 fields=["user_id"]
+#             )
+
+#             recipient_emails = [emp.user_id for emp in purchase_heads if emp.user_id]
+
+#             if not recipient_emails:
+#                 return {
+#                     "status": "error",
+#                     "message": "No Purchase Head found in the same team."
+#                 }
+#             conf = frappe.conf
+#             http_server = conf.get("frontend_http")
+#             full_name = frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") 
+
+#             # Send email
+#             frappe.custom_sendmail(
+#                 recipients=recipient_emails,
+#                 subject=f"Vendor {vendor_master.vendor_name} approved by Purchase Team {full_name} ",
+#                 cc=doc.registered_by, 
+#                 message=f"""
+#                     <p>Dear Purchase Head,</p>
+#                     <p>The vendor {vendor_master.vendor_name} <strong>({doc.ref_no})</strong> has completed its onboarding form.<br><strong>{ frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") }</strong>
+#                         from <strong>Purchase Team</strong> has approved the Vendor Onboarding form.</p>
+#                     <p>Please Log-in into Portal, Review the details and take necessary actions.</p>
+#                     <p>
+#                         <a href="{http_server}" style="
+#                             background-color: #28a745;
+#                             color: white;
+#                             padding: 10px 20px;
+#                             text-decoration: none;
+#                             border-radius: 5px;
+#                             display: inline-block;
+#                             font-weight: bold;
+#                         ">
+#                             Log-in into Portal
+#                         </a>
+#                     </p>
+                    
+#                     <p style="margin-top: 15px">Thanks,<br>VMS Team</p>
+#                 """,
+#                 now=True,
+#             )
+
+#             # doc.mail_sent_to_purchase_head = 1
+#             # frappe.db.commit()
+#             frappe.db.set_value("Vendor Onboarding", doc.name, "mail_sent_to_purchase_head", 1)
+
+
+#             return {
+#                 "status": "success",
+#                 "message": "Email sent successfully."
+#             }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Email Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to send email.",
+#             "error": str(e)
+#         }
+
+
 @frappe.whitelist(allow_guest=True)
 def send_mail_purchase_head(doc, method=None):
     try:
@@ -388,21 +469,36 @@ def send_mail_purchase_head(doc, method=None):
                     "status": "error",
                     "message": "Team not found for the registered_by user."
                 }
+            
+            # check if multiple purchase heads is check or not in team doc
+            mul_purchase_heads = frappe.db.get_value("Team Master", team, "multiple_purchase_heads")
+            
+            recipient_emails = []
 
-            # Get user_ids of employees with designation 'Purchase Head' in the same team
-            purchase_heads = frappe.get_all(
-                "Employee",
-                filters={"team": team, "designation": "Purchase Head"},
-                fields=["user_id"]
-            )
+            if mul_purchase_heads:
+                employee = frappe.get_doc("Employee", {"user_id": doc.registered_by})
 
-            recipient_emails = [emp.user_id for emp in purchase_heads if emp.user_id]
+                if employee.get("multiple_purchase_heads"):
+                    for row in employee.get("purchase_heads", []):
+                        if row.user_id:
+                            recipient_emails.append(row.user_id)
+
+            else:
+                # Get user_ids of employees with designation 'Purchase Head' in the same team
+                purchase_heads = frappe.get_all(
+                    "Employee",
+                    filters={"team": team, "designation": "Purchase Head"},
+                    fields=["user_id"]
+                )
+
+                recipient_emails = [emp.user_id for emp in purchase_heads if emp.user_id]
 
             if not recipient_emails:
                 return {
                     "status": "error",
                     "message": "No Purchase Head found in the same team."
                 }
+            
             conf = frappe.conf
             http_server = conf.get("frontend_http")
             full_name = frappe.db.get_value("Employee", {"user_id": doc.purchase_t_approval}, "full_name") 
