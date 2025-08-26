@@ -528,6 +528,85 @@ def update_vendor_onboarding_payment_details(data):
 
 # upload bank proof by purchase team
 
+# @frappe.whitelist(allow_guest=True)
+# def update_bank_proof_purchase_team(data):
+# 	try:
+# 		if isinstance(data, str):
+# 			data = json.loads(data)
+
+# 		ref_no = data.get("ref_no")
+# 		vendor_onboarding = data.get("vendor_onboarding")
+
+# 		if not ref_no or not vendor_onboarding:
+# 			return {
+# 				"status": "error",
+# 				"message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
+# 			}
+
+# 		doc_name = frappe.db.get_value(
+# 			"Vendor Onboarding Payment Details",
+# 			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+# 			"name"
+# 		)
+
+# 		if not doc_name:
+# 			return {
+# 				"status": "error",
+# 				"message": "No record found for Vendor Onboarding Payment Details"
+# 			}
+
+# 		main_doc = frappe.get_doc("Vendor Onboarding Payment Details", doc_name)
+
+# 		file_url = None
+# 		if "bank_proof_by_purchase_team" in frappe.request.files:
+# 			file = frappe.request.files["bank_proof_by_purchase_team"]
+
+# 			saved = save_file(
+# 				file.filename,               
+# 				file.stream.read(),          
+# 				main_doc.doctype,            
+# 				main_doc.name,               
+# 				is_private=0                 
+# 			)
+# 			file_url = saved.file_url
+
+# 		if main_doc.registered_for_multi_companies == 1:
+# 			linked_docs = frappe.get_all(
+# 				"Vendor Onboarding Payment Details",
+# 				filters={
+# 					"registered_for_multi_companies": 1,
+# 					"unique_multi_comp_id": main_doc.unique_multi_comp_id
+# 				},
+# 				fields=["name"]
+# 			)
+# 		else:
+# 			linked_docs = [{"name": main_doc.name}]
+
+# 		for entry in linked_docs:
+# 			doc = frappe.get_doc("Vendor Onboarding Payment Details", entry["name"])
+# 			if file_url:
+# 				doc.bank_proof_by_purchase_team = file_url
+# 			doc.save(ignore_permissions=True)
+
+# 		frappe.db.commit()
+
+# 		return {
+# 			"status": "success",
+# 			"message": "Vendor Onboarding Payment Details updated successfully.",
+# 			"docnames": [d["name"] for d in linked_docs],
+# 			"file_url": file_url
+# 		}
+
+# 	except Exception as e:
+# 		frappe.db.rollback()
+# 		frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Payment Update Error")
+# 		return {
+# 			"status": "error",
+# 			"message": "Failed to update Vendor Onboarding Payment Details.",
+# 			"error": str(e)
+# 		}
+
+
 @frappe.whitelist(allow_guest=True)
 def update_bank_proof_purchase_team(data):
 	try:
@@ -557,19 +636,27 @@ def update_bank_proof_purchase_team(data):
 
 		main_doc = frappe.get_doc("Vendor Onboarding Payment Details", doc_name)
 
-		file_url = None
-		if "bank_proof_by_purchase_team" in frappe.request.files:
-			file = frappe.request.files["bank_proof_by_purchase_team"]
+		# --- Upload files ---
+		file_urls = {}
 
-			saved = save_file(
-				file.filename,               
-				file.stream.read(),          
-				main_doc.doctype,            
-				main_doc.name,               
-				is_private=0                 
-			)
-			file_url = saved.file_url
+		# Handle all three file types
+		for file_key in [
+			"bank_proof_by_purchase_team",
+			"international_bank_proof_by_purchase_team",
+			"intermediate_bank_proof_by_purchase_team"
+		]:
+			if file_key in frappe.request.files:
+				file = frappe.request.files[file_key]
+				saved = save_file(
+					file.filename,
+					file.stream.read(),
+					main_doc.doctype,
+					main_doc.name,
+					is_private=0
+				)
+				file_urls[file_key] = saved.file_url
 
+		# --- Find linked docs for multi-company ---
 		if main_doc.registered_for_multi_companies == 1:
 			linked_docs = frappe.get_all(
 				"Vendor Onboarding Payment Details",
@@ -582,10 +669,24 @@ def update_bank_proof_purchase_team(data):
 		else:
 			linked_docs = [{"name": main_doc.name}]
 
+		# --- Update parent + child tables ---
 		for entry in linked_docs:
 			doc = frappe.get_doc("Vendor Onboarding Payment Details", entry["name"])
-			if file_url:
-				doc.bank_proof_by_purchase_team = file_url
+
+			# Parent field
+			if "bank_proof_by_purchase_team" in file_urls:
+				doc.bank_proof_by_purchase_team = file_urls["bank_proof_by_purchase_team"]
+
+			# Child: international bank details
+			if "international_bank_proof_by_purchase_team" in file_urls:
+				for row in doc.international_bank_details:
+					row.international_bank_proof_by_purchase_team = file_urls["international_bank_proof_by_purchase_team"]
+
+			# Child: intermediate bank details
+			if "intermediate_bank_proof_by_purchase_team" in file_urls:
+				for row in doc.intermediate_bank_details:
+					row.intermediate_bank_proof_by_purchase_team = file_urls["intermediate_bank_proof_by_purchase_team"]
+
 			doc.save(ignore_permissions=True)
 
 		frappe.db.commit()
@@ -594,7 +695,7 @@ def update_bank_proof_purchase_team(data):
 			"status": "success",
 			"message": "Vendor Onboarding Payment Details updated successfully.",
 			"docnames": [d["name"] for d in linked_docs],
-			"file_url": file_url
+			"file_urls": file_urls
 		}
 
 	except Exception as e:
