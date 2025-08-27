@@ -10,6 +10,8 @@
   "ref_no",
   "column_break_kkrt",
   "country",
+  "created_from_import",
+  "import_ref",
   "indian_bank_details_section",
   "bank_name",
   "ifsc_code",
@@ -201,12 +203,23 @@
    "fieldname": "unique_multi_comp_id",
    "fieldtype": "Data",
    "label": "Unique ID"
+  },
+  {
+   "default": "0",
+   "fieldname": "created_from_import",
+   "fieldtype": "Check",
+   "label": "Created From Import"
+  },
+  {
+   "fieldname": "import_ref",
+   "fieldtype": "Data",
+   "label": "Import Ref"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:30.728846",
+ "modified": "2025-08-27 22:18:17.443160",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Bank Details",
