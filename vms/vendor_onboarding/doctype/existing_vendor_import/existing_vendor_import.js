@@ -1,6 +1,67 @@
 // Enhanced existing_vendor_import.js
 // Copyright (c) 2025, Blue Phoenix and contributors
 // For license information, please see license.txt
+// frappe.ui.form.on("Existing Vendor Import", {
+// 	refresh(frm) {
+// 		// Add custom buttons
+// 		add_custom_buttons(frm);
+		
+// 		// Auto-parse when file is uploaded
+// 		if (frm.doc.csv_xl && !frm.doc.vendor_data) {
+// 			setTimeout(() => {
+// 				frm.save();
+// 			}, 1000);
+// 		}
+		
+// 		// Style the form safely
+// 		try {
+// 			style_form(frm);
+// 		} catch (e) {
+// 			console.log('Style form error:', e);
+// 		}
+		
+// 		// Show field mapping if data exists
+// 		if (frm.doc.field_mapping_html) {
+// 			show_field_mapping_section(frm);
+// 		}
+		
+// 		// Add help text
+// 		add_help_text(frm);
+
+// 		// Initialize enhanced features
+// 		try {
+// 			initialize_enhanced_features(frm);
+// 		} catch (e) {
+// 			console.log('Enhanced features initialization error:', e);
+// 		}
+// 	},
+	
+// 	onload(frm) {
+// 		// Set initial state
+// 		if (frm.is_new()) {
+// 			frm.set_value('existing_vendor_initialized', 0);
+// 		}
+		
+// 		// Add custom CSS safely
+// 		try {
+// 			style_form(frm);
+// 		} catch (e) {
+// 			console.log('OnLoad style form error:', e);
+// 		}
+		
+// 		// Initialize tooltips
+// 		setTimeout(() => {
+// 			try {
+// 				$('[data-toggle="tooltip"]').tooltip();
+// 			} catch (e) {
+// 				console.log('Tooltip initialization error:', e);
+// 			}
+// 		}, 1000);
+// 	}
+// });
+
+
+
 
 frappe.ui.form.on("Existing Vendor Import", {
 	refresh(frm) {
@@ -756,7 +817,16 @@ function add_help_text(frm) {
 	}
 }
 
+// Fix for style_form function in existing_vendor_import.js
+// Replace the existing style_form function around line 888
+
 function style_form(frm) {
+	// Ensure we have a valid form wrapper
+	if (!frm.wrapper) {
+		console.log('Form wrapper not available');
+		return;
+	}
+	
 	// Add custom CSS for better styling
 	if (!$('#enhanced-vendor-import-styles').length) {
 		$('<style id="enhanced-vendor-import-styles">')
@@ -878,9 +948,44 @@ function style_form(frm) {
 			.appendTo('head');
 	}
 	
-	// Add class to form wrapper
-	frm.wrapper.addClass('enhanced-vendor-import');
+	// Add class to form wrapper - ensure it's a jQuery object
+	try {
+		let $wrapper = frm.wrapper;
+		if (!$wrapper.jquery) {
+			$wrapper = $(frm.wrapper);
+		}
+		$wrapper.addClass('enhanced-vendor-import');
+	} catch (e) {
+		console.log('Could not add class to form wrapper:', e);
+		// Alternative approach - add class to document body as fallback
+		$('body').addClass('enhanced-vendor-import-page');
+	}
 }
+
+// Alternative safe wrapper for DOM operations
+function safe_add_form_class(frm, className) {
+	try {
+		if (frm && frm.wrapper) {
+			// Try jQuery first
+			if ($(frm.wrapper).length) {
+				$(frm.wrapper).addClass(className);
+			} 
+			// Try native DOM if jQuery fails
+			else if (frm.wrapper.classList) {
+				frm.wrapper.classList.add(className);
+			}
+			// Last resort - add to parent elements
+			else {
+				$(document).find('.form-layout').addClass(className);
+			}
+		}
+	} catch (e) {
+		console.warn('Could not add form class:', e);
+	}
+}
+
+// Updated refresh function to use safe DOM manipulation
+
 
 function initialize_enhanced_features(frm) {
 	// Add Chart.js for validation charts

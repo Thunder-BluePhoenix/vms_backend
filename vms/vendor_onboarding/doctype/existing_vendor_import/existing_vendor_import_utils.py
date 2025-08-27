@@ -251,20 +251,456 @@ class VendorImportUtils:
 			}
 		}
 	
+
+
+
+
+	@staticmethod
+	def extract_banker_details(row):
+		"""Extract banker details for Vendor Bank Details doctype (domestic banking info)"""
+		
+		banker_data = {}
+		
+		# Map banker detail fields based on Banker Details child doctype
+		field_mapping = {
+			'bank_name': 'bank_name',
+			'ifsc_code': 'ifsc_code', 
+			'account_number': 'account_number',
+			'name_of_account_holder': 'name_of_account_holder',
+			'type_of_account': 'type_of_account'
+		}
+		
+		for csv_field, doc_field in field_mapping.items():
+			value = VendorImportUtils.get_flexible_field_value(row, csv_field)
+			if value:
+				banker_data[doc_field] = value
+		
+		# Add vendor name as company name if available
+		if 'vendor_name' in row and row['vendor_name']:
+			banker_data['company_name'] = VendorImportUtils.safe_str_strip(row['vendor_name'])
+		
+		return banker_data
+
+	@staticmethod
+	def extract_international_bank_details_for_vendor_bank(row):
+		"""Extract international bank details specific to Vendor Bank Details doctype"""
+		
+		intl_data = {}
+		
+		# Map international bank fields based on International Bank Details child doctype
+		# Reference the actual child doctype fields from the schema
+		field_mapping = {
+			'beneficiary_name': 'beneficiary_name',
+			'beneficiary_swift_code': 'beneficiary_swift_code',
+			'beneficiary_iban_no': 'beneficiary_iban_no', 
+			'beneficiary_aba_no': 'beneficiary_aba_no',
+			'beneficiary_bank_address': 'beneficiary_bank_address',
+			'beneficiary_bank_name': 'beneficiary_bank_name',
+			'beneficiary_account_no': 'beneficiary_account_no',
+			'beneficiary_ach_no': 'beneficiary_ach_no',
+			'beneficiary_routing_no': 'beneficiary_routing_no',
+			'beneficiary_currency': 'beneficiary_currency'
+		}
+		
+		for csv_field, doc_field in field_mapping.items():
+			value = VendorImportUtils.get_flexible_field_value(row, csv_field)
+			if value:
+				intl_data[doc_field] = value
+		
+		# Add company name if available (meril_company_name field in child doctype)
+		# if 'vendor_name' in row and row['vendor_name']:
+		# 	intl_data['meril_company_name'] = VendorImportUtils.safe_str_strip(row['vendor_name'])
+		
+		return intl_data
+
+	@staticmethod
+	def extract_intermediate_bank_details(row):
+		"""Extract intermediate bank details for Vendor Bank Details doctype"""
+		
+		intermediate_data = {}
+		
+		# Map intermediate bank fields
+		field_mapping = {
+			'intermediate_swift_code': 'intermediate_swift_code',
+			'intermediate_bank_name': 'intermediate_bank_name',
+			'intermediate_iban_no': 'intermediate_iban_no',
+			'intermediate_aba_no': 'intermediate_aba_no',
+			'intermediate_bank_address': 'intermediate_bank_address',
+			'intermediate_account_no': 'intermediate_account_no',
+			'intermediate_ach_no': 'intermediate_ach_no',
+			'intermediate_routing_no': 'intermediate_routing_no',
+			'intermediate_currency': 'intermediate_currency'
+		}
+		
+		for csv_field, doc_field in field_mapping.items():
+			value = VendorImportUtils.get_flexible_field_value(row, csv_field)
+			if value:
+				intermediate_data[doc_field] = value
+		
+		# Add company name if available
+		# if 'vendor_name' in row and row['vendor_name']:
+		# 	intermediate_data['meril_company_name'] = VendorImportUtils.safe_str_strip(row['vendor_name'])
+		
+		return intermediate_data
+	
+	@staticmethod
+	def get_flexible_field_value(row, target_field):
+		"""Get field value with flexible header matching (case-insensitive, space-insensitive)"""
+		
+		# Define field aliases for flexible matching
+		field_aliases = {
+			'bank_name': ['Bank Name', 'BANK_NAME', 'bank_name', 'BankName', 'Bank', 'BANK'],
+			'ifsc_code': ['IFSC Code', 'IFSC_CODE', 'ifsc_code', 'IFSC', 'Bank Code', 'BANK_CODE'],
+			'account_number': ['Account Number', 'ACCOUNT_NUMBER', 'account_number', 'Account No', 'ACCOUNT_NO', 'Acc No'],
+			'name_of_account_holder': ['Name of Account Holder', 'Account Holder Name', 'ACCOUNT_HOLDER_NAME', 'Acc Holder Name'],
+			'type_of_account': ['Type of Account', 'Account Type', 'TYPE_OF_ACCOUNT', 'ACCOUNT_TYPE'],
+			'beneficiary_name': ['Beneficiary Name', 'BENEFICIARY_NAME', 'beneficiary_name'],
+			'beneficiary_swift_code': ['Beneficiary Swift Code', 'BENEFICIARY_SWIFT_CODE', 'Swift Code'],
+			'beneficiary_iban_no': ['Beneficiary IBAN No', 'BENEFICIARY_IBAN_NO', 'IBAN No'],
+			'currency': ['Currency', 'CURRENCY', 'Order Currency', 'ORDER_CURRENCY'],
+			'beneficiary_aba_no': ['Beneficiary ABA No', 'ABA No', 'BENEFICIARY_ABA_NO'],
+			'beneficiary_bank_address': ['Beneficiary Bank Address', 'Bank Address', 'BENEFICIARY_BANK_ADDRESS'],
+			'beneficiary_bank_name': ['Beneficiary Bank Name', 'BENEFICIARY_BANK_NAME'],
+			'beneficiary_account_no': ['Beneficiary Account No', 'BENEFICIARY_ACCOUNT_NO'],
+			'beneficiary_currency': ['Beneficiary Currency', 'BENEFICIARY_CURRENCY'],
+			'intermediate_swift_code': ['Intermediate Swift Code', 'INTERMEDIATE_SWIFT_CODE'],
+			'intermediate_bank_name': ['Intermediate Bank Name', 'INTERMEDIATE_BANK_NAME'],
+			'intermediate_iban_no': ['Intermediate IBAN No', 'INTERMEDIATE_IBAN_NO'],
+			'intermediate_aba_no': ['Intermediate ABA No', 'INTERMEDIATE_ABA_NO'],
+			'intermediate_bank_address': ['Intermediate Bank Address', 'INTERMEDIATE_BANK_ADDRESS'],
+			'intermediate_account_no': ['Intermediate Account No', 'INTERMEDIATE_ACCOUNT_NO'],
+			'intermediate_currency': ['Intermediate Currency', 'INTERMEDIATE_CURRENCY']
+		}
+		
+		# Get possible field names for this target field
+		possible_names = field_aliases.get(target_field, [target_field])
+		
+		# Try to find the value using various field name variations
+		for field_name in possible_names:
+			if field_name in row and row[field_name]:
+				value = VendorImportUtils.safe_str_strip(row[field_name])
+				if value:
+					return value
+		
+		# If no exact match, try case-insensitive and space-insensitive matching
+		for key, value in row.items():
+			key_normalized = str(key).lower().replace(' ', '_').replace('-', '_')
+			
+			for possible_name in possible_names:
+				possible_normalized = str(possible_name).lower().replace(' ', '_').replace('-', '_')
+				if key_normalized == possible_normalized:
+					return VendorImportUtils.safe_str_strip(value) if value else None
+		
+		return None
+
+
+	# STANDALONE PAYMENT DETAILS UTILITIES
+# Replace/Add these methods in existing_vendor_import_utils.py
+
+	@staticmethod
+	def create_standalone_payment_details_record(vendor_master_name, vendor_name, company_code, row):
+		"""Create standalone payment details without vendor onboarding dependency"""
+		
+		try:
+			# Generate unique reference number
+			ref_no = VendorImportUtils.generate_standalone_payment_ref(vendor_name, company_code)
+			
+			frappe.log_error(f"Creating standalone payment details for: {vendor_name}, Company: {company_code}, Ref: {ref_no}", "Payment Debug")
+			
+			# Check if payment details already exist
+			existing_payment = frappe.db.exists("Vendor Bank Details", {
+				"ref_no": ref_no
+			})
+			
+			if existing_payment:
+				payment_doc = frappe.get_doc("Vendor Bank Details", existing_payment)
+				action = "updated"
+			else:
+				payment_doc = frappe.new_doc("Vendor Bank Details")
+				payment_doc.ref_no = ref_no
+				action = "created"
+			
+			# Set basic information (no vendor_onboarding field needed)
+			payment_doc.vendor_master = vendor_master_name
+			payment_doc.vendor_name = vendor_name
+			payment_doc.company_code = company_code
+			
+			# Track populated fields for logging
+			populated_fields = []
+			
+			# Map basic payment fields directly
+			basic_payment_fields = {
+				'bank_name': 'bank_name',
+				'ifsc_code': 'ifsc_code',
+				'account_number': 'account_number',
+				'name_of_account_holder': 'name_of_account_holder',
+				'type_of_account': 'type_of_account',
+				'currency': 'currency',
+				'rtgs': 'rtgs',
+				'neft': 'neft',
+				'ift': 'ift'
+			}
+			
+			for csv_field, doc_field in basic_payment_fields.items():
+				value = VendorImportUtils.get_flexible_field_value(row, csv_field)
+				if value:
+					setattr(payment_doc, doc_field, value)
+					populated_fields.append(f"{doc_field}: {value}")
+			
+			# Handle domestic bank details (child table)
+			domestic_data = VendorImportUtils.extract_domestic_bank_details(row)
+			if domestic_data and any(domestic_data.values()):
+				# Clear existing domestic bank details
+				payment_doc.set('domestic_bank_details', [])
+				# Add new domestic bank detail
+				payment_doc.append("domestic_bank_details", domestic_data)
+				populated_fields.append(f"Domestic Bank: {domestic_data}")
+				frappe.log_error(f"Added domestic bank details: {domestic_data}", "Payment Debug")
+			
+			# Handle international bank details (child table)
+			intl_data = VendorImportUtils.extract_international_bank_details(row)
+			if intl_data and any(intl_data.values()):
+				# Clear existing international bank details
+				payment_doc.set('international_bank_details', [])
+				# Add new international bank detail
+				payment_doc.append("international_bank_details", intl_data)
+				populated_fields.append(f"International Bank: {intl_data}")
+				frappe.log_error(f"Added international bank details: {intl_data}", "Payment Debug")
+			
+			# Set import metadata
+			payment_doc.created_from_import = 1
+			payment_doc.import_date = frappe.utils.now()
+			payment_doc.import_source = "Existing Vendor Import"
+			payment_doc.standalone_payment_details = 1  # Flag to identify standalone records
+			
+			# Save only if we have populated fields
+			if populated_fields:
+				payment_doc.save(ignore_permissions=True)
+				frappe.db.commit()
+				frappe.log_error(f"Successfully {action} standalone payment details: {payment_doc.name}, Fields: {populated_fields}", "Payment Success")
+				return {
+					'name': payment_doc.name,
+					'action': action,
+					'ref_no': ref_no,
+					'populated_fields': populated_fields
+				}
+			else:
+				frappe.log_error(f"No payment data found for {vendor_name} in row: {list(row.keys())}", "Payment Debug")
+				return None
+			
+		except Exception as e:
+			frappe.log_error(f"Error creating standalone payment details for {vendor_name}: {str(e)}\nRow data: {row}", "Payment Error")
+			return None
+
+	@staticmethod
+	def generate_standalone_payment_ref(vendor_name, company_code=""):
+		"""Generate unique reference number for standalone payment details"""
+		
+		try:
+			# Create vendor abbreviation (first 6 chars, alphanumeric only)
+			vendor_abbr = ''.join(c for c in vendor_name.upper() if c.isalnum())[:6]
+			if not vendor_abbr:
+				vendor_abbr = "VENDOR"
+			
+			# Company code abbreviation
+			comp_abbr = company_code[:4] if company_code else "COMP"
+			
+			# Timestamp
+			now = frappe.utils.now_datetime()
+			timestamp = now.strftime("%y%m%d")
+			
+			# Base reference
+			base_ref = f"PAY-{vendor_abbr}-{comp_abbr}-{timestamp}"
+			
+			# Ensure uniqueness by adding sequence number
+			ref_no = base_ref
+			counter = 1
+			while frappe.db.exists("Vendor Bank Details", {"ref_no": ref_no}):
+				ref_no = f"{base_ref}-{counter:03d}"
+				counter += 1
+			
+			return ref_no
+			
+		except Exception as e:
+			frappe.log_error(f"Error generating standalone payment ref: {str(e)}")
+			# Fallback to timestamp-only reference
+			timestamp = frappe.utils.now_datetime().strftime("%Y%m%d%H%M%S")
+			return f"PAY-IMPORT-{timestamp}"
+
+	@staticmethod
+	def validate_standalone_payment_data(row):
+		"""Validate if row contains sufficient data for payment details creation"""
+		
+		validation_result = {
+			"has_payment_data": False,
+			"missing_fields": [],
+			"available_fields": {},
+			"data_quality": "none"
+		}
+		
+		# Required fields for basic payment details
+		required_fields = ['bank_name', 'ifsc_code', 'account_number']
+		optional_fields = ['name_of_account_holder', 'type_of_account']
+		international_fields = ['beneficiary_name', 'beneficiary_swift_code', 'beneficiary_iban_no']
+		
+		# Check required fields
+		available_required = 0
+		for field in required_fields:
+			value = VendorImportUtils.get_flexible_field_value(row, field)
+			if value:
+				validation_result["available_fields"][field] = value
+				available_required += 1
+			else:
+				validation_result["missing_fields"].append(field)
+		
+		# Check optional fields
+		for field in optional_fields:
+			value = VendorImportUtils.get_flexible_field_value(row, field)
+			if value:
+				validation_result["available_fields"][field] = value
+		
+		# Check international fields
+		intl_count = 0
+		for field in international_fields:
+			value = VendorImportUtils.get_flexible_field_value(row, field)
+			if value:
+				validation_result["available_fields"][field] = value
+				intl_count += 1
+		
+		# Determine data quality
+		if available_required >= 2:  # At least 2 out of 3 required fields
+			validation_result["has_payment_data"] = True
+			if available_required == 3:
+				validation_result["data_quality"] = "excellent"
+			else:
+				validation_result["data_quality"] = "good"
+		elif available_required >= 1 or intl_count >= 2:
+			validation_result["has_payment_data"] = True
+			validation_result["data_quality"] = "partial"
+		else:
+			validation_result["data_quality"] = "insufficient"
+		
+		return validation_result
+
+	# Enhanced field extraction methods for standalone use
+	@staticmethod
+	def extract_domestic_bank_details(row):
+		"""Extract domestic bank details optimized for standalone payment records"""
+		
+		domestic_data = {}
+		
+		# Primary field mapping
+		field_mapping = {
+			'bank_name': 'bank_name',
+			'ifsc_code': 'ifsc_code',
+			'account_number': 'account_number',
+			'name_of_account_holder': 'name_of_account_holder',
+			'type_of_account': 'type_of_account'
+		}
+		
+		for csv_field, doc_field in field_mapping.items():
+			value = VendorImportUtils.get_flexible_field_value(row, csv_field)
+			if value:
+				domestic_data[doc_field] = value
+		
+		# Add default company name if available from vendor data
+		if 'vendor_name' in row and row['vendor_name']:
+			domestic_data['company_name'] = VendorImportUtils.safe_str_strip(row['vendor_name'])
+		
+		return domestic_data
+
+	@staticmethod
+	def extract_international_bank_details(row):
+		"""Extract international bank details optimized for standalone payment records"""
+		
+		intl_data = {}
+		
+		# International field mapping
+		field_mapping = {
+			'beneficiary_name': 'beneficiary_name',
+			'beneficiary_swift_code': 'beneficiary_swift_code',
+			'beneficiary_iban_no': 'beneficiary_iban_no',
+			'beneficiary_aba_no': 'beneficiary_aba_no',
+			'beneficiary_bank_address': 'beneficiary_bank_address',
+			'beneficiary_bank_name': 'beneficiary_bank_name',
+			'beneficiary_account_no': 'beneficiary_account_no',
+			'beneficiary_currency': 'beneficiary_currency',
+			'intermediate_swift_code': 'intermediate_swift_code',
+			'intermediate_bank_name': 'intermediate_bank_name',
+			'intermediate_iban_no': 'intermediate_iban_no',
+			'intermediate_aba_no': 'intermediate_aba_no',
+			'intermediate_bank_address': 'intermediate_bank_address',
+			'intermediate_account_no': 'intermediate_account_no',
+			'intermediate_currency': 'intermediate_currency'
+		}
+		
+		for csv_field, doc_field in field_mapping.items():
+			value = VendorImportUtils.get_flexible_field_value(row, csv_field)
+			if value:
+				intl_data[doc_field] = value
+		
+		# Add company name if available
+		# if 'vendor_name' in row and row['vendor_name']:
+		# 	intl_data['meril_company_name'] = VendorImportUtils.safe_str_strip(row['vendor_name'])
+		
+		return intl_data
+
+	# Add API method for testing standalone payment creation
+	@frappe.whitelist()
+	def test_standalone_payment_creation(docname, row_index=0):
+		"""Test method to debug standalone payment creation for a specific row"""
+		
+		doc = frappe.get_doc("Existing Vendor Import", docname)
+		
+		if not doc.vendor_data:
+			return {"error": "No vendor data found"}
+		
+		vendor_data = json.loads(doc.vendor_data)
+		field_mapping = json.loads(doc.field_mapping) if doc.field_mapping else {}
+		
+		if row_index >= len(vendor_data):
+			return {"error": f"Row index {row_index} out of range"}
+		
+		# Get the specific row
+		row = vendor_data[row_index]
+		mapped_row = doc.apply_field_mapping(row, field_mapping)
+		
+		# Test payment data validation
+		validation = VendorImportUtils.validate_standalone_payment_data(row)
+		
+		# Try to create payment details if validation passes
+		result = {
+			"row_data": row,
+			"mapped_data": mapped_row,
+			"validation": validation
+		}
+		
+		if validation["has_payment_data"]:
+			vendor_master_name = "TEST_VENDOR_MASTER"  # You can get actual vendor master
+			vendor_name = mapped_row.get('vendor_name', 'Test Vendor')
+			company_code = mapped_row.get('company_code', 'TEST')
+			
+			payment_result = VendorImportUtils.create_standalone_payment_details_record(
+				vendor_master_name, vendor_name, company_code, row
+			)
+			result["payment_creation"] = payment_result
+		
+		return result
+	
 	@staticmethod
 	def create_payment_details_record(vendor_ref_no, vendor_onboarding_ref, row):
-		"""Create vendor onboarding payment details record"""
+		"""Create Vendor Bank Details record"""
 		
 		try:
 			# Check if payment details already exist
-			existing_payment = frappe.db.exists("Vendor Onboarding Payment Details", {
+			existing_payment = frappe.db.exists("Vendor Bank Details", {
 				"vendor_onboarding": vendor_onboarding_ref
 			})
 			
 			if existing_payment:
-				payment_doc = frappe.get_doc("Vendor Onboarding Payment Details", existing_payment)
+				payment_doc = frappe.get_doc("Vendor Bank Details", existing_payment)
 			else:
-				payment_doc = frappe.new_doc("Vendor Onboarding Payment Details")
+				payment_doc = frappe.new_doc("Vendor Bank Details")
 				payment_doc.ref_no = vendor_ref_no
 				payment_doc.vendor_onboarding = vendor_onboarding_ref
 			

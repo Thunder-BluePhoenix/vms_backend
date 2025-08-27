@@ -7,11 +7,30 @@ from frappe.model.document import Document
 import pandas as pd
 import json
 import os
+import io
 from frappe.utils import cstr, flt, cint, today, now, get_site_path, validate_email_address
 from frappe.utils.file_manager import get_file
 import zipfile
 from io import BytesIO
 import re
+import openpyxl
+from frappe.utils.file_manager import save_file
+
+try:
+    from .existing_vendor_import_utils import VendorImportUtils
+except ImportError:
+    # Alternative import path if the above fails
+    from vms.vendor_onboarding.doctype.existing_vendor_import.existing_vendor_import_utils import VendorImportUtils
+
+# Also add this helper method to handle the utils class instantiation
+def get_vendor_utils():
+    """Get instance of VendorImportUtils class"""
+    try:
+        return VendorImportUtils()
+    except Exception as e:
+        frappe.log_error(f"Error instantiating VendorImportUtils: {str(e)}")
+        return None
+	
 
 
 class ExistingVendorImport(Document):
@@ -232,9 +251,16 @@ class ExistingVendorImport(Document):
 		return auto_mapping
 
 	def process_vendors(self):
-		"""Process and import all vendors with enhanced duplicate handling"""
-		if not self.vendor_data or not self.field_mapping:
-			frappe.throw("Vendor data and field mapping are required")
+		"""Enhanced process vendors with standalone payment details tracking"""
+		
+		if not self.csv_xl:
+			frappe.throw("Please upload a CSV/Excel file first")
+		
+		if not self.vendor_data:
+			frappe.throw("No vendor data found. Please save the form to parse the CSV file first")
+		
+		if not self.field_mapping:
+			frappe.throw("Please configure field mapping first")
 		
 		vendor_data = json.loads(self.vendor_data)
 		field_mapping = json.loads(self.field_mapping)
@@ -245,20 +271,23 @@ class ExistingVendorImport(Document):
 			"vendors_updated": 0,
 			"company_codes_created": 0,
 			"company_codes_updated": 0,
+			"payment_details_created": 0,      # Track standalone payment details
+			"payment_details_updated": 0,      # Track updates
 			"errors": [],
 			"warnings": []
 		}
 		
 		for idx, row in enumerate(vendor_data, 1):
 			try:
-				# Apply field mapping
+				# Apply field mapping (preserves original row)
 				mapped_row = self.apply_field_mapping(row, field_mapping)
 				
-				# Process each vendor
+				# Process vendor with standalone payment details
 				vendor_result = self.process_single_vendor(mapped_row, idx)
 				
 				# Aggregate results
 				results["total_processed"] += 1
+				
 				if vendor_result.get("vendor_action") == "created":
 					results["vendors_created"] += 1
 				elif vendor_result.get("vendor_action") == "updated":
@@ -268,6 +297,12 @@ class ExistingVendorImport(Document):
 					results["company_codes_created"] += 1
 				elif vendor_result.get("company_code_action") == "updated":
 					results["company_codes_updated"] += 1
+				
+				# Track payment details creation/updates
+				if vendor_result.get("payment_details_action") == "created":
+					results["payment_details_created"] += 1
+				elif vendor_result.get("payment_details_action") == "updated":
+					results["payment_details_updated"] += 1
 				
 				if vendor_result.get("warnings"):
 					results["warnings"].extend(vendor_result["warnings"])
@@ -283,8 +318,191 @@ class ExistingVendorImport(Document):
 		
 		return results
 
+
+
+
+
+	# FIXED PAYMENT DETAILS CREATION FOR VENDOR BANK DETAILS
+# Replace your create_standalone_payment_details method in existing_vendor_import.py
+
+	def create_standalone_payment_details(self, mapped_row, vendor_master_name):
+		"""Create payment details directly using Vendor Bank Details doctype"""
+		
+		result = {
+			'action': 'none',
+			'warnings': [],
+			'payment_doc_name': None
+		}
+		
+		try:
+			# Check if any payment-related fields are present
+			payment_fields = [
+				'bank_name', 'ifsc_code', 'account_number', 'name_of_account_holder', 'type_of_account',
+				'beneficiary_name', 'beneficiary_swift_code', 'beneficiary_iban_no'
+			]
+			
+			# Check mapped row for payment data
+			has_payment_data = any(mapped_row.get(field) for field in payment_fields)
+			
+			# Also check original row for payment data
+			if not has_payment_data:
+				original_row = mapped_row.get('_original_row', {})
+				payment_csv_fields = [
+					'Bank Name', 'IFSC Code', 'Account Number', 'Name of Account Holder', 'Type of Account',
+					'Beneficiary Name', 'Beneficiary Swift Code', 'Beneficiary IBAN No.'
+				]
+				has_payment_data = any(original_row.get(field) for field in payment_csv_fields)
+			
+			if not has_payment_data:
+				result['warnings'].append(f"No payment data found for vendor {mapped_row.get('vendor_name')}")
+				return result
+			
+			vendor_name = mapped_row.get('vendor_name', '').strip()
+			company_code = mapped_row.get('company_code', '').strip()
+			
+			if not vendor_name:
+				result['warnings'].append("Vendor name is required for payment details")
+				return result
+			
+			# Check if payment details already exist for this vendor
+			existing_payment = frappe.db.exists("Vendor Bank Details", {
+				"ref_no": vendor_master_name
+			})
+			
+			if existing_payment:
+				payment_doc = frappe.get_doc("Vendor Bank Details", existing_payment)
+				result['action'] = 'updated'
+			else:
+				payment_doc = frappe.new_doc("Vendor Bank Details")
+				payment_doc.ref_no = vendor_master_name  # Link to Vendor Master
+				result['action'] = 'created'
+			
+			# Import utilities for field mapping
+			from .existing_vendor_import_utils import VendorImportUtils
+			
+			# Map basic payment fields
+			payment_row = mapped_row.get('_original_row', mapped_row)
+			
+			# Track populated fields for logging
+			populated_fields = []
+			
+			# Map direct payment fields (main form fields)
+			basic_fields = {
+				'bank_name': 'bank_name',
+				'ifsc_code': 'ifsc_code',
+				'account_number': 'account_number',
+				'name_of_account_holder': 'name_of_account_holder',
+				'type_of_account': 'type_of_account',
+				'currency': 'currency'
+			}
+			
+			for csv_field, doc_field in basic_fields.items():
+				value = VendorImportUtils.get_flexible_field_value(payment_row, csv_field)
+				if value:
+					setattr(payment_doc, doc_field, value)
+					populated_fields.append(f"{doc_field}: {value}")
+			
+			# Handle banker details (for domestic banking - use banker_details table)
+			banker_data = VendorImportUtils.extract_banker_details(payment_row)
+			if banker_data and any(banker_data.values()):
+				# Clear existing banker details
+				payment_doc.set('banker_details', [])
+				# Add new banker detail
+				payment_doc.append("banker_details", banker_data)
+				populated_fields.append(f"Banker Details")
+			
+			# Handle international bank details
+			intl_data = VendorImportUtils.extract_international_bank_details_for_vendor_bank(payment_row)
+			if intl_data and any(intl_data.values()):
+				# Clear existing international bank details
+				payment_doc.set('international_bank_details', [])
+				# Add new international bank detail
+				payment_doc.append("international_bank_details", intl_data)
+				populated_fields.append(f"International Bank Details")
+			
+			# Handle intermediate bank details (if needed)
+			intermediate_data = VendorImportUtils.extract_intermediate_bank_details(payment_row)
+			if intermediate_data and any(intermediate_data.values()):
+				payment_doc.add_intermediate_bank_details = 1  # Enable intermediate bank details
+				payment_doc.set('intermediate_bank_details', [])
+				payment_doc.append("intermediate_bank_details", intermediate_data)
+				populated_fields.append(f"Intermediate Bank Details")
+			
+			# Set transaction preferences if available
+			if VendorImportUtils.get_flexible_field_value(payment_row, 'rtgs'):
+				payment_doc.rtgs = 1
+			if VendorImportUtils.get_flexible_field_value(payment_row, 'neft'):
+				payment_doc.neft = 1
+			if VendorImportUtils.get_flexible_field_value(payment_row, 'ift'):
+				payment_doc.ift = 1
+			
+			# Set metadata
+			if hasattr(payment_doc, 'created_from_import'):
+				payment_doc.created_from_import = 1
+			if hasattr(payment_doc, 'import_date'):
+				payment_doc.import_date = frappe.utils.now()
+			if hasattr(payment_doc, 'import_source'):
+				payment_doc.import_source = "Existing Vendor Import"
+			
+			# Save the document
+			if populated_fields:
+				payment_doc.save(ignore_permissions=True)
+				frappe.db.commit()
+			
+
+				frappe.db.set_value("Vendor Master", vendor_master_name, "bank_details", payment_doc.name)
+				result['payment_doc_name'] = payment_doc.name
+				# frappe.log_error(f"Payment details {result['action']}: {payment_doc.name} for {vendor_name}, Fields: {populated_fields}", "Payment Success")
+			else:
+				result['warnings'].append(f"No valid payment data found for {vendor_name}")
+		
+		except Exception as e:
+			error_msg = f"Error creating payment details for {mapped_row.get('vendor_name', 'Unknown')}: {str(e)}"
+			frappe.log_error(error_msg, "Payment Details Creation Error")
+			result['warnings'].append(error_msg)
+		
+		return result
+
+	def generate_payment_ref_no(self, vendor_name, company_code=""):
+		"""Generate unique reference number for standalone payment details"""
+		
+		try:
+			# Create a simple reference based on vendor name and company
+			vendor_short = ''.join([c for c in vendor_name.upper() if c.isalnum()])[:8]
+			company_short = company_code[:4] if company_code else "COMP"
+			
+			# Get current timestamp
+			now = frappe.utils.now_datetime()
+			timestamp = now.strftime("%y%m%d%H%M")
+			
+			# Create pattern: PAY-{vendor_short}-{company_short}-{timestamp}
+			base_ref = f"PAY-{vendor_short}-{company_short}-{timestamp}"
+			
+			# Ensure uniqueness
+			ref_no = base_ref
+			counter = 1
+			while frappe.db.exists("Vendor Bank Details", {"ref_no": ref_no}):
+				ref_no = f"{base_ref}-{counter:02d}"
+				counter += 1
+			
+			return ref_no
+			
+		except Exception as e:
+			frappe.log_error(f"Error generating payment ref_no: {str(e)}")
+			# Fallback to timestamp-based ref_no
+			timestamp = frappe.utils.now_datetime().strftime("%Y%m%d%H%M%S")
+			return f"PAY-IMP-{timestamp}"
+
+
+
+
+
+
+
+
+
 	def process_single_vendor(self, mapped_row, row_number):
-		"""Process a single vendor with enhanced duplicate detection"""
+		"""Enhanced process_single_vendor with direct payment details creation"""
 		
 		vendor_name = str(mapped_row.get('vendor_name', '')).strip()
 		vendor_code = str(mapped_row.get('vendor_code', '')).strip()
@@ -298,6 +516,7 @@ class ExistingVendorImport(Document):
 		result = {
 			"vendor_action": None,
 			"company_code_action": None,
+			"payment_details_action": None,
 			"warnings": []
 		}
 		
@@ -322,6 +541,64 @@ class ExistingVendorImport(Document):
 		
 		# Step 4: Create/update multiple company data
 		self.create_multiple_company_data(vendor_master.name, mapped_row)
+
+		payment_result = self.create_standalone_payment_details(mapped_row, vendor_master.name)
+		result["payment_details_action"] = payment_result.get('action', 'none')
+			
+		if payment_result.get('warnings'):
+			result["warnings"].extend(payment_result['warnings'])
+		
+		return result
+	
+
+	def process_single_vendor_dup(self, mapped_row, row_number):
+		"""Enhanced process_single_vendor with direct payment details creation"""
+		
+		vendor_name = str(mapped_row.get('vendor_name', '')).strip()
+		vendor_code = str(mapped_row.get('vendor_code', '')).strip()
+		company_code = str(mapped_row.get('company_code', '')).strip()
+		state = str(mapped_row.get('state', '')).strip()
+		gst_no = str(mapped_row.get('gst_no', '')).strip()
+		
+		if not vendor_name:
+			raise frappe.ValidationError(f"Vendor name is required")
+		
+		result = {
+			"vendor_action": None,
+			"company_code_action": None,
+			"payment_details_action": None,
+			"warnings": []
+		}
+		
+		try:
+			# Step 1: Find or create Vendor Master
+			vendor_master = self.find_or_create_vendor_master(mapped_row)
+			vendor_exists = frappe.db.exists("Vendor Master", {"vendor_name": vendor_name})
+			result["vendor_action"] = "updated" if vendor_exists else "created"
+			
+			# Step 2: Handle Company Vendor Code
+			company_vendor_code = self.find_or_create_vendor_master(mapped_row, vendor_master.name)
+			result["company_code_action"] = "updated" if company_vendor_code.get('exists') else "created"
+			
+			# Step 3: Create or update Company Details  
+			company_details = self.create_vendor_company_details( vendor_master.name, mapped_row)
+			
+			# Step 4: Create or update Multiple Company Data
+			self.create_multiple_company_data(vendor_master.name, mapped_row )
+			
+			# Step 5: CREATE PAYMENT DETAILS DIRECTLY (No Vendor Onboarding needed)
+			payment_result = self.create_standalone_payment_details(mapped_row, vendor_master.name)
+			result["payment_details_action"] = payment_result.get('action', 'none')
+			
+			if payment_result.get('warnings'):
+				result["warnings"].extend(payment_result['warnings'])
+			
+			frappe.db.commit()
+			
+		except Exception as e:
+			frappe.db.rollback()
+			frappe.log_error(f"Error processing vendor {vendor_name}: {str(e)}")
+			raise
 		
 		return result
 
@@ -517,8 +794,11 @@ class ExistingVendorImport(Document):
 				"incoterms": self.safe_get_value(mapped_row, 'incoterms'),
 				"reconciliation_account": self.safe_get_value(mapped_row, 'reconciliation_account')
 			}
+
+			
 			
 			vendor_master.append("multiple_company_data", mcd_row)
+			
 			vendor_master.save(ignore_permissions=True)
 
 	def safe_get_value(self, mapped_row, field_name):
@@ -547,7 +827,11 @@ class ExistingVendorImport(Document):
 			value = self.safe_get_value(mapped_row, csv_field)
 			if value:
 				vendor_master.set(doc_field, value)
-		
+
+		vtype_row = {
+				"vendor_type": self.safe_get_value(mapped_row, 'vendor_type')
+			}
+		vendor_master.append("vendor_types", vtype_row)
 		# Set default values for checkboxes if not provided
 		vendor_master.payee_in_document = 1 if not mapped_row.get('payee_in_document') else self.safe_get_value(mapped_row, 'payee_in_document')
 		vendor_master.gr_based_inv_ver = 1 if not mapped_row.get('gr_based_inv_ver') else self.safe_get_value(mapped_row, 'gr_based_inv_ver')
@@ -573,6 +857,11 @@ class ExistingVendorImport(Document):
 			value = self.safe_get_value(mapped_row, csv_field)
 			if value:
 				vendor_master.set(doc_field, value)
+
+		vtype_row = {
+				"vendor_type": self.safe_get_value(mapped_row, 'vendor_type')
+			}
+		vendor_master.append("vendor_types", vtype_row)
 
 	def apply_field_mapping(self, row, field_mapping):
 		"""Apply field mapping to a data row"""
@@ -1766,93 +2055,72 @@ def download_processed_data(docname, data_type="all"):
 
 
 @frappe.whitelist()
-def download_field_mapping_template():
-	"""Download a template showing all available field mappings"""
-	
-	# Get an instance to access target fields
-	temp_doc = frappe.new_doc("Existing Vendor Import")
-	target_fields = temp_doc.get_all_target_fields()
-	
-	# Create template data
-	template_data = []
-	
-	for category, fields in target_fields.items():
-		for field_key, field_label in fields.items():
-			template_data.append({
-				"Category": category,
-				"System Field Key": field_key,
-				"System Field Label": field_label,
-				"Description": f"Maps to {category} - {field_label}",
-				"Sample CSV Header": field_label.replace(" ", "_").upper(),
-				"Data Type": "Text",
-				"Required": "Yes" if field_key in ['vendor_name', 'vendor_code', 'company_code', 'state'] else "No"
-			})
-	
-	# Create DataFrame
-	df = pd.DataFrame(template_data)
-	
-	# Generate filename
-	filename = "field_mapping_template.xlsx"
-	
-	# Create Excel file
-	output = BytesIO()
-	with pd.ExcelWriter(output, engine='openpyxl') as writer:
-		df.to_excel(writer, sheet_name='Field Mapping Guide', index=False)
+def download_field_mapping_template(docname):
+	"""Download field mapping template"""
+	try:
+		doc = frappe.get_doc("Existing Vendor Import", docname)
 		
-		# Add sample CSV template
-		sample_data = [{
-			"VENDOR_NAME": "Sample Vendor Pvt Ltd",
-			"VENDOR_CODE": "10001", 
-			"COMPANY_CODE": "2000",
-			"STATE": "Gujarat",
-			"GST_NUMBER": "24AACCD0267F1Z4",
-			"PAN_NUMBER": "AACCD0267F",
-			"PRIMARY_EMAIL": "vendor@sample.com",
-			"MOBILE_NUMBER": "9876543210",
-			"ADDRESS_LINE_1": "Sample Address",
-			"CITY": "Ahmedabad",
-			"PINCODE": "380001",
-			"PURCHASE_ORGANIZATION": "PO01",
-			"ACCOUNT_GROUP": "AG01",
-			"TERMS_OF_PAYMENT": "30 Days",
-			"PURCHASE_GROUP": "PG01",
-			"ORDER_CURRENCY": "INR",
-			"INCOTERMS": "FOB",
-			"BANK_NAME": "HDFC Bank",
-			"IFSC_CODE": "HDFC0001234",
-			"ACCOUNT_NUMBER": "123456789012",
-			"ACCOUNT_HOLDER_NAME": "Sample Vendor Pvt Ltd",
-			"ACCOUNT_TYPE": "Current"
-		}]
+		# Create Excel file with field mapping template
+		output = io.BytesIO()
+		workbook = openpyxl.Workbook()
+		worksheet = workbook.active
+		worksheet.title = "Field Mapping Template"
 		
-		sample_df = pd.DataFrame(sample_data)
-		sample_df.to_excel(writer, sheet_name='Sample CSV Format', index=False)
+		# Headers
+		headers = ["CSV Column", "System Field", "Description", "Required"]
+		for col_num, header in enumerate(headers, 1):
+			cell = worksheet.cell(row=1, column=col_num)
+			cell.value = header
+			cell.font = openpyxl.styles.Font(bold=True)
+			cell.fill = openpyxl.styles.PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
 		
-		# Add instructions
-		instructions = [
-			{"Step": 1, "Instruction": "Use the 'Field Mapping Guide' sheet to understand available system fields"},
-			{"Step": 2, "Instruction": "Create your CSV with appropriate headers (can be any name)"},
-			{"Step": 3, "Instruction": "Upload your CSV file in the Existing Vendor Import form"},
-			{"Step": 4, "Instruction": "Review and adjust the automatic field mapping"},
-			{"Step": 5, "Instruction": "Validate data and process the import"},
-			{"Step": 6, "Instruction": "For existing vendors, no SAP integration will be triggered"},
-			{"Step": 7, "Instruction": "System handles duplicate vendor codes properly"}
-		]
+		# Get all available target fields
+		target_fields = doc.get_all_target_fields()
 		
-		instructions_df = pd.DataFrame(instructions)
-		instructions_df.to_excel(writer, sheet_name='Instructions', index=False)
-
-	output.seek(0)
-
-	# Save file
-	from frappe.utils.file_manager import save_file
-	file_doc = save_file(filename, output.read(), "Existing Vendor Import", None, is_private=0)
-
-	return {
-		"file_url": file_doc.file_url,
-		"file_name": filename
-	}
-
+		row_num = 2
+		for doctype_name, fields in target_fields.items():
+			for field_name, field_label in fields.items():
+				worksheet.cell(row=row_num, column=1, value="")  # CSV Column - to be filled by user
+				worksheet.cell(row=row_num, column=2, value=field_name)
+				worksheet.cell(row=row_num, column=3, value=f"{doctype_name}: {field_label}")
+				worksheet.cell(row=row_num, column=4, value="No")  # Most fields are optional
+				row_num += 1
+		
+		# Adjust column widths
+		for column in worksheet.columns:
+			max_length = 0
+			column_letter = column[0].column_letter
+			for cell in column:
+				try:
+					if len(str(cell.value)) > max_length:
+						max_length = len(str(cell.value))
+				except:
+					pass
+			adjusted_width = min(max_length + 2, 50)
+			worksheet.column_dimensions[column_letter].width = adjusted_width
+		
+		workbook.save(output)
+		output.seek(0)
+		
+		filename = f"field_mapping_template_{frappe.utils.now_datetime().strftime('%Y%m%d_%H%M%S')}.xlsx"
+		
+		# Fix the attachment issue by providing proper attached_to_name
+		file_doc = save_file(
+			filename, 
+			output.read(), 
+			"Existing Vendor Import", 
+			docname,  # Use the document name instead of None
+			is_private=0
+		)
+		
+		return {
+			"file_url": file_doc.file_url,
+			"file_name": filename
+		}
+		
+	except Exception as e:
+		frappe.log_error(f"Error downloading field mapping template: {str(e)}")
+		frappe.throw(f"Error creating template: {str(e)}")
 
 @frappe.whitelist()
 def get_vendor_import_preview(docname):
@@ -1879,27 +2147,88 @@ def get_vendor_import_preview(docname):
 	}
 
 
+# Add this method to the ExistingVendorImport class in existing_vendor_import.py
+
+def check_for_duplicates(self, vendor_data):
+	"""Check for duplicate vendors in the dataset using VendorImportUtils"""
+	from .existing_vendor_import_utils import VendorImportUtils
+	
+	try:
+		# Use the utility class method for checking duplicates
+		duplicates = VendorImportUtils.get_duplicate_vendors(vendor_data)
+		
+		return {
+			'duplicates': duplicates,
+			'duplicate_count': len(duplicates),
+			'has_duplicates': len(duplicates) > 0
+		}
+		
+	except Exception as e:
+		frappe.log_error(f"Error checking for duplicates: {str(e)}")
+		return {
+			'duplicates': [],
+			'duplicate_count': 0,
+			'has_duplicates': False,
+			'error': str(e)
+		}
+
+# Also update the validate_import_data method around line 1894
 @frappe.whitelist()
 def validate_import_data(docname):
-	"""Validate import data and return detailed results"""
-	doc = frappe.get_doc("Existing Vendor Import", docname)
-	
-	if not doc.vendor_data:
-		return {"error": "No vendor data found"}
-	
-	vendor_data = json.loads(doc.vendor_data)
-	validation_results = doc.validate_vendor_data(vendor_data)
-	
-	# Add duplicate check
-	duplicates = doc.check_for_duplicates(vendor_data)
-	if duplicates:
-		validation_results['duplicates'] = duplicates
-	
-	# Save validation results
-	doc.success_fail_rate = json.dumps(validation_results, indent=2)
-	doc.save()
-	
-	return validation_results
+	"""Validate import data before processing"""
+	try:
+		doc = frappe.get_doc("Existing Vendor Import", docname)
+		
+		if not doc.vendor_data:
+			return {"error": "No vendor data found"}
+		
+		vendor_data = json.loads(doc.vendor_data)
+		field_mapping = json.loads(doc.field_mapping) if doc.field_mapping else {}
+		
+		# Basic validation results structure
+		results = {
+			"total_records": len(vendor_data),
+			"valid_records": 0,
+			"invalid_records": 0,
+			"errors": [],
+			"warnings": [],
+			"duplicates": []
+		}
+		
+		# Check for duplicates using the class method
+		duplicate_results = doc.check_for_duplicates(vendor_data)
+		if duplicate_results.get('duplicates'):
+			results['duplicates'] = duplicate_results['duplicates']
+		
+		# Validate each record
+		from .existing_vendor_import_utils import VendorImportUtils
+		
+		for idx, row in enumerate(vendor_data, 1):
+			try:
+				# Apply field mapping
+				mapped_row = doc.apply_field_mapping(row, field_mapping)
+				
+				# Validate the mapped row
+				validation_result = VendorImportUtils.validate_row_data(mapped_row, idx)
+				
+				if validation_result['is_valid']:
+					results['valid_records'] += 1
+				else:
+					results['invalid_records'] += 1
+				
+				# Collect errors and warnings
+				results['errors'].extend(validation_result.get('errors', []))
+				results['warnings'].extend(validation_result.get('warnings', []))
+				
+			except Exception as e:
+				results['errors'].append(f"Row {idx}: Validation error - {str(e)}")
+				results['invalid_records'] += 1
+		
+		return results
+		
+	except Exception as e:
+		frappe.log_error(f"Error validating import data: {str(e)}")
+		return {"error": f"Validation failed: {str(e)}"}
 
 
 @frappe.whitelist()
@@ -1944,3 +2273,140 @@ def get_import_summary(docname):
 	summary["vendor_types"] = list(summary["vendor_types"])
 	
 	return summary
+
+
+
+# Enhanced error handling methods to add to existing_vendor_import.py
+
+def safe_get_value(self, data_dict, key, default_value=""):
+	"""Safely get value from dictionary with proper string handling"""
+	try:
+		value = data_dict.get(key, default_value)
+		if value is None or pd.isna(value):
+			return default_value
+		return str(value).strip() if value else default_value
+	except Exception as e:
+		frappe.log_error(f"Error getting value for key {key}: {str(e)}")
+		return default_value
+
+def validate_file_upload(self):
+	"""Validate the uploaded CSV/Excel file"""
+	if not self.csv_xl:
+		frappe.throw("Please upload a CSV or Excel file")
+	
+	try:
+		# Get file extension
+		file_url = self.csv_xl
+		file_extension = file_url.split('.')[-1].lower()
+		
+		if file_extension not in ['csv', 'xlsx', 'xls']:
+			frappe.throw("Please upload a valid CSV or Excel file")
+		
+		# Check file size (optional - adjust as needed)
+		try:
+			file_doc = frappe.get_doc("File", {"file_url": file_url})
+			if file_doc and hasattr(file_doc, 'file_size'):
+				# Check if file is too large (e.g., > 10MB)
+				if file_doc.file_size > 10 * 1024 * 1024:
+					frappe.throw("File size too large. Please upload a file smaller than 10MB")
+		except:
+			pass  # File size check is optional
+		
+		return True
+		
+	except Exception as e:
+		frappe.log_error(f"File validation error: {str(e)}")
+		frappe.throw(f"File validation failed: {str(e)}")
+
+def safe_json_loads(self, json_string, default_value=None):
+	"""Safely parse JSON string with error handling"""
+	if not json_string:
+		return default_value or {}
+	
+	try:
+		return json.loads(json_string)
+	except (json.JSONDecodeError, TypeError, ValueError) as e:
+		frappe.log_error(f"JSON parsing error: {str(e)}")
+		return default_value or {}
+
+# Override the validate method to add comprehensive validation
+def validate(self):
+	"""Enhanced validation method"""
+	try:
+		# Validate file upload
+		if self.csv_xl:
+			self.validate_file_upload()
+		
+		# Parse CSV data if file is uploaded but no vendor data exists
+		if self.csv_xl and not self.vendor_data:
+			try:
+				self.parse_csv_data()
+			except Exception as e:
+				frappe.log_error(f"CSV parsing error: {str(e)}")
+				frappe.msgprint(f"Error parsing CSV file: {str(e)}")
+		
+		# Generate field mapping HTML if we have data
+		if self.vendor_data and not self.field_mapping_html:
+			try:
+				self.generate_field_mapping_html()
+			except Exception as e:
+				frappe.log_error(f"Field mapping HTML generation error: {str(e)}")
+				
+		# Validate and generate success/fail rate if we have mapping
+		if self.vendor_data and self.field_mapping:
+			try:
+				self.validate_and_generate_reports()
+			except Exception as e:
+				frappe.log_error(f"Validation report generation error: {str(e)}")
+		
+	except Exception as e:
+		frappe.log_error(f"Document validation error: {str(e)}")
+		frappe.throw(f"Validation failed: {str(e)}")
+
+# Add method to handle validation and reporting
+def validate_and_generate_reports(self):
+	"""Validate data and generate reports"""
+	try:
+		vendor_data = self.safe_json_loads(self.vendor_data, [])
+		field_mapping = self.safe_json_loads(self.field_mapping, {})
+		
+		if not vendor_data:
+			return
+		
+		# Run validation
+		from .existing_vendor_import_utils import VendorImportUtils
+		
+		validation_results = {
+			"total_records": len(vendor_data),
+			"valid_records": 0,
+			"invalid_records": 0,
+			"errors": [],
+			"warnings": []
+		}
+		
+		for idx, row in enumerate(vendor_data, 1):
+			try:
+				mapped_row = self.apply_field_mapping(row, field_mapping)
+				row_validation = VendorImportUtils.validate_row_data(mapped_row, idx)
+				
+				if row_validation.get('is_valid', False):
+					validation_results['valid_records'] += 1
+				else:
+					validation_results['invalid_records'] += 1
+				
+				validation_results['errors'].extend(row_validation.get('errors', []))
+				validation_results['warnings'].extend(row_validation.get('warnings', []))
+				
+			except Exception as e:
+				validation_results['errors'].append(f"Row {idx}: {str(e)}")
+				validation_results['invalid_records'] += 1
+		
+		# Generate HTML reports
+		self.success_fail_rate = json.dumps(validation_results, indent=2, default=str)
+		self.success_fail_rate_html = self.generate_validation_results_html(validation_results)
+		self.vendor_html = self.generate_vendor_data_schema_html(vendor_data, validation_results)
+		
+	except Exception as e:
+		frappe.log_error(f"Validation and reporting error: {str(e)}")
+		# Don't throw here, just log the error
+		pass
