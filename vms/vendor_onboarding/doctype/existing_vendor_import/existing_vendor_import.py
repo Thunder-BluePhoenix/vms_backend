@@ -828,10 +828,17 @@ class ExistingVendorImport(Document):
 			if value:
 				vendor_master.set(doc_field, value)
 
-		vtype_row = {
-				"vendor_type": self.safe_get_value(mapped_row, 'vendor_type')
-			}
-		vendor_master.append("vendor_types", vtype_row)
+		vtype = self.safe_get_value(mapped_row, 'vendor_type')
+
+		if vtype:  # only if value is not empty
+			if vendor_master.vendor_types:  # check if table is not empty
+				# Check for duplicates
+				exists = any(row.vendor_type == vtype for row in vendor_master.vendor_types)
+				if not exists:
+					vendor_master.append("vendor_types", {"vendor_type": vtype})
+			else:
+				# If table is empty, add the first row
+				vendor_master.append("vendor_types", {"vendor_type": vtype})
 		# Set default values for checkboxes if not provided
 		vendor_master.payee_in_document = 1 if not mapped_row.get('payee_in_document') else self.safe_get_value(mapped_row, 'payee_in_document')
 		vendor_master.gr_based_inv_ver = 1 if not mapped_row.get('gr_based_inv_ver') else self.safe_get_value(mapped_row, 'gr_based_inv_ver')
@@ -858,10 +865,18 @@ class ExistingVendorImport(Document):
 			if value:
 				vendor_master.set(doc_field, value)
 
-		vtype_row = {
-				"vendor_type": self.safe_get_value(mapped_row, 'vendor_type')
-			}
-		vendor_master.append("vendor_types", vtype_row)
+		vtype = self.safe_get_value(mapped_row, 'vendor_type')
+
+		if vtype:  # only if value is not empty
+			if vendor_master.vendor_types:  # check if table is not empty
+				# Check for duplicates
+				exists = any(row.vendor_type == vtype for row in vendor_master.vendor_types)
+				if not exists:
+					vendor_master.append("vendor_types", {"vendor_type": vtype})
+			else:
+				# If table is empty, add the first row
+				vendor_master.append("vendor_types", {"vendor_type": vtype})
+
 
 	def apply_field_mapping(self, row, field_mapping):
 		"""Apply field mapping to a data row"""
