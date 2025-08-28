@@ -39,6 +39,7 @@
   "purchase_head_second_approval",
   "qa_team_approval",
   "qa_head_approval",
+  "password",
   "column_break_hgmh",
   "accounts_team_approval",
   "accounts_team_second_approval",
@@ -318,12 +319,17 @@
    "fieldtype": "Select",
    "label": "Validity Status",
    "options": "Valid\nInvalid"
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Data",
+   "label": "Password"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-25 14:00:53.327746",
+ "modified": "2025-08-26 18:31:47.243001",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
