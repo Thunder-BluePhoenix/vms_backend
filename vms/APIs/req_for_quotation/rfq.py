@@ -1300,28 +1300,52 @@ def get_countries_with_ports():
 
 
 @frappe.whitelist(allow_guest=True)
-def get_ports_by_mode_of_shipment_simple(mode_of_shipment):
+def get_ports_by_mode_of_shipment_simple(mode_of_shipment, logistic_type=None, port_type=None):
     
     if not mode_of_shipment:
         return []
     
     try:
-        query = """
+    
+        conditions = ["pm.mode_of_shipment = %(mode_of_shipment)s"]
+        params = {"mode_of_shipment": mode_of_shipment}
+        
+    
+        if logistic_type:
+            conditions.append("pm.logistic_type = %(logistic_type)s")
+            params["logistic_type"] = logistic_type
+        
+       
+        if port_type:
+            if port_type.lower() == 'loading':
+                conditions.append("pm.port_of_loading = 1")
+            elif port_type.lower() == 'destination':
+                conditions.append("pm.destination_port = 1")
+            else:
+                frappe.throw(f"Invalid port_type '{port_type}'. Use 'loading' or 'destination'.")
+        
+        # Construct the final query
+        where_clause = " AND ".join(conditions)
+        query = f"""
             SELECT 
-                pm.port_name
+                pm.port_name,
+                pm.logistic_type,
+                pm.port_of_loading,
+                pm.destination_port
             FROM 
                 `tabPort Master` pm
             WHERE 
-                pm.mode_of_shipment = %(mode_of_shipment)s
+                {where_clause}
             ORDER BY 
                 pm.port_name
         """
         
-        result = frappe.db.sql(query, {"mode_of_shipment": mode_of_shipment}, as_dict=True)
+        result = frappe.db.sql(query, params, as_dict=True)
         
         return [port['port_name'] for port in result]
         
     except Exception as e:
         frappe.log_error(f"Error in get_ports_by_mode_of_shipment_simple: {str(e)}")
         return []
+
 

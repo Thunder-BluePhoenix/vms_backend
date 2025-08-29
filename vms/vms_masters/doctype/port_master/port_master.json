@@ -11,7 +11,10 @@
   "state",
   "country",
   "rfq_type",
-  "mode_of_shipment"
+  "mode_of_shipment",
+  "logistic_type",
+  "destination_port",
+  "port_of_loading"
  ],
  "fields": [
   {
@@ -47,12 +50,30 @@
    "fieldtype": "Link",
    "label": "Mode Of Shipment",
    "options": "Mode Of Shipment"
+  },
+  {
+   "fieldname": "logistic_type",
+   "fieldtype": "Select",
+   "label": "Logistic Type",
+   "options": "\nImport\nExport"
+  },
+  {
+   "default": "0",
+   "fieldname": "destination_port",
+   "fieldtype": "Check",
+   "label": "Destination Port"
+  },
+  {
+   "default": "0",
+   "fieldname": "port_of_loading",
+   "fieldtype": "Check",
+   "label": "Port of Loading"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-29 10:44:28.962603",
+ "modified": "2025-08-29 13:13:49.281682",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Port Master",
