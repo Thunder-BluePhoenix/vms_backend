@@ -2217,7 +2217,7 @@ def erp_to_sap_vendor_data(onb_ref):
                             "City1": gst_city,
                             "Country": country_code,
                             "J1kftind": "",
-                            "Region": "ZZ",  # Fixed region for international vendors
+                            "Region": "",  # Fixed region for international vendors
                             "TelNumber": "",
                             "MobNumber": onb_vm.mobile_number or "",
                             "SmtpAddr": onb_vm.office_email_primary or "",
