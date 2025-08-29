@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 import json
 from frappe.utils import now_datetime
 from datetime import datetime
@@ -1324,7 +1325,7 @@ def get_ports_by_mode_of_shipment_simple(mode_of_shipment, logistic_type=None, p
             else:
                 frappe.throw(f"Invalid port_type '{port_type}'. Use 'loading' or 'destination'.")
         
-        # Construct the final query
+        
         where_clause = " AND ".join(conditions)
         query = f"""
             SELECT 
@@ -1349,3 +1350,66 @@ def get_ports_by_mode_of_shipment_simple(mode_of_shipment, logistic_type=None, p
         return []
 
 
+
+@frappe.whitelist(allow_guest=True)
+def get_next_rfq_serial_number(company, rfq_type="export"):
+    try:
+        
+        company_doc = frappe.get_doc("Company Master", company)
+        if not company_doc:
+            frappe.throw(_("Company not found"))
+        
+        
+        shortform = company_doc.company_short_form  
+        
+        if not shortform:
+            frappe.throw(_("Company shortform not found"))
+        
+       
+        if rfq_type.lower() == "import":
+            prefix = f"{shortform}/IMP/"
+        else:
+            prefix = f"{shortform}/"
+        
+       
+        next_number = get_next_serial_number_from_unique_srno(prefix)
+        
+      
+        serial_number = f"{prefix}{next_number:04d}"  
+        
+        return {
+            "success": True,
+            "serial_number": serial_number,
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_next_rfq_serial_number: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+def get_next_serial_number_from_unique_srno(prefix):
+    
+
+    existing_rfqs = frappe.db.sql("""
+        SELECT unique_srno 
+        FROM `tabRequest For Quotation` 
+        WHERE unique_srno LIKE %s 
+        ORDER BY unique_srno DESC 
+        LIMIT 1
+    """, (f"{prefix}%",), as_dict=True)
+    
+    if not existing_rfqs:
+        return 1
+    
+    last_unique_srno = existing_rfqs[0]['unique_srno']
+    
+    try:
+        
+        parts = last_unique_srno.split('/')
+        last_number = int(parts[-1])
+        return last_number + 1
+    except (ValueError, IndexError):
+    
+        return 1
