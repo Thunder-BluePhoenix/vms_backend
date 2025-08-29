@@ -1297,3 +1297,31 @@ def get_countries_with_ports():
     result = frappe.db.sql(query, as_dict=True)
     return result
 
+
+
+@frappe.whitelist(allow_guest=True)
+def get_ports_by_mode_of_shipment_simple(mode_of_shipment):
+    
+    if not mode_of_shipment:
+        return []
+    
+    try:
+        query = """
+            SELECT 
+                pm.port_name
+            FROM 
+                `tabPort Master` pm
+            WHERE 
+                pm.mode_of_shipment = %(mode_of_shipment)s
+            ORDER BY 
+                pm.port_name
+        """
+        
+        result = frappe.db.sql(query, {"mode_of_shipment": mode_of_shipment}, as_dict=True)
+        
+        return [port['port_name'] for port in result]
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_ports_by_mode_of_shipment_simple: {str(e)}")
+        return []
+
