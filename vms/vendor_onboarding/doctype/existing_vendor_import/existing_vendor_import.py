@@ -527,6 +527,14 @@ class ExistingVendorImport(Document):
 		vendor_master = self.find_or_create_vendor_master(mapped_row)
 		result["vendor_action"] = "updated" if frappe.db.exists("Vendor Master", {"vendor_name": vendor_name}) else "created"
 		
+		
+		
+		# Step 3: Create/update company details
+		self.create_vendor_company_details(vendor_master.name, mapped_row)
+		
+		# Step 4: Create/update multiple company data
+		self.create_multiple_company_data(vendor_master.name, mapped_row)
+
 		# Step 2: Handle Company Vendor Code with enhanced duplicate logic
 		if vendor_code and company_code:
 			company_code_result = self.handle_company_vendor_code(
@@ -538,12 +546,6 @@ class ExistingVendorImport(Document):
 				gst_no
 			)
 			result.update(company_code_result)
-		
-		# Step 3: Create/update company details
-		self.create_vendor_company_details(vendor_master.name, mapped_row)
-		
-		# Step 4: Create/update multiple company data
-		self.create_multiple_company_data(vendor_master.name, mapped_row)
 
 		payment_result = self.create_standalone_payment_details(mapped_row, vendor_master.name)
 		result["payment_details_action"] = payment_result.get('action', 'none')

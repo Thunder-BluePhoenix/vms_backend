@@ -79,7 +79,7 @@ class CompanyVendorCode(Document):
 			vend.save(ignore_permissions=True)
 			frappe.db.commit()
 			
-			frappe.msgprint(f"User created and email sent successfully for vendor: {vend.vendor_name}")
+			# frappe.msgprint(f"User created and email sent successfully for vendor: {vend.vendor_name}")
 		else:
 			# User already exists - just send email with PDF (no credentials)
 			if self.imported == 0:
@@ -96,7 +96,7 @@ class CompanyVendorCode(Document):
 			vend.save(ignore_permissions=True)
 			frappe.db.commit()
 			
-			frappe.msgprint(f"Email with vendor code data sent successfully for vendor: {vend.vendor_name}")
+			# frappe.msgprint(f"Email with vendor code data sent successfully for vendor: {vend.vendor_name}")
 
 	def collect_vendor_code_data(self, vendor_doc):
 		"""Collect all vendor code data from multiple company data"""
