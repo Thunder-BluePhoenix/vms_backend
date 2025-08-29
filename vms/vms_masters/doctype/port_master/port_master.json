@@ -10,7 +10,8 @@
   "port_name",
   "state",
   "country",
-  "rfq_type"
+  "rfq_type",
+  "mode_of_shipment"
  ],
  "fields": [
   {
@@ -40,12 +41,18 @@
    "fieldtype": "Link",
    "label": "RFQ Type",
    "options": "Vendor Type Master"
+  },
+  {
+   "fieldname": "mode_of_shipment",
+   "fieldtype": "Link",
+   "label": "Mode Of Shipment",
+   "options": "Mode Of Shipment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-26 16:42:48.531779",
+ "modified": "2025-08-29 10:44:28.962603",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Port Master",
