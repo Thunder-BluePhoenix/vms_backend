@@ -45,16 +45,31 @@ frappe.ui.form.on('Vendor Master', {
         }
         frm.page.add_menu_item(__('Danger'), function() {
             frappe.confirm(
-                'Are you sure you want to run this Danger action?',
+                '⚠️ This will unlink and delete this Vendor and all related docs. Are you 100% sure?',
                 () => {
-                    // ✅ Your server call or action here
-                    frappe.msgprint(__('Danger action executed!'));
+                    frappe.call({
+                        method: "vms.vms_masters.doctype.vendor_master.vendor_master.danger_action",  // 🔗 update path to your app
+                        args: { vendor_name: frm.doc.name },
+                        callback: function(r) {
+                            if (!r.exc) {
+                                frappe.msgprint(r.message.message);
+                                frappe.set_route("List", "Vendor Master");
+                            }
+                        }
+                    });
+                
                 },
                 () => {
                     // ❌ Cancelled
                 }
             );
         }, true);
+        setTimeout(() => {
+            $('.dropdown-menu li:contains("Danger") a').css({
+                'color': 'red',
+                'font-weight': 'bold'
+            });
+        }, 300);
     }
 });
 

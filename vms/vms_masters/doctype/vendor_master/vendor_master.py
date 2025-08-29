@@ -5,6 +5,7 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 import json
+from frappe.model.meta import get_meta
 
 
 class VendorMaster(Document):
@@ -23,6 +24,76 @@ class VendorMaster(Document):
 
 # 			vendor_registration(data)
             
+
+
+@frappe.whitelist()
+def danger_action(vendor_name):
+    """
+    Danger API: 
+    1. Unlink Vendor Master from all linked doctypes
+    2. Clear link fields in Vendor Master
+    3. Delete docs that become empty
+    4. Delete the Vendor Master itself
+    """
+    if not vendor_name:
+        frappe.throw("Vendor name required")
+
+    vendor_doc = frappe.get_doc("Vendor Master", vendor_name)
+
+    # Step 1: Find all doctypes with Link field to Vendor Master
+    linked_fields = frappe.get_all(
+        "DocField",
+        filters={"fieldtype": "Link", "options": "Vendor Master"},
+        fields=["parent", "fieldname"]
+    )
+
+    # Step 2: For each linked doctype, clear the field
+    for lf in linked_fields:
+        linked_docs = frappe.get_all(
+            lf.parent,
+            filters={lf.fieldname: vendor_name},
+            pluck="name"
+        )
+
+        for docname in linked_docs:
+            # doc = frappe.get_doc(lf.parent, docname)
+            # setattr(doc, lf.fieldname, None)
+            # doc.save(ignore_permissions=True)
+            frappe.db.set_value(lf.parent, docname, lf.fieldname, None, update_modified=True)
+
+
+            # If doc becomes empty (all fields except name/doctype are blank) → delete
+            # if is_doc_empty(doc):
+            #     doc.delete(ignore_permissions=True)
+
+    # Step 3: Clear link fields inside Vendor Master itself
+        meta = get_meta("Vendor Master")
+        for df in meta.fields:
+            if df.fieldtype == "Link":
+                setattr(vendor_doc, df.fieldname, None)
+        vendor_doc.save(ignore_permissions=True)
+
+
+        for docname in linked_docs:
+            doc = frappe.get_doc(lf.parent, docname)
+            doc.delete(ignore_permissions=True, force=True)
+
+    # Step 4: Finally delete Vendor Master
+    vendor_doc.delete(ignore_permissions=True)
+    frappe.db.commit()
+
+    return {"status": "success", "message": f"Vendor {vendor_name} and linked data deleted."}
+
+
+def is_doc_empty(doc):
+    """Helper: check if doc has no non-empty fields except metadata"""
+    ignore_fields = {"name", "doctype", "owner", "creation", "modified", "modified_by", "docstatus"}
+    for field in doc.meta.fields:
+        if field.fieldname not in ignore_fields:
+            value = doc.get(field.fieldname)
+            if value not in (None, "", 0):
+                return False
+    return True
 
 
 
