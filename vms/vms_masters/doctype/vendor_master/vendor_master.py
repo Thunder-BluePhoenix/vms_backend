@@ -100,6 +100,30 @@ def is_doc_empty(doc):
 
 
 
+@frappe.whitelist()
+def danger_action_bulk(vendor_name):
+    """
+    Danger API: Unlink + Delete vendor(s).
+    vendor_name can be single or comma-separated list.
+    """
+    if not vendor_name:
+        frappe.throw("Vendor name required")
+
+    vendors = [v.strip() for v in vendor_name.split(",") if v.strip()]
+
+    for vname in vendors:
+        if not frappe.db.exists("Vendor Master", vname):
+            continue
+        vendor_doc = frappe.get_doc("Vendor Master", vname)
+
+        # ... (your unlinking logic here)
+        danger_action(vendor_doc.name)
+
+        # finally delete
+        # vendor_doc.delete(ignore_permissions=True, force=True)
+
+    frappe.db.commit()
+    return {"status": "success", "message": f"Deleted vendors: {', '.join(vendors)}"}
 
 
 
