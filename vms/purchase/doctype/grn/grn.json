@@ -11,6 +11,8 @@
   "grn_no_t",
   "column_break_wynz",
   "grn_date",
+  "sap_status",
+  "sap_booking_id",
   "grn_items_section",
   "grn_items_table"
  ],
@@ -52,12 +54,22 @@
    "fieldname": "grn_no_t",
    "fieldtype": "Data",
    "label": "GRN No"
+  },
+  {
+   "fieldname": "sap_status",
+   "fieldtype": "Data",
+   "label": "SAP Status"
+  },
+  {
+   "fieldname": "sap_booking_id",
+   "fieldtype": "Data",
+   "label": "SAP Booking ID"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:37:58.422366",
+ "modified": "2025-08-30 02:16:01.675648",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GRN",
