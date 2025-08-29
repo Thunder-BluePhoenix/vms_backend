@@ -102,6 +102,7 @@ class VendorOnboarding(Document):
             check_vnonb_send_mails(self, method=None)
             sync_maintain(self, method= None)
             on_vendor_onboarding_submit(self, method=None)
+            update_vendor_master_onb_status(self, method=None)
         #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
             # print("control reload@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
@@ -919,8 +920,14 @@ def sent_asa_form_link(doc, method=None):
 
 
 
+def update_vendor_master_onb_status(doc, method = None):
+    if doc.onboarding_form_status != None:
+        vm = frappe.get_doc("Vendor Master", doc.ref_no)
+        for vonb in vm.vendor_onb_records:
+            if vonb.vendor_onboarding_no == doc.name:
+                vonb.onboarding_form_status = doc.onboarding_form_status
 
-
+        vm.save()
 
 
 
