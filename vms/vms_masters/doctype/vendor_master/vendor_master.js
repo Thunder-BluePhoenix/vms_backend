@@ -43,6 +43,18 @@ frappe.ui.form.on('Vendor Master', {
                 }, __('Vendor Documents'));
             }
         }
+        frm.page.add_menu_item(__('Danger'), function() {
+            frappe.confirm(
+                'Are you sure you want to run this Danger action?',
+                () => {
+                    // ✅ Your server call or action here
+                    frappe.msgprint(__('Danger action executed!'));
+                },
+                () => {
+                    // ❌ Cancelled
+                }
+            );
+        }, true);
     }
 });
 

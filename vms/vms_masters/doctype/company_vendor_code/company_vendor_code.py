@@ -63,15 +63,16 @@ class CompanyVendorCode(Document):
 			new_user.insert(ignore_permissions=True)
 			
 			# Send email with credentials and PDF
-			self.send_vendor_email_with_pdf(
-				email=vend.office_email_primary,
-				username=vend.office_email_primary,
-				password=password,
-				vendor_name=vend.vendor_name or "Vendor",
-				vendor_code_data=vendor_code_data,
-				is_new_user=True,
-				cc = cc
-			)
+			if self.imported == 0:
+				self.send_vendor_email_with_pdf(
+					email=vend.office_email_primary,
+					username=vend.office_email_primary,
+					password=password,
+					vendor_name=vend.vendor_name or "Vendor",
+					vendor_code_data=vendor_code_data,
+					is_new_user=True,
+					cc = cc
+				)
 			
 			# Update vendor master
 			vend.user_create = 1
@@ -81,15 +82,16 @@ class CompanyVendorCode(Document):
 			frappe.msgprint(f"User created and email sent successfully for vendor: {vend.vendor_name}")
 		else:
 			# User already exists - just send email with PDF (no credentials)
-			self.send_vendor_email_with_pdf(
-				email=vend.office_email_primary,
-				username=vend.office_email_primary,
-				password=None,
-				vendor_name=vend.vendor_name or "Vendor",
-				vendor_code_data=vendor_code_data,
-				is_new_user=False,
-				cc = cc
-			)
+			if self.imported == 0:
+				self.send_vendor_email_with_pdf(
+					email=vend.office_email_primary,
+					username=vend.office_email_primary,
+					password=None,
+					vendor_name=vend.vendor_name or "Vendor",
+					vendor_code_data=vendor_code_data,
+					is_new_user=False,
+					cc = cc
+				)
 			vend.user_create = 1
 			vend.save(ignore_permissions=True)
 			frappe.db.commit()
