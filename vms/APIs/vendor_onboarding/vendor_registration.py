@@ -69,10 +69,12 @@ def create_vendor_master(data):
 def vendor_registration(data):
     multi_companies = data.get("for_multiple_company")
     if multi_companies != 1:
-        vendor_registration_single(data)
+        result = vendor_registration_single(data)
 
     else:
-        vendor_registration_multi(data)
+        result = vendor_registration_multi(data)
+
+    return result
 
 
 
@@ -89,6 +91,20 @@ def vendor_registration_single(data):
         vendor_master = None
 
         # Check if vendor with the given email already exists
+        # if data.get("office_email_primary"):
+        #     exists = frappe.get_all(
+        #         "Vendor Master",
+        #         filters={"office_email_primary": data["office_email_primary"]},
+        #         fields=["name"],
+        #         limit=1
+        #     )
+
+        #     if exists:
+        #         vendor_master = frappe.get_doc("Vendor Master", exists[0]["name"])
+        #     else:
+        #         vendor_master = frappe.new_doc("Vendor Master")
+        # else:
+        #     vendor_master = frappe.new_doc("Vendor Master")
         if data.get("office_email_primary"):
             exists = frappe.get_all(
                 "Vendor Master",
@@ -99,6 +115,32 @@ def vendor_registration_single(data):
 
             if exists:
                 vendor_master = frappe.get_doc("Vendor Master", exists[0]["name"])
+                
+                # NEW: Check for existing vendor onboarding with same vendor master and company name
+                if data.get("company_name"):
+                    existing_onboarding = frappe.get_all(
+                        "Vendor Onboarding",
+                        filters={
+                            "ref_no": vendor_master.name,
+                            "company_name": data["company_name"]
+                        },
+                        fields=["name", "owner", "creation"],
+                        order_by="creation desc",
+                        limit=1
+                    )
+                    
+                    if existing_onboarding:
+                        onboarding_doc = existing_onboarding[0]
+                        return {
+                            "status": "duplicate",
+                            "message": f"A vendor onboarding record already exists for this vendor ({vendor_master.vendor_name}) with company '{data['company_name']}'. Please use the existing record or contact the administrator if you need to create a new one.",
+                            "existing_onboarding": {
+                                "onboarding_id": onboarding_doc["name"],
+                                "owner": onboarding_doc["owner"],
+                                "office_email_primary": vendor_master.office_email_primary,
+                                "created_on": onboarding_doc["creation"]
+                            }
+                        }
             else:
                 vendor_master = frappe.new_doc("Vendor Master")
         else:
@@ -421,6 +463,53 @@ def vendor_registration_multi(data):
                 
                 if exists:
                     vendor_master = frappe.get_doc("Vendor Master", exists[0]["name"])
+                    
+                    # NEW: Check for existing vendor onboarding with same vendor master and companies
+                    duplicate_companies = []
+                    
+                    for purchase_detail in data.get("purchase_details", []):
+                        company_name = None
+                        
+                        # Handle different company name structures
+                        if isinstance(purchase_detail, dict):
+                            company_name = purchase_detail.get("company_name")
+                        elif hasattr(purchase_detail, 'company_name'):
+                            company_name = purchase_detail.company_name
+                            
+                        if company_name:
+                            existing_onboarding = frappe.get_all(
+                                "Vendor Onboarding",
+                                filters={
+                                    "ref_no": vendor_master.name,
+                                    "company_name": company_name
+                                },
+                                fields=["name", "owner", "creation", "company_name"],
+                                order_by="creation desc",
+                                limit=1
+                            )
+                            
+                            if existing_onboarding:
+                                duplicate_companies.append({
+                                    "company_name": company_name,
+                                    "onboarding_id": existing_onboarding[0]["name"],
+                                    "owner": existing_onboarding[0]["owner"],
+                                    "created_on": existing_onboarding[0]["creation"]
+                                })
+                    
+                    # If duplicates found, return early with detailed information
+                    if duplicate_companies:
+                        company_names = [comp["company_name"] for comp in duplicate_companies]
+                        
+                        return {
+                            "status": "duplicate",
+                            "message": f"Vendor onboarding records already exist for vendor '{vendor_master.vendor_name or vendor_master.vendor_title}' with the following companies: {', '.join(company_names)}. Please use the existing records or contact the administrator if you need to create new ones.",
+                            "existing_onboardings": duplicate_companies,
+                            "vendor_details": {
+                                "vendor_master_id": vendor_master.name,
+                                "office_email_primary": vendor_master.office_email_primary,
+                                "vendor_name": vendor_master.vendor_name or vendor_master.vendor_title
+                            }
+                        }
                 else:
                     vendor_master = frappe.new_doc("Vendor Master")
             except frappe.DoesNotExistError:
