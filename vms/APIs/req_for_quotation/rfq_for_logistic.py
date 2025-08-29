@@ -307,6 +307,7 @@ def create_import_logistic_rfq():
 		rfq.invoice_value = data.get("invoice_value")
 		rfq.expected_date_of_arrival = data.get("expected_date_of_arrival")
 		rfq.remarks = data.get("remarks")
+		rfq.unique_srno = data.get("unique_srno ")
 
 		# Add vendors from Vendor Master (All Service Provider)
 		if data.get("service_provider") == "All Service Provider":
@@ -491,6 +492,7 @@ def create_export_logistic_rfq():
 		rfq.consignee_name        = data.get("consignee_name")
 		rfq.shipment_date        = data.get("shipment_date")
 		rfq.remarks        = data.get("remarks")
+		rfq.unique_srno = data.get("unique_srno ")
 
 		# Add all vendors if "All Service Provider" is selected
 		if data.get("service_provider") == "All Service Provider":
