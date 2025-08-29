@@ -54,7 +54,11 @@
   "more_info_tab",
   "bank_details",
   "document_details",
-  "manufacturing_details"
+  "manufacturing_details",
+  "column_break_xmpu",
+  "remarks_ok",
+  "via_data_import",
+  "remarks"
  ],
  "fields": [
   {
@@ -324,12 +328,33 @@
    "fieldname": "password",
    "fieldtype": "Data",
    "label": "Password"
+  },
+  {
+   "fieldname": "column_break_xmpu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "remarks_ok",
+   "fieldtype": "Check",
+   "label": "Remarks OK"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "default": "0",
+   "fieldname": "via_data_import",
+   "fieldtype": "Check",
+   "label": "Via Data Import"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-26 18:31:47.243001",
+ "modified": "2025-08-30 00:39:14.008780",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",

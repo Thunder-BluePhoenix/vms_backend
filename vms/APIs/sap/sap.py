@@ -2827,6 +2827,7 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
             print(f"✅ Added new vendor code row: GST={gst}, State={state}, Vendor Code={vendor_code}")
         
         # Save the Company Vendor Code document
+        cvc.imported = 0
         cvc.save(ignore_permissions=True)
         print(f"✅ Saved Company Vendor Code document: {cvc.name}")
         
