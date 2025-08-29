@@ -1278,3 +1278,22 @@ def check_duplicate_vendor():
             "error_type": "general"
         }
 
+
+@frappe.whitelist(allow_guest=True)
+def get_countries_with_ports():
+    query = """
+        SELECT 
+            c.name as country,
+            pm.port_code,
+            pm.port_name
+        FROM 
+            `tabCountry Master` c
+        INNER JOIN 
+            `tabPort Master` pm ON c.name = pm.country
+        ORDER BY 
+            c.name, pm.port_name
+    """
+    
+    result = frappe.db.sql(query, as_dict=True)
+    return result
+
