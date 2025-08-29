@@ -2669,7 +2669,10 @@ def send_failure_notification(onb_name, failure_type, error_details):
         for recipient in recipients:
             try:
                 frappe.sendmail(
-                    recipients=[recipient["email"], "thunder00799@gmail.com"],
+                    recipients=[
+                        # recipient["email"], 
+                        "rishi.hingad@merillife.com"
+                        "thunder00799@gmail.com"],
                     subject=subject,
                     message=message,
                     now=True
