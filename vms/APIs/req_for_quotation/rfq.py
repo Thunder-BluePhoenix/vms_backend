@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 import json
 from frappe.utils import now_datetime
 from datetime import datetime
@@ -1278,3 +1279,137 @@ def check_duplicate_vendor():
             "error_type": "general"
         }
 
+
+@frappe.whitelist(allow_guest=True)
+def get_countries_with_ports():
+    query = """
+        SELECT 
+            c.name as country,
+            pm.port_code,
+            pm.port_name
+        FROM 
+            `tabCountry Master` c
+        INNER JOIN 
+            `tabPort Master` pm ON c.name = pm.country
+        ORDER BY 
+            c.name, pm.port_name
+    """
+    
+    result = frappe.db.sql(query, as_dict=True)
+    return result
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_ports_by_mode_of_shipment_simple(mode_of_shipment, logistic_type=None, port_type=None):
+    
+    if not mode_of_shipment:
+        return []
+    
+    try:
+    
+        conditions = ["pm.mode_of_shipment = %(mode_of_shipment)s"]
+        params = {"mode_of_shipment": mode_of_shipment}
+        
+    
+        if logistic_type:
+            conditions.append("pm.logistic_type = %(logistic_type)s")
+            params["logistic_type"] = logistic_type
+        
+       
+        if port_type:
+            if port_type.lower() == 'loading':
+                conditions.append("pm.port_of_loading = 1")
+            elif port_type.lower() == 'destination':
+                conditions.append("pm.destination_port = 1")
+            else:
+                frappe.throw(f"Invalid port_type '{port_type}'. Use 'loading' or 'destination'.")
+        
+        
+        where_clause = " AND ".join(conditions)
+        query = f"""
+            SELECT 
+                pm.port_name,
+                pm.logistic_type,
+                pm.port_of_loading,
+                pm.destination_port
+            FROM 
+                `tabPort Master` pm
+            WHERE 
+                {where_clause}
+            ORDER BY 
+                pm.port_name
+        """
+        
+        result = frappe.db.sql(query, params, as_dict=True)
+        
+        return [port['port_name'] for port in result]
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_ports_by_mode_of_shipment_simple: {str(e)}")
+        return []
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_next_rfq_serial_number(company, rfq_type="export"):
+    try:
+        
+        company_doc = frappe.get_doc("Company Master", company)
+        if not company_doc:
+            frappe.throw(_("Company not found"))
+        
+        
+        shortform = company_doc.company_short_form  
+        
+        if not shortform:
+            frappe.throw(_("Company shortform not found"))
+        
+       
+        if rfq_type.lower() == "import":
+            prefix = f"{shortform}/IMP/"
+        else:
+            prefix = f"{shortform}/"
+        
+       
+        next_number = get_next_serial_number_from_unique_srno(prefix)
+        
+      
+        serial_number = f"{prefix}{next_number:04d}"  
+        
+        return {
+            "success": True,
+            "serial_number": serial_number,
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_next_rfq_serial_number: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+def get_next_serial_number_from_unique_srno(prefix):
+    
+
+    existing_rfqs = frappe.db.sql("""
+        SELECT unique_srno 
+        FROM `tabRequest For Quotation` 
+        WHERE unique_srno LIKE %s 
+        ORDER BY unique_srno DESC 
+        LIMIT 1
+    """, (f"{prefix}%",), as_dict=True)
+    
+    if not existing_rfqs:
+        return 1
+    
+    last_unique_srno = existing_rfqs[0]['unique_srno']
+    
+    try:
+        
+        parts = last_unique_srno.split('/')
+        last_number = int(parts[-1])
+        return last_number + 1
+    except (ValueError, IndexError):
+    
+        return 1

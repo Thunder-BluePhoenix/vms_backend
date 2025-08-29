@@ -102,6 +102,7 @@
   "revised_quotation_data_section",
   "head_target",
   "unique_id",
+  "unique_srno",
   "column_break_zdgg",
   "revised_rfq",
   "prev_rfq",
@@ -649,12 +650,17 @@
    "fieldname": "is_approved",
    "fieldtype": "Check",
    "label": "is Approved"
+  },
+  {
+   "fieldname": "unique_srno",
+   "fieldtype": "Data",
+   "label": "Unique Sr.No"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:37:50.535355",
+ "modified": "2025-08-29 15:16:38.118103",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",

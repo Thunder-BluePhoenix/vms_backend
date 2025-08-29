@@ -35,6 +35,7 @@ def purchase_requsition_masters():
         material_category = frappe.db.sql("""SELECT name, material_category_code, material_category_name, description FROM `tabMaterial Category Master`""", as_dict=True)
         storage_location = frappe.db.sql("""SELECT name, storage_location_name, description FROM `tabStorage Location Master`""", as_dict=True)
         valuation_class = frappe.db.sql("""SELECT name, valuation_class_code, valuation_class_name FROM `tabValuation Class Master`""", as_dict=True)
+        port_of_loading = frappe.db.sql("""SELECT name, port_code, port_name FROM `tabPort Master` WHERE port_of_loading = 1""", as_dict=True)
 
         return {
             "purchase_requisition_type": purchase_requisition_type,
@@ -67,7 +68,9 @@ def purchase_requsition_masters():
             "item_code": item_code,
             "material_category": material_category,
             "storage_location": storage_location,
-            "valuation_class": valuation_class
+            "valuation_class": valuation_class,
+            "port_of_loading": port_of_loading
+
         }
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Purchase Requisition Masters API Error")

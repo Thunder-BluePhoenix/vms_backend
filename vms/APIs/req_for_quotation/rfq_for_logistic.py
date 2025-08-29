@@ -219,11 +219,44 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
 # create logistic import rfq data -----------------------------------------------------------------------------------------------
 
 @frappe.whitelist(allow_guest=False)
-def create_import_logistic_rfq(data):
+def create_import_logistic_rfq():
 	try:
-		if isinstance(data, str):
-			data = json.loads(data)
+		data = frappe.form_dict
 
+		child_tables = ['rfq_items', 'vendor_details', 'non_onboarded_vendors','vendors']  
+		for table_name in child_tables:
+			if table_name in data and isinstance(data[table_name], str):
+				try:
+					data[table_name] = json.loads(data[table_name])
+				except (json.JSONDecodeError, ValueError):
+					data[table_name] = []
+
+		files = []
+
+		# Handle request files
+		if hasattr(frappe, 'request') and hasattr(frappe.request, 'files'):
+			request_files = frappe.request.files
+			if 'file' in request_files:
+				file_list = request_files.getlist('file')
+				files.extend(file_list)
+
+		# Handle frappe.local uploaded files
+		if hasattr(frappe.local, 'uploaded_files') and frappe.local.uploaded_files:
+			uploaded_files = frappe.local.uploaded_files
+			if isinstance(uploaded_files, list):
+				files.extend(uploaded_files)
+			else:
+				files.append(uploaded_files)
+
+		# Handle file data from form_dict
+		if 'file' in data:
+			file_data = data.get('file')
+			if hasattr(file_data, 'filename'):
+				files.append(file_data)
+			elif isinstance(file_data, list):
+				files.extend([f for f in file_data if hasattr(f, 'filename')])
+
+		# Create RFQ doc
 		rfq = frappe.new_doc("Request For Quotation")
 
 		# Generate unique_id
@@ -274,6 +307,7 @@ def create_import_logistic_rfq(data):
 		rfq.invoice_value = data.get("invoice_value")
 		rfq.expected_date_of_arrival = data.get("expected_date_of_arrival")
 		rfq.remarks = data.get("remarks")
+		rfq.unique_srno = data.get("unique_srno ")
 
 		# Add vendors from Vendor Master (All Service Provider)
 		if data.get("service_provider") == "All Service Provider":
@@ -281,7 +315,7 @@ def create_import_logistic_rfq(data):
 				"Vendor Master",
 				filters={"service_provider_type": ["in", ["Service Provider", "Premium Service Provider"]]},
 				fields=["name", "vendor_name", "office_email_primary", "mobile_number", "country", "service_provider_type"]
-		 )
+			)
 			for vm in vendors:
 				vendor_code = []
 				company_codes = frappe.get_all("Company Vendor Code", filters={"vendor_ref_no": vm.name}, fields=["name"])
@@ -351,6 +385,11 @@ def create_import_logistic_rfq(data):
 		rfq.insert(ignore_permissions=True)
 		frappe.db.commit()
 
+		if files:
+			handle_rfq_files(rfq, files)
+			rfq.save(ignore_permissions=True)
+			frappe.db.commit()
+
 		return {
 			"status": "success",
 			"message": "Import Logistic RFQ created successfully",
@@ -366,10 +405,42 @@ def create_import_logistic_rfq(data):
  # create logistic export rfq data  -----------------------------------------------------------------------------------------------
 
 @frappe.whitelist(allow_guest=False)
-def create_export_logistic_rfq(data):
+def create_export_logistic_rfq():
 	try:
-		if isinstance(data, str):
-			data = json.loads(data)
+		data = frappe.form_dict
+
+		child_tables = ['rfq_items', 'vendor_details', 'non_onboarded_vendors','vendors']  
+		for table_name in child_tables:
+			if table_name in data and isinstance(data[table_name], str):
+				try:
+					data[table_name] = json.loads(data[table_name])
+				except (json.JSONDecodeError, ValueError):
+					data[table_name] = []
+
+		files = []
+
+		# Handle request files
+		if hasattr(frappe, 'request') and hasattr(frappe.request, 'files'):
+			request_files = frappe.request.files
+			if 'file' in request_files:
+				file_list = request_files.getlist('file')
+				files.extend(file_list)
+
+		# Handle frappe.local uploaded files
+		if hasattr(frappe.local, 'uploaded_files') and frappe.local.uploaded_files:
+			uploaded_files = frappe.local.uploaded_files
+			if isinstance(uploaded_files, list):
+				files.extend(uploaded_files)
+			else:
+				files.append(uploaded_files)
+
+		# Handle file data from form_dict
+		if 'file' in data:
+			file_data = data.get('file')
+			if hasattr(file_data, 'filename'):
+				files.append(file_data)
+			elif isinstance(file_data, list):
+				files.extend([f for f in file_data if hasattr(f, 'filename')])
 
 		rfq = frappe.new_doc(
 		    "Request For Quotation"	
@@ -421,6 +492,7 @@ def create_export_logistic_rfq(data):
 		rfq.consignee_name        = data.get("consignee_name")
 		rfq.shipment_date        = data.get("shipment_date")
 		rfq.remarks        = data.get("remarks")
+		rfq.unique_srno = data.get("unique_srno ")
 
 		# Add all vendors if "All Service Provider" is selected
 		if data.get("service_provider") == "All Service Provider":
@@ -506,7 +578,12 @@ def create_export_logistic_rfq(data):
 			})
 
 		rfq.insert(ignore_permissions=True)
-		frappe.db.commit()  
+		frappe.db.commit()
+
+		if files:
+			handle_rfq_files(rfq, files)
+			rfq.save(ignore_permissions=True)
+			frappe.db.commit()
 
 		return {
 			"status": "success",
@@ -517,6 +594,92 @@ def create_export_logistic_rfq(data):
 	except Exception as e:
 		frappe.log_error(frappe.get_traceback(), "Create RFQ API Error")
 		frappe.throw(_("Error creating RFQ: ") + str(e))
+
+                   
+
+def handle_rfq_files(rfq, files):
+    
+    if not files:
+        frappe.log_error("No files to process", "file_debug")
+        return
+    
+    frappe.log_error(f"Processing {len(files)} files", "file_debug")
+    
+    
+    if rfq.get('multiple_attachments'):
+        rfq.set('multiple_attachments', [])
+    
+    for i, file_obj in enumerate(files):
+        try:
+            frappe.log_error(f"Processing file {i}: {type(file_obj)}", "file_debug")
+            
+            file_name = None
+            file_content = None
+            
+          
+            if hasattr(file_obj, 'filename') and hasattr(file_obj, 'stream'):
+                file_name = file_obj.filename
+                file_obj.stream.seek(0)  
+                file_content = file_obj.stream.read()
+                frappe.log_error(f"FileStorage: {file_name}, size: {len(file_content) if file_content else 0}", "file_debug")
+                
+           
+            elif hasattr(file_obj, 'filename') and hasattr(file_obj, 'read'):
+                file_name = file_obj.filename
+                file_content = file_obj.read()
+                frappe.log_error(f"File with read: {file_name}, size: {len(file_content) if file_content else 0}", "file_debug")
+                
+           
+            elif hasattr(file_obj, 'filename') and hasattr(file_obj, 'file'):
+                file_name = file_obj.filename
+                file_content = file_obj.file.read()
+                frappe.log_error(f"File with file attr: {file_name}, size: {len(file_content) if file_content else 0}", "file_debug")
+                
+            
+            elif isinstance(file_obj, dict):
+                file_name = file_obj.get('filename')
+                file_content = file_obj.get('content')
+                
+                
+                if isinstance(file_content, str):
+                    try:
+                        file_content = base64.b64decode(file_content)
+                    except:
+                        pass
+                        
+            else:
+                frappe.log_error(f"Unknown file object type: {type(file_obj)}, attributes: {dir(file_obj)}", "file_debug")
+                continue
+            
+            if not file_name or not file_content:
+                frappe.log_error(f"Missing file name or content: name={file_name}, content_size={len(file_content) if file_content else 0}", "file_debug")
+                continue
+            
+            
+            file_doc = frappe.get_doc({
+                "doctype": "File",
+                "file_name": file_name,
+                "content": file_content,
+                "decode": False,
+                "is_private": 0,
+                "attached_to_doctype": "Request For Quotation",
+                "attached_to_name": rfq.name
+            })
+            file_doc.insert(ignore_permissions=True)
+
+            
+            
+            attachment_row = rfq.append('multiple_attachments', {})
+            attachment_row.attachment_name = file_doc.file_url
+            attachment_row.name1 = file_name  
+            
+            frappe.log_error(f"Successfully attached file: {file_name} -> {file_doc.file_url}", "file_debug")
+            
+        except Exception as e:
+            frappe.log_error(f"Error handling file attachment {i}: {str(e)}", "file_attachment_error")
+            import traceback
+            frappe.log_error(traceback.format_exc(), "file_attachment_traceback")
+            continue
 
                    
 

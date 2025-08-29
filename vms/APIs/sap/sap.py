@@ -2217,7 +2217,7 @@ def erp_to_sap_vendor_data(onb_ref):
                             "City1": gst_city,
                             "Country": country_code,
                             "J1kftind": "",
-                            "Region": "ZZ",  # Fixed region for international vendors
+                            "Region": "",  # Fixed region for international vendors
                             "TelNumber": "",
                             "MobNumber": onb_vm.mobile_number or "",
                             "SmtpAddr": onb_vm.office_email_primary or "",
@@ -2669,7 +2669,10 @@ def send_failure_notification(onb_name, failure_type, error_details):
         for recipient in recipients:
             try:
                 frappe.sendmail(
-                    recipients=[recipient["email"], "thunder00799@gmail.com"],
+                    recipients=[
+                        # recipient["email"], 
+                        "rishi.hingad@merillife.com"
+                        "thunder00799@gmail.com"],
                     subject=subject,
                     message=message,
                     now=True
