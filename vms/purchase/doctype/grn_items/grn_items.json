@@ -51,7 +51,8 @@
   "remarks",
   "vehicle_no",
   "gate_entry_description",
-  "account_doc_year"
+  "account_doc_year",
+  "invoice_doc"
  ],
  "fields": [
   {
@@ -327,13 +328,18 @@
    "fieldname": "grn_table_items_section",
    "fieldtype": "Section Break",
    "label": "GRN Table Items"
+  },
+  {
+   "fieldname": "invoice_doc",
+   "fieldtype": "Attach",
+   "label": "Invoice Doc"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:37:59.347081",
+ "modified": "2025-08-30 02:17:19.806910",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GRN Items",
