@@ -20,6 +20,7 @@
   "document_details",
   "certificate_details",
   "manufacturing_details",
+  "created_by_accounts_team",
   "section_break_1",
   "is_current",
   "synced_date",
@@ -136,13 +137,20 @@
    "fieldtype": "Data",
    "label": "Synced By",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "vendor_onboarding_no.register_by_account_team",
+   "fieldname": "created_by_accounts_team",
+   "fieldtype": "Check",
+   "label": "Created by Accounts Team"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:39:05.341915",
+ "modified": "2025-08-30 10:38:21.155180",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Records",
