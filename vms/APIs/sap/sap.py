@@ -2425,9 +2425,18 @@ def erp_to_sap_vendor_data(onb_ref):
             
             # **UPDATE ONBOARDING DOCUMENT STATUS**
             try:
-                onb.data_sent_to_sap = 1
-                onb.save(ignore_permissions=True)
+                # onb.data_sent_to_sap = 1
+                # onb.data_sent_to_sap = "Approved"
+                # onb.save(ignore_permissions=True)
+                # frappe.db.commit()
+                frappe.db.set_value("Vendor Onboarding", onb.name,
+                                        {
+                                            "data_sent_to_sap": 1,
+                                            "onboarding_form_status": "Approved"
+                                        }
+                                    )
                 frappe.db.commit()
+
                 print(f"✅ Onboarding document updated: data_sent_to_sap = 1")
             except Exception as onb_update_err:
                 print(f"⚠️ Failed to update onboarding status: {str(onb_update_err)}")
@@ -2859,9 +2868,16 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
         print(f"✅ Updated Vendor Master: {ref_vm.name}")
         
         # Update onboarding document
-        onb_doc = frappe.get_doc("Vendor Onboarding", onb)
-        onb_doc.data_sent_to_sap = 1
-        onb_doc.save(ignore_permissions=True)
+        # onb_doc = frappe.get_doc("Vendor Onboarding", onb)
+        # onb_doc.data_sent_to_sap = 1
+        # onb_doc.save(ignore_permissions=True)
+        frappe.db.set_value("Vendor Onboarding", onb.name,
+                                {
+                                    "data_sent_to_sap": 1,
+                                    "onboarding_form_status": "Approved"
+                                }
+                            )
+        # frappe.db.commit()
         print(f"✅ Updated Onboarding document: data_sent_to_sap = 1")
         
         # Commit the transaction
