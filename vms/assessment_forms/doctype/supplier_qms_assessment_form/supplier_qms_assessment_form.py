@@ -6,6 +6,9 @@ from frappe.model.document import Document
 import json
 from datetime import datetime
 from vms.utils.custom_send_mail import custom_sendmail
+from vms.utils.execute_if_allowed import execute_if_allowed
+from vms.utils.next_approver import update_next_approver
+
 
 
 class SupplierQMSAssessmentForm(Document):
@@ -20,6 +23,156 @@ class SupplierQMSAssessmentForm(Document):
         set_qms_form_link(self, method=None)
         if self.form_fully_submitted:
             send_mail_qa_team(self, method=None)
+        self.update_next_approver_role()
+        update_next_approver(self)
+
+
+    def update_next_approver_role(self):
+        approvals = self.get("approvals") or []
+        if not approvals:
+            self.db_set("next_approver_role", "")
+            return
+
+        last = approvals[-1]
+        updated = last.get("next_action_role", "")
+
+        if not updated:
+            self.db_set("next_approver_role", updated)
+            return
+
+        if updated != self.get("next_approver_role", ""):
+            self.db_set("next_approver_role", updated)
+
+    def after_insert(self):
+        self.update_next_approver_role()
+
+
+    
+    def send_mail_to_approver(self, approval_stage=None):
+
+        stage_info = get_stage_info(
+            "Purchase Order", self, sales_organisation, approval_stage
+        )
+        self.approval_matrix = stage_info.get("approval_matrix", "")
+        cur_stage = stage_info["cur_stage_info"]
+        business_type_value = frappe.get_value(
+            "Distributor Master", self.distributor, "business_type"
+        )
+        business_type = False
+        if business_type_value in ["Joints", "Trauma"]:
+            business_type = True
+
+        role = cur_stage.get("role", "") if cur_stage else ""
+        sales_person = self.get("sales_person", "")
+        from_hierarchy = cur_stage.get("from_hierarchy") if cur_stage else None
+
+        approver = cur_stage.get("user") if cur_stage else ""
+        stage_count = (
+            cur_stage.get("approval_stage") if cur_stage.get("approval_stage") else 0
+        )
+
+        next_approver_role = ""
+
+        if self.sales_organization in ["9100", "3100"] and business_type:
+            next_approver_role = get_approval_next_role(cur_stage)
+
+        if not next_approver_role and not approver:
+            if role == "Distributor":
+                distributor_doc = frappe.get_doc(
+                    "Distributor Master", self.get("distributor")
+                )
+                approver = distributor_doc.get("linked_user")
+
+            elif role and sales_person and from_hierarchy:
+                emp_info = get_user_for_role_short(sales_person, role)
+
+                if emp_info:
+                    approver = emp_info.get("linked_user")
+
+            else:
+                zone = get_zone_for_po(self)
+                company = self.get("company")
+                emp = (
+                    get_approval_employee(
+                        zone,
+                        cur_stage.role,
+                        company_list=[company],
+                        fields=["linked_user"],
+                    )
+                    if cur_stage
+                    else None
+                )
+
+                approver = (
+                    cur_stage.get("user")
+                    if cur_stage
+                    and cur_stage.get("approver_type") == "User"
+                    and cur_stage.get("user")
+                    else emp.get("linked_user") if emp else ""
+                )
+            if not approver:
+                return self.send_mail_to_approver(
+                    sales_organisation, cur_stage.get("approval_stage") + 1
+                )
+
+        self.approval_status = cur_stage.get("approval_stage_name") or ""
+
+        self.append(
+            "approvals",
+            {
+                "for_doc_type": "Purchase Order",
+                "approval_stage": 0,
+                "approval_stage_name": cur_stage.get("approval_stage_name"),
+                "approved_by": "",
+                "approval_status": 0,
+                "next_approval_stage": stage_count,
+                "action": "",
+                "next_action_by": "" if next_approver_role else approver,
+                "next_action_role": next_approver_role,
+                "remark": "",
+            },
+        )
+
+        self.save(ignore_permissions=True)
+
+        if approver:
+            user_document, mobile_number = get_current_user_document(approver)
+            context = {
+                "sign_in_url": frontend_base_url + "/sign-in",
+                "po_name": self.get("name"),
+                "order_type": self.get("order_type"),
+                "distributor": self.get("distributor_name"),
+                "sales_person": self.get("sales_person"),
+                "sales_org": self.get("sales_organization"),
+                "approval_status": self.get("approval_status"),
+                "doc": self,
+                "from_user": frappe.session.user,
+                "for_user": approver,
+                "doctype": self.doctype,
+                "document_name": self.name,
+                "user_document": user_document,
+                "subject": "Purchase Order Approval Pending",
+            }
+            whatsapp_context = {
+                "dms_approver_phone": mobile_number,
+                "dms_order_number": self.name,
+                "dms_utility_approver": approver,
+                "dms_order_number": self.name,
+                "dms_invoice_amount": self.total_amount,
+                "dms_order_derscription": self.approval_status,
+                "dms_approval_sender_name": frappe.session.user,
+                "dms_approval_sender_designation": self.approval_status,
+            }
+            notification_obj = NotificationTrigger(context=context)
+            notification_obj.send_email(
+                approver, "Email Template for Purchase Order Approval"
+            )
+            notification_obj.send_whatsapp_message(
+                "Purchase Order Approval", whatsapp_context
+            )
+            notification_obj.create_push_notification()
+
+
 		
 
 
