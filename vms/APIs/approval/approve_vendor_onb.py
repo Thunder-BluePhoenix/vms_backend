@@ -8,9 +8,6 @@ from vms.utils.get_approver_employee import (
     get_approval_employee,
     get_user_for_role_short,
 )
-from dms.utils.get_sales_org_name_for_company import (
-    get_domastic_sales_org_name_from_company,
-)
 from vms.utils.logger import approval_error
 from vms.utils.notification_triggers import NotificationTrigger
 from vms.utils.verify_distributor import get_current_user_document

@@ -104,3 +104,24 @@ def verify_sales_executive_person(
         throw_exception=throw_exception,
         error_message="Sales Executive not found",
     )
+
+
+def get_current_user_document(user=None):
+    user = user or frappe.session.user  
+
+    # Log user for debugging
+    frappe.logger("user_document").error(user)
+
+    # Search in different masters safely
+    for doctype, phone_field in [
+        ("Employee Master", "mobile"),
+        ("Account Master", "phone_number"),
+    ]:
+        result = frappe.get_value(doctype, {"linked_user": user}, ["name", phone_field])
+        if result:
+            user_document, mobile_number = result
+            return user_document, mobile_number
+
+
+    frappe.logger("user_document").warning(f"No linked record found for user: {user}")
+    return None, None

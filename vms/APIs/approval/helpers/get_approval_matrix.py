@@ -3,12 +3,11 @@ import frappe
 
 
 def get_approval_matrix_single_condition(
-    doctype, docname, sales_organisation_name=None
+    doctype, docname
 ):
     filters = {"for_doc_type": doctype, "is_active": 1}
 
-    if sales_organisation_name:
-        filters["sales_organisation"] = sales_organisation_name
+    
 
     matrix_list = frappe.get_all(
         "Approval Matrix",
@@ -63,7 +62,7 @@ def get_approval_matrix_single_condition(
 
 
 def get_approval_matrix_multiple_condition(
-    doctype, docname, sales_organisation_name=None
+    doctype, docname
 ):
     """
     Returns the Approval Matrix whose ALL conditions match,
@@ -73,8 +72,7 @@ def get_approval_matrix_multiple_condition(
     """
     # 1) Load candidates’ names in creation order
     filters = {"for_doc_type": doctype, "is_active": 1}
-    if sales_organisation_name:
-        filters["sales_organisation"] = sales_organisation_name
+   
 
     names = frappe.get_all(
         "Approval Matrix",
@@ -165,14 +163,14 @@ def get_approval_matrix_multiple_condition(
     return matrix_doc
 
 
-def get_approval_matrix(doctype, docname, sales_organisation_name=None):
+def get_approval_matrix(doctype, docname):
     return get_approval_matrix_multiple_condition(
-        doctype, docname, sales_organisation_name
+        doctype, docname
     )
 
 
-def get_stage_info(doctype, doc, sales_organisation_name=None, approval_stage=None):
-    matrix_doc = get_approval_matrix(doctype, doc.get("name"), sales_organisation_name)
+def get_stage_info(doctype, doc, approval_stage=None):
+    matrix_doc = get_approval_matrix(doctype, doc.get("name"))
     if not approval_stage:
         latest_approval = doc.approvals[-1] if doc.approvals else None
         cur_stage = latest_approval.get("next_approval_stage") if latest_approval else 1
