@@ -153,7 +153,7 @@ def vendor_registration_single(data):
         ]:
             if field in data:
                 vendor_master.set(field, data[field])
-
+        vendor_master.via_data_import = 0
         vendor_master.payee_in_document = 1
         vendor_master.gr_based_inv_ver = 1
         vendor_master.service_based_inv_ver = 1
@@ -536,6 +536,7 @@ def vendor_registration_multi(data):
                 vendor_master.set(field, data[field])
 
         # Set default values
+        vendor_master.via_data_import = 0
         vendor_master.payee_in_document = 1
         vendor_master.gr_based_inv_ver = 1
         vendor_master.service_based_inv_ver = 1

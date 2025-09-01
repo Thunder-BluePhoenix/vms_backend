@@ -8,6 +8,7 @@
  "field_order": [
   "naming_series",
   "ref_no",
+  "company_pan_number",
   "column_break_kkrt",
   "country",
   "created_from_import",
@@ -214,12 +215,17 @@
    "fieldname": "import_ref",
    "fieldtype": "Data",
    "label": "Import Ref"
+  },
+  {
+   "fieldname": "company_pan_number",
+   "fieldtype": "Data",
+   "label": "PAN No"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-27 22:18:17.443160",
+ "modified": "2025-08-30 00:58:13.844343",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Bank Details",

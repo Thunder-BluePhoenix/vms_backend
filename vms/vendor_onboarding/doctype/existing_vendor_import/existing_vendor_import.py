@@ -359,6 +359,7 @@ class ExistingVendorImport(Document):
 			
 			vendor_name = mapped_row.get('vendor_name', '').strip()
 			company_code = mapped_row.get('company_code', '').strip()
+			pan_no = mapped_row.get("company_pan_number")
 			
 			if not vendor_name:
 				result['warnings'].append("Vendor name is required for payment details")
@@ -439,12 +440,14 @@ class ExistingVendorImport(Document):
 			# Set metadata
 			if hasattr(payment_doc, 'created_from_import'):
 				payment_doc.created_from_import = 1
+			if hasattr(payment_doc, 'company_pan_number'):
+				payment_doc.company_pan_number = pan_no
 			if hasattr(payment_doc, 'import_date'):
 				payment_doc.import_date = frappe.utils.now()
-			if hasattr(payment_doc, 'import_source'):
-				payment_doc.import_source = "Existing Vendor Import"
+			if hasattr(payment_doc, 'import_ref'):
+				payment_doc.import_ref = self.name
 			
-			# Save the document
+			# Save the document.
 			if populated_fields:
 				payment_doc.save(ignore_permissions=True)
 				frappe.db.commit()
@@ -524,6 +527,14 @@ class ExistingVendorImport(Document):
 		vendor_master = self.find_or_create_vendor_master(mapped_row)
 		result["vendor_action"] = "updated" if frappe.db.exists("Vendor Master", {"vendor_name": vendor_name}) else "created"
 		
+		
+		
+		# Step 3: Create/update company details
+		self.create_vendor_company_details(vendor_master.name, mapped_row)
+		
+		# Step 4: Create/update multiple company data
+		self.create_multiple_company_data(vendor_master.name, mapped_row)
+
 		# Step 2: Handle Company Vendor Code with enhanced duplicate logic
 		if vendor_code and company_code:
 			company_code_result = self.handle_company_vendor_code(
@@ -535,12 +546,6 @@ class ExistingVendorImport(Document):
 				gst_no
 			)
 			result.update(company_code_result)
-		
-		# Step 3: Create/update company details
-		self.create_vendor_company_details(vendor_master.name, mapped_row)
-		
-		# Step 4: Create/update multiple company data
-		self.create_multiple_company_data(vendor_master.name, mapped_row)
 
 		payment_result = self.create_standalone_payment_details(mapped_row, vendor_master.name)
 		result["payment_details_action"] = payment_result.get('action', 'none')
@@ -628,6 +633,13 @@ class ExistingVendorImport(Document):
 			vendor_master = frappe.new_doc("Vendor Master")
 			self.set_vendor_master_fields(vendor_master, mapped_row)
 		
+		vendor_master.via_data_import = 1
+		remarks = self.safe_get_value(mapped_row, 'remarks')
+		vendor_master.remarks = remarks
+		norm_remarks = re.sub(r'[^a-z0-9]', '', remarks.lower()).strip()
+		if remarks and norm_remarks == "ok":
+			vendor_master.remarks_ok = 1
+
 		vendor_master.save(ignore_permissions=True)
 		return vendor_master
 
@@ -690,7 +702,7 @@ class ExistingVendorImport(Document):
 				"gst_no": gst_no
 			})
 			result["company_code_action"] = "created"
-		
+		cvc_doc.imported = 1
 		cvc_doc.save(ignore_permissions=True)
 		return result
 
