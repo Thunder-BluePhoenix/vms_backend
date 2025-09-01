@@ -152,7 +152,15 @@
   "tab_12_tab",
   "multiselect_data_json",
   "for_company_2000",
-  "for_company_7000"
+  "for_company_7000",
+  "approval_workflow_tab",
+  "approval_details_section",
+  "approval_status",
+  "approvals",
+  "next_approver",
+  "next_approver_role",
+  "current_approval_stage",
+  "approval_matrix"
  ],
  "fields": [
   {
@@ -986,12 +994,58 @@
    "fieldname": "purchase_team_approved",
    "fieldtype": "Check",
    "label": "Purchase Team Approved"
+  },
+  {
+   "fieldname": "approval_workflow_tab",
+   "fieldtype": "Tab Break",
+   "label": "Approval Workflow"
+  },
+  {
+   "fieldname": "approval_details_section",
+   "fieldtype": "Section Break",
+   "label": "Approval Details"
+  },
+  {
+   "fieldname": "approval_status",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Approval Status"
+  },
+  {
+   "fieldname": "approvals",
+   "fieldtype": "Table",
+   "label": "Approvals",
+   "options": "Doc Approval"
+  },
+  {
+   "fieldname": "next_approver",
+   "fieldtype": "Link",
+   "label": "Next Approver",
+   "options": "User"
+  },
+  {
+   "fieldname": "next_approver_role",
+   "fieldtype": "Link",
+   "label": "Next Approver Role",
+   "options": "Role"
+  },
+  {
+   "fieldname": "current_approval_stage",
+   "fieldtype": "Int",
+   "label": "Current Approval Stage",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "approval_matrix",
+   "fieldtype": "Link",
+   "label": "Approval Matrix",
+   "options": "Approval Matrix"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:36:27.992083",
+ "modified": "2025-09-01 10:15:41.072153",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
