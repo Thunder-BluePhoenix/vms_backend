@@ -29,6 +29,8 @@
   "test_certificates_attachment",
   "section_break_tmxv",
   "items",
+  "vehicle_details_section",
+  "vehicle_details_item",
   "tab_sec",
   "qr_code_generated",
   "column_break_crvc",
@@ -198,12 +200,23 @@
    "fieldname": "e_way_bill_no",
    "fieldtype": "Data",
    "label": "E-way Bill No"
+  },
+  {
+   "fieldname": "vehicle_details_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Details"
+  },
+  {
+   "fieldname": "vehicle_details_item",
+   "fieldtype": "Table",
+   "label": "Vehicle Details Item",
+   "options": "Vehicle Details Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:37:48.049019",
+ "modified": "2025-09-01 12:56:13.297371",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Dispatch Item",

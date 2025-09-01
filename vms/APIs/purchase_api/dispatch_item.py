@@ -528,6 +528,20 @@ def submit_dispatch_item(data):
 							now=True
 						)
 
+			vehicle_details_ids = data.get("vehicle_details", [])
+			if vehicle_details_ids:
+				doc.set("vehicle_details_item", [])
+				
+				for vehicle_id in vehicle_details_ids:
+					print(vehicle_id)
+					if vehicle_id: 
+						vehicle_data = frappe.get_doc("Vehicle Details", vehicle_id)
+						
+						# Add to child table
+						doc.append("vehicle_details_item", {
+							"vehicle_details": vehicle_id
+						})
+
 
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
