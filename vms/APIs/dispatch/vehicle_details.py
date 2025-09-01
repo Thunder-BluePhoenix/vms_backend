@@ -258,3 +258,170 @@ def get_vehicle_details_data(doc):
             data[field_name] = value
     
     return data
+
+
+@frappe.whitelist(allow_guest=True)  
+def get_state_and_plant_data(search_term=None, page=1, page_size=50):
+    try:
+        page = max(1, int(page or 1))
+        page_size = min(200, max(1, int(page_size or 50)))
+        search_term = search_term.strip() if search_term else None
+        
+        response = {
+            "success": True,
+            "data": {}
+        }
+        
+        states_data = get_state_master_list(search_term, page, page_size)
+        print(states_data)
+        plants_data = get_plant_master_list(search_term, page, page_size)
+        
+        response["data"]["states"] = states_data["records"]
+        response["data"]["plants"] = plants_data["records"]
+        
+        response["pagination"] = {
+            "page": page,
+            "page_size": page_size,
+            "search_term": search_term,
+            "states": {
+                "total_records": states_data["total_count"],
+                "total_pages": states_data["total_pages"],
+                "has_next": states_data["has_next"],
+                "has_prev": states_data["has_prev"]
+            },
+            "plants": {
+                "total_records": plants_data["total_count"], 
+                "total_pages": plants_data["total_pages"],
+                "has_next": plants_data["has_next"],
+                "has_prev": plants_data["has_prev"]
+            }
+        }
+        
+        if not states_data["records"] and not plants_data["records"]:
+            response = {
+                "success": False,
+                "message": "No master data found"
+            }
+        
+        return response
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_master_data: {str(e)}")
+        return {
+            "success": False,
+            "message": "An error occurred while fetching master data",
+            "error": str(e)
+        }
+
+def get_state_master_list(search_term=None, page=1, page_size=50):
+    try:
+    
+        filters = {}
+        or_filters = []
+        
+        if search_term:
+            or_filters = [
+                ['state_name', 'like', f'%{search_term}%'],
+                ['state_code', 'like', f'%{search_term}%'],
+                ['country', 'like', f'%{search_term}%']
+            ]
+        
+       
+        if or_filters:
+            total_count = len(frappe.get_all(
+                'State Master',
+                fields=['name'],
+                filters=filters,
+                or_filters=or_filters
+            ))
+        else:
+            total_count = frappe.db.count('State Master')
+        
+        
+        total_pages = (total_count + page_size - 1) // page_size
+        start = (page - 1) * page_size
+        
+        
+        states = frappe.get_all(
+            'State Master',
+            fields=['name', 'state_name', 'state_code', 'country_name'],
+            filters=filters,
+            or_filters=or_filters if or_filters else None,
+            order_by='state_name asc',
+            start=start,
+            page_length=page_size
+        )
+        
+        return {
+            "records": states,
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error fetching states: {str(e)}")
+        return {
+            "records": [],
+            "total_count": 0,
+            "total_pages": 0,
+            "has_next": False,
+            "has_prev": False
+        }
+
+def get_plant_master_list(search_term=None, page=1, page_size=50):
+    try:
+        # Build search filters
+        filters = {}
+        or_filters = []
+        
+        if search_term:
+            or_filters = [
+                ['plant_name', 'like', f'%{search_term}%'],
+                ['company', 'like', f'%{search_term}%'],
+                ['name', 'like', f'%{search_term}%']
+            ]
+        
+        # Get total count
+        if or_filters:
+            total_count = len(frappe.get_all(
+                'Plant Master',
+                fields=['name'],
+                filters=filters,
+                or_filters=or_filters
+            ))
+        else:
+            total_count = frappe.db.count('Plant Master')
+        
+    
+        total_pages = (total_count + page_size - 1) // page_size
+        start = (page - 1) * page_size
+        
+        plants = frappe.get_all(
+            'Plant Master',  
+            fields=['name', 'plant_name', 'company'],
+            filters=filters,
+            or_filters=or_filters if or_filters else None,
+            order_by='plant_name asc',
+            start=start,
+            page_length=page_size
+        )
+        
+        return {
+            "records": plants,
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error fetching plants: {str(e)}")
+        return {
+            "records": [],
+            "total_count": 0,
+            "total_pages": 0,
+            "has_next": False,
+            "has_prev": False
+        }

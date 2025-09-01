@@ -1,0 +1,209 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-06-16 12:18:03.326642",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "suppliers_detail_section",
+  "vendor_name",
+  "product_supplied",
+  "column_break_pwfq",
+  "period",
+  "quantity_supplied",
+  "vendor_ref_no",
+  "suppliers_evalution_section",
+  "quality_of_items",
+  "quality_system_of_supplier",
+  "delivery_performance",
+  "price",
+  "column_break_rfhk",
+  "quantity_commitment",
+  "total_score",
+  "grade",
+  "approver_list_section",
+  "prepared_by_name",
+  "prepared_by_sign",
+  "prepared_by_date",
+  "column_break_kqad",
+  "approved_by_name",
+  "approved_by_sign",
+  "approved_by_date",
+  "qa_department_section",
+  "qa_approver_name",
+  "qa_approver_date",
+  "column_break_fgch",
+  "qa_approver_sign"
+ ],
+ "fields": [
+  {
+   "fieldname": "suppliers_detail_section",
+   "fieldtype": "Section Break",
+   "label": "Supplier's Detail"
+  },
+  {
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "label": "Vendor Name"
+  },
+  {
+   "fieldname": "product_supplied",
+   "fieldtype": "Small Text",
+   "label": "Product Supplied"
+  },
+  {
+   "fieldname": "column_break_pwfq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "period",
+   "fieldtype": "Data",
+   "label": "Period"
+  },
+  {
+   "fieldname": "quantity_supplied",
+   "fieldtype": "Data",
+   "label": "Quantity Supplied"
+  },
+  {
+   "fieldname": "vendor_ref_no",
+   "fieldtype": "Link",
+   "label": "Vendor Ref No",
+   "options": "Vendor Master"
+  },
+  {
+   "fieldname": "suppliers_evalution_section",
+   "fieldtype": "Section Break",
+   "label": "Supplier's Evaluation"
+  },
+  {
+   "fieldname": "quality_of_items",
+   "fieldtype": "Data",
+   "label": "Quality of Items"
+  },
+  {
+   "fieldname": "quality_system_of_supplier",
+   "fieldtype": "Data",
+   "label": "Quality System of Supplier"
+  },
+  {
+   "fieldname": "delivery_performance",
+   "fieldtype": "Data",
+   "label": "Delivery Performance"
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Data",
+   "label": "Price"
+  },
+  {
+   "fieldname": "column_break_rfhk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quantity_commitment",
+   "fieldtype": "Data",
+   "label": "Quantity Commitment"
+  },
+  {
+   "fieldname": "total_score",
+   "fieldtype": "Data",
+   "label": "Total Score"
+  },
+  {
+   "fieldname": "grade",
+   "fieldtype": "Select",
+   "label": "Grade",
+   "options": "-Select-\nA\nB\nC"
+  },
+  {
+   "fieldname": "approver_list_section",
+   "fieldtype": "Section Break",
+   "label": "Approver List"
+  },
+  {
+   "fieldname": "prepared_by_name",
+   "fieldtype": "Data",
+   "label": "Prepared by Name"
+  },
+  {
+   "fieldname": "prepared_by_sign",
+   "fieldtype": "Signature",
+   "label": "Prepared by Sign"
+  },
+  {
+   "fieldname": "prepared_by_date",
+   "fieldtype": "Date",
+   "label": "Prepared by Date"
+  },
+  {
+   "fieldname": "column_break_kqad",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approved_by_name",
+   "fieldtype": "Data",
+   "label": "Approved by Name"
+  },
+  {
+   "fieldname": "approved_by_sign",
+   "fieldtype": "Signature",
+   "label": "Approved by Sign"
+  },
+  {
+   "fieldname": "approved_by_date",
+   "fieldtype": "Date",
+   "label": "Approved by Date"
+  },
+  {
+   "fieldname": "qa_department_section",
+   "fieldtype": "Section Break",
+   "label": "QA Department"
+  },
+  {
+   "fieldname": "qa_approver_name",
+   "fieldtype": "Data",
+   "label": "QA Approver Name"
+  },
+  {
+   "fieldname": "qa_approver_date",
+   "fieldtype": "Date",
+   "label": "QA Approver Date"
+  },
+  {
+   "fieldname": "column_break_fgch",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "qa_approver_sign",
+   "fieldtype": "Signature",
+   "label": "QA Approver Sign"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-12 15:04:55.426372",
+ "modified_by": "Administrator",
+ "module": "assessment_forms",
+ "name": "Evaluation Form",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
