@@ -169,7 +169,7 @@ class ExistingVendorImport(Document):
 				'order currency', 'currency', 'curr', 'order_currency',
 				'payment_currency', 'transaction_currency'
 			],
-			'incoterms': [
+			'incoterm': [
 				'incoterm', 'incoterms', 'delivery terms', 'inco_terms',
 				'delivery_terms', 'shipping_terms'
 			],
@@ -803,7 +803,7 @@ class ExistingVendorImport(Document):
 				"terms_of_payment": self.safe_get_value(mapped_row, 'terms_of_payment'),
 				"purchase_group": self.safe_get_value(mapped_row, 'purchase_group'),
 				"order_currency": self.safe_get_value(mapped_row, 'order_currency'),
-				"incoterms": self.safe_get_value(mapped_row, 'incoterms'),
+				"incoterm": self.safe_get_value(mapped_row, 'incoterm'),
 				"reconciliation_account": self.safe_get_value(mapped_row, 'reconciliation_account')
 			}
 
@@ -1324,7 +1324,7 @@ class ExistingVendorImport(Document):
 				"terms_of_payment": "Terms of Payment",
 				"purchase_group": "Purchase Group",
 				"order_currency": "Order Currency",
-				"incoterms": "Incoterms",
+				"incoterm": "Incoterm",
 				"reconciliation_account": "Reconciliation Account"
 			},
 			
