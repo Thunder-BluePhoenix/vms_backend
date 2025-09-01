@@ -453,6 +453,13 @@ def get_vendors_with_pagination(
         vendors = frappe.db.sql(main_query, values, as_dict=True)
         
         # Enrich vendor data with related information
+        # Get child table information once for efficiency
+        bank_meta = frappe.get_meta("Vendor Bank Details")
+        bank_child_tables = {}
+        for field in bank_meta.fields:
+            if field.fieldtype == "Table":
+                bank_child_tables[field.fieldname] = field.options
+
         enriched_vendors = []
         for vendor in vendors:
             # Get multiple company data
@@ -476,6 +483,33 @@ def get_vendors_with_pagination(
                 FROM `tabVendor Type for Account` vt
                 WHERE vt.parent = %(vendor_name)s
             """, {'vendor_name': vendor['name']}, as_dict=True)
+            
+            # Get bank details with child tables
+            bank_details = frappe.db.sql("""
+                SELECT bd.*
+                FROM `tabVendor Bank Details` bd
+                INNER JOIN `tabVendor Master` vm ON vm.bank_details = bd.name
+                WHERE vm.name = %(vendor_name)s
+                LIMIT 1
+            """, {'vendor_name': vendor['name']}, as_dict=True)
+            
+            if bank_details:
+                bank_doc = bank_details[0]
+                bank_doc_name = bank_doc['name']
+                
+                # Fetch data for each child table
+                for table_fieldname, child_doctype in bank_child_tables.items():
+                    bank_doc[table_fieldname] = frappe.db.sql("""
+                        SELECT *
+                        FROM `tab{child_doctype}`
+                        WHERE parent = %(parent)s
+                        ORDER BY idx
+                    """.format(child_doctype=child_doctype), 
+                    {'parent': bank_doc_name}, as_dict=True)
+                
+                vendor['bank_details'] = bank_doc
+            else:
+                vendor['bank_details'] = None
             
             enriched_vendors.append(vendor)
         
@@ -970,4 +1004,37 @@ def get_vendor_detail(vendor_id):
         return {
             'success': False,
             'error': str(e)
+        }
+    
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_vendor_bank_details(vendor_id):
+    try:
+        if not vendor_id:
+            return {"success": False, "message": "Vendor ID is required"}
+        
+        # Single SQL query for maximum speed
+        result = frappe.db.sql("""
+            SELECT bd.*
+            FROM `tabVendor Bank Details` bd
+            INNER JOIN `tabVendor Master` vm ON vm.bank_details = bd.name
+            WHERE vm.name = %s
+            LIMIT 1
+        """, (vendor_id,), as_dict=True)
+        
+        if not result:
+            return {"success": False, "message": "No bank details found"}
+        
+        return {
+            "success": True,
+            "data": result[0]
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_vendor_bank_details: {str(e)}")
+        return {
+            "success": False,
+            "message": "Error fetching bank details"
         }
