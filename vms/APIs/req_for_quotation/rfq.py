@@ -4,6 +4,7 @@ import json
 from frappe.utils import now_datetime
 from datetime import datetime
 from frappe.utils.file_manager import save_file
+from frappe.utils import cstr, cint
 
 
 @frappe.whitelist(allow_guest=False)
@@ -1280,23 +1281,84 @@ def check_duplicate_vendor():
         }
 
 
+
 @frappe.whitelist(allow_guest=True)
-def get_countries_with_ports():
-    query = """
-        SELECT 
-            c.name as country,
-            pm.port_code,
-            pm.port_name
-        FROM 
-            `tabCountry Master` c
-        INNER JOIN 
-            `tabPort Master` pm ON c.name = pm.country
-        ORDER BY 
-            c.name, pm.port_name
-    """
-    
-    result = frappe.db.sql(query, as_dict=True)
-    return result
+def get_countries_with_ports(search_term=None, page=None, page_size=None):
+    try:
+
+        page = max(1, cint(page)) if page else 1
+        page_size = min(200, max(1, cint(page_size))) if page_size else 10
+        search_term = cstr(search_term).strip() if search_term else None
+        
+        
+        search_condition = ""
+        search_params = []
+        
+        if search_term:
+            search_condition = """
+                WHERE (
+                    c.name LIKE %s OR
+                    pm.port_code LIKE %s OR
+                    pm.port_name LIKE %s
+                )
+            """
+            search_params = [f'%{search_term}%', f'%{search_term}%', f'%{search_term}%']
+        
+       
+        count_query = f"""
+            SELECT COUNT(*) as total_count
+            FROM 
+                `tabCountry Master` c
+            INNER JOIN 
+                `tabPort Master` pm ON c.name = pm.country
+            {search_condition}
+        """
+        
+        total_count = frappe.db.sql(count_query, search_params, as_dict=True)[0].total_count
+        
+      
+        total_pages = (total_count + page_size - 1) // page_size
+        start = (page - 1) * page_size
+        
+       
+        main_query = f"""
+            SELECT 
+                c.name as country,
+                pm.port_code,
+                pm.port_name
+            FROM 
+                `tabCountry Master` c
+            INNER JOIN 
+                `tabPort Master` pm ON c.name = pm.country
+            {search_condition}
+            ORDER BY 
+                c.name, pm.port_name
+            LIMIT %s OFFSET %s
+        """
+        
+      
+        query_params = search_params + [page_size, start]
+        result = frappe.db.sql(main_query, query_params, as_dict=True)
+        
+        return {
+            "status": "success",
+            "data": result,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total_records": total_count,
+                "total_pages": total_pages
+            }
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_countries_with_ports: {str(e)}")
+        return {
+            "status": "error",
+            "message": "Failed to fetch countries with ports",
+            "error": str(e)
+        }
+
 
 
 
