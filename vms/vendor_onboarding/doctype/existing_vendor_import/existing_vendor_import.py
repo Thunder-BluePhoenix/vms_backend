@@ -223,7 +223,8 @@ class ExistingVendorImport(Document):
 			'corporate_identification_number': [
 				'cin', 'cin number', 'corporate identification',
 				'corporate_identification_number', 'cin_number'
-			]
+			],
+			'validity':["Validity", "validity"]
 		}
 		
 		auto_mapping = {}
@@ -635,6 +636,8 @@ class ExistingVendorImport(Document):
 		
 		vendor_master.via_data_import = 1
 		remarks = self.safe_get_value(mapped_row, 'remarks')
+		validity = self.safe_get_value(mapped_row, "validity")
+		vendor_master.validity = validity
 		vendor_master.remarks = remarks
 		norm_remarks = re.sub(r'[^a-z0-9]', '', remarks.lower()).strip()
 		if remarks and norm_remarks == "ok":
@@ -1343,7 +1346,8 @@ class ExistingVendorImport(Document):
 				"remarks": "Remarks",
 				"contact_person": "Contact Person",
 				"hod": "HOD",
-				"enterprise_registration_no": "Enterprise Registration Number"
+				"enterprise_registration_no": "Enterprise Registration Number",
+				"validity": "Validity"
 			}
 		}
 
