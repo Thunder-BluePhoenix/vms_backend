@@ -169,7 +169,7 @@ class ExistingVendorImport(Document):
 				'order currency', 'currency', 'curr', 'order_currency',
 				'payment_currency', 'transaction_currency'
 			],
-			'incoterms': [
+			'incoterm': [
 				'incoterm', 'incoterms', 'delivery terms', 'inco_terms',
 				'delivery_terms', 'shipping_terms'
 			],
@@ -223,7 +223,8 @@ class ExistingVendorImport(Document):
 			'corporate_identification_number': [
 				'cin', 'cin number', 'corporate identification',
 				'corporate_identification_number', 'cin_number'
-			]
+			],
+			'validity':["Validity", "validity"]
 		}
 		
 		auto_mapping = {}
@@ -635,6 +636,8 @@ class ExistingVendorImport(Document):
 		
 		vendor_master.via_data_import = 1
 		remarks = self.safe_get_value(mapped_row, 'remarks')
+		validity = self.safe_get_value(mapped_row, "validity")
+		vendor_master.validity = validity
 		vendor_master.remarks = remarks
 		norm_remarks = re.sub(r'[^a-z0-9]', '', remarks.lower()).strip()
 		if remarks and norm_remarks == "ok":
@@ -803,7 +806,7 @@ class ExistingVendorImport(Document):
 				"terms_of_payment": self.safe_get_value(mapped_row, 'terms_of_payment'),
 				"purchase_group": self.safe_get_value(mapped_row, 'purchase_group'),
 				"order_currency": self.safe_get_value(mapped_row, 'order_currency'),
-				"incoterms": self.safe_get_value(mapped_row, 'incoterms'),
+				"incoterm": self.safe_get_value(mapped_row, 'incoterm'),
 				"reconciliation_account": self.safe_get_value(mapped_row, 'reconciliation_account')
 			}
 
@@ -1324,7 +1327,7 @@ class ExistingVendorImport(Document):
 				"terms_of_payment": "Terms of Payment",
 				"purchase_group": "Purchase Group",
 				"order_currency": "Order Currency",
-				"incoterms": "Incoterms",
+				"incoterm": "Incoterm",
 				"reconciliation_account": "Reconciliation Account"
 			},
 			
@@ -1343,7 +1346,8 @@ class ExistingVendorImport(Document):
 				"remarks": "Remarks",
 				"contact_person": "Contact Person",
 				"hod": "HOD",
-				"enterprise_registration_no": "Enterprise Registration Number"
+				"enterprise_registration_no": "Enterprise Registration Number",
+				"validity": "Validity"
 			}
 		}
 
