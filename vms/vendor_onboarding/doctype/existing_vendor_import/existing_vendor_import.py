@@ -638,6 +638,19 @@ class ExistingVendorImport(Document):
 		remarks = self.safe_get_value(mapped_row, 'remarks')
 		validity = self.safe_get_value(mapped_row, "validity")
 		vendor_master.validity = validity
+		validity_options = [
+			"GSTN No is Invalid",
+			"State and GST No Mistmatch",
+			"PAN No is Invalid",
+			"GST Not match with PAN No"
+		]
+
+		if not validity:  
+			vendor_master.validity_label = "Blank"
+		elif validity in validity_options:
+			vendor_master.validity_label = validity
+		else:
+			vendor_master.validity_label = "Not matched with any Validity"
 		vendor_master.remarks = remarks
 		norm_remarks = re.sub(r'[^a-z0-9]', '', remarks.lower()).strip()
 		if remarks and norm_remarks == "ok":
