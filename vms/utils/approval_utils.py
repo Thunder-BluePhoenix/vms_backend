@@ -23,31 +23,34 @@ def get_approval_next_role(stage) -> str:
 
 
 @redis_cache(ttl=60 * 5)  # cache for 5 minutes
-def get_approval_users_by_role(doctype: str, docname: str) -> list[str]:
+def get_approval_users_by_role(doctype: str, docname: str,current_role) -> list[str]:
     """
     For the given document, return a de-duplicated list of user IDs
     that are eligible for the next approval step based on role-mapping.
     """
     if not frappe.db.exists(doctype, docname):
         return []
+    
+    
 
     doc = frappe.get_cached_doc(doctype, docname)
     users = set()
+    roles = ["QA Team","QA Head"]
 
-    if doctype == "Purchase Order":
-        plant = doc.get("plant_wise")
-        if plant:
-            # `linked_users` is a child table on Plant Master. Pull the doc and iterate rows.
-            plant_doc = frappe.get_cached_doc("Plant Master", plant)
-            for row in getattr(plant_doc, "linked_users", []) or []:
-                # Support both Doc-like rows and dicts
-                user = getattr(row, "user_id", None)
-                if user is None and isinstance(row, dict):
-                    user = row.get("user_id")
-                if user:
-                    users.add(user)
 
-    return sorted(users)
+    if doctype == "Supplier QMS Assessment Form":
+        all_users = frappe.get_all("User", 
+            filters=[
+                ["Has Role", "role", "in", current_role],
+            ], 
+            pluck="name"
+        )
+        
+        users.update(all_users) 
+    
+
+
+    return sorted(list(users))
 
 
 def get_user_in_next_approval_role(doctype: str, docname: str) -> str:

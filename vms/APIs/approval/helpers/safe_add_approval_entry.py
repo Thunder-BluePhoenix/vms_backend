@@ -120,7 +120,7 @@ def add_approval_entry(
                 "approval_stage": cur_no,
                 "approval_stage_name": cur_name,
                 "approved_by": current_user,
-                "approval_status": approval_status,
+                "approval_status": "Approved" if is_approved else "Rejected",
                 # where the workflow should go next (None/NULL if final)
                 "next_approval_stage": next_approval_stage,
                 "action": action_val,

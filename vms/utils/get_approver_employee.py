@@ -7,12 +7,14 @@ def get_approval_employee(role_short, company_list, filters={}, fields=["*"]):
     # Handle single company or list of companies
     if isinstance(company_list, str):
         company_list = [company_list]
+
     
-    # Get employees who have any of the required companies
+    # Get employees with companies
     employees_with_companies = frappe.get_all(
-        "Company Master",
-        filters={"name": ("in", company_list)},
-        fields=["parent"]
+        "Multiple Company Name",  
+        filters={"company_name": ("in", company_list)},  
+        fields=["parent"],
+        distinct=True
     )
     
     if not employees_with_companies:
@@ -21,11 +23,25 @@ def get_approval_employee(role_short, company_list, filters={}, fields=["*"]):
     # Extract employee names
     employee_names = [emp.parent for emp in employees_with_companies]
     
-    # Build final filters
+    
+    # Get users who have the required role from Has Role child table
+    users_with_role = frappe.get_all(
+        "Has Role",
+        filters={"role": role_short},
+        fields=["parent"]
+    )
+    
+    if not users_with_role:
+        return None
+    
+    user_ids_with_role = [user.parent for user in users_with_role]
+    
+    
+    # Build final filters - combine both conditions
     final_filters = {
         **filters,
         "name": ("in", employee_names),
-        "user_id": ("is", "set"),
+        "user_id": ("in", user_ids_with_role),  # Users who have the role
         "status": "Active",  
     }
     
@@ -35,8 +51,10 @@ def get_approval_employee(role_short, company_list, filters={}, fields=["*"]):
         fields=fields, 
         limit=1
     )
+    
 
     return employee_list[0] if employee_list else None
+
 def get_approval_employee_by_state_for_rdm(
     state, role_short, company_list, filters={}, fields=["*"]
 ):
