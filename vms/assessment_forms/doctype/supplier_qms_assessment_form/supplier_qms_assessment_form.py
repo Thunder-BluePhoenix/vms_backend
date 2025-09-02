@@ -85,7 +85,7 @@ class SupplierQMSAssessmentForm(Document):
         print("approver", approver)
         print("abc")
 
-        if not next_approver_role or not approver:
+        if not next_approver_role and not approver:
             print("inside not next_approver_role and not approver")
 
             company = self.get("company")
@@ -106,7 +106,7 @@ class SupplierQMSAssessmentForm(Document):
                 if cur_stage
                 and cur_stage.get("approver_type") == "User"
                 and cur_stage.get("user")
-                else emp.get("linked_user") if emp else ""
+                else emp.get("user_id") if emp else ""
             )
             print("approver", approver)
             if not approver:
@@ -114,11 +114,12 @@ class SupplierQMSAssessmentForm(Document):
             )
 
         self.approval_status = cur_stage.get("approval_stage_name") or ""
+        print("self.approval_status", self.approval_status)
 
         self.append(
             "approvals",
             {
-                "for_doc_type": " Supplier QMS Assessment Form",
+                "for_doc_type": "Supplier QMS Assessment Form",
                 "approval_stage": 0,
                 "approval_stage_name": cur_stage.get("approval_stage_name"),
                 "approved_by": "",
@@ -130,11 +131,13 @@ class SupplierQMSAssessmentForm(Document):
                 "remark": "",
             },
         )
+        print("self.approvals", self.approvals)
 
         self.save(ignore_permissions=True)
+        print("self.name", self.name)
 
         if approver:
-            user_document, mobile_number = get_current_user_document(approver)
+            # user_document = get_current_user_document(approver)
             context = {
                 "supplier_qms_name": self.get("name"),
                 "approval_status": self.get("approval_status"),

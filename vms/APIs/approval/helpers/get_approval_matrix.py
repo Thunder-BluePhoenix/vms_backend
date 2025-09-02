@@ -173,7 +173,8 @@ def get_stage_info(doctype, doc, approval_stage=None):
     matrix_doc = get_approval_matrix(doctype, doc.get("name"))
     if not approval_stage:
         latest_approval = doc.approvals[-1] if doc.approvals else None
-        cur_stage = latest_approval.get("next_approval_stage") if latest_approval else 1
+        # cur_stage = latest_approval.get("next_approval_stage") if latest_approval else 1
+        cur_stage = latest_approval.get("next_approval_stage") or 1 if latest_approval else 1
     else:
         cur_stage = approval_stage
     cur_stage_info = matrix_doc.get("approval_stages", {"approval_stage": cur_stage})

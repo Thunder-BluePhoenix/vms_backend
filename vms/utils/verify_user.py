@@ -114,10 +114,9 @@ def get_current_user_document(user=None):
 
     # Search in different masters safely
     for doctype, phone_field in [
-        ("Employee Master", "mobile"),
-        ("Account Master", "phone_number"),
+        ("Employee", "mobile")
     ]:
-        result = frappe.get_value(doctype, {"linked_user": user}, ["name", phone_field])
+        result = frappe.get_value(doctype, {"user_id": user}, ["name", phone_field])
         if result:
             user_document, mobile_number = result
             return user_document, mobile_number
