@@ -220,6 +220,11 @@ def send_quotation_email(doc):
     # For onboarded vendors
     for row in doc.vendor_details:
         if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
+            
+            if getattr(frappe.flags, f"mail_sent_{row.name}", False):
+                continue
+            frappe.flags[f"mail_sent_{row.name}"] = True
+
             token = generate_secure_token(
                 ref_no=row.ref_no,
                 email=row.office_email_primary,
@@ -237,6 +242,9 @@ def send_quotation_email(doc):
                 <p>Thank you,<br>VMS Team</p>
             """
 
+            row.mail_sent = 1
+            frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
+
             frappe.custom_sendmail(
                 recipients=row.office_email_primary,
 				cc= doc.raised_by,
@@ -244,11 +252,15 @@ def send_quotation_email(doc):
                 message=message,
                 now=True
             )
-            frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
 
     # For non-onboarded vendors
     for row in doc.non_onboarded_vendor_details:
         if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
+
+            if getattr(frappe.flags, f"mail_sent_{row.name}", False):
+                continue
+            frappe.flags[f"mail_sent_{row.name}"] = True
+
             token = generate_secure_token(
                 email=row.office_email_primary,
                 rfq_name=doc.name
@@ -271,6 +283,9 @@ def send_quotation_email(doc):
                 VMS Team</p>
             """
 
+            row.mail_sent = 1
+            frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)
+
             frappe.custom_sendmail(
                 recipients=row.office_email_primary,
 				cc= doc.raised_by,
@@ -278,7 +293,6 @@ def send_quotation_email(doc):
                 message=message,
                 now=True
             )
-            frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)
 
 
 SECRET_KEY = str(frappe.conf.get("secret_key", ""))
