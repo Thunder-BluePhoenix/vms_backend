@@ -1,13 +1,33 @@
 import frappe
 from frappe import _
 
-@frappe.whitelist(allow_guest = True)
+@frappe.whitelist(allow_guest=True)
 def get_vendor_multi_company(v_primary_mail):
     try:
         vendor_master = frappe.get_doc("Vendor Master", {"office_email_primary": v_primary_mail})
         
-        # Get all table data dynamically
+        # Get all table data
         table_data = [row.as_dict() for row in vendor_master.multiple_company_data]
+        
+        # Get unique company names
+        company_names = list(set([row.get('company_name') for row in table_data if row.get('company_name')]))
+        
+        # Bulk fetch company master data
+        company_master_data = {}
+        if company_names:
+            companies = frappe.get_all(
+                "Company Master",
+                filters={"name": ["in", company_names]},
+                fields="*"
+            )
+            company_master_data = {company['name']: company for company in companies}
+        
+        # Add company master data to each row
+        for row in table_data:
+            if row.get('company_name'):
+                row['company_master_data'] = company_master_data.get(row['company_name'])
+            else:
+                row['company_master_data'] = None
         
         return {
             "success": True,
@@ -28,7 +48,6 @@ def get_vendor_multi_company(v_primary_mail):
             "message": str(e),
             "data": []
         }
-    
 
 @frappe.whitelist(allow_guest=True)
 def get_vendor_onb_via_company(v_id, company):

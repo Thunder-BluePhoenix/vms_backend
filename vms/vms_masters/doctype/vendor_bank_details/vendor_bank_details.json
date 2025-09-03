@@ -100,7 +100,7 @@
    "fieldname": "type_of_account",
    "fieldtype": "Select",
    "label": "Type of Account",
-   "options": "-Select-\nSavings Account\nCurrent Account"
+   "options": "-Select-\nSavings Account\nCurrent Account\nN/A"
   },
   {
    "fieldname": "currency",
@@ -225,7 +225,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-30 00:58:13.844343",
+ "modified": "2025-09-02 17:21:08.683323",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Bank Details",
