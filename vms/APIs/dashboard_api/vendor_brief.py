@@ -753,6 +753,7 @@ def calculate_company_wise_analytics(filter_company=None):
             cm.name as company_id,
             cm.company_name,
             cm.company_code,
+            cm.company_short_form,
             COUNT(DISTINCT mcd.parent) as total_vendors
         FROM `tabCompany Master` cm
         LEFT JOIN `tabMultiple Company Data` mcd ON cm.name = mcd.company_name
@@ -879,6 +880,7 @@ def calculate_company_wise_analytics(filter_company=None):
                 'company_id': company['company_id'],
                 'company_name': company['company_name'],
                 'company_code': company.get('company_code'),
+                'company_short_form': company.get('company_short_form'),
                 'total_vendors': company['total_vendors'],
                 'registration_breakdown': {
                     'imported_vendors': imported_count,
