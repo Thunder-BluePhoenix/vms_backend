@@ -219,17 +219,20 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
 # create logistic import rfq data -----------------------------------------------------------------------------------------------
 
 @frappe.whitelist(allow_guest=False)
-def create_import_logistic_rfq():
+def create_import_logistic_rfq(data):
 	try:
-		data = frappe.form_dict
+		if isinstance(data, str):
+			data = json.loads(data)
+			
+		# data = frappe.form_dict
 
-		child_tables = ['rfq_items', 'vendor_details', 'non_onboarded_vendors','vendors']  
-		for table_name in child_tables:
-			if table_name in data and isinstance(data[table_name], str):
-				try:
-					data[table_name] = json.loads(data[table_name])
-				except (json.JSONDecodeError, ValueError):
-					data[table_name] = []
+		# child_tables = ['rfq_items', 'vendor_details', 'non_onboarded_vendors','vendors']  
+		# for table_name in child_tables:
+		# 	if table_name in data and isinstance(data[table_name], str):
+		# 		try:
+		# 			data[table_name] = json.loads(data[table_name])
+		# 		except (json.JSONDecodeError, ValueError):
+		# 			data[table_name] = []
 
 		files = []
 
@@ -405,17 +408,19 @@ def create_import_logistic_rfq():
  # create logistic export rfq data  -----------------------------------------------------------------------------------------------
 
 @frappe.whitelist(allow_guest=False)
-def create_export_logistic_rfq():
+def create_export_logistic_rfq(data):
 	try:
-		data = frappe.form_dict
+		if isinstance(data, str):
+			data = json.loads(data)
+		# data = frappe.form_dict
 
-		child_tables = ['rfq_items', 'vendor_details', 'non_onboarded_vendors','vendors']  
-		for table_name in child_tables:
-			if table_name in data and isinstance(data[table_name], str):
-				try:
-					data[table_name] = json.loads(data[table_name])
-				except (json.JSONDecodeError, ValueError):
-					data[table_name] = []
+		# child_tables = ['rfq_items', 'vendor_details', 'non_onboarded_vendors','vendors']  
+		# for table_name in child_tables:
+		# 	if table_name in data and isinstance(data[table_name], str):
+		# 		try:
+		# 			data[table_name] = json.loads(data[table_name])
+		# 		except (json.JSONDecodeError, ValueError):
+		# 			data[table_name] = []
 
 		files = []
 
