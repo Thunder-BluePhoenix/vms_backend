@@ -80,9 +80,8 @@ def get_approval_matrix_multiple_condition(
         fields=["name"],
     )
     if not names:
-        frappe.throw(
-            frappe._("No active Approval Matrix found."), frappe.DoesNotExistError
-        )
+        frappe.log_error(f"No active Approval Matrix found for {doctype}")
+        return None
 
     # 2) Load the target doc
     doc = frappe.get_cached_doc(doctype, docname)
@@ -170,36 +169,51 @@ def get_approval_matrix(doctype, docname):
 
 
 def get_stage_info(doctype, doc, approval_stage=None):
-    matrix_doc = get_approval_matrix(doctype, doc.get("name"))
-    if not approval_stage:
-        latest_approval = doc.approvals[-1] if doc.approvals else None
-        # cur_stage = latest_approval.get("next_approval_stage") if latest_approval else 1
-        cur_stage = latest_approval.get("next_approval_stage") or 1 if latest_approval else 1
-    else:
-        cur_stage = approval_stage
-    cur_stage_info = matrix_doc.get("approval_stages", {"approval_stage": cur_stage})
+    try:
+        matrix_doc = get_approval_matrix(doctype, doc.get("name"))
+        if not matrix_doc:
+                
+                return {
+                    "cur_stage_info": None,
+                    "next_stage_info": None,
+                    "approval_matrix": None
+                }
+        if not approval_stage:
+            latest_approval = doc.approvals[-1] if doc.approvals else None
+            # cur_stage = latest_approval.get("next_approval_stage") if latest_approval else 1
+            cur_stage = latest_approval.get("next_approval_stage") or 1 if latest_approval else 1
+        else:
+            cur_stage = approval_stage
+        cur_stage_info = matrix_doc.get("approval_stages", {"approval_stage": cur_stage})
 
-    next_stage_info = matrix_doc.get(
-        "approval_stages",
-        {"approval_stage": cur_stage + 1},
-    )
+        next_stage_info = matrix_doc.get(
+            "approval_stages",
+            {"approval_stage": cur_stage + 1},
+        )
 
-    prev_stage_info, next_to_next_stage_info = stage_info_for_po(matrix_doc, cur_stage)
-    if not cur_stage_info and not next_stage_info:
-        frappe.throw("No next approval stage configured.")
+        prev_stage_info, next_to_next_stage_info = stage_info_for_qms(matrix_doc, cur_stage)
+        if not cur_stage_info and not next_stage_info:
+            frappe.throw("No next approval stage configured.")
 
-    return {
-        "cur_stage_info": cur_stage_info[0].as_dict() if cur_stage_info else None,
-        "next_stage_info": next_stage_info[0].as_dict() if next_stage_info else None,
-        "prev_stage_info": prev_stage_info[0].as_dict() if prev_stage_info else None,
-        "next_to_next_stage_info": (
-            next_to_next_stage_info[0].as_dict() if next_to_next_stage_info else None
-        ),
-        "approval_matrix": matrix_doc.get("name"),
-    }
+        return {
+            "cur_stage_info": cur_stage_info[0].as_dict() if cur_stage_info else None,
+            "next_stage_info": next_stage_info[0].as_dict() if next_stage_info else None,
+            "prev_stage_info": prev_stage_info[0].as_dict() if prev_stage_info else None,
+            "next_to_next_stage_info": (
+                next_to_next_stage_info[0].as_dict() if next_to_next_stage_info else None
+            ),
+            "approval_matrix": matrix_doc.get("name"),
+        }
+    except Exception as e:
+        frappe.log_error(f"No approval matrix found for {doctype}: {str(e)}")
+        return {
+            "cur_stage_info": None, 
+            "next_stage_info": None,
+            "approval_matrix": None
+        }
 
 
-def stage_info_for_po(matrix_doc, cur_stage):
+def stage_info_for_qms(matrix_doc, cur_stage):
     prev_stage_info = matrix_doc.get(
         "approval_stages",
         {"approval_stage": cur_stage - 1},

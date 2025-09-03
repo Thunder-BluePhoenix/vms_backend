@@ -53,107 +53,103 @@ class SupplierQMSAssessmentForm(Document):
             self.db_set("next_approver_role", updated)
 
     def after_insert(self):
-        self.send_mail_to_approver()
+        self.add_first_in_approval_workflow()
         self.update_next_approver_role()
 
 
     
-    def send_mail_to_approver(self, approval_stage=None):
+    def add_first_in_approval_workflow(self, approval_stage=None):
+        try:
 
-        stage_info = get_stage_info(
-            "Supplier QMS Assessment Form", self, approval_stage
-        )
-        print("stage_infoHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", stage_info)
-        self.approval_matrix = stage_info.get("approval_matrix", "")
-        cur_stage = stage_info["cur_stage_info"]
-        print("cur_stage", cur_stage)
+            stage_info = get_stage_info(
+                "Supplier QMS Assessment Form", self, approval_stage
+            )
+            if not stage_info or not stage_info.get("cur_stage_info"):
+                frappe.log_error(f"No approval matrix found for {self.name}")
+                self.approval_status = "Pending Review"
+                self.save(ignore_permissions=True)
+                return
+            
+            self.approval_matrix = stage_info.get("approval_matrix", "")
+            cur_stage = stage_info["cur_stage_info"]
+            
 
-        role = cur_stage.get("role", "") if cur_stage else ""
-        from_hierarchy = cur_stage.get("from_hierarchy") if cur_stage else None
+            role = cur_stage.get("role", "") if cur_stage else ""
+            from_hierarchy = cur_stage.get("from_hierarchy") if cur_stage else None
 
-        approver = cur_stage.get("user") if cur_stage else ""
-        stage_count = (
-            cur_stage.get("approval_stage") if cur_stage.get("approval_stage") else 0
-        )
-        print("stage_count", stage_count)
+            approver = cur_stage.get("user") if cur_stage else ""
+            stage_count = (
+                cur_stage.get("approval_stage") if cur_stage.get("approval_stage") else 0
+            )
+            
 
-        next_approver_role = ""
+            next_approver_role = ""
 
+            
+            next_approver_role = get_approval_next_role(cur_stage)
         
-        next_approver_role = get_approval_next_role(cur_stage)
-        print("next_approver_role", next_approver_role)
-        print("approver", approver)
-        print("abc")
 
-        if not next_approver_role and not approver:
-            print("inside not next_approver_role and not approver")
+            if not next_approver_role and not approver:
+                
 
-            company = self.get("company")
-            print(company,"lllllllllllllllllllllllllll")
-            emp = (
-                get_approval_employee(
-                    cur_stage.role,
-                    company_list=[company],
-                    fields=["user_id"],
+                company = self.get("company")
+                
+                emp = (
+                    get_approval_employee(
+                        cur_stage.role,
+                        company_list=[company],
+                        fields=["user_id"],
+                    )
+                    if cur_stage
+                    else None
                 )
-                if cur_stage
-                else None
+                
+
+                approver = (
+                    cur_stage.get("user")
+                    if cur_stage
+                    and cur_stage.get("approver_type") == "User"
+                    and cur_stage.get("user")
+                    else emp.get("user_id") if emp else ""
+                )
+                
+                if not approver:
+                    return self.add_first_in_approval_workflow(cur_stage.get("approval_stage") + 1)
+
+            self.approval_status = cur_stage.get("approval_stage_name") or ""
+            self.append(
+                "approvals",
+                {
+                    "for_doc_type": "Supplier QMS Assessment Form",
+                    "approval_stage": 0,
+                    "approval_stage_name": cur_stage.get("approval_stage_name"),
+                    "approved_by": "",
+                    "approval_status": 0,
+                    "next_approval_stage": stage_count,
+                    "action": "",
+                    "next_action_by": "" if next_approver_role else approver,
+                    "next_action_role": next_approver_role,
+                    "remark": "",
+                },
             )
-            print(emp,"lllllllllllllllllllllllllll")
+            
 
-            approver = (
-                cur_stage.get("user")
-                if cur_stage
-                and cur_stage.get("approver_type") == "User"
-                and cur_stage.get("user")
-                else emp.get("user_id") if emp else ""
-            )
-            print("approver", approver)
-            if not approver:
-                return self.send_mail_to_approver(cur_stage.get("approval_stage") + 1
-            )
+            self.save(ignore_permissions=True)
 
-        self.approval_status = cur_stage.get("approval_stage_name") or ""
-        print("self.approval_status", self.approval_status)
+        except frappe.DoesNotExistError:
+            frappe.log_error(f"No approval matrix configured for {self.name}")
+            self.approval_status = "Pending Review"
+            self.save(ignore_permissions=True)
+            return
 
-        self.append(
-            "approvals",
-            {
-                "for_doc_type": "Supplier QMS Assessment Form",
-                "approval_stage": 0,
-                "approval_stage_name": cur_stage.get("approval_stage_name"),
-                "approved_by": "",
-                "approval_status": 0,
-                "next_approval_stage": stage_count,
-                "action": "",
-                "next_action_by": "" if next_approver_role else approver,
-                "next_action_role": next_approver_role,
-                "remark": "",
-            },
-        )
-        print("self.approvals", self.approvals)
+        except Exception as e:
+            frappe.log_error(f"Approval workflow error: {str(e)}")
+            self.approval_status = "Pending Review"  
+            self.save(ignore_permissions=True)
+            return
+            
 
-        self.save(ignore_permissions=True)
-        print("self.name", self.name)
-
-        if approver:
-            # user_document = get_current_user_document(approver)
-            context = {
-                "supplier_qms_name": self.get("name"),
-                "approval_status": self.get("approval_status"),
-                "doc": self,
-                "from_user": frappe.session.user,
-                "for_user": approver,
-                "doctype": self.doctype,
-                "document_name": self.name,
-                "user_document": user_document,
-                "subject": "Supplier QMS Pending",
-            }
-            notification_obj = NotificationTrigger(context=context)
-            # notification_obj.send_email(
-            #     approver, "Email Template for Purchase Order Approval"
-            # )
-            notification_obj.create_push_notification()
+       
 
 
 		

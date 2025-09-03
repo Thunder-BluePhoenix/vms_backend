@@ -26,50 +26,6 @@ def send_request(url, payload, method="GET", headers=None):
         response = requests.request(method, url, headers=headers)
     return response
 
-
-def get_sap_basic_auth_token() -> str:
-    settings = frappe.get_doc("DMS Settings", "DMS Settings")
-
-    username = settings.get("sap_username")
-    password = settings.get_password("sap_password")
-
-    if not username or not password:
-        frappe.throw(
-            frappe._("SAP credentials not found for SAP Username or SAP Password"),
-            exc=frappe.DoesNotExistError,
-        )
-
-    input_string = f"{username}:{password}"
-    frappe.logger("sap_login").error(
-        f"input_string: {input_string} username: {username} password: {password}"
-    )
-    return f"Basic {base64.b64encode(input_string.encode()).decode()}"
-
-
-def get_token_from_sap(sap_client):
-    sap_base_url = frappe.get_value("DMS Settings", "DMS Settings", "sap_base_url")
-
-    if not sap_base_url:
-        frappe.throw(
-            frappe._("SAP credentials not found for SAP Base URL"),
-            exc=frappe.DoesNotExistError,
-        )
-
-    try:
-        url = f"{sap_base_url}/sap/opu/odata/sap/ZODATA_SD_CREATE_SO_SRV/HeaderSet?sap-client={sap_client}"
-        headers = {
-            "Content-Type": "application/json;charset=utf-8",
-            "X-CSRF-TOKEN": "Fetch",
-            "Authorization": get_sap_basic_auth_token(),
-        }
-
-        response = send_request(url, {}, headers=headers, method="GET")
-
-        return response
-    except Exception as e:
-        return {"status": "failure", "message": f"An error occurred: {str(e)}"}
-
-
 _DEFAULT_TRUTHY = {"1", "true", "yes", "y", "on"}
 _DEFAULT_FALSEY = {"0", "false", "no", "n", "off"}
 
