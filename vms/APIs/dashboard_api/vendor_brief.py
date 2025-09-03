@@ -771,6 +771,23 @@ def calculate_company_wise_analytics(filter_company=None):
             
             if company['total_vendors'] > 0:  # Only calculate if company has vendors
                 
+                # Get vendor code count for this company
+                vendor_code_count_query = """
+                SELECT 
+                    COUNT(DISTINCT vm.name) as vendors_with_code
+                FROM `tabVendor Master` vm
+                INNER JOIN `tabMultiple Company Data` mcd ON vm.name = mcd.parent
+                INNER JOIN `tabCompany Vendor Code` cvc ON mcd.company_vendor_code = cvc.name
+                INNER JOIN `tabVendor Code` vc ON cvc.name = vc.parent
+                WHERE mcd.company_name = %(company_name)s 
+                AND vc.vendor_code IS NOT NULL 
+                AND vc.vendor_code != ''
+                """
+                
+                vendor_code_result = frappe.db.sql(vendor_code_count_query, 
+                                                  {'company_name': company_name}, as_dict=True)
+                vendors_with_code = vendor_code_result[0]['vendors_with_code'] if vendor_code_result else 0
+                
                 # Get imported vs VMS registered counts for this company
                 registration_breakdown_query = """
                 SELECT 
@@ -869,6 +886,7 @@ def calculate_company_wise_analytics(filter_company=None):
                 
             else:
                 # No vendors for this company
+                vendors_with_code = 0
                 imported_count = vms_registered_count = 0
                 approved_by_accounts = approved_by_purchase = 0
                 status_breakdown = {}
@@ -882,6 +900,7 @@ def calculate_company_wise_analytics(filter_company=None):
                 'company_code': company.get('company_code'),
                 'company_short_form': company.get('company_short_form'),
                 'total_vendors': company['total_vendors'],
+                'vendors_with_company_code': vendors_with_code,
                 'registration_breakdown': {
                     'imported_vendors': imported_count,
                     'vms_registered': vms_registered_count
@@ -897,7 +916,8 @@ def calculate_company_wise_analytics(filter_company=None):
                 'analytics_summary': {
                     'has_vendors': company['total_vendors'] > 0,
                     'approval_rate': round((approved_by_accounts + approved_by_purchase) / company['total_vendors'] * 100, 1) if company['total_vendors'] > 0 else 0,
-                    'import_rate': round(imported_count / company['total_vendors'] * 100, 1) if company['total_vendors'] > 0 else 0
+                    'import_rate': round(imported_count / company['total_vendors'] * 100, 1) if company['total_vendors'] > 0 else 0,
+                    'vendor_code_rate': round(vendors_with_code / company['total_vendors'] * 100, 1) if company['total_vendors'] > 0 else 0
                 }
             }
             
@@ -910,7 +930,8 @@ def calculate_company_wise_analytics(filter_company=None):
             'companies_without_vendors': len([c for c in enhanced_company_stats if c['total_vendors'] == 0]),
             'summary': {
                 'total_vendors_across_companies': sum(c['total_vendors'] for c in enhanced_company_stats),
-                'avg_vendors_per_company': round(sum(c['total_vendors'] for c in enhanced_company_stats) / len(companies), 1) if companies else 0
+                'avg_vendors_per_company': round(sum(c['total_vendors'] for c in enhanced_company_stats) / len(companies), 1) if companies else 0,
+                'total_vendors_with_codes': sum(c['vendors_with_company_code'] for c in enhanced_company_stats)
             }
         }
         
