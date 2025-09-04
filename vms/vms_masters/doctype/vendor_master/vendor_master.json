@@ -60,7 +60,8 @@
   "via_data_import",
   "remarks",
   "column_break_pfge",
-  "validity"
+  "validity",
+  "validity_label"
  ],
  "fields": [
   {
@@ -360,12 +361,18 @@
    "fieldname": "validity",
    "fieldtype": "Small Text",
    "label": "Validity"
+  },
+  {
+   "fieldname": "validity_label",
+   "fieldtype": "Select",
+   "label": "Validity Label",
+   "options": "\nGSTN No is Invalid\nState and GST No Mistmatch\nPAN No is Invalid\nGST Not match with PAN No\nBlank\nNot matched with any Validity"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-02 16:53:04.696079",
+ "modified": "2025-09-02 19:06:35.105553",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
