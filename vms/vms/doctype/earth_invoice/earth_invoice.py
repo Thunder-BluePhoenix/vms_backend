@@ -39,7 +39,124 @@ class EarthInvoice(Document):
     
     def before_save(self):
         self.validate_workflow_state()
+        if hasattr(self, '_doc_before_save'):
+            self._old_workflow_state = self._doc_before_save.workflow_state
+        else:
+            self._old_workflow_state = self.get_doc_before_save().workflow_state if not self.is_new() else None
+
+
+    def on_update(self):
+
+        """Handle workflow state changes and group actions"""
+        # Skip if this is a group action batch update to prevent recursion
+        if getattr(self, '_skip_group_action', False):
+            return
+            
+        # Skip if called from our own group action functions
+        if hasattr(frappe.local, 'group_action_in_progress'):
+            return
+            
+        # Check if workflow state actually changed
+        old_state = getattr(self, '_old_workflow_state', None)
+        current_state = self.workflow_state
         
+        if old_state == current_state:
+            return  # No state change, skip group actions
+            
+        # Handle group actions based on state transition
+        self._handle_workflow_state_change(old_state, current_state)
+
+
+    def _handle_workflow_state_change(self, old_state, new_state):
+    
+        try:
+            frappe.local.group_action_in_progress = True
+            
+            if self._is_approval_transition(old_state, new_state):
+                self._trigger_group_approval(old_state, new_state)
+            elif self._is_rejection_transition(old_state, new_state):
+                self._trigger_group_rejection(old_state)
+                
+        finally:
+            if hasattr(frappe.local, 'group_action_in_progress'):
+                delattr(frappe.local, 'group_action_in_progress')
+        
+    def _is_approval_transition(self, old_state, new_state):
+        """Check if the state change represents an approval"""
+        approval_transitions = {
+            'Pending': 'Approve By Nirav Sir',
+            'Approve By Nirav Sir': 'Approve By Travel Desk',
+            'Approve By Travel Desk': 'Approve By Tyab Sir',
+            'Approve By Tyab Sir': 'Approve By Panjikar Sir',
+            'Approve By Panjikar Sir': 'Approved'
+        }
+        return approval_transitions.get(old_state) == new_state
+    
+    def _is_rejection_transition(self, old_state, new_state):
+        """Check if the state change represents a rejection"""
+        # Any transition to Rejected state or back to Pending from an approval state
+        if new_state == 'Rejected':
+            return True
+        if new_state == 'Pending' and old_state in [
+            'Approve By Nirav Sir', 'Approve By Travel Desk', 
+            'Approve By Tyab Sir', 'Approve By Panjikar Sir'
+        ]:
+            return True
+        return False
+    
+    def _trigger_group_approval(self, old_state, new_state):
+       
+        try:
+            result = handle_group_approval_internal(
+                approving_doc_name=self.name,
+                inv_date=self.inv_date,
+                current_workflow_state=old_state,
+                approved_by=frappe.session.user,
+                next_state=new_state
+            )
+            
+            if result.get('status') == 'success' and result.get('affected_invoices', 0) > 0:
+               
+                send_group_approval_email_internal(
+                    original_invoice=self.name,
+                    inv_date=self.inv_date,
+                    billing_company=self.billing_company or 'N/A',
+                    affected_invoices=result.get('affected_invoice_names', []),
+                    approved_by=frappe.session.user,
+                    next_state=new_state
+                )
+                
+        except Exception as e:
+            frappe.log_error(f"Error in group approval trigger: {str(e)}")
+    
+    def _trigger_group_rejection(self, old_state):
+        
+        try:
+            
+            rejection_remark = getattr(self, 'rejection_remark', 'Bulk rejection from list view')
+            
+            result = handle_group_rejection_internal(
+                rejecting_doc_name=self.name,
+                inv_date=self.inv_date,
+                current_workflow_state=old_state,
+                rejection_remark=rejection_remark,
+                rejected_by=frappe.session.user
+            )
+            
+            if result.get('status') == 'success' and result.get('affected_invoices', 0) > 0:
+                
+                send_group_rejection_email_internal(
+                    original_invoice=self.name,
+                    inv_date=self.inv_date,
+                    billing_company=self.billing_company or 'N/A',
+                    rejection_remark=rejection_remark,
+                    affected_invoices=result.get('affected_invoice_names', []),
+                    rejected_by=frappe.session.user,
+                    current_workflow_state=old_state
+                )
+                
+        except Exception as e:
+            frappe.log_error(f"Error in group rejection trigger: {str(e)}")
         
     
     def validate_workflow_state(self):
@@ -377,75 +494,23 @@ def reject_invoice(doc_name, rejection_remark,next_state="Pending"):
 
 @frappe.whitelist()
 def handle_group_rejection(rejecting_doc_name, inv_date, current_workflow_state, rejection_remark, rejected_by):
-    try:
-        if not inv_date or not current_workflow_state:
-            return {"status": "error", "message": "Missing required parameters"}
-        
-        # Find all invoices from the same date with the same workflow state
-        filters = {
-            "inv_date": inv_date,
-            "workflow_state": current_workflow_state,  
-            "name": ["!=", rejecting_doc_name],
-            "docstatus": ["!=", 2]
-        }
-        
-        same_date_same_state_invoices = frappe.get_all(
-            "Earth Invoice",
-            filters=filters,
-            fields=["name", "workflow_state"]
-        )
-        
-        affected_invoices = 0
-        affected_names = []
-        
-    
-        for invoice in same_date_same_state_invoices:
-            try:
-                invoice_doc = frappe.get_doc("Earth Invoice", invoice.name)
-                
-               
-                # invoice_doc._skip_rejection_flow = True
-                
-                # Set to Pending state with auto-rejection flags
-                invoice_doc.workflow_state = "Pending"
-                invoice_doc.rejection_remark = f"Auto-rejected due to {rejecting_doc_name}: {rejection_remark}"
-                invoice_doc.is_auto_rejected = 1
-                invoice_doc.rejected_by = rejected_by
-                invoice_doc.rejection_date = today()
-                
-                # Save with ignore permissions
-                invoice_doc.flags.ignore_permissions = True
-                invoice_doc.save()
-                
-                affected_invoices += 1
-                affected_names.append(invoice.name)
-                
-                # Add audit comment for auto-rejected invoice
-                add_workflow_comment(
-                    invoice.name, 
-                    f"Auto-rejected due to rejection of {rejecting_doc_name} by {rejected_by}: {rejection_remark}", 
-                    "Workflow"
-                )
-                
-            except Exception as e:
-                frappe.log_error(f"Error auto-rejecting invoice {invoice.name}: {str(e)}")
-        
-        return {
-            "status": "success", 
-            "message": f"Group rejection completed. {affected_invoices} invoices auto-rejected.",
-            "affected_invoices": affected_invoices,
-            "affected_invoice_names": affected_names
-        }
-        
-    except Exception as e:
-        frappe.log_error(f"Group rejection error: {str(e)}")
-        return {"status": "error", "message": str(e)}
-
+    return handle_group_rejection_internal(
+        rejecting_doc_name, inv_date, current_workflow_state, rejection_remark, rejected_by
+    )
 @frappe.whitelist()
 def handle_group_approval(approving_doc_name, inv_date, current_workflow_state, approved_by, next_state):
+    return handle_group_approval_internal(
+        approving_doc_name, inv_date, current_workflow_state, approved_by, next_state
+    )
+
+def handle_group_approval_internal(approving_doc_name, inv_date, current_workflow_state, approved_by, next_state):
+    
     try:
         if not inv_date or not current_workflow_state:
             return {"status": "error", "message": "Missing required parameters"}
+        
+        # Set flag to prevent triggering on_update during batch operations
+        frappe.local.group_action_in_progress = True
         
         # Find all invoices from the same date with the same workflow state
         filters = {
@@ -464,7 +529,6 @@ def handle_group_approval(approving_doc_name, inv_date, current_workflow_state, 
         affected_invoices = 0
         affected_names = []
         
-        
         user_roles = frappe.get_roles(approved_by)
         
         for invoice in same_date_same_state_invoices:
@@ -475,6 +539,9 @@ def handle_group_approval(approving_doc_name, inv_date, current_workflow_state, 
                         continue  # Skip this invoice if no company access
                 
                 invoice_doc = frappe.get_doc("Earth Invoice", invoice.name)
+                
+                # Set flag to skip group action on this document
+                invoice_doc._skip_group_action = True
                 
                 # Update to next state
                 invoice_doc.workflow_state = next_state
@@ -507,6 +574,207 @@ def handle_group_approval(approving_doc_name, inv_date, current_workflow_state, 
         
     except Exception as e:
         frappe.log_error(f"Group approval error: {str(e)}")
+        return {"status": "error", "message": str(e)}
+    finally:
+        # Always clear the flag
+        if hasattr(frappe.local, 'group_action_in_progress'):
+            delattr(frappe.local, 'group_action_in_progress')
+
+def handle_group_rejection_internal(rejecting_doc_name, inv_date, current_workflow_state, rejection_remark, rejected_by):
+    try:
+        if not inv_date or not current_workflow_state:
+            return {"status": "error", "message": "Missing required parameters"}
+        
+        
+        frappe.local.group_action_in_progress = True
+        
+
+        filters = {
+            "inv_date": inv_date,
+            "workflow_state": current_workflow_state,  
+            "name": ["!=", rejecting_doc_name],
+            "docstatus": ["!=", 2]
+        }
+        
+        same_date_same_state_invoices = frappe.get_all(
+            "Earth Invoice",
+            filters=filters,
+            fields=["name", "workflow_state"]
+        )
+        
+        affected_invoices = 0
+        affected_names = []
+        
+        for invoice in same_date_same_state_invoices:
+            try:
+                invoice_doc = frappe.get_doc("Earth Invoice", invoice.name)
+                
+                # Set flag to skip group action on this document
+                invoice_doc._skip_group_action = True
+                
+                # Set to Pending state with auto-rejection flags
+                invoice_doc.workflow_state = "Pending"
+                invoice_doc.rejection_remark = f"Auto-rejected due to {rejecting_doc_name}: {rejection_remark}"
+                invoice_doc.is_auto_rejected = 1
+                invoice_doc.rejected_by = rejected_by
+                invoice_doc.rejection_date = today()
+                
+                # Save with ignore permissions
+                invoice_doc.flags.ignore_permissions = True
+                invoice_doc.save()
+                
+                affected_invoices += 1
+                affected_names.append(invoice.name)
+                
+                add_workflow_comment(
+                    invoice.name, 
+                    f"Auto-rejected due to rejection of {rejecting_doc_name} by {rejected_by}: {rejection_remark}", 
+                    "Workflow"
+                )
+                
+            except Exception as e:
+                frappe.log_error(f"Error auto-rejecting invoice {invoice.name}: {str(e)}")
+        
+        return {
+            "status": "success", 
+            "message": f"Group rejection completed. {affected_invoices} invoices auto-rejected.",
+            "affected_invoices": affected_invoices,
+            "affected_invoice_names": affected_names
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Group rejection error: {str(e)}")
+        return {"status": "error", "message": str(e)}
+    finally:
+        # Always clear the flag
+        if hasattr(frappe.local, 'group_action_in_progress'):
+            delattr(frappe.local, 'group_action_in_progress')
+
+
+def send_group_approval_email_internal(original_invoice, inv_date, billing_company, affected_invoices, approved_by, next_state):
+    
+    try:
+        if not affected_invoices or len(affected_invoices) == 0:
+            return {"status": "success", "message": "No group notification needed"}
+
+        recipients = get_next_approval_recipients(next_state)
+        if not recipients:
+            return {"status": "success", "message": "No next approval recipients found"}
+        
+        total_affected = len(affected_invoices) + 1  
+        
+        approval_step_names = {
+            'Approve By Nirav Sir': 'Nirav Sir',
+            'Approve By Travel Desk': 'Travel Desk',
+            'Approve By Tyab Sir': 'Tyab Sir', 
+            'Approve By Panjikar Sir': 'Panjikar Sir',
+            'Approved': 'Final Approval'
+        }
+        
+        step_name = approval_step_names.get(next_state, next_state)
+        
+        if next_state == 'Approved':
+            subject = f"Group Final Approval - {total_affected} invoices approved for {inv_date}"
+        else:
+            subject = f"Group Approval - {total_affected} invoices ready for {step_name} approval"
+        
+        invoice_list = f"<li>{original_invoice} (Original)</li>"
+        for inv_name in affected_invoices:
+            invoice_list += f"<li>{inv_name} (Auto-approved)</li>"
+        
+        if next_state == 'Approved':
+            message = f"""
+            <h3 style="color: #28a745;">Group Invoice Final Approval</h3>
+            <p><strong>Date:</strong> {inv_date}</p>
+            <p><strong>Company:</strong> {billing_company}</p>
+            <p><strong>Approved By:</strong> {approved_by}</p>
+            
+            <h4>Approved Invoices ({total_affected} total):</h4>
+            <ul>{invoice_list}</ul>
+            
+            <div style="background: #d4edda; padding: 10px; margin: 10px 0;">
+                <strong><i class="fa fa-check"></i> All invoices have been fully approved and are now finalized.</strong>
+            </div>
+            """
+        else:
+            message = f"""
+            <h3 style="color: #007bff;">Group Invoice Approval - Ready for {step_name}</h3>
+            <p><strong>Date:</strong> {inv_date}</p>
+            <p><strong>Company:</strong> {billing_company}</p>
+            <p><strong>Approved By:</strong> {approved_by}</p>
+            
+            <h4>Invoices Ready for Your Approval ({total_affected} total):</h4>
+            <ul>{invoice_list}</ul>
+            
+            <div style="background: #cce5ff; padding: 10px; margin: 10px 0;">
+                <strong>Action Required:</strong>
+                <p>These invoices are now ready for your approval. Please review and approve/reject as appropriate.</p>
+            </div>
+            """
+        
+        frappe.custom_sendmail(
+            recipients=recipients,
+            subject=subject,
+            message=message,
+            now=True
+        )
+        
+        return {"status": "success", "message": "Group approval notification sent"}
+        
+    except Exception as e:
+        frappe.log_error(f"Error sending group approval email: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+def send_group_rejection_email_internal(original_invoice, inv_date, billing_company, rejection_remark, affected_invoices, rejected_by, current_workflow_state):
+    
+    try:
+        if not affected_invoices or len(affected_invoices) == 0:
+            return {"status": "success", "message": "No group notification needed"}
+        
+        recipients = get_previous_approval_recipients(current_workflow_state)
+        if not recipients:
+            return {"status": "success", "message": "No previous approval recipients found"}
+        
+        total_affected = len(affected_invoices) + 1  
+        subject = f"Group Rejection Alert - {total_affected} invoices rejected for {inv_date}"
+        
+        invoice_list = f"<li>{original_invoice} (Original - Can be edited)</li>"
+        for inv_name in affected_invoices:
+            invoice_list += f"<li>{inv_name} (Auto-rejected - Read only)</li>"
+        
+        rejector_level = get_rejector_level_name(current_workflow_state)
+        
+        message = f"""
+        <h3 style="color: #d73527;">Group Invoice Rejection Alert</h3>
+        <p><strong>Date:</strong> {inv_date}</p>
+        <p><strong>Company:</strong> {billing_company}</p>
+        <p><strong>Rejected By:</strong> {rejected_by} ({rejector_level})</p>
+        <p><strong>Reason:</strong> {rejection_remark}</p>
+        
+        <h4>Affected Invoices ({total_affected} total):</h4>
+        <ul>{invoice_list}</ul>
+        
+        <div style="background: #fff3cd; padding: 10px; margin: 10px 0;">
+            <strong>Action Required:</strong>
+            <ol>
+                <li>Only the original rejected invoice ({original_invoice}) can be edited</li>
+                <li>Earth team should fix the issue and resubmit for approval</li>
+                <li>Auto-rejected invoices will remain read-only until the original is resubmitted</li>
+            </ol>
+        </div>
+        """
+        
+        frappe.custom_sendmail(
+            recipients=recipients,
+            subject=subject,
+            message=message,
+            now=True
+        )
+        
+        return {"status": "success", "message": "Group rejection notification sent to previous approvers"}
+        
+    except Exception as e:
+        frappe.log_error(f"Error sending group rejection email: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 @frappe.whitelist()
