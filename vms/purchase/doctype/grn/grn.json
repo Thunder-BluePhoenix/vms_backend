@@ -9,6 +9,9 @@
   "grn_details_section",
   "naming_series",
   "grn_no_t",
+  "grn_number",
+  "grn_year",
+  "company_code",
   "column_break_wynz",
   "grn_date",
   "sap_status",
@@ -64,12 +67,27 @@
    "fieldname": "sap_booking_id",
    "fieldtype": "Data",
    "label": "SAP Booking ID"
+  },
+  {
+   "fieldname": "grn_number",
+   "fieldtype": "Data",
+   "label": "GRN Number"
+  },
+  {
+   "fieldname": "grn_year",
+   "fieldtype": "Data",
+   "label": "GRN Year"
+  },
+  {
+   "fieldname": "company_code",
+   "fieldtype": "Data",
+   "label": "Company Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-30 02:16:01.675648",
+ "modified": "2025-09-04 14:21:34.636565",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GRN",
