@@ -96,6 +96,11 @@ def create_vendor_onboarding_amendment(data):
         vendor_onboarding_doc.purchase_head_approval_remarks = None
         vendor_onboarding_doc.accounts_team_approval_remarks = None
         vendor_onboarding_doc.accounts_head_approval_remarks = None
+
+        vendor_onboarding_doc.purchase_t_approval = None
+        vendor_onboarding_doc.purchase_h_approval = None
+        vendor_onboarding_doc.accounts_t_approval = None
+        vendor_onboarding_doc.accounts_head_approval = None
         
         # Add new amendment entry to the amendment_details table
         amendment_row = vendor_onboarding_doc.append("amendment_details", {})
