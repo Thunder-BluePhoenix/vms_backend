@@ -77,6 +77,135 @@ def vendor_registration(data):
     return result
 
 
+@frappe.whitelist(allow_guest=True)
+def extended_vendor_registration(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
+        
+        # Check if vendor already exists and has onboarding records
+        email = data.get("office_email_primary")
+        if email:
+            # Check if vendor master exists
+            vendor_master = frappe.get_all(
+                "Vendor Master",
+                filters={"office_email_primary": email},
+                fields=["name", "vendor_name", "vendor_title"],
+                limit=1
+            )
+            
+            if vendor_master:
+                vendor_master_doc = vendor_master[0]
+                vendor_name = vendor_master_doc.get("vendor_name") or vendor_master_doc.get("vendor_title")
+                
+                # Get onboarding records for this vendor
+                onboarding_records = frappe.get_all(
+                    "Vendor Onboarding",
+                    filters={"ref_no": vendor_master_doc["name"]},
+                    fields=[
+                        "name", "company_name", "onboarding_form_status", "docstatus", 
+                        "registered_by", "owner", "creation"
+                    ],
+                    order_by="creation desc"
+                )
+                
+                if onboarding_records:
+                    # Check for company-specific conflicts
+                    company_name = data.get("company_name")
+                    purchase_details = data.get("purchase_details", [])
+                    
+                    # Get requested companies
+                    requested_companies = []
+                    if company_name:
+                        requested_companies.append(company_name)
+                    
+                    for detail in purchase_details:
+                        comp_name = None
+                        if isinstance(detail, dict):
+                            comp_name = detail.get("company_name")
+                        elif hasattr(detail, 'company_name'):
+                            comp_name = detail.company_name
+                        
+                        if comp_name and comp_name not in requested_companies:
+                            requested_companies.append(comp_name)
+                    
+                    # Check for existing onboarding for requested companies
+                    conflicting_records = []
+                    for record in onboarding_records:
+                        if record.get("company_name") in requested_companies:
+                            onboarding_status = record.get("onboarding_form_status", "").lower()
+                            
+                            # Only consider active/approved records as conflicts
+                            if onboarding_status in ["approved"] :
+                                status = "already_onboarded"
+                            elif onboarding_status in ["pending",]:
+                                status = "in_process"
+                            else:
+                                continue  
+                            
+                            # Get raised by name
+                            raised_by = record.get("registered_by") or record.get("owner")
+                            raised_by_name = raised_by
+                            if raised_by:
+                                user_doc = frappe.get_value("User", raised_by, ["full_name", "first_name"], as_dict=True)
+                                if user_doc:
+                                    raised_by_name = user_doc.get("full_name") or user_doc.get("first_name") or raised_by
+                            
+                            conflicting_records.append({
+                                "company_name": record.get("company_name"),
+                                "status": status,
+                                "onboarding_id": record.get("name"),
+                                "raised_by_name": raised_by_name
+                            })
+                    
+                    # If conflicts found, return appropriate response
+                    if conflicting_records:
+                        if len(conflicting_records) == 1:
+                            record = conflicting_records[0]
+                            if record["status"] == "already_onboarded":
+                                message = f"Vendor '{vendor_name}' is already onboarded for company '{record['company_name']}'. The onboarding was completed by {record['raised_by_name']}."
+                            else:
+                                message = f"Vendor '{vendor_name}' onboarding for company '{record['company_name']}' is currently in process. The registration was initiated by {record['raised_by_name']}."
+                        else:
+                            onboarded_companies = [r["company_name"] for r in conflicting_records if r["status"] == "already_onboarded"]
+                            in_process_companies = [r["company_name"] for r in conflicting_records if r["status"] == "in_process"]
+                            
+                            message_parts = [f"Vendor '{vendor_name}' has existing onboarding records:"]
+                            if onboarded_companies:
+                                message_parts.append(f"Already onboarded: {', '.join(onboarded_companies)}")
+                            if in_process_companies:
+                                message_parts.append(f"In process: {', '.join(in_process_companies)}")
+                            
+                            message = " ".join(message_parts)
+                        
+                        return {
+                            "status": "duplicate",
+                            "message": message,
+                            "vendor_details": {
+                                "vendor_master_id": vendor_master_doc["name"],
+                                "vendor_name": vendor_name,
+                                "office_email_primary": email
+                            },
+                            "conflicting_records": conflicting_records
+                        }
+        
+        # No conflicts found, proceed with normal registration
+        multi_companies = data.get("for_multiple_company")
+        if multi_companies != 1:
+            result = vendor_registration_single(data)
+        else:
+            result = vendor_registration_multi(data)
+        
+        return result
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Extended Vendor Registration Error")
+        return {
+            "status": "error",
+            "message": "Extended vendor registration failed",
+            "error": str(e)
+        }
+
 
 
 
