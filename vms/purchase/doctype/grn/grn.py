@@ -7,19 +7,19 @@ from vms.utils.custom_send_mail import custom_sendmail
 
 class GRN(Document):
 
-    def after_insert(self):
-        self.send_grn_notification(action="created")
+    # def after_insert(self):
+    #     self.send_grn_notification(action="created")
         
-        self._notification_sent = True
+    #     self._notification_sent = True
 
-    def on_update(self):
+    # def on_update(self):
       
-        if hasattr(self, '_notification_sent') and self._notification_sent:
-            self._notification_sent = False  
-            return
+    #     if hasattr(self, '_notification_sent') and self._notification_sent:
+    #         self._notification_sent = False  
+    #         return
             
-        if not self.is_new():
-            self.send_grn_notification(action="updated")
+    #     if not self.is_new():
+    #         self.send_grn_notification(action="updated")
 
     def send_grn_notification(self, action="updated"):
         try:
