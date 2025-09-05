@@ -40,6 +40,7 @@
   "rejected_mail_sent",
   "sap_error_mail_sent",
   "is_amendment",
+  "re_release",
   "purchase_t_approval",
   "purchase_h_approval",
   "accounts_t_approval",
@@ -663,12 +664,18 @@
    "fieldname": "it_head_remark",
    "fieldtype": "Small Text",
    "label": "IT Head Remark"
+  },
+  {
+   "default": "0",
+   "fieldname": "re_release",
+   "fieldtype": "Check",
+   "label": "Re Release"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-26 14:07:49.418945",
+ "modified": "2025-09-05 17:42:43.890173",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
