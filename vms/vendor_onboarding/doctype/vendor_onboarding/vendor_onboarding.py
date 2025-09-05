@@ -81,17 +81,12 @@ class VendorOnboarding(Document):
         frappe.db.commit()
 
     def before_save(self):
-            if self.onboarding_form_status == "SAP Error":
-                
-                self.re_release = 1
             
             update_van_core_docs(self, method=None)
             update_van_core_docs_multi_case(self, method=None) 
 
 
     def on_update(self):
-            if self.onboarding_form_status == "SAP Error":
-                self.re_release = 1
             # print("update hook start@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
             vendor_company_update(self,method=None)
             
