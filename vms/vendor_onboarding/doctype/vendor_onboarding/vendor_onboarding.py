@@ -91,7 +91,7 @@ class VendorOnboarding(Document):
             vendor_company_update(self,method=None)
             
             on_update_check_fields(self,method=None)
-            update_ven_onb_record_table(self, method=None)
+            # update_ven_onb_record_table(self, method=None)
             # update_ven_onb_record_table(self, method=None)
             # update_van_core_docs(self, method=None)
             
@@ -100,9 +100,11 @@ class VendorOnboarding(Document):
             update_sap_vonb(self, method= None)
             set_vonb_status_onupdate(self, method=None)
             check_vnonb_send_mails(self, method=None)
+            update_ven_onb_record_table(self, method=None)
             sync_maintain(self, method= None)
             on_vendor_onboarding_submit(self, method=None)
-            update_vendor_master_onb_status(self, method=None)
+            # update_vendor_master_onb_status(self, method=None)
+            
         #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
             # print("control reload@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")

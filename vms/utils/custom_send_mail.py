@@ -8,6 +8,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 import os
 import mimetypes
+from vms.utils.notification import create_notification_log
 
 
 
@@ -15,7 +16,7 @@ import mimetypes
 def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=None, attachments=None, **kwargs):
    
    
-  
+    create_notification_log(recipients=None, subject=None, message=None, **kwargs)
     if not cc and not bcc and not attachments:
         
         try:
