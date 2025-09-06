@@ -101,7 +101,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-08-16 23:52:46.749288",
+  "modified": "2025-09-05 12:15:36.549284",
   "name": "Super Head",
   "role_profile": "Super Head",
   "roles": [
@@ -128,6 +128,12 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Website Manager"
+   },
+   {
+    "parent": "Super Head",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "IT Head"
    }
   ]
  },

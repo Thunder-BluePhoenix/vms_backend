@@ -40,6 +40,7 @@
   "rejected_mail_sent",
   "sap_error_mail_sent",
   "is_amendment",
+  "re_release",
   "purchase_t_approval",
   "purchase_h_approval",
   "accounts_t_approval",
@@ -734,6 +735,12 @@
    "fieldname": "change_details_req_mail_sent_to_accounts_head",
    "fieldtype": "Check",
    "label": "Change Details Request Mail Sent to Accounts Head"
+  },
+  {
+   "default": "0",
+   "fieldname": "re_release",
+   "fieldtype": "Check",
+   "label": "Re Release"
   }
  ],
  "grid_page_length": 50,
