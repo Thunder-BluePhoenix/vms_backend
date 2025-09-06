@@ -106,6 +106,8 @@ class VendorOnboarding(Document):
         #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
             # print("control reload@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
+
+            send_doc_change_req_email(self, method=None)
             self.reload()
             
             # Notify frontend about the update
@@ -2039,3 +2041,268 @@ def safe_get_doc(doctype, name):
         frappe.log_error(frappe.get_traceback(), f"Error fetching {doctype} {name}")
         return None
     return None
+
+
+
+# Send the Emails to Purchase, Accounts team for approval of Changes in Vendor Document details
+
+@frappe.whitelist()
+def send_doc_change_req_email(doc, method=None):
+    if doc.register_by_account_team == 0:
+        if doc.onboarding_form_status == "Approved" and doc.allow_to_change_document_details_by_purchase_team == 1:
+            send_doc_change_req_email_accounts_team(doc, method=None)
+        else:
+            pass
+
+    elif doc.register_by_account_team == 1:
+        if doc.onboarding_form_status == "Approved" and doc.allow_to_change_document_details_by_accounts_team == 1:
+            send_doc_change_req_email_accounts_head(doc, method=None)
+        else:
+            pass   
+    
+    else:
+        pass
+
+
+# for Accounts Team (purchase team flow)-------------------
+
+def send_doc_change_req_email_accounts_team(doc, method=None):
+    try:
+        http_server = frappe.conf.get("backend_http")
+        vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+
+        register_by = frappe.db.get_value(
+            "User",
+            {"name": doc.registered_by},
+            "full_name"
+        )
+
+        accounts_team = frappe.db.get_value(
+            "User",
+            {"name": doc.accounts_t_approval},
+            "full_name"
+        )
+       
+        subject = f"Change Request for Vendor: {vendor_master.vendor_name}"
+
+        # Generate action URLs
+        allow_url = f"{http_server}/api/method/vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_accounts_team_approval_check?vendor_onboarding={doc.name}&action=allow"
+        reject_url = f"{http_server}/api/method/vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_accounts_team_approval_check?vendor_onboarding={doc.name}&action=reject"
+    
+        # Email body
+        message = f"""
+                <p>Dear {accounts_team},</p>
+                <p>
+                    The vendor <b>{vendor_master.vendor_name}</b> has requested changes to its details.  
+                    {register_by} (Purchase Team) already approved the request.
+                    Kindly review the request and take appropriate action by clicking one of the buttons below:
+                </p>
+                <p>
+                    <a href="{allow_url}" style="background-color:green;color:white;padding:8px 16px;
+                    text-decoration:none;border-radius:4px;">Allow</a>
+                    
+                    &nbsp;&nbsp;
+                    
+                    <a href="{reject_url}" style="background-color:red;color:white;padding:8px 16px;
+                    text-decoration:none;border-radius:4px;">Reject</a>
+                </p>
+                <br>
+                <p><b>Remarks from vendor:</b> {doc.vendor_remarks}</p>
+                <p>Thank you,<br>Vendor Management System</p>
+            """
+        
+        frappe.custom_sendmail(
+            recipients=[doc.accounts_t_approval],
+            subject=subject,
+            message=message,
+            now=True
+        )
+    
+        # Mark mail as sent
+        frappe.db.set_value(
+            "Vendor Onboarding",
+            doc.name,
+            "change_details_req_mail_sent_to_accounts_team",
+            1
+        )
+    
+        return {
+            "status": "success",
+            "message": "Email sent successfully"
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "send_doc_change_req_email_accounts_team")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+@frappe.whitelist(allow_guest=True)
+def set_accounts_team_approval_check(vendor_onboarding: str, action: str):
+    try:
+        if not vendor_onboarding or not action:
+            return {
+                "status": "error",
+                "message": "Missing required parameters (vendor_onboarding, action)."
+            }
+
+        doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+
+        if doc.get("allow_to_change_document_details_by_accounts_team") == 1:
+            return {
+                "status": "error",
+                "message": f"This vendor onboarding ({vendor_onboarding}) has already been processed."
+            }
+
+        if action == "allow":
+            doc.allow_to_change_document_details_by_accounts_team = 1
+            status = "Allowed"
+        elif action == "reject":
+            doc.allow_to_change_document_details_by_accounts_team = 0
+            status = "Rejected"
+        else:
+            return {
+                "status": "error",
+                "message": "Invalid action. Must be 'allow' or 'reject'."
+            }
+
+        doc.save()
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": f"Your response has been recorded for Vendor Onboarding {vendor_onboarding}.",
+            "action": status
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "set_approval_check")
+        return {
+            "status": "error",
+            "message": "Failed to update.",
+            "error": str(e)
+        }
+
+
+# For Accounts Head (accounts team approval flow)----------------------------------------------------------
+
+def send_doc_change_req_email_accounts_head(doc, method=None):
+    try:
+        http_server = frappe.conf.get("backend_http")
+        vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+
+        register_by = frappe.db.get_value(
+            "User",
+            {"name": doc.registered_by},
+            "full_name"
+        )
+
+        accounts_head = frappe.db.get_value(
+            "User",
+            {"name": doc.accounts_head_approval},
+            "full_name"
+        )
+       
+        subject = f"Change Request for Vendor: {vendor_master.vendor_name}"
+
+        # Generate action URLs
+        allow_url = f"{http_server}/api/method/vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_accounts_head_approval_check?vendor_onboarding={doc.name}&action=allow"
+        reject_url = f"{http_server}/api/method/vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_accounts_head_approval_check?vendor_onboarding={doc.name}&action=reject"
+    
+        # Email body
+        message = f"""
+                <p>Dear {accounts_head},</p>
+                <p>
+                    The vendor <b>{vendor_master.vendor_name}</b> has requested changes to its details.  
+                    {register_by} (Accounts Team) already approved the request.
+                    Kindly review the request and take appropriate action by clicking one of the buttons below:
+                </p>
+                <p>
+                    <a href="{allow_url}" style="background-color:green;color:white;padding:8px 16px;
+                    text-decoration:none;border-radius:4px;">Allow</a>
+                    
+                    &nbsp;&nbsp;
+                    
+                    <a href="{reject_url}" style="background-color:red;color:white;padding:8px 16px;
+                    text-decoration:none;border-radius:4px;">Reject</a>
+                </p>
+                <br>
+                <p><b>Remarks from vendor:</b> {doc.vendor_remarks}</p>
+                <p>Thank you,<br>Vendor Management System</p>
+            """
+        
+        frappe.custom_sendmail(
+            recipients=[doc.accounts_head_approval],
+            subject=subject,
+            message=message,
+            now=True
+        )
+    
+        # Mark mail as sent
+        frappe.db.set_value(
+            "Vendor Onboarding",
+            doc.name,
+            "change_details_req_mail_sent_to_accounts_head",
+            1
+        )
+    
+        return {
+            "status": "success",
+            "message": "Email sent successfully"
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "send_doc_change_req_email_accounts_team")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+@frappe.whitelist(allow_guest=True)
+def set_accounts_head_approval_check(vendor_onboarding: str, action: str):
+    try:
+        if not vendor_onboarding or not action:
+            return {
+                "status": "error",
+                "message": "Missing required parameters (vendor_onboarding, action)."
+            }
+
+        doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+
+        if doc.get("allow_to_change_document_details_by_accounts_head") == 1:
+            return {
+                "status": "error",
+                "message": f"This vendor onboarding ({vendor_onboarding}) has already been processed."
+            }
+
+        if action == "allow":
+            doc.allow_to_change_document_details_by_accounts_head = 1
+            status = "Allowed"
+        elif action == "reject":
+            doc.allow_to_change_document_details_by_accounts_head = 0
+            status = "Rejected"
+        else:
+            return {
+                "status": "error",
+                "message": "Invalid action. Must be 'allow' or 'reject'."
+            }
+
+        doc.save()
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": f"Your response has been recorded for Vendor Onboarding {vendor_onboarding}.",
+            "action": status
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "set_approval_check")
+        return {
+            "status": "error",
+            "message": "Failed to update.",
+            "error": str(e)
+        }

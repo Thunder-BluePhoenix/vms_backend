@@ -60,7 +60,7 @@ def get_grn_details_of_grn_number(grn_number=None):
     if not user_team:
         frappe.throw("Your team is not mapped. Contact Admin.")
 
-    grn_name = frappe.db.get_value("GRN", {"grn_no_t": grn_number})
+    grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
     if not grn_name:
         frappe.throw("GRN not found.")
 
@@ -98,7 +98,7 @@ def get_grn_details_of_grn_number(grn_number=None):
         frappe.throw("You are not authorized to view any items in this GRN.")
 
     return {
-        "grn_no": grn_doc.grn_no_t,
+        "grn_no": grn_doc.grn_number,
         "grn_date": grn_doc.grn_date,
         "grn_items": filtered_items
     }
@@ -480,7 +480,7 @@ def get_pr_details_simple(pr_name=None):
 #     if not user_team:
 #         frappe.throw("Your team is not mapped. Contact Admin.")
 
-#     grn_name = frappe.db.get_value("GRN", {"grn_no_t": grn_number})
+#     grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
 #     if not grn_name:
 #         frappe.throw("GRN not found.")
 
@@ -518,7 +518,7 @@ def get_pr_details_simple(pr_name=None):
 #         frappe.throw("You are not authorized to view any items in this GRN.")
 
 #     return {
-#         "grn_no": grn_doc.grn_no_t,
+#         "grn_no": grn_doc.grn_number,
 #         "grn_date": grn_doc.grn_date,
 #         "grn_items": filtered_items
 #     }
@@ -550,7 +550,7 @@ def get_pr_details_simple(pr_name=None):
 #             }
 
 #         # Check if GRN exists
-#         grn_name = frappe.db.get_value("GRN", {"grn_no_t": grn_number})
+#         grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
 #         if not grn_name:
 #             return {
 #                 "status": "error",
@@ -641,7 +641,7 @@ def get_pr_details_simple(pr_name=None):
 #             "status": "success",
 #             "message": "GRN details fetched successfully.",
 #             "data": {
-#                 "grn_no": grn_doc.grn_no_t,
+#                 "grn_no": grn_doc.grn_number,
 #                 "grn_date": grn_doc.grn_date,
 #                 "grn_items": paginated_items
 #             },
@@ -698,7 +698,7 @@ def get_pr_details_simple(pr_name=None):
 #             }
 
 #         # Check if GRN exists
-#         grn_name = frappe.db.get_value("GRN", {"grn_no_t": grn_number})
+#         grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
 #         if not grn_name:
 #             return {
 #                 "status": "error",
@@ -794,7 +794,7 @@ def get_pr_details_simple(pr_name=None):
 #             "status": "success",
 #             "message": "GRN details fetched successfully.",
 #             "data": {
-#                 "grn_no": grn_doc.grn_no_t,
+#                 "grn_no": grn_doc.grn_number,
 #                 "grn_date": grn_doc.grn_date,
 #                 "grn_items": filtered_items
 #             },

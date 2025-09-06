@@ -157,6 +157,7 @@ from frappe.utils import today, get_first_day, get_last_day
 @frappe.whitelist(allow_guest=False)
 def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None, purchase_head_filter=False, accounts_team_filter=False):
     try:
+        
         if usr is None:
             usr = frappe.session.user
         elif usr != frappe.session.user:
@@ -195,24 +196,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
             conditions.append("vo.company_name IN %(company_list)s")
             values["company_list"] = company_list
 
-            # vend_onb = frappe.get_all(
-            #     "Vendor Onboarding",
-            #     filters={"register_by_account_team": 1},
-            #     pluck="name"  
-            # )
-
-            # if not vend_onb:
-            #     return {
-            #         "status": "error",
-            #         "message": "No vendor onboarding records found for Accounts Team/Head.",
-            #         "vendor_onboarding": []
-            #     }
-
-            # conditions.append("vo.name IN %(vend_onb)s")
-            # values["vend_onb"] = vend_onb
-
         else:
-
             try:
                 employee = frappe.get_doc("Employee", {"user_id": usr})
             except frappe.DoesNotExistError:
@@ -242,15 +226,11 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
 
             if employee.get("multiple_purchase_heads"):
                 company_list = [row.company_name for row in employee.company]
-                print(company_list)
+                
 
                 if company_list:  
                     conditions.append("vo.company_name IN %(company_list)s")
-                   
                     values["company_list"] = company_list
-                    
-
-            
 
         if company:
             conditions.append("vo.company_name = %(company)s")
@@ -293,7 +273,9 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
         offset = (page_no - 1) * page_length
         values["limit"] = page_length
         values["offset"] = offset
+        
 
+        # Updated query with JOINs to get full names
         onboarding_docs = frappe.db.sql(f"""
             SELECT
                 vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, vo.modified,
@@ -302,12 +284,70 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
                 vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver, vo.qms_form_filled, vo.sent_qms_form_link,
                 vo.registered_by, vo.register_by_account_team, vo.vendor_country, vo.rejected_by, vo.rejected_by_designation, vo.reason_for_rejection, 
-                vo.sap_error_mail_sent
+                vo.sap_error_mail_sent,
+                
+                
+                registered_user.full_name as registered_by_full_name,
+                purchase_t_user.full_name as purchase_t_approval_full_name,
+                accounts_t_user.full_name as accounts_t_approval_full_name,
+                purchase_h_user.full_name as purchase_h_approval_full_name,
+                rejected_user.full_name as rejected_by_full_name
+                
             FROM `tabVendor Onboarding` vo
+            LEFT JOIN `tabUser` registered_user ON vo.registered_by = registered_user.name
+            LEFT JOIN `tabUser` purchase_t_user ON vo.purchase_t_approval = purchase_t_user.name
+            LEFT JOIN `tabUser` accounts_t_user ON vo.accounts_t_approval = accounts_t_user.name
+            LEFT JOIN `tabUser` purchase_h_user ON vo.purchase_h_approval = purchase_h_user.name
+            LEFT JOIN `tabUser` rejected_user ON vo.rejected_by = rejected_user.name
             WHERE {filter_clause}
             ORDER BY vo.modified DESC
             LIMIT %(limit)s OFFSET %(offset)s
         """, values, as_dict=True)
+
+        
+
+        # Post-process to handle cases where full_name might be empty
+        for doc in onboarding_docs:
+            # If full_name is empty, fallback to first_name or email
+            if doc.get('registered_by') and not doc.get('registered_by_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['registered_by']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['registered_by_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['registered_by']
+                else:
+                    doc['registered_by_full_name'] = doc['registered_by']
+            
+            if doc.get('purchase_t_approval') and not doc.get('purchase_t_approval_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['purchase_t_approval']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['purchase_t_approval_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['purchase_t_approval']
+                else:
+                    doc['purchase_t_approval_full_name'] = doc['purchase_t_approval']
+            
+            if doc.get('accounts_t_approval') and not doc.get('accounts_t_approval_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['accounts_t_approval']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['accounts_t_approval_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['accounts_t_approval']
+                else:
+                    doc['accounts_t_approval_full_name'] = doc['accounts_t_approval']
+            
+            if doc.get('purchase_h_approval') and not doc.get('purchase_h_approval_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['purchase_h_approval']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['purchase_h_approval_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['purchase_h_approval']
+                else:
+                    doc['purchase_h_approval_full_name'] = doc['purchase_h_approval']
+            
+            if doc.get('rejected_by') and not doc.get('rejected_by_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['rejected_by']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['rejected_by_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['rejected_by']
+                else:
+                    doc['rejected_by_full_name'] = doc['rejected_by']
 
         return {
             "status": "success",
@@ -328,10 +368,10 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
         }
 
 
-
 @frappe.whitelist(allow_guest=True)
 def approved_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
     try:
+
         if not usr:
             usr = frappe.session.user
 
@@ -1174,16 +1214,76 @@ def filtering_total_vendor_details_by_accounts(page_no=None, page_length=None, c
         onboarding_docs = frappe.db.sql(f"""
             SELECT
                 vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, vo.modified,
-                vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval, vo.accounts_head_approval,
-                vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking, vo.accounts_head_undertaking,
+                vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
+                vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
                 vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver, vo.qms_form_filled, vo.sent_qms_form_link,
-                vo.registered_by, vo.register_by_account_team, vo.vendor_country, vo.rejected_by, vo.rejected_by_designation, vo.reason_for_rejection
+                vo.registered_by, vo.register_by_account_team, vo.vendor_country, vo.rejected_by, vo.rejected_by_designation, vo.reason_for_rejection, 
+                vo.sap_error_mail_sent,
+                
+                
+                registered_user.full_name as registered_by_full_name,
+                purchase_t_user.full_name as purchase_t_approval_full_name,
+                accounts_t_user.full_name as accounts_t_approval_full_name,
+                purchase_h_user.full_name as purchase_h_approval_full_name,
+                rejected_user.full_name as rejected_by_full_name
+                
             FROM `tabVendor Onboarding` vo
+            LEFT JOIN `tabUser` registered_user ON vo.registered_by = registered_user.name
+            LEFT JOIN `tabUser` purchase_t_user ON vo.purchase_t_approval = purchase_t_user.name
+            LEFT JOIN `tabUser` accounts_t_user ON vo.accounts_t_approval = accounts_t_user.name
+            LEFT JOIN `tabUser` purchase_h_user ON vo.purchase_h_approval = purchase_h_user.name
+            LEFT JOIN `tabUser` rejected_user ON vo.rejected_by = rejected_user.name
             WHERE {filter_clause}
             ORDER BY vo.modified DESC
             LIMIT %(limit)s OFFSET %(offset)s
         """, values, as_dict=True)
+
+        
+
+        
+        for doc in onboarding_docs:
+            
+            if doc.get('registered_by') and not doc.get('registered_by_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['registered_by']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['registered_by_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['registered_by']
+                else:
+                    doc['registered_by_full_name'] = doc['registered_by']
+            
+            if doc.get('purchase_t_approval') and not doc.get('purchase_t_approval_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['purchase_t_approval']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['purchase_t_approval_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['purchase_t_approval']
+                else:
+                    doc['purchase_t_approval_full_name'] = doc['purchase_t_approval']
+            
+            if doc.get('accounts_t_approval') and not doc.get('accounts_t_approval_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['accounts_t_approval']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['accounts_t_approval_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['accounts_t_approval']
+                else:
+                    doc['accounts_t_approval_full_name'] = doc['accounts_t_approval']
+            
+            if doc.get('purchase_h_approval') and not doc.get('purchase_h_approval_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['purchase_h_approval']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['purchase_h_approval_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['purchase_h_approval']
+                else:
+                    doc['purchase_h_approval_full_name'] = doc['purchase_h_approval']
+            
+            if doc.get('rejected_by') and not doc.get('rejected_by_full_name'):
+                user_info = frappe.get_value("User", {"email": doc['rejected_by']}, 
+                                           ["first_name", "full_name"], as_dict=True)
+                if user_info:
+                    doc['rejected_by_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['rejected_by']
+                else:
+                    doc['rejected_by_full_name'] = doc['rejected_by']
+
 
         return {
             "status": "success",
