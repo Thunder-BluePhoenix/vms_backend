@@ -207,12 +207,12 @@ def send_sap_error_email(doctype, docname, remarks=None):
                            style="background-color: #28a745; color: white; padding: 12px 24px; 
                                   text-decoration: none; border-radius: 5px; display: inline-block;
                                   font-weight: bold; text-align: center;">
-                            Enable Re-resale
+                            Enable Re-release
                         </a>
                     </div>
                     
                     <p style="font-size: 12px; color: #666;">
-                        Click the button above to enable re-resale for this vendor onboarding document.
+                        Click the button above to enable re-release for this vendor onboarding document.
                     </p>
                     
                     Please look into this as soon as possible.<br><br>
