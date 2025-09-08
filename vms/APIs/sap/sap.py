@@ -2503,6 +2503,7 @@ def log_sap_transaction_enhanced(onb_name, request_data, response_data, status, 
         
         # Store full data since erp_to_sap_data is JSON field
         sap_log.erp_to_sap_data = request_data
+        sap_log.status = status
         
         # Store full response since sap_response is JSON field  
         if response_data:
