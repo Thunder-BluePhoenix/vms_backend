@@ -2015,7 +2015,7 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "Bankl": onb_bank.bank_code if onb_bank else "",
                                 "Bankn": onb_pmd.account_number if onb_pmd else "",
                                 "Bkref": onb_pmd.ifsc_code if onb_pmd else "",
-                                "Banka": onb_bank.bank_name if onb_bank else "",
+                                "Banka": "",
                                 "Koinh": onb_pmd.name_of_account_holder if onb_pmd else "",
                                 "Xezer": "",
                                 "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
@@ -2682,6 +2682,7 @@ def send_failure_notification(onb_name, failure_type, error_details):
                         # recipient["email"], 
                         "rishi.hingad@merillife.com",
                         "thunder00799@gmail.com"],
+                    cc = [registered_by],
                     subject=subject,
                     message=message,
                     now=True
@@ -3448,6 +3449,7 @@ def send_vendor_to_sap_via_front(doc_name):
         sap_result = erp_to_sap_vendor_data(doc.name)
         
         print(f"📊 SAP function result: {sap_result}")
+        doc.save()
         
         # Handle the response from SAP function
         if isinstance(sap_result, dict):

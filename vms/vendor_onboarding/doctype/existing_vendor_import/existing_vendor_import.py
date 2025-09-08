@@ -180,6 +180,7 @@ class ExistingVendorImport(Document):
 			
 			# Payment Details fields
 			'bank_name': ['bank name', 'bank_name', 'bank'],
+			'bank_key': ['Bank Key', 'bank_key', 'key_bank'],
 			'ifsc_code': ['ifsc code', 'ifsc', 'ifsc_code', 'bank_code'],
 			'account_number': [
 				'account number', 'bank account', 'account_number',
@@ -338,7 +339,7 @@ class ExistingVendorImport(Document):
 		try:
 			# Check if any payment-related fields are present
 			payment_fields = [
-				'bank_name', 'ifsc_code', 'account_number', 'name_of_account_holder', 'type_of_account',
+				'bank_name', 'ifsc_code', 'account_number', 'name_of_account_holder', 'type_of_account', 'bank_key'
 				'beneficiary_name', 'beneficiary_swift_code', 'beneficiary_iban_no'
 			]
 			
@@ -395,7 +396,8 @@ class ExistingVendorImport(Document):
 				'account_number': 'account_number',
 				'name_of_account_holder': 'name_of_account_holder',
 				'type_of_account': 'type_of_account',
-				'currency': 'currency'
+				'currency': 'currency',
+				'bank_key': 'bank_key'
 			}
 			
 			for csv_field, doc_field in basic_fields.items():

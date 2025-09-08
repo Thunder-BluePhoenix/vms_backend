@@ -3,7 +3,7 @@
   "docstatus": 0,
   "doctype": "SAP Mapper PR",
   "doctype_name": "GRN",
-  "modified": "2025-07-17 15:52:49.947220",
+  "modified": "2025-09-05 12:53:28.235919",
   "name": "GRN",
   "table_cjfk": [
    {
@@ -334,6 +334,27 @@
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "BUDAT"
+   },
+   {
+    "erp_field": "grn_year",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "MJAHR"
+   },
+   {
+    "erp_field": "company_code",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BUKRS"
+   },
+   {
+    "erp_field": "company_code_i",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BUKRS_I"
    }
   ]
  },

@@ -191,26 +191,43 @@ def send_sap_error_email(doctype, docname, remarks=None):
 
             if logs:
                 sap_response = pretty_json(logs[0].sap_response)
+                
 
             if ven_onb.sap_error_mail_sent == 0:
+                site_url = frappe.utils.get_url()
+                button_url = f"{site_url}/api/method/vms.APIs.sap.send_sap_error_email.enable_vendor_re_resale?docname={docname}"
                 subject = f"Vendor Onboarding {docname} - SAP Error"
                 message = f"""
                     Dear IT Head,<br><br>
                     The Vendor Onboarding document <b>{docname}</b> has encountered a SAP error.<br><br>
                     <b>SAP Response:</b><br>{sap_response or f'⚠️ No SAP logs were found.<br>{vendor_details}'}<br>
                     <strong>Remarks: {remarks}</strong><br><br>
+                     <div style="margin: 20px 0;">
+                        <a href="{button_url}" 
+                           style="background-color: #28a745; color: white; padding: 12px 24px; 
+                                  text-decoration: none; border-radius: 5px; display: inline-block;
+                                  font-weight: bold; text-align: center;">
+                            Enable Re-release
+                        </a>
+                    </div>
+                    
+                    <p style="font-size: 12px; color: #666;">
+                        Click the button above to enable re-release for this vendor onboarding document.
+                    </p>
+                    
                     Please look into this as soon as possible.<br><br>
                     Thank you,<br>
                     VMS Team
                 """
-                custom_sendmail(
+                frappe.custom_sendmail(
                     recipients=recipient_emails,
                     cc=cc,
                     subject=subject,
-                    message=message,
-                    now=True
+                    message=message
                 )
-                frappe.db.set_value("Vendor Onboarding", docname, {"sap_error_mail_sent": 1,"sap_error_mail_sent_time": now_datetime()})
+                
+                frappe.set_value("Vendor Onboarding", docname, {"sap_error_mail_sent": 1,"sap_error_mail_sent_time": now_datetime()})
+                
 
                 return {
                     "status": "success",
@@ -284,7 +301,7 @@ def send_sap_error_email(doctype, docname, remarks=None):
             """
 
         # --- Common send for all other doctypes ---
-        custom_sendmail(
+        frappe.custom_sendmail(
             recipients=recipient_emails,
             subject=subject,
             message=message,
@@ -340,3 +357,48 @@ def uncheck_sap_error_email():
     except Exception as e:
         frappe.logger().error(f"Error in uncheck_sap_error_email: {str(e)}")
         return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist(allow_guest=True)
+def enable_vendor_re_resale(docname):
+    """
+    API endpoint to enable re-resale for vendor onboarding document.
+    This function will be called when IT Head clicks the button in the email.
+    """
+    try:
+        
+
+        # Check if document exists
+        if not frappe.db.exists("Vendor Onboarding", docname):
+            frappe.local.response["http_status_code"] = 404
+            return {
+                "status": "error",
+                "message": f"Vendor Onboarding document {docname} not found."
+            }
+
+        # Get the document
+        vendor_onboarding = frappe.get_doc("Vendor Onboarding", docname)
+        
+        
+    
+        frappe.set_value("Vendor Onboarding", docname, "re_release", 1)
+        
+        
+        
+        redirect_url = f"{frappe.utils.get_url()}/app/vendor-onboarding/{docname}"
+        frappe.local.response["type"] = "redirect"
+        frappe.local.response["location"] = redirect_url
+        
+        return {
+            "status": "success",
+            "message": f"Re-resale enabled for {docname}",
+            "redirect_url": redirect_url
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Enable Vendor Re-resale Failed")
+        frappe.local.response["http_status_code"] = 500
+        return {
+            "status": "error",
+            "message": f"Failed to enable re-resale: {str(e)}"
+        }

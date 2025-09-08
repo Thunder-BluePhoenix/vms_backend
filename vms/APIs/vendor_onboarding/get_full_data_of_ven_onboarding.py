@@ -378,7 +378,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         payment_details["international_bank_details"] = international_bank_details
 
-
+        # Intermediate Bank details
         intermediate_bank_details = []
 
         for row in payment_doc.intermediate_bank_details:
@@ -415,6 +415,61 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             intermediate_bank_details.append(bank_row)
 
         payment_details["intermediate_bank_details"] = intermediate_bank_details
+
+        # Multiple Attachments for Bank proofs by Purchase Team
+        bank_proofs_by_purchase_team = []
+        for row in payment_doc.bank_proofs_by_purchase_team:
+            if row.attachment_name:
+                file_doc = frappe.get_doc("File", {"file_url": row.attachment_name})
+                bank_proofs_by_purchase_team.append({
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                })
+            else:
+                bank_proofs_by_purchase_team.append({
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                })
+        payment_details["bank_proofs_by_purchase_team"] = bank_proofs_by_purchase_team
+
+        # International Bank Proofs by Purchase Team
+        international_bank_proofs_by_purchase_team = []
+        for row in payment_doc.international_bank_proofs_by_purchase_team:
+            if row.attachment_name:
+                file_doc = frappe.get_doc("File", {"file_url": row.attachment_name})
+                international_bank_proofs_by_purchase_team.append({
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                })
+            else:
+                international_bank_proofs_by_purchase_team.append({
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                })
+        payment_details["international_bank_proofs_by_purchase_team"] = international_bank_proofs_by_purchase_team
+
+        # Intermediate Bank Proofs by Purchase Team
+        intermediate_bank_proofs_by_purchase_team = []
+        for row in payment_doc.intermediate_bank_proofs_by_purchase_team:
+            if row.attachment_name:
+                file_doc = frappe.get_doc("File", {"file_url": row.attachment_name})
+                intermediate_bank_proofs_by_purchase_team.append({
+                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                    "name": file_doc.name,
+                    "file_name": file_doc.file_name
+                })
+            else:
+                intermediate_bank_proofs_by_purchase_team.append({
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                })
+        payment_details["intermediate_bank_proofs_by_purchase_team"] = intermediate_bank_proofs_by_purchase_team
+
 
         if ven_onb_doc.form_fully_submitted_by_vendor==1 and ven_onb_doc.onboarding_form_status == "Pending" and ven_onb_doc.purchase_team_undertaking == 0:
             payment_details["bank_proof_upload_status"] = 1
@@ -706,7 +761,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         #         "purchase_head_undertaking", "accounts_team_undertaking", "accounts_head_undertaking"]
 
         check_box_fields = ["mandatory_data_filled", "register_by_account_team", "form_fully_submitted_by_vendor", "purchase_team_undertaking",
-                            "purchase_head_undertaking", "accounts_team_undertaking", "accounts_head_undertaking", "is_amendment"]
+                            "purchase_head_undertaking", "accounts_team_undertaking", "accounts_head_undertaking", "is_amendment","re_release"]
 
         validation_check = {field: vonb.get(field) for field in check_box_fields}
 
