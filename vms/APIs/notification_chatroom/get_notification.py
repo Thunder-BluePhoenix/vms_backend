@@ -452,3 +452,96 @@ def get_notification_detail(notification_name):
                 'message': _('An internal error occurred while fetching notification details')
             }
         }
+    
+
+
+
+@frappe.whitelist()
+def mark_all_notifications_read():
+    """
+    Mark all notifications as read for the current user
+    
+    Returns:
+        dict: {
+            'success': boolean,
+            'message': success message,
+            'data': {
+                'updated_count': number of notifications marked as read
+            },
+            'error': error details if any
+        }
+    """
+    try:
+        current_user = frappe.session.user
+        
+        if not current_user:
+            frappe.throw(_("User session not found"))
+        
+        # Get count of unread notifications before updating
+        unread_count = frappe.db.count("Notification Log", {
+            "for_user": current_user,
+            "read": 0
+        })
+        
+        if unread_count == 0:
+            return {
+                'success': True,
+                'message': _('No unread notifications found'),
+                'data': {
+                    'updated_count': 0,
+                    'total_notifications': frappe.db.count("Notification Log", {"for_user": current_user})
+                }
+            }
+        
+        # Update all unread notifications for current user
+        frappe.db.sql("""
+            UPDATE `tabNotification Log` 
+            SET `read` = 1 
+            WHERE for_user = %s AND `read` = 0
+        """, (current_user,))
+        
+        # Commit the transaction
+        frappe.db.commit()
+        
+        # Get total count after update
+        total_count = frappe.db.count("Notification Log", {"for_user": current_user})
+        
+        return {
+            'success': True,
+            'message': _('All notifications marked as read successfully'),
+            'data': {
+                'updated_count': unread_count,
+                'total_notifications': total_count
+            }
+        }
+        
+    except frappe.PermissionError:
+        frappe.local.response['http_status_code'] = 403
+        return {
+            'success': False,
+            'error': {
+                'code': 'PERMISSION_DENIED',
+                'message': _('You do not have permission to update notifications')
+            }
+        }
+        
+    except frappe.ValidationError as e:
+        frappe.local.response['http_status_code'] = 400
+        return {
+            'success': False,
+            'error': {
+                'code': 'VALIDATION_ERROR',
+                'message': str(e)
+            }
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in mark_all_notifications_read API: {str(e)}")
+        frappe.local.response['http_status_code'] = 500
+        return {
+            'success': False,
+            'error': {
+                'code': 'INTERNAL_ERROR',
+                'message': _('An internal error occurred while updating notifications')
+            }
+        }
