@@ -230,18 +230,18 @@ def full_data_dispatch_item(name):
                     if hasattr(vehicle_doc, 'items') and vehicle_doc.items:
                         vehicle_data["items"] = [item.as_dict() for item in vehicle_doc.items]
 
-                    row_data["vehicle_details"] = vehicle_data
+                    row_data = vehicle_data
 
                 except Exception as ve:
                     frappe.log_error(
                         f"Error fetching vehicle {row.get('vehicle')}: {str(ve)}",
                         "Vehicle Fetch Error"
                     )
-                    row_data["vehicle_details"] = {
+                    row_data = {
                         "error": f"Could not fetch vehicle details for {row.get('vehicle')}"
                     }
             else:
-                row_data["vehicle_details"] = None
+                row_data = None
 
             data["vehicle_details"].append(row_data)
 
