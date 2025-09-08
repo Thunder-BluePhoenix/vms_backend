@@ -2682,6 +2682,7 @@ def send_failure_notification(onb_name, failure_type, error_details):
                         # recipient["email"], 
                         "rishi.hingad@merillife.com",
                         "thunder00799@gmail.com"],
+                    cc = [registered_by],
                     subject=subject,
                     message=message,
                     now=True
