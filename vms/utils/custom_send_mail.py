@@ -16,7 +16,7 @@ from vms.utils.notification import create_notification_log
 def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=None, attachments=None, **kwargs):
    
    
-    create_notification_log(recipients=None, subject=None, message=None, **kwargs)
+    create_notification_log(recipients= recipients, subject=subject, message=message, **kwargs)
     if not cc and not bcc and not attachments:
         
         try:

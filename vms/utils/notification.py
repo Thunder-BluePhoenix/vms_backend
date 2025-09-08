@@ -14,11 +14,11 @@ def create_notification_log(recipients=None, subject=None, message=None, **kwarg
     Returns:
         list: List of created notification log documents
     """
-    if not recipients:
-        frappe.throw("Recipients parameter is required")
+    # if not recipients:
+    #     frappe.throw("Recipients parameter is required")
     
-    if not subject:
-        frappe.throw("Subject parameter is required")
+    # if not subject:
+    #     frappe.throw("Subject parameter is required")
     
     # Ensure recipients is a list
     if isinstance(recipients, str):
