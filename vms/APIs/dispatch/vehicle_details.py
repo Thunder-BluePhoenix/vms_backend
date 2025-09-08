@@ -488,3 +488,84 @@ def get_plant_master_list(search_term=None, page=1, page_size=50):
             "has_next": False,
             "has_prev": False
         }
+
+
+
+@frappe.whitelist(allow_guest=True)
+def remove_vehicle_from_dispatch(dispatch_item_id, vehicle_details_id):
+    try:
+        if not dispatch_item_id or not vehicle_details_id:
+            return {
+                "status": "error",
+                "message": "Both dispatch_item_id and vehicle_details_id are required"
+            }
+    
+        if not frappe.db.exists("Dispatch Item", dispatch_item_id):
+            return {
+                "status": "error",
+                "message": f"Dispatch Item '{dispatch_item_id}' does not exist"
+            }
+        
+        
+        if not frappe.db.exists("Vehicle Details", vehicle_details_id):
+            return {
+                "status": "error",
+                "message": f"Vehicle Details '{vehicle_details_id}' does not exist"
+            }
+        
+       
+        dispatch_doc = frappe.get_doc("Dispatch Item", dispatch_item_id)
+        
+      
+        vehicle_removed = False
+        rows_to_remove = []
+        
+        for idx, row in enumerate(dispatch_doc.vehicle_details_item):
+            if row.vehicle_details == vehicle_details_id:
+                rows_to_remove.append(idx)
+                vehicle_removed = True
+        
+        if not vehicle_removed:
+            return {
+                "status": "error",
+                "message": f"Vehicle '{vehicle_details_id}' is not linked to Dispatch Item '{dispatch_item_id}'"
+            }
+        
+        for idx in reversed(rows_to_remove):
+            dispatch_doc.vehicle_details_item.pop(idx)
+        
+        
+        dispatch_doc.save()
+        
+        
+        delete_vehicle_document(vehicle_details_id)
+        
+       
+        frappe.db.commit()
+        
+        return {
+            "status": "success",
+            "message": f"Vehicle '{vehicle_details_id}' successfully removed from Dispatch Item '{dispatch_item_id}' and deleted",
+            "removed_count": len(rows_to_remove)
+        }
+        
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "Remove Vehicle from Dispatch Error")
+        return {
+            "status": "error",
+            "message": "Failed to remove vehicle from dispatch item",
+            "error": str(e)
+        }
+
+def delete_vehicle_document(vehicle_details_id):
+    try:
+       
+        vehicle_doc = frappe.get_doc("Vehicle Details", vehicle_details_id)
+        
+        
+        frappe.delete_doc("Vehicle Details", vehicle_details_id, force=True)
+        
+    except Exception as e:
+        frappe.log_error(f"Error deleting vehicle document {vehicle_details_id}: {str(e)}", "Vehicle Deletion Error")
+        raise e
