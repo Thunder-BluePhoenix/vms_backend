@@ -3449,6 +3449,7 @@ def send_vendor_to_sap_via_front(doc_name):
         sap_result = erp_to_sap_vendor_data(doc.name)
         
         print(f"📊 SAP function result: {sap_result}")
+        doc.save()
         
         # Handle the response from SAP function
         if isinstance(sap_result, dict):
