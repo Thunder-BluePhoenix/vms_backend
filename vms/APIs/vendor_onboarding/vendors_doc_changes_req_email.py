@@ -200,7 +200,7 @@ def email_to_change_pur_detail(ven_onb=None, ref_no=None, remarks=None):
             frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
-                "message": "Please provide vendor name, remarks or vendor onboarding ID."
+                "message": "Please provide refno, remarks or vendor onboarding ID."
             }
         
         vendor_name = frappe.db.get_value("Vendor Master", ref_no, "vendor_name")

@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils import now_datetime
 from frappe.utils import today, get_first_day, get_last_day
 
 
@@ -284,7 +285,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
                 vo.payee_in_document, vo.check_double_invoice, vo.gr_based_inv_ver, vo.service_based_inv_ver, vo.qms_form_filled, vo.sent_qms_form_link,
                 vo.registered_by, vo.register_by_account_team, vo.vendor_country, vo.rejected_by, vo.rejected_by_designation, vo.reason_for_rejection, 
-                vo.sap_error_mail_sent,
+                vo.sap_error_mail_sent, vo.approvals_mail_sent_time,
                 
                 
                 registered_user.full_name as registered_by_full_name,
@@ -348,6 +349,20 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
                     doc['rejected_by_full_name'] = user_info.get('full_name') or user_info.get('first_name') or doc['rejected_by']
                 else:
                     doc['rejected_by_full_name'] = doc['rejected_by']
+
+            if doc.get("approvals_mail_sent_time"):
+                now = now_datetime()
+                diff = now - doc.approvals_mail_sent_time
+
+                days = diff.days
+                seconds = diff.seconds
+                hours = seconds // 3600
+                minutes = (seconds % 3600) // 60
+                # secs = seconds % 60
+
+                doc["time_diff"] = f"{days}d {hours}h {minutes}m"
+            else:
+                doc["time_diff"] = None
 
         return {
             "status": "success",
