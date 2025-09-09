@@ -1,4 +1,4 @@
-# vms/chat_vms/maintenance.py
+# vms/APIs/notification_chatroom/chat_apis/maintenance.py
 import frappe
 from frappe.utils import now_datetime, add_days, get_datetime
 import os
@@ -122,6 +122,46 @@ def cleanup_deleted_files():
             
     except Exception as e:
         frappe.log_error(f"Error in cleanup_deleted_files: {str(e)}")
+
+def update_user_online_status():
+    """Update user online status based on last activity"""
+    try:
+        # Mark users as offline if they haven't been active in the last 5 minutes
+        offline_threshold = frappe.utils.add_to_date(now_datetime(), minutes=-5)
+        
+        # This is a simple implementation - in production you might want more sophisticated tracking
+        frappe.db.sql("""
+            UPDATE `tabUser` 
+            SET custom_chat_status = 'offline'
+            WHERE last_active < %s AND custom_chat_status != 'offline'
+        """, [offline_threshold])
+        
+        frappe.db.commit()
+        
+    except Exception as e:
+        frappe.log_error(f"Error updating user online status: {str(e)}")
+
+def update_user_chat_permissions(doc, method=None):
+    """Update chat permissions when user is updated"""
+    try:
+        if not doc.enabled:
+            # Remove user from all chat rooms if disabled
+            frappe.db.sql("""
+                DELETE FROM `tabChat Room Member` 
+                WHERE user = %s
+            """, [doc.name])
+            
+            # Mark their messages as deleted
+            frappe.db.sql("""
+                UPDATE `tabChat Message`
+                SET is_deleted = 1, delete_timestamp = %s, message_content = 'User account disabled'
+                WHERE sender = %s AND is_deleted = 0
+            """, [now_datetime(), doc.name])
+            
+            frappe.db.commit()
+            
+    except Exception as e:
+        frappe.log_error(f"Error updating user chat permissions: {str(e)}")
 
 @frappe.whitelist()
 def manual_cleanup_room(room_id, days_old=30):
@@ -290,3 +330,243 @@ def get_room_storage_usage(room_id):
                 "message": str(e)
             }
         }
+
+@frappe.whitelist()
+def get_chat_system_stats():
+    """
+    Get overall chat system statistics
+    
+    Returns:
+        dict: System statistics
+    """
+    try:
+        current_user = frappe.session.user
+        
+        # Only allow System Manager to view system stats
+        if not frappe.has_permission("Chat Room", "report"):
+            frappe.throw("You don't have permission to view system statistics")
+        
+        # Get overall statistics
+        stats = frappe.db.sql("""
+            SELECT 
+                (SELECT COUNT(*) FROM `tabChat Room` WHERE room_status = 'Active') as active_rooms,
+                (SELECT COUNT(*) FROM `tabChat Message` WHERE is_deleted = 0) as total_messages,
+                (SELECT COUNT(DISTINCT sender) FROM `tabChat Message` WHERE is_deleted = 0) as active_users,
+                (SELECT COUNT(*) FROM `tabChat Message Attachment`) as total_files,
+                (SELECT SUM(COALESCE(file_size, 0)) FROM `tabChat Message Attachment`) as total_storage
+        """, as_dict=True)[0]
+        
+        # Get messages by day for the last 30 days
+        daily_stats = frappe.db.sql("""
+            SELECT 
+                DATE(timestamp) as date,
+                COUNT(*) as message_count
+            FROM `tabChat Message`
+            WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                AND is_deleted = 0
+            GROUP BY DATE(timestamp)
+            ORDER BY date DESC
+        """, as_dict=True)
+        
+        # Get room type distribution
+        room_types = frappe.db.sql("""
+            SELECT 
+                room_type,
+                COUNT(*) as count
+            FROM `tabChat Room`
+            WHERE room_status = 'Active'
+            GROUP BY room_type
+        """, as_dict=True)
+        
+        # Format file size
+        def format_file_size(size_bytes):
+            if not size_bytes:
+                return "0 B"
+            size_bytes = int(size_bytes)
+            if size_bytes == 0:
+                return "0 B"
+            size_name = ["B", "KB", "MB", "GB", "TB"]
+            i = 0
+            while size_bytes >= 1024 and i < len(size_name) - 1:
+                size_bytes /= 1024.0
+                i += 1
+            return f"{size_bytes:.1f} {size_name[i]}"
+        
+        return {
+            "success": True,
+            "data": {
+                "overview": {
+                    "active_rooms": stats.active_rooms,
+                    "total_messages": stats.total_messages,
+                    "active_users": stats.active_users,
+                    "total_files": stats.total_files,
+                    "total_storage": stats.total_storage,
+                    "total_storage_formatted": format_file_size(stats.total_storage)
+                },
+                "daily_activity": daily_stats,
+                "room_distribution": room_types
+            }
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_chat_system_stats: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": str(e)
+            }
+        }
+
+@frappe.whitelist()
+def optimize_chat_database():
+    """
+    Optimize chat database tables for better performance
+    
+    Returns:
+        dict: Optimization results
+    """
+    try:
+        current_user = frappe.session.user
+        
+        # Only allow System Manager to optimize
+        if not frappe.has_permission("Chat Room", "report"):
+            frappe.throw("You don't have permission to optimize database")
+        
+        optimization_results = []
+        
+        # Optimize Chat Room table
+        try:
+            frappe.db.sql("OPTIMIZE TABLE `tabChat Room`")
+            optimization_results.append("Chat Room table optimized")
+        except Exception as e:
+            optimization_results.append(f"Chat Room optimization failed: {str(e)}")
+        
+        # Optimize Chat Message table
+        try:
+            frappe.db.sql("OPTIMIZE TABLE `tabChat Message`")
+            optimization_results.append("Chat Message table optimized")
+        except Exception as e:
+            optimization_results.append(f"Chat Message optimization failed: {str(e)}")
+        
+        # Optimize Chat Room Member table
+        try:
+            frappe.db.sql("OPTIMIZE TABLE `tabChat Room Member`")
+            optimization_results.append("Chat Room Member table optimized")
+        except Exception as e:
+            optimization_results.append(f"Chat Room Member optimization failed: {str(e)}")
+        
+        # Add indexes if they don't exist
+        try:
+            # Index for chat room and timestamp
+            frappe.db.sql("""
+                ALTER TABLE `tabChat Message` 
+                ADD INDEX IF NOT EXISTS idx_chat_room_timestamp (chat_room, timestamp)
+            """)
+            optimization_results.append("Added chat_room_timestamp index")
+        except Exception as e:
+            optimization_results.append(f"Index creation failed: {str(e)}")
+        
+        try:
+            # Index for sender and timestamp
+            frappe.db.sql("""
+                ALTER TABLE `tabChat Message` 
+                ADD INDEX IF NOT EXISTS idx_sender_timestamp (sender, timestamp)
+            """)
+            optimization_results.append("Added sender_timestamp index")
+        except Exception as e:
+            optimization_results.append(f"Sender index creation failed: {str(e)}")
+        
+        try:
+            # Index for user and parent in Chat Room Member
+            frappe.db.sql("""
+                ALTER TABLE `tabChat Room Member` 
+                ADD INDEX IF NOT EXISTS idx_user_parent (user, parent)
+            """)
+            optimization_results.append("Added user_parent index")
+        except Exception as e:
+            optimization_results.append(f"Member index creation failed: {str(e)}")
+        
+        frappe.db.commit()
+        
+        return {
+            "success": True,
+            "data": {
+                "optimization_results": optimization_results
+            },
+            "message": "Database optimization completed"
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in optimize_chat_database: {str(e)}")
+        return {
+            "success": False,
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": str(e)
+            }
+        }
+
+def validate_chat_permissions(room_id, user=None):
+    """Validate user permissions for a chat room"""
+    try:
+        if not user:
+            user = frappe.session.user
+            
+        # Check if user is member of the room
+        is_member = frappe.db.exists(
+            "Chat Room Member",
+            {"parent": room_id, "user": user}
+        )
+        
+        if not is_member:
+            frappe.throw("You are not a member of this chat room")
+            
+        # Check if user is muted
+        member_info = frappe.db.get_value(
+            "Chat Room Member",
+            {"parent": room_id, "user": user},
+            ["is_muted", "role"],
+            as_dict=True
+        )
+        
+        if member_info and member_info.is_muted:
+            frappe.throw("You are muted in this chat room")
+            
+        return {
+            "is_member": True,
+            "is_muted": member_info.is_muted if member_info else False,
+            "role": member_info.role if member_info else "Member"
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error validating chat permissions: {str(e)}")
+        frappe.throw("Permission validation failed")
+
+def moderate_message_content(content):
+    """Basic content moderation for chat messages"""
+    try:
+        if not content:
+            return True
+            
+        # Basic profanity filter (you can enhance this)
+        inappropriate_words = [
+            # Add your list of inappropriate words
+            'spam', 'scam'  # Example words
+        ]
+        
+        content_lower = content.lower()
+        for word in inappropriate_words:
+            if word in content_lower:
+                frappe.log_error(f"Inappropriate content detected: {word}", "Chat Moderation")
+                return False
+                
+        # Check message length
+        if len(content) > 4000:
+            return False
+            
+        return True
+        
+    except Exception as e:
+        frappe.log_error(f"Error in content moderation: {str(e)}")
+        return True  # Allow message if moderation fails
