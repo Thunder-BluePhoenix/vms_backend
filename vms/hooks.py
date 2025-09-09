@@ -31,9 +31,10 @@ app_include_css = [
 # app_include_js = "/assets/vms/js/vms.js"
 app_include_js = [
     "assets/vms/js/earth_invoice_list.js" ,
-    "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js",
-    "assets/vms/js/chat_integrationn.js",
-    "assets/vms/js/chat_realtimee.js" 
+    # "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js",
+    # "assets/vms/js/chat_integratioonn.js",
+    # "assets/vms/js/chat_realtimee.js" 
+    "assets/vms/js/nav_chat18.js" 
 ]
 
 # include js, css files in header of web template
@@ -168,14 +169,14 @@ fixtures = [
 
 permission_query_conditions = {
     "Earth Invoice": "vms.vms.doctype.earth_invoice.earth_invoice.get_permission_query_conditions",
-    "Chat Room": "vms.chat_vms.doctype.chat_room.chat_room.get_permission_query_conditions",
-    "Chat Message": "vms.chat_vms.doctype.chat_message.chat_message.get_permission_query_conditions"
+    # "Chat Room": "vms.chat_vms.doctype.chat_room.chat_room.get_permission_query_conditions",
+    # "Chat Message": "vms.chat_vms.doctype.chat_message.chat_message.get_permission_query_conditions"
 }
 
 has_permission = {
     "Earth Invoice": "vms.vms.doctype.earth_invoice.earth_invoice.has_permission",
-    "Chat Room": "vms.chat_vms.doctype.chat_room.chat_room.has_permission",
-    "Chat Message": "vms.chat_vms.doctype.chat_message.chat_message.has_permission"
+    # "Chat Room": "vms.chat_vms.doctype.chat_room.chat_room.has_permission",
+    # "Chat Message": "vms.chat_vms.doctype.chat_message.chat_message.has_permission"
 }
 
 
@@ -192,15 +193,15 @@ doc_events = {
     "Chat Room": {
         "after_insert": "vms.chat_vms.doctype.chat_room.chat_room.after_insert_hook",
         "on_update": "vms.chat_vms.doctype.chat_room.chat_room.on_update_hook",
-        "validate": "vms.chat_vms.doctype.chat_room.chat_room.validate",
-        "before_save": "vms.chat_vms.doctype.chat_room.chat_room.before_save",
-        "on_trash": "vms.chat_vms.doctype.chat_room.chat_room.on_trash"
+        # "validate": "vms.chat_vms.doctype.chat_room.chat_room.validate",
+        # "before_save": "vms.chat_vms.doctype.chat_room.chat_room.before_save",
+        # "on_trash": "vms.chat_vms.doctype.chat_room.chat_room.on_trash"
     },
     "Chat Message": {
         "after_insert": "vms.chat_vms.doctype.chat_message.chat_message.after_insert_hook",
         "before_save": "vms.chat_vms.doctype.chat_message.chat_message.before_save_hook",
-        "validate": "vms.chat_vms.doctype.chat_message.chat_message.validate",
-        "on_trash": "vms.chat_vms.doctype.chat_message.chat_message.on_trash"
+        # "validate": "vms.chat_vms.doctype.chat_message.chat_message.validate",
+        # "on_trash": "vms.chat_vms.doctype.chat_message.chat_message.on_trash"
     },
     "User": {
         "on_update": "vms.chat_vms.maintenance.update_user_chat_permissions"

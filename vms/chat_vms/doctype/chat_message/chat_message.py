@@ -383,44 +383,44 @@ class ChatMessage(Document):
             )
         """
 
-    @staticmethod
-    def has_permission(doc, ptype, user=None):
+    def has_permission(self, ptype, user=None):
         """Check if user has permission for this chat message"""
         if not user:
             user = frappe.session.user
-            
+
         if user == "Administrator":
             return True
-            
+
         # Check if user is a member of the room
-        if doc.get("chat_room"):
+        if self.chat_room:
             is_member = frappe.db.exists(
                 "Chat Room Member",
-                {"parent": doc.chat_room, "user": user}
+                {"parent": self.chat_room, "user": user}
             )
-            
+
             if not is_member:
                 return False
-                
+
             # For edit/delete, check if user is sender or admin
             if ptype in ["write", "delete"]:
-                if doc.get("sender") == user:
+                if self.sender == user:
                     return True
-                    
+
                 # Check if user is admin in the room
                 member_role = frappe.db.get_value(
                     "Chat Room Member",
-                    {"parent": doc.chat_room, "user": user},
+                    {"parent": self.chat_room, "user": user},
                     "is_admin"
                 )
                 return bool(member_role)
-            
+
+            # For read → any room member can read
             return True
-        
-        # For new messages, allow creation if user is room member
+
+        # For new messages, allow creation (Frappe will check again on insert)
         if ptype == "create":
             return True
-            
+
         return False
 
 
@@ -650,3 +650,39 @@ def handle_typing_indicator(data, is_typing):
             
     except Exception as e:
         frappe.log_error(f"Error in handle_typing_indicator: {str(e)}")
+
+
+
+
+
+def after_insert_hook(self, method=None):
+    """Hook method called after message is inserted"""
+    try:
+        # Send real-time notification
+        self.send_real_time_notification()
+        
+        # Update room's last activity
+        self.update_room_last_activity()
+        
+        # Send push notifications to offline users
+        self.send_push_notifications()
+        
+    except Exception as e:
+        frappe.log_error(f"Error in chat message after_insert_hook: {str(e)}")
+
+def before_save_hook(self, method=None):
+    """Hook method called before message is saved"""
+    try:
+        # Set timestamp if not provided
+        if not self.timestamp:
+            self.timestamp = now_datetime()
+            
+        # Validate message length
+        if self.message_content and len(self.message_content) > 4000:
+            frappe.throw("Message content cannot exceed 4000 characters")
+            
+        # Auto-detect and validate URLs in message
+        self.process_message_content()
+        
+    except Exception as e:
+        frappe.log_error(f"Error in chat message before_save_hook: {str(e)}")

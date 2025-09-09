@@ -277,25 +277,56 @@ class ChatRoom(Document):
             )
         """
 
-    @staticmethod
-    def has_permission(doc, ptype, user=None):
+    def has_permission(self, ptype, user=None):
         """Check if user has permission for this chat room"""
         if not user:
             user = frappe.session.user
-            
+
         if user == "Administrator":
             return True
-            
+
         # Check if user is a member of this room
-        if doc.get("name"):
+        if self.name:
             is_member = frappe.db.exists(
                 "Chat Room Member",
-                {"parent": doc.name, "user": user}
+                {"parent": self.name, "user": user}
             )
             return bool(is_member)
-        
+
         # For new rooms, allow creation
         if ptype == "create":
             return True
-            
+
         return False
+
+    
+
+
+def after_insert_hook(self, method=None):
+        """Hook method called after chat room is created"""
+        try:
+            # Send notification to team members if it's a team chat
+            if self.room_type == "Team Chat" and self.team_master:
+                self.notify_team_members_of_new_room()
+                
+            # Create welcome system message
+            self.create_system_message(f"Welcome to {self.room_name}! Start chatting now.")
+            
+        except Exception as e:
+            frappe.log_error(f"Error in chat room after_insert_hook: {str(e)}")
+
+def on_update_hook(self, method=None):
+    """Hook method called when chat room is updated"""
+    try:
+        # Check if room name changed
+        if self.has_value_changed("room_name"):
+            old_name = self.get_db_value("room_name")
+            if old_name and old_name != self.room_name:
+                self.create_system_message(f"Room name changed from '{old_name}' to '{self.room_name}'")
+                
+        # Check if new members were added
+        if self.has_value_changed("members"):
+            self.handle_member_changes()
+            
+    except Exception as e:
+        frappe.log_error(f"Error in chat room on_update_hook: {str(e)}")

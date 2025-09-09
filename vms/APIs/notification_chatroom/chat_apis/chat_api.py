@@ -236,7 +236,7 @@ def create_chat_room(room_name, room_type, description=None, members=None, team_
         }
 
 @frappe.whitelist()
-def get_chat_messages(room_id, page=1, page_size=50, before_timestamp=None):
+def get_chat_messages(room_id, page=1, page_size=10, before_timestamp=None):
     """
     Get messages for a chat room with pagination
     
@@ -285,7 +285,7 @@ def get_chat_messages(room_id, page=1, page_size=50, before_timestamp=None):
                 edit_timestamp
             FROM `tabChat Message`
             WHERE {where_clause}
-            ORDER BY timestamp DESC
+            ORDER BY timestamp ASC
             LIMIT %(limit)s OFFSET %(offset)s
         """
         
