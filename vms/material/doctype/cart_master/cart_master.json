@@ -12,6 +12,7 @@
   "product_price",
   "final_price_by_purchase_team",
   "uom",
+  "attachment",
   "column_break_golw",
   "lead_time",
   "product_quantity",
@@ -82,13 +83,18 @@
    "fieldname": "need_asset_code",
    "fieldtype": "Check",
    "label": "Need Asset Code"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Attachment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:36:55.093541",
+ "modified": "2025-09-09 11:38:42.309055",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Master",
