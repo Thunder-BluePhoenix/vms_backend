@@ -2010,6 +2010,7 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                                 "J1ipanno": vcd.company_pan_number if vcd else "",
                                 "J1ipanref": onb_legal_doc.name_on_company_pan if onb_legal_doc else "",
+                                "Stcd5": onb_legal_doc.udyam_number if (onb_legal_doc and onb_legal_doc.udyam_number) else "",
                                 "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                                 "Name11": safe_get(onb, "contact_details", 0, "last_name"),
                                 "Bankl": onb_bank.bank_code if onb_bank else "",
@@ -2238,6 +2239,7 @@ def erp_to_sap_vendor_data(onb_ref):
                             "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                             "J1ipanno": "",  # No PAN for international
                             "J1ipanref": "",
+                            "Stcd5": "",
                             "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                             "Name11": safe_get(onb, "contact_details", 0, "last_name"),
                             "Bankl": "N.A",  # International uses different banking fields

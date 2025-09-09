@@ -190,3 +190,82 @@ def set_approval_check(vendor_onboarding: str, action: str):
             "message": "Failed to update.",
             "error": str(e)
         }
+
+
+# send email to IT Head for change the purchasing details
+@frappe.whitelist(allow_guest=True)
+def email_to_change_pur_detail(ven_onb=None, ref_no=None, remarks=None):
+    try:
+        if not ref_no or not remarks or not ven_onb:
+            frappe.local.response["http_status_code"] = 400
+            return {
+                "status": "error",
+                "message": "Please provide vendor name, remarks or vendor onboarding ID."
+            }
+        
+        vendor_name = frappe.db.get_value("Vendor Master", ref_no, "vendor_name")
+
+        recipients = frappe.get_all(
+            "Has Role",
+            filters={"role": "IT Head"},
+            fields=["parent"]
+        )
+        
+        recipient_emails = [
+            frappe.db.get_value("User", r.parent, "email")
+            for r in recipients
+            if frappe.db.get_value("User", r.parent, "email")
+        ]
+
+        if not recipient_emails:
+            frappe.local.response["http_status_code"] = 404
+            return {
+                "status": "error",
+                "message": "No recipients found with role IT Head."
+            }
+        
+        subject = f"Change Request in Purchasing Details for Vendor Onboarding ({ven_onb})"
+        
+        message = f"""
+            <p>Dear IT Head,</p>
+            
+            <p>
+                The <b>Purchase Team</b> has requested a change in the 
+                <b>Purchasing Details</b> of the Vendor Onboarding document <b>{ven_onb}</b> 
+                for the vendor <b>{vendor_name}</b>.
+            </p>
+            
+            <p>
+                <strong>Requested Change Details:</strong><br>
+                {remarks}
+            </p>
+            
+            <p>
+                Kindly review this request at the earliest and take the necessary action.
+            </p>
+            
+            <p>Thank you,<br>VMS Team</p>
+        """
+        
+        # Send email
+        frappe.custom_sendmail(
+            recipients=recipient_emails,
+            subject=subject,
+            message=message
+        )
+
+        frappe.db.set_value("Vendor Onboarding", ven_onb, "change_pur_detail_req_mail_to_it_head", 1)
+        
+        frappe.local.response["http_status_code"] = 200
+        return {
+            "status": "success",
+            "message": f"Change request email sent to IT Head(s) for Vendor Onboarding {ven_onb}."
+        }
+    
+    except Exception as e:
+        frappe.log_error(f"Error in email_to_change_pur_detail: {str(e)}")
+        frappe.local.response["http_status_code"] = 500
+        return {
+            "status": "error",
+            "message": f"Failed to send email due to: {str(e)}"
+        }
