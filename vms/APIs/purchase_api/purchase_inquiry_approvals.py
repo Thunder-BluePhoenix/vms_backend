@@ -229,6 +229,7 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
             )
 
             frappe.set_value("Cart Details", doc.name, "mail_sent_to_second_stage_approval", 1)
+            frappe.set_value("Cart Details", doc.name, "is_requested_second_stage_approval", 1)
             frappe.db.commit()
 
             return {
@@ -249,6 +250,7 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
             "message": "Failed to send email to approver.",
             "error": str(e)
         }
+
 
 
 @frappe.whitelist(allow_guest=True)

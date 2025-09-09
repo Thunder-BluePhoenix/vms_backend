@@ -771,3 +771,33 @@ def get_purchase_type():
     except Exception as e:
         frappe.log_error(f"Error in get_purchase_type: {str(e)}")
         frappe.throw(_("An unexpected error occurred while fetching purchase requisition types"), frappe.ValidationError)
+
+
+
+@frappe.whitelist(allow_guest=True)
+def submit_purchase_inquiry(purchase_inquiry_id):
+    try:
+        if not purchase_inquiry_id:
+            return {
+                "status": "error",
+                "message": "'purchase_inquiry_id' is required."
+            }
+
+        doc = frappe.get_doc("Cart Details", purchase_inquiry_id)
+        doc.is_submited = 1
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        return {    
+            "status": "success",
+            "message": f"Cart Details '{purchase_inquiry_id}' submitted successfully."
+        }
+
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "Submit Cart Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to submit Cart Details.",
+            "error": str(e)
+        }

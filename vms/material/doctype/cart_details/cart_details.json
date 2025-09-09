@@ -50,6 +50,7 @@
   "second_stage_approved",
   "mail_sent_to_second_stage_approval",
   "is_requested_second_stage_approval",
+  "is_submited",
   "status_workflow_section",
   "enquirer_status",
   "rejection_reason",
@@ -395,12 +396,18 @@
    "fieldname": "is_requested_second_stage_approval",
    "fieldtype": "Check",
    "label": "Is Requested Second Stage Approval"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_submited",
+   "fieldtype": "Check",
+   "label": "Is Submited"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-09 15:41:27.263498",
+ "modified": "2025-09-09 17:00:42.779282",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
