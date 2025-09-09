@@ -1324,8 +1324,10 @@ def get_countries_with_ports(search_term=None, page=None, page_size=None):
         main_query = f"""
             SELECT 
                 c.name as country,
+                pm.name,
                 pm.port_code,
-                pm.port_name
+                pm.port_name,
+                pm.country
             FROM 
                 `tabCountry Master` c
             INNER JOIN 
