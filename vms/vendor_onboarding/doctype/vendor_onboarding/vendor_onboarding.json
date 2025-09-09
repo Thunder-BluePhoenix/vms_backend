@@ -752,7 +752,7 @@
   },
   {
    "fieldname": "approvals_mail_sent_time",
-   "fieldtype": "Duration",
+   "fieldtype": "Datetime",
    "label": "Approvals Mail Sent Time"
   }
  ],
