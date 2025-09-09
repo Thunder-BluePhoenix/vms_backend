@@ -848,6 +848,12 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_
                                          fields="*",
                                          order_by="modified desc")
             all_cart_details.extend(alternate_pi)
+
+        for item in all_cart_details:
+            if item['user']:
+                user = frappe.get_doc("User", item['user'])
+                item['created_by_user_name'] = user.full_name if user.full_name else user.first_name
+
         
         
         seen_names = set()
