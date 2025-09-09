@@ -512,6 +512,8 @@ def get_plants_and_purchase_group(comp):
             "company": comp,
             "plants": [],
             "purchase_groups": [],
+            "cost_centers": [],
+            "gl_accounts": [],
             "errors": []
         }
         
@@ -523,6 +525,7 @@ def get_plants_and_purchase_group(comp):
                 fields=["name", "plant_name", "description"]
             )
             response["plants"] = plants
+
             
         except frappe.PermissionError:
             frappe.log_error(f"Permission denied for Plant Master - Company: {comp}")
@@ -530,6 +533,40 @@ def get_plants_and_purchase_group(comp):
         except Exception as e:
             frappe.log_error(f"Error fetching Plant Master for company {comp}: {str(e)}")
             response["errors"].append("Error fetching Plant Master data")
+
+        try:
+            cost_centers = frappe.get_all(
+                "Cost Center",
+                filters={"company_code": comp},
+                fields=["name", "cost_center_name", "description"]
+            )
+            response["cost_centers"] = cost_centers
+
+           
+
+            
+        except frappe.PermissionError:
+            frappe.log_error(f"Permission denied for Cost Centers - Company: {comp}")
+            response["errors"].append("Permission denied for Cost Centers")
+        except Exception as e:
+            frappe.log_error(f"Error fetching Cost Centers for company {comp}: {str(e)}")
+            response["errors"].append("Error fetching Cost centers data")
+        
+        try:
+            gl_accounts = frappe.get_all(
+                "GL Account",
+                filters={"company": comp},
+                fields=["name", "gl_account_name", "description"]
+            )
+            response["gl_accounts"] = gl_accounts
+
+            
+        except frappe.PermissionError:
+            frappe.log_error(f"Permission denied for GL Accounts- Company: {comp}")
+            response["errors"].append("Permission denied for GL Accounts")
+        except Exception as e:
+            frappe.log_error(f"Error fetching GL Accounts for company {comp}: {str(e)}")
+            response["errors"].append("Error fetching GL Accounts data")
         
         # Get Purchase Group Master data
         try:
@@ -548,7 +585,7 @@ def get_plants_and_purchase_group(comp):
             response["errors"].append("Error fetching Purchase Group Master data")
         
         # Check if any data was retrieved
-        if not response["plants"] and not response["purchase_groups"] and not response["errors"]:
+        if not response["plants"] and not response["purchase_groups"] and not response["errors"] and not response["cost_centers"] and not response["gl_accounts"]:
             response["errors"].append("No plant or purchase group data found for the specified company")
         
         return response
