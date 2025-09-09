@@ -182,6 +182,7 @@ def get_full_rfq_data(unique_id):
 			"mode_of_shipment": doc.mode_of_shipment,
 			"port_of_loading": doc.port_of_loading,
 			"destination_port": doc.destination_port,
+            "export_destination_port": frappe.db.get_value("Port Master", doc.destination_port, "port_name"),
 			"ship_to_address": doc.ship_to_address,
 			"no_of_pkg_units": doc.no_of_pkg_units,
 			"vol_weight": doc.vol_weight,
