@@ -294,20 +294,19 @@ def get_chat_messages(room_id, page=1, page_size=10, before_timestamp=None):
         
         # Get attachments and reactions for each message
         for message in messages:
-            # Get attachments
+            # Attachments
             message["attachments"] = frappe.get_all(
                 "Chat Message Attachment",
                 filters={"parent": message.name},
                 fields=["file_name", "file_url", "file_type", "file_size"]
             )
-            
-            # Get reactions grouped by emoji
+
+            # Reactions
             reactions = frappe.get_all(
                 "Chat Message Reaction",
                 filters={"parent": message.name},
                 fields=["reaction_emoji", "user", "timestamp"]
             )
-            
             reaction_summary = {}
             for reaction in reactions:
                 emoji = reaction.reaction_emoji
@@ -318,15 +317,35 @@ def get_chat_messages(room_id, page=1, page_size=10, before_timestamp=None):
                     "user": reaction.user,
                     "timestamp": str(reaction.timestamp)
                 })
-                
             message["reactions"] = reaction_summary
-            
+
+            # ✅ Reply-to details
+            if message.reply_to_message:
+                reply = frappe.db.get_value(
+                    "Chat Message",
+                    message.reply_to_message,
+                    ["name", "sender", "message_content"],
+                    as_dict=True
+                )
+                if reply:
+                    sender_info = frappe.db.get_value(
+                        "User",
+                        reply.sender,
+                        ["full_name"],
+                        as_dict=True
+                    )
+                    message["reply_to_content"] = reply.message_content
+                    message["reply_to_sender"] = sender_info.full_name if sender_info else reply.sender
+                else:
+                    message["reply_to_content"] = "[Message not found]"
+                    message["reply_to_sender"] = "Unknown"
+
             # Format timestamps
             message["timestamp"] = str(message.timestamp)
             if message.edit_timestamp:
                 message["edit_timestamp"] = str(message.edit_timestamp)
-                
-            # Get sender info
+
+            # Sender info
             sender_info = frappe.db.get_value(
                 "User", 
                 message.sender, 
@@ -334,6 +353,7 @@ def get_chat_messages(room_id, page=1, page_size=10, before_timestamp=None):
                 as_dict=True
             )
             message["sender_info"] = sender_info or {"full_name": message.sender}
+
         
         # Update user's last read timestamp
         room.update_last_read(current_user)
@@ -364,7 +384,7 @@ def get_chat_messages(room_id, page=1, page_size=10, before_timestamp=None):
         }
         
     except Exception as e:
-        frappe.log_error(f"Error in get_chat_messages: {str(e)}")
+        # frappe.log_error(f"Error in get_chat_messages: {str(e)}")
         return {
             "success": False,
             "error": {

@@ -117,7 +117,8 @@ function add_enhanced_chat_icon_to_navbar() {
                         </div>
                         
                         <!-- Create Room Button -->
-                        <div style="padding: 15px;">
+                        <!-- Sticky Create Room Button -->
+                        <div class="enhanced-create-room-container">
                             <button class="create-room-btn-enhanced" onclick="show_create_room_modal()">
                                 <i class="fa fa-plus" style="margin-right: 8px;"></i>
                                 Create New Room
@@ -731,6 +732,17 @@ function add_enhanced_chat_styles() {
             text-align: center;
             color: #6c757d;
         }
+
+        /* Sticky create room button */
+        .enhanced-create-room-container {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 12px 15px;
+            border-top: 1px solid #e9ecef;
+            z-index: 5;
+        }
+
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -753,41 +765,52 @@ function add_enhanced_chat_styles() {
 }
 
 function add_enhanced_event_listeners() {
-    // Chat icon click handler
     const chatIcon = document.querySelector('#enhanced-chat-icon');
-    if (chatIcon) {
+    const dropdown = document.querySelector('#enhanced-chat-dropdown');
+
+    // Chat icon click handler (manual toggle)
+    if (chatIcon && dropdown) {
         chatIcon.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             console.log("💬 Enhanced chat icon clicked");
+
             isDropdownOpen = !isDropdownOpen;
-            
             if (isDropdownOpen) {
+                dropdown.classList.add('show');
                 load_enhanced_chat_rooms_stable();
                 request_notification_permission();
+            } else {
+                dropdown.classList.remove('show');
             }
         });
     }
-    
+
     // Prevent dropdown from closing on internal clicks
+    if (dropdown) {
+        dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    // Close when clicking outside (not on chat icon or dropdown)
     document.addEventListener('click', function(e) {
-        const dropdown = document.querySelector('#enhanced-chat-dropdown');
-        const chatIcon = document.querySelector('#enhanced-chat-icon');
-        
         if (dropdown && isDropdownOpen) {
-            // Only close if clicked outside dropdown and not on chat icon
             if (!dropdown.contains(e.target) && !chatIcon.contains(e.target)) {
                 isDropdownOpen = false;
                 dropdown.classList.remove('show');
             }
         }
     });
-    
-    // Prevent dropdown close on internal operations
-    const dropdown = document.querySelector('#enhanced-chat-dropdown');
-    if (dropdown) {
-        dropdown.addEventListener('click', function(e) {
+
+    // Optional: close button inside dropdown (if you add it in header)
+    const closeBtn = document.querySelector('#close-chat-dropdown');
+    if (closeBtn && dropdown) {
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             e.stopPropagation();
+            isDropdownOpen = false;
+            dropdown.classList.remove('show');
         });
     }
 }
@@ -806,20 +829,23 @@ function init_enhanced_chat_functionality() {
     chatPollInterval = setInterval(() => {
         check_for_new_messages_enhanced();
         
-        // Only refresh rooms if dropdown is open and in rooms view (stable refresh)
         if (isDropdownOpen && !isLoading) {
             const roomsView = document.querySelector('#enhanced-rooms-view');
             const messagingView = document.querySelector('#enhanced-messaging-view');
             
-            if (roomsView && roomsView.style.display !== 'none' && 
-                (!messagingView || messagingView.style.display === 'none')) {
+            if (roomsView && roomsView.style.display !== 'none') {
+                // Refresh rooms if in rooms view
                 load_enhanced_chat_rooms_stable();
+            } else if (messagingView && messagingView.style.display !== 'none' && currentOpenRoom) {
+                // Refresh messages if in chat view
+                load_enhanced_room_messages(currentOpenRoom);
             }
         }
     }, 1000);
     
     console.log("✅ Enhanced chat functionality initialized with stable 1-second polling");
 }
+
 
 function check_for_new_messages_enhanced() {
     frappe.call({
@@ -1013,6 +1039,13 @@ function show_create_room_modal() {
                         <label class="form-label-enhanced">Max Members</label>
                         <input type="number" class="form-control-enhanced" id="max-members-input" placeholder="50" min="2" max="500" value="50">
                     </div>
+                    <div class="form-group-enhanced">
+                        <label class="form-label-enhanced">Add Members</label>
+                        <input type="text" class="form-control-enhanced" 
+                            id="room-members-input-enhanced" 
+                            placeholder="Enter user IDs separated by commas">
+                        <small style="color:#6c757d; font-size:12px;">You will be added as Admin automatically</small>
+                    </div>
                 </div>
                 <div class="modal-footer-enhanced">
                     <button class="btn-secondary-enhanced" onclick="close_create_room_modal()">Cancel</button>
@@ -1046,7 +1079,7 @@ function create_enhanced_room() {
     const isPrivate = document.getElementById('room-private-checkbox-enhanced').checked;
     const allowFileSharing = document.getElementById('allow-file-sharing-checkbox').checked;
     const maxMembers = parseInt(document.getElementById('max-members-input').value) || 50;
-    
+
     if (!roomName) {
         frappe.show_alert({
             message: 'Please enter a room name',
@@ -1054,16 +1087,26 @@ function create_enhanced_room() {
         });
         return;
     }
-    
-    // Disable create button
+
     const createBtn = document.getElementById('create-room-btn-modal');
     createBtn.disabled = true;
     createBtn.textContent = 'Creating...';
-    
-    // Prepare member data - creator will be admin
+
+    // ✅ Parse members
+    const membersInput = document.getElementById('room-members-input-enhanced');
+    let members = [];
+    if (membersInput && membersInput.value) {
+        members = membersInput.value.split(',')
+            .map(m => m.trim())
+            .filter(m => m.length > 0);
+    }
+
+    // Always include creator as Admin
     const currentUser = frappe.session.user;
-    const members = [currentUser]; // Creator as first member
-    
+    if (!members.includes(currentUser)) {
+        members.unshift(currentUser);
+    }
+
     frappe.call({
         method: "vms.create_chat_room",
         args: {
@@ -1073,20 +1116,18 @@ function create_enhanced_room() {
             is_private: isPrivate ? 1 : 0,
             allow_file_sharing: allowFileSharing ? 1 : 0,
             max_members: maxMembers,
-            members: members // Pass members array
+            members: JSON.stringify(members)   // ✅ now includes extra users
         },
         callback: function(response) {
             if (response.message && response.message.success) {
                 close_create_room_modal();
-                // Reset cache to force refresh
                 lastRoomsData = null;
                 load_enhanced_chat_rooms_stable();
                 frappe.show_alert({
-                    message: `Room "${roomName}" created successfully! You are the admin.`,
+                    message: `Room "${roomName}" created successfully!`,
                     indicator: 'green'
                 });
-                
-                // Open the newly created room
+
                 const roomId = response.message.data.room_id;
                 setTimeout(() => {
                     open_enhanced_room(roomId, roomName, roomType);
@@ -1100,7 +1141,7 @@ function create_enhanced_room() {
                 createBtn.textContent = 'Create Room';
             }
         },
-        error: function(error) {
+        error: function() {
             frappe.show_alert({
                 message: 'Unable to create room. Please try again.',
                 indicator: 'red'
@@ -1110,6 +1151,7 @@ function create_enhanced_room() {
         }
     });
 }
+
 
 // Messaging functions
 function open_enhanced_room(roomId, roomName, roomType) {
@@ -1165,36 +1207,71 @@ function back_to_rooms_list() {
     isDropdownOpen = true;
 }
 
+let lastMessagesData = null;
+
 function load_enhanced_room_messages(roomId) {
     const messagesContainer = document.querySelector('#enhanced-messages-container');
-    if (!messagesContainer) return;
-    
-    messagesContainer.innerHTML = `
-        <div class="loading-state-enhanced">
-            <div class="spinner-enhanced"></div>
-            <div style="margin-top: 8px;">Loading messages...</div>
-        </div>
-    `;
-    
+    if (!messagesContainer || isLoading) return;
+
+    isLoading = true;
+
+    // Only show spinner on first load
+    if (!lastMessagesData) {
+        messagesContainer.innerHTML = `
+            <div class="loading-state-enhanced">
+                <div class="spinner-enhanced"></div>
+                <div style="margin-top: 8px;">Loading messages...</div>
+            </div>
+        `;
+    }
+
     frappe.call({
         method: "vms.get_chat_messages",
         args: { room_id: roomId, page: 1, page_size: 50 },
         callback: function(response) {
+            isLoading = false;
             if (response.message && response.message.success) {
                 const messages = response.message.data.messages || [];
-                display_enhanced_messages(messages);
-                // Auto-scroll to bottom
-                scroll_to_bottom_enhanced();
+
+                // Compare JSON data
+                const messagesJSON = JSON.stringify(messages);
+                if (messagesJSON !== lastMessagesData) {
+                    lastMessagesData = messagesJSON;
+
+                    // Save scroll position
+                    const isAtBottom = Math.abs(messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight) < 5;
+
+                    display_enhanced_messages(messages);
+
+                    // Restore scroll (if user at bottom → auto-scroll, otherwise don’t disturb)
+                    if (isAtBottom) {
+                        scroll_to_bottom_enhanced();
+                    }
+                }
             } else {
+                if (!lastMessagesData) {
+                    messagesContainer.innerHTML = `
+                        <div class="empty-state-enhanced">
+                            <div style="color: #dc3545;">❌ Failed to load messages</div>
+                        </div>
+                    `;
+                }
+            }
+        },
+        error: function() {
+            isLoading = false;
+            console.error("Error loading messages");
+            if (!lastMessagesData) {
                 messagesContainer.innerHTML = `
                     <div class="empty-state-enhanced">
-                        <div style="color: #dc3545;">❌ Failed to load messages</div>
+                        <div style="color: #dc3545;">❌ Unable to connect to chat service</div>
                     </div>
                 `;
             }
         }
     });
 }
+
 
 function display_enhanced_messages(messages) {
     const messagesContainer = document.querySelector('#enhanced-messages-container');
@@ -1220,21 +1297,21 @@ function display_enhanced_messages(messages) {
         const time = format_message_time_enhanced(message.timestamp);
         const canEdit = isOwn && !message.is_deleted;
         const canDelete = isOwn && !message.is_deleted;
-        
-        // Escape quotes properly
+
         const escapedContent = (message.message_content || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
-        const escapedSender = (message.sender_name || message.sender).replace(/'/g, "\\'").replace(/"/g, '\\"');
+        const escapedSender = (message.sender_info?.full_name || message.sender).replace(/'/g, "\\'").replace(/"/g, '\\"');
         
         messagesHTML += `
             <div class="message-bubble-enhanced ${messageClass}" data-message-id="${message.name}">
-                ${!isOwn ? `<div class="message-sender-enhanced">${message.sender_name || message.sender}</div>` : ''}
+                ${!isOwn ? `<div class="message-sender-enhanced">${message.sender_info?.full_name || message.sender}</div>` : ''}
                 
                 ${message.reply_to_message ? `
                     <div class="reply-preview-enhanced" style="margin-bottom: 8px;">
-                        <div style="font-size: 11px; font-weight: 600; margin-bottom: 2px;">↪ Reply</div>
-                        <div style="font-size: 12px; opacity: 0.8;">Previous message</div>
+                        <div style="font-size: 11px; font-weight: 600; margin-bottom: 2px;">↪ Reply to ${message.reply_to_sender || 'User'}</div>
+                        <div style="font-size: 12px; opacity: 0.8;">${message.reply_to_content || ''}</div>
                     </div>
                 ` : ''}
+
                 
                 <div class="message-content-enhanced">${message.is_deleted ? '<em>This message was deleted</em>' : (message.message_content || '')}</div>
                 
@@ -1247,24 +1324,15 @@ function display_enhanced_messages(messages) {
                     <div class="message-actions-enhanced">
                         <button class="message-action-btn-enhanced" 
                             onclick="event.stopPropagation(); reply_to_message_enhanced('${message.name}', '${escapedContent.substring(0, 50)}', '${escapedSender}')" 
-                            title="Reply">
-                            ↩
-                        </button>
+                            title="Reply">↩</button>
                         ${canEdit ? `
                             <button class="message-action-btn-enhanced" 
                                 onclick="event.stopPropagation(); edit_message_enhanced('${message.name}', '${escapedContent}')" 
-                                title="Edit">
-                                ✏
-                            </button>
-                        ` : ''}
+                                title="Edit">✏</button>` : ''}
                         ${canDelete ? `
                             <button class="message-action-btn-enhanced" 
                                 onclick="event.stopPropagation(); delete_message_enhanced('${message.name}')" 
-                                title="Delete" 
-                                style="color: #dc3545 !important;">
-                                🗑
-                            </button>
-                        ` : ''}
+                                title="Delete" style="color: #dc3545 !important;">🗑</button>` : ''}
                     </div>
                 ` : ''}
             </div>
@@ -1272,9 +1340,9 @@ function display_enhanced_messages(messages) {
     });
     
     messagesContainer.innerHTML = messagesHTML;
-    // Auto-scroll to bottom
     scroll_to_bottom_enhanced();
 }
+
 
 // Auto-scroll to bottom function
 function scroll_to_bottom_enhanced() {
