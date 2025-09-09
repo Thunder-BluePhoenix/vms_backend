@@ -1,0 +1,171 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:CR-{####}",
+ "creation": "2025-01-15 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_info_section",
+  "room_name",
+  "room_type",
+  "description",
+  "column_break_1",
+  "room_status",
+  "created_by",
+  "creation_date",
+  "members_section",
+  "team_master",
+  "members",
+  "settings_section",
+  "is_private",
+  "max_members",
+  "column_break_2",
+  "allow_file_sharing",
+  "auto_delete_messages_after_days"
+ ],
+ "fields": [
+  {
+   "fieldname": "basic_info_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Information"
+  },
+  {
+   "fieldname": "room_name",
+   "fieldtype": "Data",
+   "label": "Room Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "room_type",
+   "fieldtype": "Select",
+   "label": "Room Type",
+   "options": "Direct Message\nTeam Chat\nGroup Chat\nAnnouncement",
+   "default": "Group Chat",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "room_status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nArchived\nDeleted",
+   "default": "Active",
+   "reqd": 1
+  },
+  {
+   "fieldname": "created_by",
+   "fieldtype": "Link",
+   "label": "Created By",
+   "options": "User",
+   "default": "user",
+   "read_only": 1
+  },
+  {
+   "fieldname": "creation_date",
+   "fieldtype": "Datetime",
+   "label": "Creation Date",
+   "default": "now",
+   "read_only": 1
+  },
+  {
+   "fieldname": "members_section",
+   "fieldtype": "Section Break",
+   "label": "Members"
+  },
+  {
+   "fieldname": "team_master",
+   "fieldtype": "Link",
+   "label": "Team Master",
+   "options": "Team Master",
+   "depends_on": "eval:doc.room_type == 'Team Chat'"
+  },
+  {
+   "fieldname": "members",
+   "fieldtype": "Table",
+   "label": "Chat Members",
+   "options": "Chat Room Member"
+  },
+  {
+   "fieldname": "settings_section",
+   "fieldtype": "Section Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "is_private",
+   "fieldtype": "Check",
+   "label": "Private Room",
+   "default": 0
+  },
+  {
+   "fieldname": "max_members",
+   "fieldtype": "Int",
+   "label": "Maximum Members",
+   "default": 50
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "allow_file_sharing",
+   "fieldtype": "Check",
+   "label": "Allow File Sharing",
+   "default": 1
+  },
+  {
+   "fieldname": "auto_delete_messages_after_days",
+   "fieldtype": "Int",
+   "label": "Auto Delete Messages After (Days)",
+   "default": 0,
+   "description": "0 means never delete"
+  }
+ ],
+ "links": [],
+ "modified": "2025-01-15 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Chat VMS",
+ "name": "Chat Room",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+
+
