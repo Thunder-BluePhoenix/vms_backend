@@ -117,7 +117,14 @@
   "allow_to_change_document_details_by_accounts_head",
   "sap_details_tab",
   "sap_validation_html",
-  "mandatory_data_for_sap"
+  "mandatory_data_for_sap",
+  "approval_workflow_tab",
+  "approval_status",
+  "approvals",
+  "next_approver",
+  "next_approver_role",
+  "current_approval_stage",
+  "approval_matrix"
  ],
  "fields": [
   {
@@ -741,12 +748,52 @@
    "fieldname": "re_release",
    "fieldtype": "Check",
    "label": "Re Release"
+  },
+  {
+   "fieldname": "approval_workflow_tab",
+   "fieldtype": "Tab Break",
+   "label": "Approval Workflow"
+  },
+  {
+   "fieldname": "approval_status",
+   "fieldtype": "Data",
+   "label": "Approval Status"
+  },
+  {
+   "fieldname": "approvals",
+   "fieldtype": "Table",
+   "label": "Approvals",
+   "options": "Doc Approval"
+  },
+  {
+   "fieldname": "next_approver",
+   "fieldtype": "Link",
+   "label": "Next Approver",
+   "options": "User"
+  },
+  {
+   "fieldname": "next_approver_role",
+   "fieldtype": "Link",
+   "label": "Next Approver Role",
+   "options": "Role"
+  },
+  {
+   "fieldname": "current_approval_stage",
+   "fieldtype": "Int",
+   "label": "Current Approval Stage",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "approval_matrix",
+   "fieldtype": "Link",
+   "label": "Approval Matrix",
+   "options": "Approval Matrix"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-06 01:53:19.118609",
+ "modified": "2025-09-09 10:03:22.646986",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
