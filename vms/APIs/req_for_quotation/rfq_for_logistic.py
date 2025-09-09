@@ -492,7 +492,9 @@ def create_export_logistic_rfq(data):
 		rfq.rfq_cutoff_date_logistic = data.get("rfq_cutoff_date_logistic")
 		rfq.rfq_date_logistic       = data.get("rfq_date_logistic")
 		rfq.mode_of_shipment        = data.get("mode_of_shipment")
-		rfq.destination_port        = data.get("destination_port")
+
+		rfq.destination_port        = data.get("port_code")
+
 		rfq.country                 = data.get("country")
 		rfq.port_code               = data.get("port_code")
 		rfq.port_of_loading         = data.get("port_of_loading")

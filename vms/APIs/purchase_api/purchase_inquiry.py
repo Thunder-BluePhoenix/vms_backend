@@ -3,6 +3,7 @@ import json
 from frappe.utils import now_datetime
 from frappe import _
 from vms.utils.custom_send_mail import custom_sendmail
+import json
 
 
 # cart details masters
@@ -28,12 +29,12 @@ def filter_product_name(category_type=None):
             result = frappe.get_all(
                 "VMS Product Master",
                 filters={"category_type": category_type},
-                fields=["name", "product_name", "product_price", "lead_time"]
+                fields=["name", "product_name", "product_price", "lead_time","uom"]
             )
         else:
             result = frappe.get_all(
                 "VMS Product Master",
-                fields=["name", "product_name", "product_price", "lead_time"]
+                fields=["name", "product_name", "product_price", "lead_time","uom"]
             )
 
         return {
@@ -181,8 +182,133 @@ def create_purchase_inquiry(data):
 			"message": "Failed to save Cart Details.",
 			"error": str(e)
 		}
-    
 
+
+@frappe.whitelist(allow_guest=True)
+def update_cart_products():
+	try:
+		# Get form data from the request
+		form_data = frappe.local.form_dict
+		files = frappe.request.files
+		
+		# Get purchase inquiry ID
+		purchase_inquiry_id = form_data.get("purchase_inquiry_id")
+		if not purchase_inquiry_id:
+			return {
+				"status": "error",
+				"message": "Purchase Inquiry ID is required."
+			}
+		
+		# Verify the document exists
+		try:
+			doc = frappe.get_doc("Cart Details", purchase_inquiry_id)
+		except frappe.DoesNotExistError:
+			return {
+				"status": "error",
+				"message": f"Purchase Inquiry with ID {purchase_inquiry_id} not found."
+			}
+		
+		# Get product data from form fields
+		product_row = {}
+		product_fields = ["assest_code", "product_name", "product_price", "uom", "lead_time", "product_quantity", "user_specifications"]
+		
+		for field in product_fields:
+			if field in form_data:
+				value = form_data.get(field)
+				product_row[field] = value if value else ""
+		
+		# Handle file attachment
+		if "attachment" in files:
+			uploaded_file = files["attachment"]
+			if uploaded_file and uploaded_file.filename:
+				try:
+					# Save the file
+					file_doc = frappe.get_doc({
+						"doctype": "File",
+						"file_name": uploaded_file.filename,
+						"content": uploaded_file.read(),
+						"decode": False,
+						"is_private": 0,
+						"attached_to_doctype": "Cart Details",
+						"attached_to_name": purchase_inquiry_id
+					})
+					file_doc.insert(ignore_permissions=True)
+					
+					# Add file URL to the product row
+					product_row["attachment"] = file_doc.file_url
+				except Exception as file_error:
+					frappe.log_error(f"File upload error: {str(file_error)}", "Cart Product File Upload")
+					return {
+						"status": "error",
+						"message": "Failed to upload attachment.",
+						"error": str(file_error)
+					}
+		
+		# Handle numeric field conversion
+		for field in ["product_price", "lead_time", "product_quantity"]:
+			if field in product_row:
+				value = product_row[field]
+				if value and str(value).strip():
+					try:
+						if field == "product_quantity":
+							product_row[field] = int(float(value))
+						else:
+							product_row[field] = float(value)
+					except (ValueError, TypeError):
+						product_row[field] = 0
+				else:
+					product_row[field] = 0
+		
+		# Check if we have any product data
+		if not any(product_row.get(field) for field in product_fields):
+			return {
+				"status": "error",
+				"message": "No product data provided."
+			}
+		
+		# Add the product to cart_product child table
+        
+        
+		new_row_data = {
+			"assest_code": product_row.get("assest_code", ""),
+			"product_name": product_row.get("product_name", ""),
+			"uom": product_row.get("uom", ""),
+			"user_specifications": product_row.get("user_specifications", ""),
+			"attachment": product_row.get("attachment", ""),
+            "product_price": product_row.get("product_price", 0),
+            "lead_time": product_row.get("lead_time", 0),
+            "product_quantity": product_row.get("product_quantity", 0),
+            "final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", 0),
+            "need_asset_code": product_row.get("need_asset_code", 0)
+		}
+		
+		# Handle numeric fields
+		for numeric_field in ["product_price", "lead_time", "product_quantity"]:
+			value = product_row.get(numeric_field, 0)
+			new_row_data[numeric_field] = value
+		
+		# Append the new row to child table
+		doc.append("cart_product", new_row_data)
+		
+		# Save the document
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+		
+		return {
+			"status": "success",
+			"message": "Cart product added successfully.",
+			"purchase_inquiry_id": purchase_inquiry_id,
+			"product_name": new_row_data.get("product_name", "")
+		}
+	
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Update Cart Products API Error")
+		return {
+			"status": "error",
+			"message": "Failed to add cart product.",
+			"error": str(e)
+		}
 # get full data of cart details
 @frappe.whitelist(allow_guest=True)
 def get_full_data_pur_inquiry(pur_inq):
@@ -512,6 +638,8 @@ def get_plants_and_purchase_group(comp):
             "company": comp,
             "plants": [],
             "purchase_groups": [],
+            "cost_centers": [],
+            "gl_accounts": [],
             "errors": []
         }
         
@@ -523,6 +651,7 @@ def get_plants_and_purchase_group(comp):
                 fields=["name", "plant_name", "description"]
             )
             response["plants"] = plants
+
             
         except frappe.PermissionError:
             frappe.log_error(f"Permission denied for Plant Master - Company: {comp}")
@@ -530,6 +659,40 @@ def get_plants_and_purchase_group(comp):
         except Exception as e:
             frappe.log_error(f"Error fetching Plant Master for company {comp}: {str(e)}")
             response["errors"].append("Error fetching Plant Master data")
+
+        try:
+            cost_centers = frappe.get_all(
+                "Cost Center",
+                filters={"company_code": comp},
+                fields=["name", "cost_center_name", "description"]
+            )
+            response["cost_centers"] = cost_centers
+
+           
+
+            
+        except frappe.PermissionError:
+            frappe.log_error(f"Permission denied for Cost Centers - Company: {comp}")
+            response["errors"].append("Permission denied for Cost Centers")
+        except Exception as e:
+            frappe.log_error(f"Error fetching Cost Centers for company {comp}: {str(e)}")
+            response["errors"].append("Error fetching Cost centers data")
+        
+        try:
+            gl_accounts = frappe.get_all(
+                "GL Account",
+                filters={"company": comp},
+                fields=["name", "gl_account_name", "description"]
+            )
+            response["gl_accounts"] = gl_accounts
+
+            
+        except frappe.PermissionError:
+            frappe.log_error(f"Permission denied for GL Accounts- Company: {comp}")
+            response["errors"].append("Permission denied for GL Accounts")
+        except Exception as e:
+            frappe.log_error(f"Error fetching GL Accounts for company {comp}: {str(e)}")
+            response["errors"].append("Error fetching GL Accounts data")
         
         # Get Purchase Group Master data
         try:
@@ -548,7 +711,7 @@ def get_plants_and_purchase_group(comp):
             response["errors"].append("Error fetching Purchase Group Master data")
         
         # Check if any data was retrieved
-        if not response["plants"] and not response["purchase_groups"] and not response["errors"]:
+        if not response["plants"] and not response["purchase_groups"] and not response["errors"] and not response["cost_centers"] and not response["gl_accounts"]:
             response["errors"].append("No plant or purchase group data found for the specified company")
         
         return response
@@ -608,3 +771,33 @@ def get_purchase_type():
     except Exception as e:
         frappe.log_error(f"Error in get_purchase_type: {str(e)}")
         frappe.throw(_("An unexpected error occurred while fetching purchase requisition types"), frappe.ValidationError)
+
+
+
+@frappe.whitelist(allow_guest=True)
+def submit_purchase_inquiry(purchase_inquiry_id):
+    try:
+        if not purchase_inquiry_id:
+            return {
+                "status": "error",
+                "message": "'purchase_inquiry_id' is required."
+            }
+
+        doc = frappe.get_doc("Cart Details", purchase_inquiry_id)
+        doc.is_submited = 1
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        return {    
+            "status": "success",
+            "message": f"Cart Details '{purchase_inquiry_id}' submitted successfully."
+        }
+
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "Submit Cart Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to submit Cart Details.",
+            "error": str(e)
+        }

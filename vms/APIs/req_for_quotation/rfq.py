@@ -182,6 +182,7 @@ def get_full_rfq_data(unique_id):
 			"mode_of_shipment": doc.mode_of_shipment,
 			"port_of_loading": doc.port_of_loading,
 			"destination_port": doc.destination_port,
+            "export_destination_port": frappe.db.get_value("Port Master", doc.destination_port, "port_name"),
 			"ship_to_address": doc.ship_to_address,
 			"no_of_pkg_units": doc.no_of_pkg_units,
 			"vol_weight": doc.vol_weight,
@@ -1393,10 +1394,12 @@ def get_ports_by_mode_of_shipment_simple(mode_of_shipment, logistic_type=None, p
         where_clause = " AND ".join(conditions)
         query = f"""
             SELECT 
+                pm.name,
                 pm.port_name,
                 pm.logistic_type,
                 pm.port_of_loading,
-                pm.destination_port
+                pm.destination_port,
+                pm.country
             FROM 
                 `tabPort Master` pm
             WHERE 
@@ -1407,7 +1410,15 @@ def get_ports_by_mode_of_shipment_simple(mode_of_shipment, logistic_type=None, p
         
         result = frappe.db.sql(query, params, as_dict=True)
         
-        return [port['port_name'] for port in result]
+        return [
+            {
+                "name": port.get("name"),
+                "port_code": port.get("port_code"),
+                "port_name": port.get("port_name"),
+                "country": port.get("country")
+            }
+            for port in result
+        ]
         
     except Exception as e:
         frappe.log_error(f"Error in get_ports_by_mode_of_shipment_simple: {str(e)}")
