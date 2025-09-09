@@ -1,13 +1,21 @@
 // File: vms/public/js/chat_integration.js
 // This file adds chat functionality to Frappe's navbar
 
-frappe.ready(function() {
-    // Add chat icon to navbar when page loads
+function onFrappeReady(callback) {
+    if (typeof frappe !== "undefined" && typeof frappe.ready === "function") {
+        frappe.ready(callback);
+    } else {
+        document.addEventListener("DOMContentLoaded", callback);
+    }
+}
+
+
+onFrappeReady(() => {
     add_chat_icon_to_navbar();
-    
-    // Initialize chat functionality
     init_chat_functionality();
 });
+
+
 
 function add_chat_icon_to_navbar() {
     // Wait for navbar to load

@@ -25,23 +25,41 @@ app_license = "mit"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/vms/css/vms.css"
+app_include_css = [
+    "assets/vms/css/chat_styles.css"
+]
 # app_include_js = "/assets/vms/js/vms.js"
 app_include_js = [
-    "assets/vms/js/earth_invoice_list.js"  
+    "assets/vms/js/earth_invoice_list.js" ,
+    "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js",
+    "assets/vms/js/chat_integrationn.js",
+    "assets/vms/js/chat_realtimee.js" 
 ]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/vms/css/vms.css"
 # web_include_js = "/assets/vms/js/vms.js"
-
+website_context = {
+    "chat_enabled": True,
+    "max_file_size": 10485760,  # 10MB
+    "supported_file_types": ["image/*", "application/pdf", "text/*", ".doc", ".docx", ".xls", ".xlsx"]
+}
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "vms/public/scss/website"
-
+websocket_events = {
+    "chat_message": "vms.chat_vms.doctype.chat_message.chat_message.handle_websocket_message",
+    "chat_room_join": "vms.chat_vms.doctype.chat_message.chat_message.handle_user_join_room",
+    "chat_room_leave": "vms.chat_vms.doctype.chat_message.chat_message.handle_user_leave_room",
+    "typing_indicator": "vms.chat_vms.doctype.chat_message.chat_message.handle_typing_indicator"
+}
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
+
+# boot_session = [
+#     "vms.chat_vms.doctype.chat_message.chat_message.get_user_chat_status"
+# ]
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
 
@@ -149,11 +167,15 @@ fixtures = [
 
 
 permission_query_conditions = {
-    "Earth Invoice": "vms.vms.doctype.earth_invoice.earth_invoice.get_permission_query_conditions"
+    "Earth Invoice": "vms.vms.doctype.earth_invoice.earth_invoice.get_permission_query_conditions",
+    "Chat Room": "vms.chat_vms.doctype.chat_room.chat_room.get_permission_query_conditions",
+    "Chat Message": "vms.chat_vms.doctype.chat_message.chat_message.get_permission_query_conditions"
 }
 
 has_permission = {
-    "Earth Invoice": "vms.vms.doctype.earth_invoice.earth_invoice.has_permission"
+    "Earth Invoice": "vms.vms.doctype.earth_invoice.earth_invoice.has_permission",
+    "Chat Room": "vms.chat_vms.doctype.chat_room.chat_room.has_permission",
+    "Chat Message": "vms.chat_vms.doctype.chat_message.chat_message.has_permission"
 }
 
 
@@ -165,6 +187,24 @@ doc_events = {
     #                      "before_save": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.set_vendor_onboarding_status"},
     "Purchase Requisition Form":{"on_update":"vms.APIs.sap.erp_to_sap_pr.onupdate_pr"},
     "Version":{"after_insert":"vms.overrides.versions.get_version_data_universal"},
+
+
+    "Chat Room": {
+        "after_insert": "vms.chat_vms.doctype.chat_room.chat_room.after_insert_hook",
+        "on_update": "vms.chat_vms.doctype.chat_room.chat_room.on_update_hook",
+        "validate": "vms.chat_vms.doctype.chat_room.chat_room.validate",
+        "before_save": "vms.chat_vms.doctype.chat_room.chat_room.before_save",
+        "on_trash": "vms.chat_vms.doctype.chat_room.chat_room.on_trash"
+    },
+    "Chat Message": {
+        "after_insert": "vms.chat_vms.doctype.chat_message.chat_message.after_insert_hook",
+        "before_save": "vms.chat_vms.doctype.chat_message.chat_message.before_save_hook",
+        "validate": "vms.chat_vms.doctype.chat_message.chat_message.validate",
+        "on_trash": "vms.chat_vms.doctype.chat_message.chat_message.on_trash"
+    },
+    "User": {
+        "on_update": "vms.chat_vms.maintenance.update_user_chat_permissions"
+    }
 }
 # doc_events = {
 # 	"*": {
@@ -183,13 +223,21 @@ scheduler_events = {
 		"vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
 	],
 	"daily": [
-        "vms.APIs.req_for_quotation.rfq_reminder.send_reminder_notification"
-	    # "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
+        "vms.APIs.req_for_quotation.rfq_reminder.send_reminder_notification",
+	    # "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link",
+        "vms.chat_vms.maintenance.cleanup_old_messages",
+        "vms.chat_vms.maintenance.update_room_statistics"
 	],
 	"cron": {
         "*/10 * * * *": [
             "vms.APIs.req_for_quotation.rfq_reminder.block_quotation_link",
             "vms.APIs.sap.send_sap_error_email.uncheck_sap_error_email"  
+        ],
+        "0 2 * * *": [  # Run at 2 AM daily
+        "vms.chat_vms.maintenance.cleanup_deleted_files"
+        ],
+        "*/15 * * * *": [  # Every 15 minutes
+            "vms.chat_vms.maintenance.update_user_online_status"
         ]
     }    
 	# "hourly": [
@@ -218,7 +266,56 @@ scheduler_events = {
 override_whitelisted_methods = {
     "vms.sync_vendor_documents": "vms.vendor_onboarding.vendor_document_management.sync_vendor_documents_on_approval",
     "vms.get_vendor_history": "vms.vendor_onboarding.vendor_document_management.get_vendor_document_history",
-    "vms.restore_vendor_docs": "vms.vendor_onboarding.vendor_document_management.restore_from_onboarding"
+    "vms.restore_vendor_docs": "vms.vendor_onboarding.vendor_document_management.restore_from_onboarding",
+
+    # Core Chat Room APIs (from APIs/notification_chatroom/chat_apis/)
+    "vms.get_user_chat_rooms": "vms.APIs.notification_chatroom.chat_apis.chat_api.get_user_chat_rooms",
+    "vms.create_chat_room": "vms.APIs.notification_chatroom.chat_apis.chat_api.create_chat_room",
+    "vms.get_chat_messages": "vms.APIs.notification_chatroom.chat_apis.chat_api.get_chat_messages",
+    "vms.send_message": "vms.APIs.notification_chatroom.chat_apis.chat_api.send_message",
+    "vms.add_reaction": "vms.APIs.notification_chatroom.chat_apis.chat_api.add_reaction",
+    "vms.edit_message": "vms.APIs.notification_chatroom.chat_apis.chat_api.edit_message",
+    "vms.delete_message": "vms.APIs.notification_chatroom.chat_apis.chat_api.delete_message",
+    
+    # Room Management APIs
+    "vms.get_room_details": "vms.APIs.notification_chatroom.chat_apis.room_management.get_room_details",
+    "vms.add_room_member": "vms.APIs.notification_chatroom.chat_apis.room_management.add_room_member",
+    "vms.remove_room_member": "vms.APIs.notification_chatroom.chat_apis.room_management.remove_room_member",
+    "vms.update_member_role": "vms.APIs.notification_chatroom.chat_apis.room_management.update_member_role",
+    "vms.mute_unmute_member": "vms.APIs.notification_chatroom.chat_apis.room_management.mute_unmute_member",
+    "vms.update_room_settings": "vms.APIs.notification_chatroom.chat_apis.room_management.update_room_settings",
+    "vms.archive_room": "vms.APIs.notification_chatroom.chat_apis.room_management.archive_room",
+    "vms.search_users_for_room": "vms.APIs.notification_chatroom.chat_apis.room_management.search_users_for_room",
+    "vms.get_team_chat_rooms": "vms.APIs.notification_chatroom.chat_apis.room_management.get_team_chat_rooms",
+    "vms.join_team_room": "vms.APIs.notification_chatroom.chat_apis.room_management.join_team_room",
+    
+    # File Upload APIs
+    "vms.upload_chat_file": "vms.APIs.notification_chatroom.chat_apis.file_upload.upload_chat_file",
+    "vms.get_chat_file_preview": "vms.APIs.notification_chatroom.chat_apis.file_upload.get_chat_file_preview",
+    
+    # Real-time Event APIs
+    "vms.join_chat_room": "vms.APIs.notification_chatroom.chat_apis.realtime_events.join_chat_room",
+    "vms.leave_chat_room": "vms.APIs.notification_chatroom.chat_apis.realtime_events.leave_chat_room",
+    "vms.send_typing_indicator": "vms.APIs.notification_chatroom.chat_apis.realtime_events.send_typing_indicator",
+    "vms.get_online_users": "vms.APIs.notification_chatroom.chat_apis.realtime_events.get_online_users",
+    
+    # Search and Analytics APIs
+    "vms.search_messages": "vms.APIs.notification_chatroom.chat_apis.search_analytics.search_messages",
+    "vms.get_chat_analytics": "vms.APIs.notification_chatroom.chat_apis.search_analytics.get_chat_analytics",
+    "vms.get_global_chat_search": "vms.APIs.notification_chatroom.chat_apis.search_analytics.get_global_chat_search",
+    "vms.export_chat_messages": "vms.APIs.notification_chatroom.chat_apis.search_analytics.export_chat_messages",
+    
+    # Maintenance APIs (from chat_vms/maintenance.py)
+    "vms.manual_cleanup_room": "vms.chat_vms.maintenance.manual_cleanup_room",
+    "vms.get_room_storage_usage": "vms.chat_vms.maintenance.get_room_storage_usage",
+    "vms.get_chat_system_stats": "vms.chat_vms.maintenance.get_chat_system_stats",
+    "vms.optimize_chat_database": "vms.chat_vms.maintenance.optimize_chat_database",
+    
+    # Chat Utility APIs (from chat_vms DocType controllers)
+    "vms.get_user_chat_status": "vms.chat_vms.doctype.chat_message.chat_message.get_user_chat_status",
+    "vms.mark_room_as_read": "vms.chat_vms.doctype.chat_message.chat_message.mark_room_as_read",
+    "vms.get_recent_chat_activity": "vms.chat_vms.doctype.chat_message.chat_message.get_recent_chat_activity"
+
 }
 #
 # each overriding function accepts a `data` argument;

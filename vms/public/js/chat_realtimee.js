@@ -417,19 +417,26 @@ class ChatRealtimeManager {
 // Initialize chat real-time manager
 let chatRealtimeManager;
 
-frappe.ready(() => {
-    // Initialize after a short delay to ensure DOM is ready
+
+
+function onFrappeReady(callback) {
+    if (typeof frappe !== "undefined" && typeof frappe.ready === "function") {
+        frappe.ready(callback);
+    } else {
+        document.addEventListener("DOMContentLoaded", callback);
+    }
+}
+
+
+onFrappeReady(() => {
     setTimeout(() => {
         chatRealtimeManager = new ChatRealtimeManager();
-        
-        // Make it globally accessible
         window.chatRealtime = chatRealtimeManager;
-        
-        // Set up global event listeners for chat functionality
         setupGlobalChatEvents();
-        
     }, 1000);
 });
+
+
 
 function setupGlobalChatEvents() {
     // Listen for custom chat events
