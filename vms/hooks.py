@@ -26,7 +26,8 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 app_include_css = [
-    "assets/vms/css/chat_styles.css"
+    "assets/vms/css/chat_styles.css",
+    "assets/vms/css/chat_enhanced.css"
 ]
 # app_include_js = "/assets/vms/js/vms.js"
 app_include_js = [
@@ -34,7 +35,8 @@ app_include_js = [
     # "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js",
     # "assets/vms/js/chat_integratioonn.js",
     # "assets/vms/js/chat_realtimee.js" 
-    "assets/vms/js/nav_chat18.js" 
+    "assets/vms/js/nav_chat21.js",
+    # "assets/vms/js/nav_chat_enhanced3.js"  
 ]
 
 # include js, css files in header of web template
@@ -190,18 +192,18 @@ doc_events = {
     "Version":{"after_insert":"vms.overrides.versions.get_version_data_universal"},
 
 
-    "Chat Room": {
-        "after_insert": "vms.chat_vms.doctype.chat_room.chat_room.after_insert_hook",
-        "on_update": "vms.chat_vms.doctype.chat_room.chat_room.on_update_hook",
-        # "validate": "vms.chat_vms.doctype.chat_room.chat_room.validate",
-        # "before_save": "vms.chat_vms.doctype.chat_room.chat_room.before_save",
-        # "on_trash": "vms.chat_vms.doctype.chat_room.chat_room.on_trash"
-    },
     "Chat Message": {
-        "after_insert": "vms.chat_vms.doctype.chat_message.chat_message.after_insert_hook",
+        "after_insert": "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.handle_new_message_notification",
         "before_save": "vms.chat_vms.doctype.chat_message.chat_message.before_save_hook",
-        # "validate": "vms.chat_vms.doctype.chat_message.chat_message.validate",
-        # "on_trash": "vms.chat_vms.doctype.chat_message.chat_message.on_trash"
+        "on_update": "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.handle_message_update_notification"
+    },
+    "Chat Room": {
+        "after_insert": "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.handle_new_room_notification",
+        "on_update": "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.handle_room_update_notification"
+    },
+    "Chat Room Member": {
+        "after_insert": "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.handle_member_added_notification",
+        "on_trash": "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.handle_member_removed_notification"
     },
     "User": {
         "on_update": "vms.chat_vms.maintenance.update_user_chat_permissions"
@@ -219,26 +221,29 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-scheduler_events = {
-	"all": [
-		"vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
-	],
-	"daily": [
+scheduler_events_enhanced = {
+    "all": [
+        "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
+    ],
+    "daily": [
         "vms.APIs.req_for_quotation.rfq_reminder.send_reminder_notification",
-	    # "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link",
         "vms.chat_vms.maintenance.cleanup_old_messages",
-        "vms.chat_vms.maintenance.update_room_statistics"
-	],
-	"cron": {
+        "vms.chat_vms.maintenance.update_room_statistics",
+        "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.cleanup_user_status_cache"  # New
+    ],
+    "cron": {
         "*/10 * * * *": [
             "vms.APIs.req_for_quotation.rfq_reminder.block_quotation_link",
             "vms.APIs.sap.send_sap_error_email.uncheck_sap_error_email"  
         ],
         "0 2 * * *": [  # Run at 2 AM daily
-        "vms.chat_vms.maintenance.cleanup_deleted_files"
+            "vms.chat_vms.maintenance.cleanup_deleted_files"
         ],
         "*/15 * * * *": [  # Every 15 minutes
             "vms.chat_vms.maintenance.update_user_online_status"
+        ],
+        "*/1 * * * *": [  # Every minute - for real-time status updates
+            "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.update_user_activity_status"
         ]
     }    
 	# "hourly": [

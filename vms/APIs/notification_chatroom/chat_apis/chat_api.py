@@ -285,7 +285,7 @@ def get_chat_messages(room_id, page=1, page_size=10, before_timestamp=None):
                 edit_timestamp
             FROM `tabChat Message`
             WHERE {where_clause}
-            ORDER BY timestamp ASC
+            ORDER BY timestamp DESC
             LIMIT %(limit)s OFFSET %(offset)s
         """
         
