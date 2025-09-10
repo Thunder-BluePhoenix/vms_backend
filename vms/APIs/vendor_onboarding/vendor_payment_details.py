@@ -891,13 +891,13 @@ def delete_bank_proof_attachment(data):
 			rows_to_remove = []
 			for i, row in enumerate(child_table):
 				# Check if attachment matches by name1 or attachment_name
-				if (hasattr(row, 'name1') and row.name1 == attachment_name) or \
-				   (hasattr(row, 'attachment_name') and row.attachment_name == attachment_name):
+				if (hasattr(row, 'name') and row.name == attachment_name):
 					rows_to_remove.append(i)
 					deleted_attachments.append({
 						"doc_name": doc.name,
 						"attachment_name": getattr(row, 'attachment_name', ''),
-						"name1": getattr(row, 'name1', '')
+						"name1": getattr(row, 'name1', ''),
+						"name": getattr(row, 'name', '')
 					})
 
 			# Remove rows in reverse order to maintain indices
