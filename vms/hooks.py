@@ -37,6 +37,9 @@ app_include_js = [
     # "assets/vms/js/chat_integratioonn.js",
     # "assets/vms/js/chat_realtimee.js" 
     "assets/vms/js/nav_chatf7.js",
+
+    # "assets/vms/js/nav_chat27.js",
+
     # "assets/vms/js/nav_chat_enhanced3.js"  
 ]
 

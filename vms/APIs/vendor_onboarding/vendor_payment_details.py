@@ -818,3 +818,127 @@ def update_bank_proof_purchase_team(data):
 			"message": "Failed to update Vendor Onboarding Payment Details.",
 			"error": str(e)
 		}
+
+
+
+@frappe.whitelist(allow_guest=True)
+def delete_bank_proof_attachment(data):
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
+
+		ref_no = data.get("ref_no")
+		vendor_onboarding = data.get("vendor_onboarding")
+		attachment_table_name = data.get("attachment_table_name")  
+		attachment_name = data.get("attachment_name")  
+
+		if not all([ref_no, vendor_onboarding, attachment_table_name, attachment_name]):
+			return {
+				"status": "error",
+				"message": "Missing required fields: 'ref_no', 'vendor_onboarding', 'attachment_table_name', and 'attachment_name'."
+			}
+
+		# Validate attachment table name
+		valid_tables = [
+			"bank_proofs_by_purchase_team",
+			"international_bank_proofs_by_purchase_team",
+			"intermediate_bank_proofs_by_purchase_team"
+		]
+
+		if attachment_table_name not in valid_tables:
+			return {
+				"status": "error",
+				"message": f"Invalid attachment table name. Must be one of: {', '.join(valid_tables)}"
+			}
+
+		doc_name = frappe.db.get_value(
+			"Vendor Onboarding Payment Details",
+			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+			"name"
+		)
+
+		if not doc_name:
+			return {
+				"status": "error",
+				"message": "No record found for Vendor Onboarding Payment Details"
+			}
+
+		main_doc = frappe.get_doc("Vendor Onboarding Payment Details", doc_name)
+
+		# --- Find linked docs for multi-company ---
+		if main_doc.registered_for_multi_companies == 1:
+			linked_docs = frappe.get_all(
+				"Vendor Onboarding Payment Details",
+				filters={
+					"registered_for_multi_companies": 1,
+					"unique_multi_comp_id": main_doc.unique_multi_comp_id
+				},
+				fields=["name"]
+			)
+		else:
+			linked_docs = [{"name": main_doc.name}]
+
+		deleted_from_docs = []
+		deleted_attachments = []
+
+		for entry in linked_docs:
+			doc = frappe.get_doc("Vendor Onboarding Payment Details", entry["name"])
+			
+			# Get the child table
+			child_table = getattr(doc, attachment_table_name, [])
+			
+			# Find and remove matching attachments
+			rows_to_remove = []
+			for i, row in enumerate(child_table):
+				# Check if attachment matches by name1 or attachment_name
+				if (hasattr(row, 'name') and row.name == attachment_name):
+					rows_to_remove.append(i)
+					deleted_attachments.append({
+						"doc_name": doc.name,
+						"attachment_name": getattr(row, 'attachment_name', ''),
+						"name1": getattr(row, 'name1', ''),
+						"name": getattr(row, 'name', '')
+					})
+
+			# Remove rows in reverse order to maintain indices
+			for i in reversed(rows_to_remove):
+				doc.get(attachment_table_name).pop(i)
+
+			if rows_to_remove:
+				doc.save(ignore_permissions=True)
+				deleted_from_docs.append(doc.name)
+
+		# Also try to delete the actual file from the system if it's a file URL
+		try:
+			if attachment_name.startswith('/files/'):
+				# Get the file document
+				file_doc = frappe.get_value("File", {"file_url": attachment_name}, "name")
+				if file_doc:
+					frappe.delete_doc("File", file_doc, ignore_permissions=True)
+		except Exception as file_error:
+			frappe.log_error(f"Could not delete file: {str(file_error)}", "File Deletion Error")
+
+		frappe.db.commit()
+
+		if not deleted_attachments:
+			return {
+				"status": "warning",
+				"message": "No matching attachment found to delete.",
+				"searched_in_docs": [d["name"] for d in linked_docs]
+			}
+
+		return {
+			"status": "success",
+			"message": f"Attachment deleted successfully from {len(deleted_from_docs)} document(s).",
+			"deleted_from_docs": deleted_from_docs,
+			"deleted_attachments": deleted_attachments
+		}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Attachment Delete Error")
+		return {
+			"status": "error",
+			"message": "Failed to delete attachment.",
+			"error": str(e)
+		}

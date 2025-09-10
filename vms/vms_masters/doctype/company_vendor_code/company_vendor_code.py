@@ -46,57 +46,59 @@ class CompanyVendorCode(Document):
 		
 		# Collect all vendor code data for PDF
 		vendor_code_data = self.collect_vendor_code_data(vend)
-		
-		if not frappe.db.exists("User", vend.office_email_primary):
-			# User doesn't exist - create user and send email with PDF
-			password = self.generate_random_password()
-			
-			# Create new user without sending welcome email
-			new_user = frappe.new_doc("User")
-			new_user.email = vend.office_email_primary
-			new_user.first_name = vend.vendor_name or "Vendor"
-			new_user.send_welcome_email = 0
-			new_user.module_profile = "Vendor"
-			new_user.role_profile_name = "Vendor"
-			new_user.new_password = password
-			
-			new_user.insert(ignore_permissions=True)
-			
-			# Send email with credentials and PDF
-			if self.imported == 0:
-				self.send_vendor_email_with_pdf(
-					email=vend.office_email_primary,
-					username=vend.office_email_primary,
-					password=password,
-					vendor_name=vend.vendor_name or "Vendor",
-					vendor_code_data=vendor_code_data,
-					is_new_user=True,
-					cc = cc
-				)
-			
-			# Update vendor master
-			vend.user_create = 1
-			vend.save(ignore_permissions=True)
-			frappe.db.commit()
-			
-			# frappe.msgprint(f"User created and email sent successfully for vendor: {vend.vendor_name}")
-		else:
-			# User already exists - just send email with PDF (no credentials)
-			if self.imported == 0:
-				self.send_vendor_email_with_pdf(
-					email=vend.office_email_primary,
-					username=vend.office_email_primary,
-					password=None,
-					vendor_name=vend.vendor_name or "Vendor",
-					vendor_code_data=vendor_code_data,
-					is_new_user=False,
-					cc = cc
-				)
-			vend.user_create = 1
-			vend.save(ignore_permissions=True)
-			frappe.db.commit()
-			
-			# frappe.msgprint(f"Email with vendor code data sent successfully for vendor: {vend.vendor_name}")
+
+
+		if vend.via_data_import == 0:
+			if not frappe.db.exists("User", vend.office_email_primary):
+				# User doesn't exist - create user and send email with PDF
+				password = self.generate_random_password()
+				
+				# Create new user without sending welcome email
+				new_user = frappe.new_doc("User")
+				new_user.email = vend.office_email_primary
+				new_user.first_name = vend.vendor_name or "Vendor"
+				new_user.send_welcome_email = 0
+				new_user.module_profile = "Vendor"
+				new_user.role_profile_name = "Vendor"
+				new_user.new_password = password
+				
+				new_user.insert(ignore_permissions=True)
+				
+				# Send email with credentials and PDF
+				if self.imported == 0:
+					self.send_vendor_email_with_pdf(
+						email=vend.office_email_primary,
+						username=vend.office_email_primary,
+						password=password,
+						vendor_name=vend.vendor_name or "Vendor",
+						vendor_code_data=vendor_code_data,
+						is_new_user=True,
+						cc = cc
+					)
+				
+				# Update vendor master
+				vend.user_create = 1
+				vend.save(ignore_permissions=True)
+				frappe.db.commit()
+				
+				# frappe.msgprint(f"User created and email sent successfully for vendor: {vend.vendor_name}")
+			else:
+				# User already exists - just send email with PDF (no credentials)
+				if self.imported == 0:
+					self.send_vendor_email_with_pdf(
+						email=vend.office_email_primary,
+						username=vend.office_email_primary,
+						password=None,
+						vendor_name=vend.vendor_name or "Vendor",
+						vendor_code_data=vendor_code_data,
+						is_new_user=False,
+						cc = cc
+					)
+				vend.user_create = 1
+				vend.save(ignore_permissions=True)
+				frappe.db.commit()
+				
+				# frappe.msgprint(f"Email with vendor code data sent successfully for vendor: {vend.vendor_name}")
 
 	def collect_vendor_code_data(self, vendor_doc):
 		"""Collect all vendor code data from multiple company data"""
