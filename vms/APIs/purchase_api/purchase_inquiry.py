@@ -190,7 +190,7 @@ def update_cart_products():
 		# Get form data from the request
 		form_data = frappe.local.form_dict
 		files = frappe.request.files
-		
+
 		# Get purchase inquiry ID
 		purchase_inquiry_id = form_data.get("purchase_inquiry_id")
 		if not purchase_inquiry_id:
@@ -198,7 +198,7 @@ def update_cart_products():
 				"status": "error",
 				"message": "Purchase Inquiry ID is required."
 			}
-		
+
 		# Verify the document exists
 		try:
 			doc = frappe.get_doc("Cart Details", purchase_inquiry_id)
@@ -207,16 +207,19 @@ def update_cart_products():
 				"status": "error",
 				"message": f"Purchase Inquiry with ID {purchase_inquiry_id} not found."
 			}
-		
+
 		# Get product data from form fields
 		product_row = {}
-		product_fields = ["assest_code", "product_name", "product_price", "uom", "lead_time", "product_quantity", "user_specifications"]
-		
+		product_fields = [
+			"assest_code", "product_name", "product_price", "uom",
+			"lead_time", "product_quantity", "user_specifications"
+		]
+
 		for field in product_fields:
 			if field in form_data:
 				value = form_data.get(field)
 				product_row[field] = value if value else ""
-		
+
 		# Handle file attachment
 		if "attachment" in files:
 			uploaded_file = files["attachment"]
@@ -233,7 +236,7 @@ def update_cart_products():
 						"attached_to_name": purchase_inquiry_id
 					})
 					file_doc.insert(ignore_permissions=True)
-					
+
 					# Add file URL to the product row
 					product_row["attachment"] = file_doc.file_url
 				except Exception as file_error:
@@ -243,7 +246,7 @@ def update_cart_products():
 						"message": "Failed to upload attachment.",
 						"error": str(file_error)
 					}
-		
+
 		# Handle numeric field conversion
 		for field in ["product_price", "lead_time", "product_quantity"]:
 			if field in product_row:
@@ -258,49 +261,75 @@ def update_cart_products():
 						product_row[field] = 0
 				else:
 					product_row[field] = 0
+
 		
-		# Check if we have any product data
 		if not any(product_row.get(field) for field in product_fields):
 			return {
 				"status": "error",
 				"message": "No product data provided."
 			}
-		
-		# Add the product to cart_product child table
-        
-        
-		new_row_data = {
+
+		row_name = form_data.get("row_name")
+
+		# Prepare row data
+		row_data = {
 			"assest_code": product_row.get("assest_code", ""),
 			"product_name": product_row.get("product_name", ""),
 			"uom": product_row.get("uom", ""),
 			"user_specifications": product_row.get("user_specifications", ""),
 			"attachment": product_row.get("attachment", ""),
-            "product_price": product_row.get("product_price", 0),
-            "lead_time": product_row.get("lead_time", 0),
-            "product_quantity": product_row.get("product_quantity", 0),
-            "final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", 0),
-            "need_asset_code": product_row.get("need_asset_code", 0)
+			"product_price": product_row.get("product_price", 0),
+			"lead_time": product_row.get("lead_time", 0),
+			"product_quantity": product_row.get("product_quantity", 0),
+			"final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", 0),
+			"need_asset_code": product_row.get("need_asset_code", 0)
 		}
-		
-		# Handle numeric fields
+
+		# Handle numeric fields (ensure they are properly set)
 		for numeric_field in ["product_price", "lead_time", "product_quantity"]:
 			value = product_row.get(numeric_field, 0)
-			new_row_data[numeric_field] = value
-		
-		# Append the new row to child table
-		doc.append("cart_product", new_row_data)
-		
+			row_data[numeric_field] = value
+
+		if row_name:
+			# Update existing row
+			row_found = False
+			for row in doc.cart_product:
+				if row.name == row_name:
+					for field, value in row_data.items():
+						setattr(row, field, value)
+					row_found = True
+					operation = "updated"
+					child_row_name = row_name
+					break
+
+			if not row_found:
+				return {
+					"status": "error",
+					"message": f"Cart product with row name {row_name} not found."
+				}
+		else:
+			# Create new row
+			new_row = doc.append("cart_product", row_data)
+			operation = "added"
+
 		# Save the document
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
-		
+
+		if not row_name:
+			child_row_name = doc.cart_product[-1].name
+		else:
+			child_row_name = row_name
+
 		return {
 			"status": "success",
-			"message": "Cart product added successfully.",
+			"message": f"Cart product {operation} successfully.",
 			"purchase_inquiry_id": purchase_inquiry_id,
-			"product_name": new_row_data.get("product_name", "")
+			"product_name": row_data.get("product_name", ""),
+			"child_row_name": child_row_name,
+			"operation": operation
 		}
-	
+
 	except Exception as e:
 		frappe.db.rollback()
 		frappe.log_error(frappe.get_traceback(), "Update Cart Products API Error")
@@ -309,6 +338,75 @@ def update_cart_products():
 			"message": "Failed to add cart product.",
 			"error": str(e)
 		}
+
+
+
+@frappe.whitelist(allow_guest=True)
+def delete_cart_product(purchase_inquiry_id, row_name):
+	try:
+		
+		
+		if not purchase_inquiry_id:
+			return {
+				"status": "error",
+				"message": "Purchase Inquiry ID is required."
+			}
+		
+		if not row_name:
+			return {
+				"status": "error",
+				"message": "Row name is required."
+			}
+		
+		# Verify the document exists
+		try:
+			doc = frappe.get_doc("Cart Details", purchase_inquiry_id)
+		except frappe.DoesNotExistError:
+			return {
+				"status": "error",
+				"message": f"Purchase Inquiry with ID {purchase_inquiry_id} not found."
+			}
+		
+		# Find and remove the specific row from cart_product child table
+		row_found = False
+		product_name = ""
+		
+		for i, row in enumerate(doc.cart_product):
+			if row.name == row_name:
+				product_name = row.product_name or ""
+				# Remove the row from the child table
+				doc.cart_product.pop(i)
+				row_found = True
+				break
+		
+		if not row_found:
+			return {
+				"status": "error",
+				"message": f"Cart product with row name {row_name} not found."
+			}
+		
+		# Save the document
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+		
+		return {
+			"status": "success",
+			"message": "Cart product deleted successfully.",
+			"purchase_inquiry_id": purchase_inquiry_id,
+			"deleted_row_name": row_name,
+			"product_name": product_name
+		}
+	
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Delete Cart Product API Error")
+		return {
+			"status": "error",
+			"message": "Failed to delete cart product.",
+			"error": str(e)
+		}
+
+
 # get full data of cart details
 @frappe.whitelist(allow_guest=True)
 def get_full_data_pur_inquiry(pur_inq):
