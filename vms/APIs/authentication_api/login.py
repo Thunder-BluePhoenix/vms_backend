@@ -481,13 +481,20 @@ def collect_vendor_code_data(vendor_doc, method=None):
                     try:
                         # Fetch Company Vendor Code document
                         company_vendor_code_doc = frappe.get_doc("Company Vendor Code", company_data_row.company_vendor_code)
-                        
+                        company_name = ""
+                        if hasattr(company_vendor_code_doc, "company_code") and company_vendor_code_doc.company_code:
+                            try:
+                                company_master = frappe.get_doc("Company Master", company_vendor_code_doc.company_code)
+                                company_name = getattr(company_master, "company_name", "")
+                            except Exception as e:
+                                frappe.logger().error(f"Error fetching Company Master {company_vendor_code_doc.company_code}: {str(e)}")
                         # Check if vendor_code table exists and has data
                         if hasattr(company_vendor_code_doc, 'vendor_code') and company_vendor_code_doc.vendor_code:
                             # Iterate through vendor_code table in Company Vendor Code doc
                             for vendor_code_row in company_vendor_code_doc.vendor_code:
                                 vendor_info = {
-                                    'company_name': getattr(company_vendor_code_doc, 'company_name', ''),
+                                    'company_code': getattr(company_vendor_code_doc, 'company_name', ''),
+                                    'company_name': company_name,
                                     'state': getattr(vendor_code_row, 'state', ''),
                                     'gst_no': getattr(vendor_code_row, 'gst_no', ''),
                                     'vendor_code': getattr(vendor_code_row, 'vendor_code', '')

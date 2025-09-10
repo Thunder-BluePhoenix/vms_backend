@@ -54,6 +54,7 @@
   "mail_sent_to_purchase_head",
   "mail_sent_to_account_team",
   "mail_sent_to_account_head",
+  "approvals_mail_sent_time",
   "rejected_by",
   "rejected_by_designation",
   "reason_for_rejection",
@@ -108,6 +109,7 @@
   "it_head_remark",
   "vendors_documents_detail_changes_remarks_section",
   "vendor_remarks",
+  "change_pur_detail_req_mail_to_it_head",
   "column_break_ldrv",
   "change_details_req_mail_sent_to_purchase_team",
   "change_details_req_mail_sent_to_accounts_team",
@@ -741,12 +743,23 @@
    "fieldname": "re_release",
    "fieldtype": "Check",
    "label": "Re Release"
+  },
+  {
+   "default": "0",
+   "fieldname": "change_pur_detail_req_mail_to_it_head",
+   "fieldtype": "Check",
+   "label": "Change Purchase Details Request Mail to IT Head"
+  },
+  {
+   "fieldname": "approvals_mail_sent_time",
+   "fieldtype": "Datetime",
+   "label": "Approvals Mail Sent Time"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-06 01:53:19.118609",
+ "modified": "2025-09-09 15:41:13.858205",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

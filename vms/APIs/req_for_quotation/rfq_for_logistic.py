@@ -126,8 +126,10 @@ def filter_storage_locatioon(company):
 def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=1, page_length=10, company=None):
     if not rfq_type:
         frappe.throw(_("Missing required parameter: rfq_type"))
+
     if not company:
         frappe.throw(_("Missing required parameter: company"))
+
     try:
         # Return empty result if the service provider is All Service Provider, Premium Service Provider
         if service_provider in ["All Service Provider", "Premium Service Provider"]:
@@ -139,12 +141,14 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
                 "page_no": page_no,
                 "page_length": page_length
             }
+		
         # Get all vendor linked to this company
         company_vendor_links = frappe.get_all(
             "Company Vendor Code",
             filters={"company_name": company},
             pluck="vendor_ref_no"
         )
+
         if not company_vendor_links:
             return {
                 "status": "success",
@@ -154,6 +158,7 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
                 "page_no": page_no,
                 "page_length": page_length
             }
+		
         vendor_links = frappe.get_all(
             "Vendor Type Group",
             filters={
@@ -163,16 +168,20 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
             },
             pluck="parent"
         )
+
         conditions = {"name": ["in", list(set(vendor_links))]}
+
         if service_provider=="Courier Service Provider":
             conditions["service_provider_type"] = "Courier Partner"
         if service_provider == "Adhoc Service Provider":
             conditions["service_provider_type"] = ["in", ["Courier Partner", "Premium Service Provider", "Service Provider"]]
         if vendor_name:
             conditions["vendor_name"] = ["like", f"%{vendor_name}%"]
+
         page_no = int(page_no) if page_no else 1
         page_length = int(page_length) if page_length else 10
         offset = (page_no - 1) * page_length
+
         vendor_masters = frappe.get_all(
             "Vendor Master",
             filters=conditions,
@@ -182,6 +191,7 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
         )
         total_count = frappe.db.count("Vendor Master", filters=conditions)
         output = []
+
         for vm in vendor_masters:
             vendor_code = []
             company_vendor_code_list = frappe.get_all(
@@ -202,6 +212,7 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
                 "vendor_code": vendor_code,
                 "service_provider_type": vm.service_provider_type
             })
+
         return {
             "status": "success",
             "message": f"{len(output)} vendor(s) found",
@@ -481,7 +492,9 @@ def create_export_logistic_rfq(data):
 		rfq.rfq_cutoff_date_logistic = data.get("rfq_cutoff_date_logistic")
 		rfq.rfq_date_logistic       = data.get("rfq_date_logistic")
 		rfq.mode_of_shipment        = data.get("mode_of_shipment")
-		rfq.destination_port        = data.get("destination_port")
+
+		rfq.destination_port        = data.get("port_code")
+
 		rfq.country                 = data.get("country")
 		rfq.port_code               = data.get("port_code")
 		rfq.port_of_loading         = data.get("port_of_loading")

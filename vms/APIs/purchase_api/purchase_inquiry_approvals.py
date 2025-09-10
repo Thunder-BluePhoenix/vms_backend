@@ -1,6 +1,8 @@
 import frappe
 import json
 from frappe import _
+from vms.utils.custom_send_mail import custom_sendmail
+
 
 @frappe.whitelist(allow_guest=True)
 def hod_approval_check(data):
@@ -124,3 +126,176 @@ def purchase_approval_check(data):
 			"message": "Failed to update cart details.",
 			"error": str(e),
 		}
+
+
+@frappe.whitelist(allow_guest=False)
+def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=None):
+    try:
+        http_server = frappe.conf.get("backend_http")
+
+        # Get purchase enquiry document
+        doc = frappe.get_doc("Cart Details", purchase_enquiry_id)
+
+        # Get requestor details
+        requestor_name = frappe.session.user
+        if email_id:
+            employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
+            second_stage_user = frappe.get_value("User", {"email": email_id})
+            second_stage_name = frappe.get_value("User", second_stage_user, "full_name")
+
+        if email_id:
+            # Create approval and reject URLs
+            approve_url = f"{http_server}api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=approve"
+            reject_url = f"{http_server}api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=reject"
+
+            table_html = """
+                <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+                    <tr>
+                        <th>Asset Code</th>
+                        <th>Product Name</th>
+                        <th>Product Quantity</th>
+                        <th>UOM</th>
+                        <th>Product Price</th>
+                        <th>Lead Time</th>
+                        <th>User Specifications</th>
+                        <th>Final Price</th>
+                    </tr>
+            """
+
+            for row in doc.cart_product:
+                table_html += f"""
+                    <tr>
+                        <td>{row.assest_code or ''}</td>
+                        <td>{frappe.db.get_value("VMS Product Master", row.product_name, "product_name") or ''}</td>
+                        <td>{row.product_quantity or ''}</td>
+                        <td>{row.uom or ''}</td>
+                        <td>{row.product_price or ''}</td>
+                        <td>{row.lead_time or ''}</td> 
+                        <td>{row.user_specifications or ''}</td>
+                        <td>{row.final_price_by_purchase_team or ''}</td>
+                    </tr>
+                """
+
+            table_html += "</table>"
+
+            subject = f"Purchase Team Approved Cart Details Submitted by {employee_name if employee_name else 'user'} - {doc.name}"
+
+            # Message for HOD with buttons
+            hod_message = f"""
+                <p>Dear {second_stage_name if second_stage_name else 'user'},</p>		
+                <p>A new cart details submission has been made by <b>{employee_name if employee_name else 'user'}</b> which is approved by Purchase Team.</p>
+                <p>Please review the details and take necessary actions.</p>
+                <p><b>Cart ID:</b> {doc.name}</p>
+                <p><b>Cart Date:</b> {doc.cart_date}</p>
+                <p><b>Cart Products:</b></p>
+                {table_html}
+                <br>
+                <div style="margin: 20px 0px; text-align: center;">
+                    <a href="{approve_url}" style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                        Approve
+                    </a>
+                    <a href="{reject_url}" style="display: inline-block; padding: 10px 20px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 4px;">
+                        Reject
+                    </a>
+                </div>
+                <p>Thank you!</p>
+            """
+
+            # Message for user (without buttons)
+            user_message = f"""
+                <p>Dear {employee_name if employee_name else 'user'},</p>
+                <p>Your cart has been approved by Purchase Team and sent to your Second stage <b>{second_stage_name if second_stage_name else 'user'}</b> for further approval.</p>
+                <p><b>Cart ID:</b> {doc.name}</p>
+                <p><b>Cart Date:</b> {doc.cart_date}</p>
+                <p><b>Cart Products:</b></p>
+                {table_html}
+                <p>Thank you!</p>
+            """
+
+            # Send to HOD
+            frappe.custom_sendmail(
+                recipients=[email_id],
+                subject=subject,
+                message=hod_message,
+                now=True
+            )
+
+            # Send to User separately (without buttons)
+            frappe.custom_sendmail(
+                recipients=[doc.user],
+                subject=subject,
+                message=user_message,
+                now=True
+            )
+
+            frappe.set_value("Cart Details", doc.name, "mail_sent_to_second_stage_approval", 1)
+            frappe.set_value("Cart Details", doc.name, "is_requested_second_stage_approval", 1)
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": "Email sent to Second stage user successfully."
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Second Stage Approver email or user email not found.",
+                "error": "No email address associated with the HOD."
+            }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error sending purchase enquiry approval email")
+        return {
+            "status": "error",
+            "message": "Failed to send email to approver.",
+            "error": str(e)
+        }
+
+
+
+@frappe.whitelist(allow_guest=True)
+def second_stage_approval_check():
+    try:
+        cart_id = frappe.form_dict.get("cart_id")
+        user = frappe.form_dict.get("email")
+        action = frappe.form_dict.get("action")
+        comments = frappe.form_dict.get("comments") or ""
+        reason_for_rejection = frappe.form_dict.get("rejection_reason") or ""
+
+        if not cart_id or not user or not action:
+            return {
+                "status": "error",
+                "message": "Missing required parameters."
+            }
+
+        cart_details_doc = frappe.get_doc("Cart Details", cart_id)
+
+        if action == "approve":
+            cart_details_doc.second_stage_approved = 1
+            cart_details_doc.second_stage_approval_status = "Approved"
+            cart_details_doc.second_stage_approval_remark = "Approved by " + user
+            cart_details_doc.second_stage_approval_by = user
+        elif action == "reject":
+            cart_details_doc.rejected = 1
+            cart_details_doc.rejected_by = user
+            cart_details_doc.hod_approval_status = "Rejected"
+            cart_details_doc.reason_for_rejection = reason_for_rejection
+        else:
+            frappe.throw(_("Invalid request: either approve or reject must be set."))
+
+        cart_details_doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": f"Your response has been recorded for Cart ID: {cart_id}",
+            "status_value": cart_details_doc.hod_approval_status,
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error updating cart details")
+        return {
+            "status": "error",
+            "message": "Failed to update cart details.",
+            "error": str(e),
+        }

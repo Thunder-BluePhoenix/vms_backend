@@ -33,6 +33,9 @@
   "hod_approval_remarks",
   "purchase_team_approval_status",
   "purchase_team_approval_remarks",
+  "second_stage_approval_status",
+  "second_stage_approval_remark",
+  "second_stage_approval_by",
   "column_break_arbr",
   "rejected_by",
   "reason_for_rejection",
@@ -44,6 +47,10 @@
   "ack_mail_to_user",
   "asked_to_modify",
   "purchase_team_acknowledgement",
+  "second_stage_approved",
+  "mail_sent_to_second_stage_approval",
+  "is_requested_second_stage_approval",
+  "is_submited",
   "status_workflow_section",
   "enquirer_status",
   "rejection_reason",
@@ -353,12 +360,54 @@
    "fieldname": "purchase_requisition_form_created",
    "fieldtype": "Check",
    "label": "Purchase Requisition Form Created"
+  },
+  {
+   "depends_on": "eval:doc.second_stage_approved\r\n",
+   "fieldname": "second_stage_approval_status",
+   "fieldtype": "Data",
+   "label": "Second Stage Approval Status"
+  },
+  {
+   "depends_on": "eval:doc.second_stage_approved\r\n",
+   "fieldname": "second_stage_approval_remark",
+   "fieldtype": "Small Text",
+   "label": "Second Stage Approval Remark"
+  },
+  {
+   "depends_on": "eval:doc.second_stage_approved\r\n",
+   "fieldname": "second_stage_approval_by",
+   "fieldtype": "Data",
+   "label": "Second Stage Approval By"
+  },
+  {
+   "default": "0",
+   "fieldname": "second_stage_approved",
+   "fieldtype": "Check",
+   "label": "Second Stage Approved"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_to_second_stage_approval",
+   "fieldtype": "Check",
+   "label": "Mail Sent to Second Stage Approval"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_requested_second_stage_approval",
+   "fieldtype": "Check",
+   "label": "Is Requested Second Stage Approval"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_submited",
+   "fieldtype": "Check",
+   "label": "Is Submited"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:36:55.427334",
+ "modified": "2025-09-09 17:00:42.779282",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",

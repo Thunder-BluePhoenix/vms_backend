@@ -13,17 +13,14 @@ def create_vehicle_details():
                 if file_obj and getattr(file_obj, 'filename', None):
                     data[field_name] = file_obj
         
-    
         if not data and frappe.request.data:
             try:
                 data = json.loads(frappe.request.data)
             except json.JSONDecodeError:
                 return {"error": True, "message": "Invalid JSON data"}
         
-
         if 'data' in data and isinstance(data['data'], dict):
             nested_data = data['data']
-            
             files = {k: v for k, v in data.items() if hasattr(v, 'filename')}
             data = nested_data
             data.update(files)
@@ -33,9 +30,15 @@ def create_vehicle_details():
 
         name = data.get('name')
         if name:
-            return update_vehicle_details(name, data)
+            result = update_vehicle_details(name, data)
         else:
-            return create_new_vehicle_details(data)
+            result = create_new_vehicle_details(data)
+        
+        # Handle dispatch item mapping after vehicle creation/update
+        if result.get('success') and data.get('dispatch_item_id'):
+            map_vehicle_to_dispatch_item(result['name'], data['dispatch_item_id'])
+            
+        return result
             
     except Exception as e:
         frappe.db.rollback()
@@ -45,11 +48,9 @@ def create_vehicle_details():
 def create_new_vehicle_details(data):
     doc = frappe.new_doc("Vehicle Details")
     
-
     set_vehicle_details_data_without_files(doc, data)
     doc.insert()  
     
-   
     handle_file_attachments(doc, data)
     doc.save()  
     frappe.db.commit()
@@ -62,10 +63,9 @@ def create_new_vehicle_details(data):
 
 def update_vehicle_details(name, data):
     if not frappe.db.exists("Vehicle Details", name):
-        return {"error": True, "message": f"vehicle Details '{name}' does not exist"}
+        return {"error": True, "message": f"Vehicle Details '{name}' does not exist"}
     
     doc = frappe.get_doc("Vehicle Details", name)
-    
     
     set_vehicle_details_data(doc, data)
     doc.save()
@@ -77,35 +77,72 @@ def update_vehicle_details(name, data):
         "name": doc.name
     }
 
+def map_vehicle_to_dispatch_item(vehicle_name, dispatch_item_id):
+    try:
+        if not frappe.db.exists("Dispatch Item", dispatch_item_id):
+            frappe.log_error(f"Dispatch Item '{dispatch_item_id}' does not exist", "Vehicle Mapping Error")
+            return
+        
+        dispatch_doc = frappe.get_doc("Dispatch Item", dispatch_item_id)
+        
+        existing_vehicle = None
+        if hasattr(dispatch_doc, 'vehicle_details_item'):  
+            for vehicle_row in dispatch_doc.vehicle_details_item:
+                if vehicle_row.vehicle_details == vehicle_name:
+                    existing_vehicle = vehicle_row
+                    break
+        
+        if not existing_vehicle:
+    
+            dispatch_doc.append('vehicle_details_item', {
+                'vehicle_details': vehicle_name,
+               
+            })
+        else:
+            existing_vehicle.vehicle = vehicle_name
+        
+        dispatch_doc.save()
+        frappe.db.commit()
+        
+        frappe.msgprint(f"Vehicle {vehicle_name} mapped to Dispatch Item {dispatch_item_id}")
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vehicle Mapping Error")
+        frappe.throw(f"Error mapping vehicle to dispatch item: {str(e)}")
+
 def set_vehicle_details_data_without_files(doc, data):
+   
+    excluded_fields = ["items", "attachment", "image", "attach", "dispatch_item_id"]
     
     for field, value in data.items():
         if field == "items":
             handle_child_items(doc, value)
-        elif field in ["attachment", "image", "attach"]:
-            
+        elif field in excluded_fields:
             continue
         else:
-           
             if hasattr(value, 'filename'):
                 continue
             if hasattr(doc, field):
                 doc.set(field, value)
 
 def handle_file_attachments(doc, data):
-   
     for field, value in data.items():
         if field in ["attachment", "image", "attach"]:
             print("Processing attachment field:", field)
             handle_attachment(doc, field, value)
 
 def set_vehicle_details_data(doc, data):
+   
+    excluded_fields = ["items", "attachment", "image", "attach", "dispatch_item_id"]
+    
     for field, value in data.items():
         if field == "items":
             handle_child_items(doc, value)
         elif field in ["attachment", "image", "attach"]:
             print("Processing attachment field:", field)
             handle_attachment(doc, field, value)
+        elif field in excluded_fields:
+            continue
         else:
            
             if hasattr(value, 'filename'):
@@ -139,6 +176,32 @@ def handle_attachment(doc, field, value):
   
     if isinstance(value, str):
         doc.set(field, value)
+
+@frappe.whitelist()
+def get_dispatch_item_vehicles(dispatch_item_id):
+    try:
+        if not frappe.db.exists("Dispatch Item", dispatch_item_id):
+            return {"error": True, "message": f"Dispatch Item '{dispatch_item_id}' does not exist"}
+        
+        dispatch_doc = frappe.get_doc("Dispatch Item", dispatch_item_id)
+        vehicles = []
+        
+        if hasattr(dispatch_doc, 'vehicle_details_item'):
+            for vehicle_row in dispatch_doc.vehicle_details_item:
+                if vehicle_row.vehicle_details:
+                    vehicle_doc = frappe.get_doc("Vehicle Details", vehicle_row.vehicle)
+                    vehicle_details_item.append({
+                        "name": vehicle_doc.name,
+                    })
+        
+        return {
+            "success": True,
+            "vehicles": vehicles
+        }
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get Dispatch Vehicles Error")
+        return {"error": True, "message": str(e)}
 
 def save_uploaded_file(doc, field, file_obj):
     try:
@@ -425,3 +488,84 @@ def get_plant_master_list(search_term=None, page=1, page_size=50):
             "has_next": False,
             "has_prev": False
         }
+
+
+
+@frappe.whitelist(allow_guest=True)
+def remove_vehicle_from_dispatch(dispatch_item_id, vehicle_details_id):
+    try:
+        if not dispatch_item_id or not vehicle_details_id:
+            return {
+                "status": "error",
+                "message": "Both dispatch_item_id and vehicle_details_id are required"
+            }
+    
+        if not frappe.db.exists("Dispatch Item", dispatch_item_id):
+            return {
+                "status": "error",
+                "message": f"Dispatch Item '{dispatch_item_id}' does not exist"
+            }
+        
+        
+        if not frappe.db.exists("Vehicle Details", vehicle_details_id):
+            return {
+                "status": "error",
+                "message": f"Vehicle Details '{vehicle_details_id}' does not exist"
+            }
+        
+       
+        dispatch_doc = frappe.get_doc("Dispatch Item", dispatch_item_id)
+        
+      
+        vehicle_removed = False
+        rows_to_remove = []
+        
+        for idx, row in enumerate(dispatch_doc.vehicle_details_item):
+            if row.vehicle_details == vehicle_details_id:
+                rows_to_remove.append(idx)
+                vehicle_removed = True
+        
+        if not vehicle_removed:
+            return {
+                "status": "error",
+                "message": f"Vehicle '{vehicle_details_id}' is not linked to Dispatch Item '{dispatch_item_id}'"
+            }
+        
+        for idx in reversed(rows_to_remove):
+            dispatch_doc.vehicle_details_item.pop(idx)
+        
+        
+        dispatch_doc.save()
+        
+        
+        delete_vehicle_document(vehicle_details_id)
+        
+       
+        frappe.db.commit()
+        
+        return {
+            "status": "success",
+            "message": f"Vehicle '{vehicle_details_id}' successfully removed from Dispatch Item '{dispatch_item_id}' and deleted",
+            "removed_count": len(rows_to_remove)
+        }
+        
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "Remove Vehicle from Dispatch Error")
+        return {
+            "status": "error",
+            "message": "Failed to remove vehicle from dispatch item",
+            "error": str(e)
+        }
+
+def delete_vehicle_document(vehicle_details_id):
+    try:
+       
+        vehicle_doc = frappe.get_doc("Vehicle Details", vehicle_details_id)
+        
+        
+        frappe.delete_doc("Vehicle Details", vehicle_details_id, force=True)
+        
+    except Exception as e:
+        frappe.log_error(f"Error deleting vehicle document {vehicle_details_id}: {str(e)}", "Vehicle Deletion Error")
+        raise e

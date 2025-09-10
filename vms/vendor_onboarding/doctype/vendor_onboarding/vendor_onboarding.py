@@ -6,6 +6,7 @@ import time
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 import json
+from frappe.utils import now_datetime
 # from vms.utils.custom_send_mail import custom_sendmail
 # from vms.vendor_onboarding.doctype.vendor_onboarding.onboarding_sap_validation import generate_sap_validation_html
 from vms.APIs.sap.sap import update_sap_vonb
@@ -91,7 +92,7 @@ class VendorOnboarding(Document):
             vendor_company_update(self,method=None)
             
             on_update_check_fields(self,method=None)
-            update_ven_onb_record_table(self, method=None)
+            # update_ven_onb_record_table(self, method=None)
             # update_ven_onb_record_table(self, method=None)
             # update_van_core_docs(self, method=None)
             
@@ -100,9 +101,11 @@ class VendorOnboarding(Document):
             update_sap_vonb(self, method= None)
             set_vonb_status_onupdate(self, method=None)
             check_vnonb_send_mails(self, method=None)
+            update_ven_onb_record_table(self, method=None)
             sync_maintain(self, method= None)
             on_vendor_onboarding_submit(self, method=None)
-            update_vendor_master_onb_status(self, method=None)
+            # update_vendor_master_onb_status(self, method=None)
+            
         #   set_vendor_onboarding_status(self,method=None)
         #   check_vnonb_send_mails(self, method=None)
             # print("control reload@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
@@ -362,6 +365,7 @@ def send_mail_purchase_team(doc, method=None):
             # doc.mail_sent_to_purchase_team = 1
             # frappe.db.commit()
             frappe.db.set_value("Vendor Onboarding", doc.name, "mail_sent_to_purchase_team", 1)
+            frappe.db.set_value("Vendor Onboarding", doc.name, "approvals_mail_sent_time", now_datetime())
 
             return {
                 "status": "success",
@@ -538,7 +542,7 @@ def send_mail_purchase_head(doc, method=None):
             # doc.mail_sent_to_purchase_head = 1
             # frappe.db.commit()
             frappe.db.set_value("Vendor Onboarding", doc.name, "mail_sent_to_purchase_head", 1)
-
+            frappe.db.set_value("Vendor Onboarding", doc.name, "approvals_mail_sent_time", now_datetime())
 
             return {
                 "status": "success",
@@ -644,6 +648,7 @@ def send_mail_account_team(doc, method=None):
             # Mark as mail sent
             # doc.mail_sent_to_purchase_team = 1
             frappe.db.set_value("Vendor Onboarding", doc.name, "mail_sent_to_account_team", 1)
+            frappe.db.set_value("Vendor Onboarding", doc.name, "approvals_mail_sent_time", now_datetime())
 
             return {
                 "status": "success",
@@ -1038,6 +1043,7 @@ def send_approval_mail_accounts_team(doc, method=None):
             )
 
             frappe.db.set_value("Vendor Onboarding", doc.name, "mail_sent_to_account_team", 1)
+            frappe.db.set_value("Vendor Onboarding", doc.name, "approvals_mail_sent_time", now_datetime())
 
             return {
                 "status": "success",
@@ -1133,6 +1139,7 @@ def send_approval_mail_accounts_head(doc, method=None):
             )
 
             frappe.db.set_value("Vendor Onboarding", doc.name, "mail_sent_to_account_head", 1)
+            frappe.db.set_value("Vendor Onboarding", doc.name, "approvals_mail_sent_time", now_datetime())
 
             return {
                 "status": "success",

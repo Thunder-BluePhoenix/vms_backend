@@ -182,6 +182,7 @@ def get_full_rfq_data(unique_id):
 			"mode_of_shipment": doc.mode_of_shipment,
 			"port_of_loading": doc.port_of_loading,
 			"destination_port": doc.destination_port,
+            "export_destination_port": frappe.db.get_value("Port Master", doc.destination_port, "port_name"),
 			"ship_to_address": doc.ship_to_address,
 			"no_of_pkg_units": doc.no_of_pkg_units,
 			"vol_weight": doc.vol_weight,
@@ -1200,55 +1201,53 @@ def total_rfq_count():
 
 
 @frappe.whitelist(allow_guest=True)
-def check_duplicate_vendor():
+def check_duplicate_vendor(data):
     try:
-        data = frappe.local.form_dict
-        
-        if isinstance(data.get('data'), str):
-            try:
-                data = json.loads(data.get('data'))
-            except json.JSONDecodeError:
-                data = frappe.local.form_dict
-        
+        if isinstance(data, str):
+            data = json.loads(data)
+
         mobile_number = data.get('mobile_number', '').strip()
         email = data.get('email', '').strip().lower()
-        
+
+        # Require at least one field
         if not mobile_number and not email:
             return {
                 "status": "error",
                 "message": "Please provide either mobile number or email to check for duplicates",
                 "error_type": "validation"
             }
-        
+
         duplicate_records = []
         duplicate_fields = []
-        
+
+        # Check mobile duplicates
         if mobile_number:
             mobile_duplicates = frappe.db.sql("""
-                SELECT name, mobile_number,vendor_name, office_email_primary
+                SELECT name, vendor_name, mobile_number, office_email_primary
                 FROM `tabVendor Master`
                 WHERE mobile_number = %s
             """, (mobile_number,), as_dict=True)
-            
+
             if mobile_duplicates:
                 duplicate_records.extend(mobile_duplicates)
                 duplicate_fields.append("mobile number")
-        
+
+        # Check email duplicates
         if email:
             email_duplicates = frappe.db.sql("""
-                SELECT name,vendor_name, mobile_number, office_email_primary
+                SELECT name, vendor_name, mobile_number, office_email_primary
                 FROM `tabVendor Master`
                 WHERE LOWER(office_email_primary) = %s
             """, (email,), as_dict=True)
-            
+
             if email_duplicates:
                 for email_dup in email_duplicates:
                     if not any(rec['name'] == email_dup['name'] for rec in duplicate_records):
                         duplicate_records.append(email_dup)
                 duplicate_fields.append("email")
-        
+
         duplicate_fields = list(set(duplicate_fields))
-        
+
         if duplicate_records:
             formatted_records = []
             for record in duplicate_records:
@@ -1258,11 +1257,11 @@ def check_duplicate_vendor():
                     "mobile_number": record.get('mobile_number'),
                     "email": record.get('office_email_primary')
                 })
-            
+
             return {
                 "status": "duplicate_found",
                 "message": f"Duplicate entry found! There is already a vendor with this {' and '.join(duplicate_fields)}",
-                # "duplicate_count": len(duplicate_records),
+                "duplicate_count": len(formatted_records),
                 "existing_vendors": formatted_records
             }
         else:
@@ -1271,7 +1270,7 @@ def check_duplicate_vendor():
                 "message": "No duplicate entry found. No vendor exists with this mobile number or email",
                 "duplicate_count": 0
             }
-    
+
     except Exception as e:
         frappe.log_error(f"Vendor Duplicate Check API Error: {str(e)}", "vendor_duplicate_check_error")
         return {
@@ -1279,6 +1278,7 @@ def check_duplicate_vendor():
             "message": f"An error occurred while checking for duplicates: {str(e)}",
             "error_type": "general"
         }
+
 
 
 
@@ -1324,8 +1324,10 @@ def get_countries_with_ports(search_term=None, page=None, page_size=None):
         main_query = f"""
             SELECT 
                 c.name as country,
+                pm.name,
                 pm.port_code,
-                pm.port_name
+                pm.port_name,
+                pm.country
             FROM 
                 `tabCountry Master` c
             INNER JOIN 
@@ -1391,10 +1393,12 @@ def get_ports_by_mode_of_shipment_simple(mode_of_shipment, logistic_type=None, p
         where_clause = " AND ".join(conditions)
         query = f"""
             SELECT 
+                pm.name,
                 pm.port_name,
                 pm.logistic_type,
                 pm.port_of_loading,
-                pm.destination_port
+                pm.destination_port,
+                pm.country
             FROM 
                 `tabPort Master` pm
             WHERE 
@@ -1405,7 +1409,15 @@ def get_ports_by_mode_of_shipment_simple(mode_of_shipment, logistic_type=None, p
         
         result = frappe.db.sql(query, params, as_dict=True)
         
-        return [port['port_name'] for port in result]
+        return [
+            {
+                "name": port.get("name"),
+                "port_code": port.get("port_code"),
+                "port_name": port.get("port_name"),
+                "country": port.get("country")
+            }
+            for port in result
+        ]
         
     except Exception as e:
         frappe.log_error(f"Error in get_ports_by_mode_of_shipment_simple: {str(e)}")

@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:MSG-{####}",
+ "creation": "2025-01-15 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_info_section",
+  "chat_room",
+  "sender",
+  "column_break_1",
+  "message_type",
+  "timestamp",
+  "content_section",
+  "message_content",
+  "file_attachments",
+  "metadata_section",
+  "reply_to_message",
+  "is_edited",
+  "column_break_2",
+  "edit_timestamp",
+  "is_deleted",
+  "delete_timestamp",
+  "reactions_section",
+  "reactions"
+ ],
+ "fields": [
+  {
+   "fieldname": "basic_info_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Information"
+  },
+  {
+   "fieldname": "chat_room",
+   "fieldtype": "Link",
+   "label": "Chat Room",
+   "options": "Chat Room",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sender",
+   "fieldtype": "Link",
+   "label": "Sender",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "message_type",
+   "fieldtype": "Select",
+   "label": "Message Type",
+   "options": "Text\nFile\nImage\nSystem\nAnnouncement",
+   "default": "Text",
+   "reqd": 1
+  },
+  {
+   "fieldname": "timestamp",
+   "fieldtype": "Datetime",
+   "label": "Timestamp",
+   "default": "now",
+   "reqd": 1
+  },
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Content"
+  },
+  {
+   "fieldname": "message_content",
+   "fieldtype": "Long Text",
+   "label": "Message Content"
+  },
+  {
+   "fieldname": "file_attachments",
+   "fieldtype": "Table",
+   "label": "File Attachments",
+   "options": "Chat Message Attachment"
+  },
+  {
+   "fieldname": "metadata_section",
+   "fieldtype": "Section Break",
+   "label": "Metadata"
+  },
+  {
+   "fieldname": "reply_to_message",
+   "fieldtype": "Link",
+   "label": "Reply To Message",
+   "options": "Chat Message"
+  },
+  {
+   "fieldname": "is_edited",
+   "fieldtype": "Check",
+   "label": "Is Edited",
+   "default": 0
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "edit_timestamp",
+   "fieldtype": "Datetime",
+   "label": "Edit Timestamp"
+  },
+  {
+   "fieldname": "is_deleted",
+   "fieldtype": "Check",
+   "label": "Is Deleted",
+   "default": 0
+  },
+  {
+   "fieldname": "delete_timestamp",
+   "fieldtype": "Datetime",
+   "label": "Delete Timestamp"
+  },
+  {
+   "fieldname": "reactions_section",
+   "fieldtype": "Section Break",
+   "label": "Reactions"
+  },
+  {
+   "fieldname": "reactions",
+   "fieldtype": "Table",
+   "label": "Message Reactions",
+   "options": "Chat Message Reaction"
+  }
+ ],
+ "links": [],
+ "modified": "2025-01-15 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Chat VMS",
+ "name": "Chat Message",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

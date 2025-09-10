@@ -349,6 +349,7 @@ class VendorImportUtils:
 		
 		# Define field aliases for flexible matching
 		field_aliases = {
+			'bank_key':['bank key', 'Bank Key', 'BankKey', 'bank_key'],
 			'bank_name': ['Bank Name', 'BANK_NAME', 'bank_name', 'BankName', 'Bank', 'BANK'],
 			'ifsc_code': ['IFSC Code', 'IFSC_CODE', 'ifsc_code', 'IFSC', 'Bank Code', 'BANK_CODE'],
 			'account_number': ['Account Number', 'ACCOUNT_NUMBER', 'account_number', 'Account No', 'ACCOUNT_NO', 'Acc No'],

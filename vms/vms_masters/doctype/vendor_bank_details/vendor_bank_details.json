@@ -19,6 +19,7 @@
   "account_number",
   "name_of_account_holder",
   "column_break_usab",
+  "bank_key",
   "type_of_account",
   "currency",
   "currency_code",
@@ -220,12 +221,17 @@
    "fieldname": "company_pan_number",
    "fieldtype": "Data",
    "label": "PAN No"
+  },
+  {
+   "fieldname": "bank_key",
+   "fieldtype": "Data",
+   "label": "Bank Key"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-02 17:21:08.683323",
+ "modified": "2025-09-08 12:33:57.122640",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Bank Details",

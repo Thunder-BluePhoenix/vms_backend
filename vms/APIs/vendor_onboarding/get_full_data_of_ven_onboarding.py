@@ -761,7 +761,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         #         "purchase_head_undertaking", "accounts_team_undertaking", "accounts_head_undertaking"]
 
         check_box_fields = ["mandatory_data_filled", "register_by_account_team", "form_fully_submitted_by_vendor", "purchase_team_undertaking",
-                            "purchase_head_undertaking", "accounts_team_undertaking", "accounts_head_undertaking", "is_amendment","re_release"]
+                            "purchase_head_undertaking", "accounts_team_undertaking", "accounts_head_undertaking", "is_amendment","re_release",
+                            "change_pur_detail_req_mail_to_it_head"]
 
         validation_check = {field: vonb.get(field) for field in check_box_fields}
 

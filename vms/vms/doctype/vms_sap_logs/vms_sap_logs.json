@@ -11,6 +11,7 @@
   "purchase_requisition_link",
   "column_break_inpw",
   "ref_no",
+  "status",
   "section_break_tzmc",
   "erp_to_sap_data",
   "sap_response",
@@ -69,12 +70,17 @@
   {
    "fieldname": "section_break_tzmc",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-23 11:47:24.073441",
+ "modified": "2025-09-08 17:45:40.090500",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "VMS SAP Logs",

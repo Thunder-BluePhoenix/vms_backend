@@ -2010,12 +2010,13 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                                 "J1ipanno": vcd.company_pan_number if vcd else "",
                                 "J1ipanref": onb_legal_doc.name_on_company_pan if onb_legal_doc else "",
+                                "Stcd5": onb_legal_doc.udyam_number if (onb_legal_doc and onb_legal_doc.udyam_number) else "",
                                 "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                                 "Name11": safe_get(onb, "contact_details", 0, "last_name"),
                                 "Bankl": onb_bank.bank_code if onb_bank else "",
                                 "Bankn": onb_pmd.account_number if onb_pmd else "",
                                 "Bkref": onb_pmd.ifsc_code if onb_pmd else "",
-                                "Banka": onb_bank.bank_name if onb_bank else "",
+                                "Banka": "",
                                 "Koinh": onb_pmd.name_of_account_holder if onb_pmd else "",
                                 "Xezer": "",
                                 "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
@@ -2238,6 +2239,7 @@ def erp_to_sap_vendor_data(onb_ref):
                             "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                             "J1ipanno": "",  # No PAN for international
                             "J1ipanref": "",
+                            "Stcd5": "",
                             "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                             "Name11": safe_get(onb, "contact_details", 0, "last_name"),
                             "Bankl": "N.A",  # International uses different banking fields
@@ -2503,6 +2505,7 @@ def log_sap_transaction_enhanced(onb_name, request_data, response_data, status, 
         
         # Store full data since erp_to_sap_data is JSON field
         sap_log.erp_to_sap_data = request_data
+        sap_log.status = status
         
         # Store full response since sap_response is JSON field  
         if response_data:
@@ -2682,6 +2685,7 @@ def send_failure_notification(onb_name, failure_type, error_details):
                         # recipient["email"], 
                         "rishi.hingad@merillife.com",
                         "thunder00799@gmail.com"],
+                    cc = [registered_by],
                     subject=subject,
                     message=message,
                     now=True
@@ -3448,6 +3452,7 @@ def send_vendor_to_sap_via_front(doc_name):
         sap_result = erp_to_sap_vendor_data(doc.name)
         
         print(f"📊 SAP function result: {sap_result}")
+        doc.save()
         
         # Handle the response from SAP function
         if isinstance(sap_result, dict):
