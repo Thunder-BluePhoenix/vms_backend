@@ -1,60 +1,50 @@
 # vms/APIs/notification_chatroom/chat_apis/maintenance.py
 import frappe
-from frappe.utils import now_datetime, add_days, get_datetime
 import os
+from frappe import _
+from frappe.utils import now_datetime, add_days, cint, get_datetime
+import json
 
 def cleanup_old_messages():
     """
-    Clean up old messages based on room settings
+    Clean up old chat messages based on settings
     This function runs daily via scheduler
     """
     try:
-        # Get rooms with auto-delete settings
-        rooms_with_auto_delete = frappe.get_all(
-            "Chat Room",
-            filters={
-                "auto_delete_messages_after_days": [">", 0],
-                "room_status": "Active"
-            },
-            fields=["name", "auto_delete_messages_after_days"]
-        )
-        
-        deleted_count = 0
-        
-        for room in rooms_with_auto_delete:
-            # Calculate cutoff date
-            cutoff_date = add_days(now_datetime(), -room.auto_delete_messages_after_days)
+        # Check if chat is enabled
+        settings = frappe.get_single("Chat Settings")
+        if not settings.enable_chat:
+            frappe.logger().info("Chat is disabled, skipping cleanup")
+            return
             
-            # Get old messages
-            old_messages = frappe.get_all(
-                "Chat Message",
-                filters={
-                    "chat_room": room.name,
-                    "timestamp": ["<", cutoff_date],
-                    "is_deleted": 0
-                },
-                fields=["name"]
-            )
+        if not settings.auto_delete_old_messages:
+            return
             
-            # Soft delete old messages
-            for message in old_messages:
-                frappe.db.set_value(
-                    "Chat Message",
-                    message.name,
-                    {
-                        "is_deleted": 1,
-                        "delete_timestamp": now_datetime(),
-                        "message_content": "This message was automatically deleted"
-                    }
-                )
-                deleted_count += 1
-                
-        if deleted_count > 0:
-            frappe.db.commit()
-            frappe.logger().info(f"Auto-deleted {deleted_count} old chat messages")
+        # Get deletion period (default 30 days)
+        deletion_days = cint(settings.get("message_deletion_days", 30))
+        cutoff_date = add_days(now_datetime(), -deletion_days)
+        
+        # Soft delete old messages
+        deleted_count = frappe.db.sql("""
+            UPDATE `tabChat Message`
+            SET is_deleted = 1, 
+                delete_timestamp = %(now)s,
+                message_content = 'Message deleted due to retention policy'
+            WHERE timestamp < %(cutoff)s 
+                AND is_deleted = 0
+        """, {
+            "now": now_datetime(),
+            "cutoff": cutoff_date
+        })
+        
+        frappe.db.commit()
+        
+        if deleted_count:
+            frappe.logger().info(f"Cleaned up {deleted_count} old chat messages")
             
     except Exception as e:
-        frappe.log_error(f"Error in cleanup_old_messages: {str(e)}")
+        frappe.log_error(f"Error in cleanup_old_messages: {str(e)}", "Chat Maintenance")
+
 
 def update_room_statistics():
     """
@@ -62,46 +52,66 @@ def update_room_statistics():
     This function runs daily via scheduler
     """
     try:
+        # Check if chat is enabled
+        if not is_chat_enabled():
+            return
+            
         rooms = frappe.get_all("Chat Room", filters={"room_status": "Active"})
         
         for room in rooms:
-            # Calculate message statistics
-            stats = frappe.db.sql("""
-                SELECT 
-                    COUNT(*) as total_messages,
-                    COUNT(DISTINCT sender) as unique_senders,
-                    MAX(timestamp) as last_message_time
-                FROM `tabChat Message`
-                WHERE chat_room = %s AND is_deleted = 0
-            """, (room.name,), as_dict=True)[0]
-            
-            # Update room with statistics (you might want to add custom fields for this)
-            # For now, we'll just log the statistics
-            frappe.logger().info(
-                f"Room {room.name}: {stats.total_messages} messages, "
-                f"{stats.unique_senders} unique senders, "
-                f"last message: {stats.last_message_time}"
-            )
+            try:
+                # Calculate message statistics with proper error handling
+                stats = frappe.db.sql("""
+                    SELECT 
+                        COUNT(*) as total_messages,
+                        COUNT(DISTINCT sender) as unique_senders,
+                        MAX(timestamp) as last_message_time
+                    FROM `tabChat Message`
+                    WHERE chat_room = %s AND is_deleted = 0
+                """, (room.name,), as_dict=True)[0]
+                
+                # Log statistics
+                frappe.logger().info(
+                    f"Room {room.name}: {stats.total_messages} messages, "
+                    f"{stats.unique_senders} unique senders, "
+                    f"last message: {stats.last_message_time}"
+                )
+                
+                # Update room document with stats if needed
+                room_doc = frappe.get_doc("Chat Room", room.name)
+                if hasattr(room_doc, 'message_count'):
+                    room_doc.message_count = stats.total_messages
+                    room_doc.save(ignore_permissions=True)
+                    
+            except Exception as e:
+                frappe.log_error(f"Error updating stats for room {room.name}: {str(e)}", 
+                               "Room Statistics Update")
+                continue
             
     except Exception as e:
-        frappe.log_error(f"Error in update_room_statistics: {str(e)}")
+        frappe.log_error(f"Error in update_room_statistics: {str(e)}", "Chat Maintenance")
 
 def cleanup_deleted_files():
     """
     Clean up orphaned chat files
-    This function runs daily via scheduler
+    This function runs daily at 2 AM via scheduler
     """
     try:
-        # Find files that are attached to deleted messages
+        if not is_chat_enabled():
+            return
+            
+        # Find files that are attached to deleted messages (with 7 days grace period)
+        grace_period = add_days(now_datetime(), -7)
+        
         orphaned_files = frappe.db.sql("""
             SELECT DISTINCT cma.file_url, f.name as file_name
             FROM `tabChat Message Attachment` cma
             LEFT JOIN `tabChat Message` cm ON cma.parent = cm.name
             LEFT JOIN `tabFile` f ON cma.file_url = f.file_url
             WHERE cm.is_deleted = 1 
-                AND cm.delete_timestamp < %s
+                AND cm.delete_timestamp < %(grace_period)s
                 AND f.name IS NOT NULL
-        """, (add_days(now_datetime(), -7),), as_dict=True)  # 7 days grace period
+        """, {"grace_period": grace_period}, as_dict=True)
         
         deleted_files_count = 0
         
@@ -114,36 +124,64 @@ def cleanup_deleted_files():
                     deleted_files_count += 1
                     
             except Exception as e:
-                frappe.log_error(f"Error deleting file {file_info.file_name}: {str(e)}")
+                frappe.log_error(f"Error deleting file {file_info.file_name}: {str(e)}", 
+                               "File Cleanup")
                 
         if deleted_files_count > 0:
             frappe.db.commit()
             frappe.logger().info(f"Cleaned up {deleted_files_count} orphaned chat files")
             
     except Exception as e:
-        frappe.log_error(f"Error in cleanup_deleted_files: {str(e)}")
+        frappe.log_error(f"Error in cleanup_deleted_files: {str(e)}", "Chat Maintenance")
 
 def update_user_online_status():
-    """Update user online status based on last activity"""
+    """
+    Update user online status based on last activity
+    This function runs every 15 minutes via scheduler
+    """
     try:
+        if not is_chat_enabled():
+            return
+            
         # Mark users as offline if they haven't been active in the last 5 minutes
-        offline_threshold = frappe.utils.add_to_date(now_datetime(), minutes=-5)
+        offline_threshold = add_days(now_datetime(), minutes=-5)
         
-        # This is a simple implementation - in production you might want more sophisticated tracking
-        frappe.db.sql("""
-            UPDATE `tabUser` 
-            SET custom_chat_status = 'offline'
-            WHERE last_active < %s AND custom_chat_status != 'offline'
-        """, [offline_threshold])
-        
-        frappe.db.commit()
+        # Update with proper error handling
+        try:
+            updated = frappe.db.sql("""
+                UPDATE `tabUser` 
+                SET custom_chat_status = 'offline'
+                WHERE custom_chat_status != 'offline'
+                AND (
+                    custom_last_chat_activity IS NULL 
+                    OR custom_last_chat_activity < %(threshold)s
+                )
+            """, {"threshold": offline_threshold})
+            
+            frappe.db.commit()
+            
+            if updated:
+                frappe.logger().info(f"Updated {updated} users to offline status")
+                
+        except Exception as e:
+            # Handle cases where custom fields might not exist
+            if "Unknown column" in str(e):
+                frappe.logger().warning("Chat custom fields not found in User doctype")
+            else:
+                raise e
         
     except Exception as e:
-        frappe.log_error(f"Error updating user online status: {str(e)}")
+        frappe.log_error(f"Error updating user online status: {str(e)}", "Chat Maintenance")
 
 def update_user_chat_permissions(doc, method=None):
-    """Update chat permissions when user is updated"""
+    """
+    Update chat permissions when user is updated
+    Hook function called on User update
+    """
     try:
+        if not is_chat_enabled():
+            return
+            
         if not doc.enabled:
             # Remove user from all chat rooms if disabled
             frappe.db.sql("""
@@ -154,87 +192,69 @@ def update_user_chat_permissions(doc, method=None):
             # Mark their messages as deleted
             frappe.db.sql("""
                 UPDATE `tabChat Message`
-                SET is_deleted = 1, delete_timestamp = %s, message_content = 'User account disabled'
-                WHERE sender = %s AND is_deleted = 0
-            """, [now_datetime(), doc.name])
+                SET is_deleted = 1, 
+                    delete_timestamp = %(now)s, 
+                    message_content = 'User account disabled'
+                WHERE sender = %(user)s AND is_deleted = 0
+            """, {
+                "now": now_datetime(),
+                "user": doc.name
+            })
             
             frappe.db.commit()
+            frappe.logger().info(f"Cleaned up chat data for disabled user: {doc.name}")
             
     except Exception as e:
-        frappe.log_error(f"Error updating user chat permissions: {str(e)}")
+        frappe.log_error(f"Error updating chat permissions for user {doc.name}: {str(e)}", 
+                       "Chat Permissions Update")
+
+# Helper function to check if chat is enabled
+def is_chat_enabled():
+    """Check if chat is enabled in settings"""
+    try:
+        settings = frappe.get_single("Chat Settings")
+        return settings.enable_chat if hasattr(settings, 'enable_chat') else True
+    except:
+        return True  # Default to enabled if settings don't exist
+    
+
+
+
+
 
 @frappe.whitelist()
-def manual_cleanup_room(room_id, days_old=30):
-    """
-    Manually cleanup messages older than specified days for a room
-    
-    Args:
-        room_id (str): Chat room ID
-        days_old (int): Delete messages older than this many days
-        
-    Returns:
-        dict: Cleanup results
-    """
+def manual_cleanup_room(room_id):
+    """Manually clean up a specific chat room"""
     try:
-        current_user = frappe.session.user
-        
-        # Verify user is admin of the room
+        if not frappe.has_permission("Chat Room", "delete"):
+            frappe.throw(_("You don't have permission to clean up chat rooms"))
+            
         room = frappe.get_doc("Chat Room", room_id)
-        permissions = room.get_member_permissions(current_user)
         
-        if not permissions["is_admin"]:
-            frappe.throw("Only admins can perform manual cleanup")
-            
-        # Calculate cutoff date
-        cutoff_date = add_days(now_datetime(), -int(days_old))
+        # Delete all messages in the room
+        frappe.db.sql("""
+            UPDATE `tabChat Message`
+            SET is_deleted = 1,
+                delete_timestamp = %(now)s,
+                message_content = 'Room cleaned up by administrator'
+            WHERE chat_room = %(room)s
+        """, {
+            "now": now_datetime(),
+            "room": room_id
+        })
         
-        # Get old messages
-        old_messages = frappe.get_all(
-            "Chat Message",
-            filters={
-                "chat_room": room_id,
-                "timestamp": ["<", cutoff_date],
-                "is_deleted": 0
-            },
-            fields=["name"]
-        )
-        
-        # Soft delete old messages
-        deleted_count = 0
-        for message in old_messages:
-            frappe.db.set_value(
-                "Chat Message",
-                message.name,
-                {
-                    "is_deleted": 1,
-                    "delete_timestamp": now_datetime(),
-                    "message_content": "This message was manually deleted"
-                }
-            )
-            deleted_count += 1
-            
         frappe.db.commit()
-        
-        # Create system message
-        room.create_system_message(f"Manual cleanup completed. {deleted_count} old messages removed.")
         
         return {
             "success": True,
-            "data": {
-                "deleted_count": deleted_count,
-                "cutoff_date": str(cutoff_date)
-            },
-            "message": f"Successfully deleted {deleted_count} old messages"
+            "message": f"Room {room.room_name} cleaned up successfully"
         }
         
     except Exception as e:
-        frappe.log_error(f"Error in manual_cleanup_room: {str(e)}")
+        frappe.log_error(f"Error in manual_cleanup_room: {str(e)}", "Manual Cleanup")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
 
 @frappe.whitelist()
@@ -333,180 +353,70 @@ def get_room_storage_usage(room_id):
 
 @frappe.whitelist()
 def get_chat_system_stats():
-    """
-    Get overall chat system statistics
-    
-    Returns:
-        dict: System statistics
-    """
+    """Get chat system statistics for monitoring"""
     try:
-        current_user = frappe.session.user
-        
-        # Only allow System Manager to view system stats
-        if not frappe.has_permission("Chat Room", "report"):
-            frappe.throw("You don't have permission to view system statistics")
-        
-        # Get overall statistics
-        stats = frappe.db.sql("""
-            SELECT 
-                (SELECT COUNT(*) FROM `tabChat Room` WHERE room_status = 'Active') as active_rooms,
-                (SELECT COUNT(*) FROM `tabChat Message` WHERE is_deleted = 0) as total_messages,
-                (SELECT COUNT(DISTINCT sender) FROM `tabChat Message` WHERE is_deleted = 0) as active_users,
-                (SELECT COUNT(*) FROM `tabChat Message Attachment`) as total_files,
-                (SELECT SUM(COALESCE(file_size, 0)) FROM `tabChat Message Attachment`) as total_storage
-        """, as_dict=True)[0]
-        
-        # Get messages by day for the last 30 days
-        daily_stats = frappe.db.sql("""
-            SELECT 
-                DATE(timestamp) as date,
-                COUNT(*) as message_count
-            FROM `tabChat Message`
-            WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                AND is_deleted = 0
-            GROUP BY DATE(timestamp)
-            ORDER BY date DESC
-        """, as_dict=True)
-        
-        # Get room type distribution
-        room_types = frappe.db.sql("""
-            SELECT 
-                room_type,
-                COUNT(*) as count
-            FROM `tabChat Room`
-            WHERE room_status = 'Active'
-            GROUP BY room_type
-        """, as_dict=True)
-        
-        # Format file size
-        def format_file_size(size_bytes):
-            if not size_bytes:
-                return "0 B"
-            size_bytes = int(size_bytes)
-            if size_bytes == 0:
-                return "0 B"
-            size_name = ["B", "KB", "MB", "GB", "TB"]
-            i = 0
-            while size_bytes >= 1024 and i < len(size_name) - 1:
-                size_bytes /= 1024.0
-                i += 1
-            return f"{size_bytes:.1f} {size_name[i]}"
+        if not frappe.has_permission("Chat Settings", "read"):
+            frappe.throw(_("You don't have permission to view chat statistics"))
+            
+        stats = {
+            "total_rooms": frappe.db.count("Chat Room", {"room_status": "Active"}),
+            "total_messages": frappe.db.count("Chat Message", {"is_deleted": 0}),
+            "total_users": frappe.db.sql("""
+                SELECT COUNT(DISTINCT user) 
+                FROM `tabChat Room Member`
+            """)[0][0],
+            "messages_today": frappe.db.sql("""
+                SELECT COUNT(*) 
+                FROM `tabChat Message` 
+                WHERE DATE(timestamp) = CURDATE() 
+                    AND is_deleted = 0
+            """)[0][0],
+            "active_users_today": frappe.db.sql("""
+                SELECT COUNT(DISTINCT sender) 
+                FROM `tabChat Message` 
+                WHERE DATE(timestamp) = CURDATE()
+            """)[0][0]
+        }
         
         return {
             "success": True,
-            "data": {
-                "overview": {
-                    "active_rooms": stats.active_rooms,
-                    "total_messages": stats.total_messages,
-                    "active_users": stats.active_users,
-                    "total_files": stats.total_files,
-                    "total_storage": stats.total_storage,
-                    "total_storage_formatted": format_file_size(stats.total_storage)
-                },
-                "daily_activity": daily_stats,
-                "room_distribution": room_types
-            }
+            "data": stats
         }
         
     except Exception as e:
-        frappe.log_error(f"Error in get_chat_system_stats: {str(e)}")
+        frappe.log_error(f"Error getting chat stats: {str(e)}", "Chat Statistics")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
 
 @frappe.whitelist()
 def optimize_chat_database():
-    """
-    Optimize chat database tables for better performance
-    
-    Returns:
-        dict: Optimization results
-    """
+    """Optimize chat database tables for better performance"""
     try:
-        current_user = frappe.session.user
+        if not frappe.has_permission("System Manager"):
+            frappe.throw(_("Only System Managers can optimize the database"))
+            
+        # Optimize tables
+        tables = ["Chat Room", "Chat Message", "Chat Room Member"]
         
-        # Only allow System Manager to optimize
-        if not frappe.has_permission("Chat Room", "report"):
-            frappe.throw("You don't have permission to optimize database")
-        
-        optimization_results = []
-        
-        # Optimize Chat Room table
-        try:
-            frappe.db.sql("OPTIMIZE TABLE `tabChat Room`")
-            optimization_results.append("Chat Room table optimized")
-        except Exception as e:
-            optimization_results.append(f"Chat Room optimization failed: {str(e)}")
-        
-        # Optimize Chat Message table
-        try:
-            frappe.db.sql("OPTIMIZE TABLE `tabChat Message`")
-            optimization_results.append("Chat Message table optimized")
-        except Exception as e:
-            optimization_results.append(f"Chat Message optimization failed: {str(e)}")
-        
-        # Optimize Chat Room Member table
-        try:
-            frappe.db.sql("OPTIMIZE TABLE `tabChat Room Member`")
-            optimization_results.append("Chat Room Member table optimized")
-        except Exception as e:
-            optimization_results.append(f"Chat Room Member optimization failed: {str(e)}")
-        
-        # Add indexes if they don't exist
-        try:
-            # Index for chat room and timestamp
-            frappe.db.sql("""
-                ALTER TABLE `tabChat Message` 
-                ADD INDEX IF NOT EXISTS idx_chat_room_timestamp (chat_room, timestamp)
-            """)
-            optimization_results.append("Added chat_room_timestamp index")
-        except Exception as e:
-            optimization_results.append(f"Index creation failed: {str(e)}")
-        
-        try:
-            # Index for sender and timestamp
-            frappe.db.sql("""
-                ALTER TABLE `tabChat Message` 
-                ADD INDEX IF NOT EXISTS idx_sender_timestamp (sender, timestamp)
-            """)
-            optimization_results.append("Added sender_timestamp index")
-        except Exception as e:
-            optimization_results.append(f"Sender index creation failed: {str(e)}")
-        
-        try:
-            # Index for user and parent in Chat Room Member
-            frappe.db.sql("""
-                ALTER TABLE `tabChat Room Member` 
-                ADD INDEX IF NOT EXISTS idx_user_parent (user, parent)
-            """)
-            optimization_results.append("Added user_parent index")
-        except Exception as e:
-            optimization_results.append(f"Member index creation failed: {str(e)}")
-        
+        for table in tables:
+            frappe.db.sql(f"OPTIMIZE TABLE `tab{table}`")
+            
+        # Rebuild indexes
         frappe.db.commit()
         
         return {
             "success": True,
-            "data": {
-                "optimization_results": optimization_results
-            },
-            "message": "Database optimization completed"
+            "message": "Chat database optimized successfully"
         }
         
     except Exception as e:
-        frappe.log_error(f"Error in optimize_chat_database: {str(e)}")
+        frappe.log_error(f"Error optimizing database: {str(e)}", "Database Optimization")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
-
 def validate_chat_permissions(room_id, user=None):
     """Validate user permissions for a chat room"""
     try:

@@ -432,7 +432,7 @@ def setup_chat_workspace():
                 "card_type": "Number Card"
             },
             {
-                "card_name": "Online Users",
+                "card_name": "online Users",
                 "card_type": "Number Card"
             }
         ]

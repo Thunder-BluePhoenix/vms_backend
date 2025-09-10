@@ -712,7 +712,7 @@ class EnhancedChatUIv2 {
                         </button>
                         <div>
                             <div class="chat-room-title" id="current-room-title-v2">Room Name</div>
-                            <div class="chat-room-status" id="current-room-status">Online • 3 members</div>
+                            <div class="chat-room-status" id="current-room-status">online • 3 members</div>
                         </div>
                     </div>
                     <div>

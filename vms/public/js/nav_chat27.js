@@ -137,7 +137,7 @@ function add_enhanced_chat_icon_to_navbar() {
                                 <div class="room-avatar-small" id="current-room-avatar">💬</div>
                                 <div>
                                     <div class="current-room-name" id="current-room-name">Room Name</div>
-                                    <div class="current-room-status" id="current-room-status">Online</div>
+                                    <div class="current-room-status" id="current-room-status">online</div>
                                 </div>
                             </div>
                             <div class="room-actions">
