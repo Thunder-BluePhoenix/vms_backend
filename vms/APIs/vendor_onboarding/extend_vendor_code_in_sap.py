@@ -101,83 +101,8 @@ def send_vendor_code_extend_mail(ref_no=None, prev_company=None, extend_company=
             "message": f"Failed to send email due to: {str(e)}"
         }
 
+
 # Populate Vendor data from exisiting Onboarding Record for Extend company
-
-# @frappe.whitelist(allow_guest=True)
-# def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, extend_company=None):
-#     try:
-#         if not ref_no and not prev_company and not extend_company:
-#             frappe.local.response["http_status_code"] = 400
-#             return {
-#                 "status": "error",
-#                 "message": "Please provide ref_no, prev_company and extend_company."
-#             }
-
-#         vendor_master = frappe.get_doc("Vendor Master", ref_no)
-#         vendor_name = vendor_master.vendor_name
-
-#         # Find matching previous company row
-#         prev_row = None
-#         for row in vendor_master.multiple_company_data:
-#             if row.company_name == prev_company:
-#                 prev_row = row
-#                 break
-
-#         if not prev_row:
-#             return {
-#                 "status": "error",
-#                 "message": f"No matching company {prev_company} found in Vendor Master."
-#             }
-        
-#         if prev_row.company_vendor_code:
-#             prev_company_vendor_code = frappe.get_doc("Company Vendor Code", prev_row.company_vendor_code)
-        
-#             extend_company_vendor_code = frappe.new_doc("Company Vendor Code")
-#             extend_company_vendor_code.vendor_ref_no = ref_no
-#             extend_company_vendor_code.company_name = extend_company
-#             for extend_row in extend_company_vendor_code.vendor_code:
-#                 for prev_row in prev_company_vendor_code.vendor_code:
-#                     extend_row.state: prev_row.state
-#                     extend_row.gst_no: prev_row.gst_no
-#                     extend_row.vendor_code: prev_row.vendor_code
-
-#             extend_company_vendor_code.save()
-#             extend_company_vendor_code.commit()
-            
-#         for row in vendor_master.multiple_company_data:
-#             row.append(
-#                 row.company_name = extend_company,
-#                 row.purchase_organization = prev_row.purchase_organization,
-#                 row.account_group = prev_row.account_group,
-#                 row.terms_of_payment = prev_row.terms_of_payment,
-#                 row.sap_client_code = prev_row.sap_client_code,
-#                 row.purchase_group = prev_row.purchase_group,
-#                 row.order_currency = prev_row.order_currency,
-#                 row.incoterm = prev_row.incoterm,
-#                 row.reconciliation_account = prev_row.reconciliation_account,
-#                 row.company_vendor_code = extend_company_vendor_code
-#             )
-
-#         vendor_master.save()
-#         commit
-
-#         # vendor_codes = []
-#         # if prev_row.company_vendor_code:
-#         #     company_vendor_code_doc = frappe.get_doc("Company Vendor Code", prev_row.company_vendor_code)
-#         #     vendor_codes = [vc.vendor_code for vc in company_vendor_code_doc.vendor_code]
-
-#         # vendor_codes_str = ", ".join(vendor_codes) if vendor_codes else "N/A"
-
-#         # # New company details
-#         # new_company_doc = frappe.get_doc("Company Master", extend_company)
-#         # new_company_code = new_company_doc.company_code
-#         # new_company_name = new_company_doc.company_name
-
-#     except:
-#         pass
-
-
-# -----------------------------------------------------------------------
 
 @frappe.whitelist(allow_guest=True)
 def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, extend_company=None, purchase_org=None):
@@ -261,7 +186,7 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
         
         # Copy all basic fields from previous onboarding
         exclude_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 
-                         'company_name', 'company', 'vendor_company_details', 'payment_detail', 
+                         'company_name', 'company', 'vendor_company_details', 'payment_detail',
                          'document_details', 'certificate_details', 'manufacturing_details']
         
         for field in prev_vendor_onb.meta.fields:
@@ -297,8 +222,8 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
                 extend_vendor_onb.append("vendor_company_details", {
                     "vendor_company_details": extend_vendor_company_details.name
                 })
+                # extend_vendor_onb.save(ignore_permissions=True)
 
-                extend_vendor_onb.save(ignore_permissions=True)   
 
         # Copy Payment Details
         if prev_vendor_onb.payment_detail:
@@ -312,6 +237,7 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
             for field in prev_vendor_payment_details.meta.fields:
                 if field.fieldname not in exclude_payment_fields and hasattr(prev_vendor_payment_details, field.fieldname):
                     value = getattr(prev_vendor_payment_details, field.fieldname)
+
                     if field.fieldtype == "Table":
                         # Handle child tables
                         for child_row in value:
@@ -327,100 +253,117 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
             extend_vendor_payment_details.insert(ignore_permissions=True)
 
             extend_vendor_onb.payment_detail = extend_vendor_payment_details.name
-            extend_vendor_onb.save(ignore_permissions=True)  
-        
-        # # Copy Legal Documents
-        # if prev_vendor_onb.document_details:
-        #     prev_vendor_legal_documents = frappe.get_doc("Legal Documents", prev_vendor_onb.document_details)
+            # extend_vendor_onb.save(ignore_permissions=True)
 
-        #     extend_vendor_legal_documents = frappe.new_doc("Legal Documents")
+
+        # Copy Legal Documents
+        if prev_vendor_onb.document_details:
+            prev_vendor_legal_documents = frappe.get_doc("Legal Documents", prev_vendor_onb.document_details)
+
+            extend_vendor_legal_documents = frappe.new_doc("Legal Documents")
             
-        #     # Copy all fields except excluded ones
-        #     exclude_legal_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'vendor_onboarding']
+            # Copy all fields except excluded ones
+            exclude_legal_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'vendor_onboarding']
             
-        #     for field in prev_vendor_legal_documents.meta.fields:
-        #         if field.fieldname not in exclude_legal_fields and hasattr(prev_vendor_legal_documents, field.fieldname):
-        #             value = getattr(prev_vendor_legal_documents, field.fieldname)
-        #             if field.fieldtype == "Table":
-        #                 # Handle child tables
-        #                 for child_row in value:
-        #                     new_child = {}
-        #                     for child_field in child_row.meta.fields:
-        #                         if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus']:
-        #                             new_child[child_field.fieldname] = getattr(child_row, child_field.fieldname)
-        #                     extend_vendor_legal_documents.append(field.fieldname, new_child)
-        #             else:
-        #                 setattr(extend_vendor_legal_documents, field.fieldname, value)
-            
-        #     extend_vendor_legal_documents.insert(ignore_permissions=True)
-        #     extend_vendor_onb.document_details = extend_vendor_legal_documents.name
+            for field in prev_vendor_legal_documents.meta.fields:
+                if field.fieldname not in exclude_legal_fields and hasattr(prev_vendor_legal_documents, field.fieldname):
+                    value = getattr(prev_vendor_legal_documents, field.fieldname)
+
+                    if field.fieldtype == "Table":
+                        # Handle child tables
+                        for child_row in value:
+                            new_child = {}
+                            for child_field in child_row.meta.fields:
+                                if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'company']:
+                                    new_child[child_field.fieldname] = getattr(child_row, child_field.fieldname)
+                        
+                            new_child["company"] = extend_company
+                            extend_vendor_legal_documents.append(field.fieldname, new_child)
+                    else:
+                        setattr(extend_vendor_legal_documents, field.fieldname, value)
+
+            extend_vendor_legal_documents.vendor_onboarding = extend_vendor_onb.name
+            extend_vendor_legal_documents.insert(ignore_permissions=True)
+
+            extend_vendor_onb.document_details = extend_vendor_legal_documents.name
+            # extend_vendor_onb.save(ignore_permissions=True)
+
         
         # # Copy Certificate Details
-        # if prev_vendor_onb.certificate_details:
-        #     prev_vendor_certificate_details = frappe.get_doc("Vendor Onboarding Certificates", prev_vendor_onb.certificate_details)
+        if prev_vendor_onb.certificate_details:
+            prev_vendor_certificate_details = frappe.get_doc("Vendor Onboarding Certificates", prev_vendor_onb.certificate_details)
 
-        #     extend_vendor_certificate_details = frappe.new_doc("Vendor Onboarding Certificates")
+            extend_vendor_certificate_details = frappe.new_doc("Vendor Onboarding Certificates")
             
-        #     # Copy all fields except excluded ones
-        #     exclude_cert_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'vendor_onboarding']
+            # Copy all fields except excluded ones
+            exclude_cert_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'vendor_onboarding']
             
-        #     for field in prev_vendor_certificate_details.meta.fields:
-        #         if field.fieldname not in exclude_cert_fields and hasattr(prev_vendor_certificate_details, field.fieldname):
-        #             value = getattr(prev_vendor_certificate_details, field.fieldname)
-        #             if field.fieldtype == "Table":
-        #                 # Handle child tables
-        #                 for child_row in value:
-        #                     new_child = {}
-        #                     for child_field in child_row.meta.fields:
-        #                         if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus']:
-        #                             new_child[child_field.fieldname] = getattr(child_row, child_field.fieldname)
-        #                     extend_vendor_certificate_details.append(field.fieldname, new_child)
-        #             else:
-        #                 setattr(extend_vendor_certificate_details, field.fieldname, value)
+            for field in prev_vendor_certificate_details.meta.fields:
+                if field.fieldname not in exclude_cert_fields and hasattr(prev_vendor_certificate_details, field.fieldname):
+                    value = getattr(prev_vendor_certificate_details, field.fieldname)
+                    if field.fieldtype == "Table":
+                        # Handle child tables
+                        for child_row in value:
+                            new_child = {}
+                            for child_field in child_row.meta.fields:
+                                if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus']:
+                                    new_child[child_field.fieldname] = getattr(child_row, child_field.fieldname)
+                            extend_vendor_certificate_details.append(field.fieldname, new_child)
+                    else:
+                        setattr(extend_vendor_certificate_details, field.fieldname, value)
             
-        #     extend_vendor_certificate_details.insert(ignore_permissions=True)
-        #     extend_vendor_onb.certificate_details = extend_vendor_certificate_details.name
+            extend_vendor_certificate_details.vendor_onboarding = extend_vendor_onb.name
+            extend_vendor_certificate_details.insert(ignore_permissions=True)
 
-        # # Copy Manufacturing Details
-        # if prev_vendor_onb.manufacturing_details:
-        #     prev_vendor_manufacturing_details = frappe.get_doc("Vendor Onboarding Manufacturing Details", prev_vendor_onb.manufacturing_details)
+            extend_vendor_onb.certificate_details = extend_vendor_certificate_details.name
+            # extend_vendor_onb.save(ignore_permissions=True)
 
-        #     extend_vendor_manufacturing_details = frappe.new_doc("Vendor Onboarding Manufacturing Details")
+
+        # Copy Manufacturing Details
+        if prev_vendor_onb.manufacturing_details:
+            prev_vendor_manufacturing_details = frappe.get_doc("Vendor Onboarding Manufacturing Details", prev_vendor_onb.manufacturing_details)
+
+            extend_vendor_manufacturing_details = frappe.new_doc("Vendor Onboarding Manufacturing Details")
             
-        #     # Copy all fields except excluded ones
-        #     exclude_mfg_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'vendor_onboarding']
+            # Copy all fields except excluded ones
+            exclude_mfg_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'vendor_onboarding']
             
-        #     for field in prev_vendor_manufacturing_details.meta.fields:
-        #         if field.fieldname not in exclude_mfg_fields and hasattr(prev_vendor_manufacturing_details, field.fieldname):
-        #             value = getattr(prev_vendor_manufacturing_details, field.fieldname)
-        #             if field.fieldtype == "Table":
-        #                 # Handle child tables
-        #                 for child_row in value:
-        #                     new_child = {}
-        #                     for child_field in child_row.meta.fields:
-        #                         if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus']:
-        #                             new_child[child_field.fieldname] = getattr(child_row, child_field.fieldname)
-        #                     extend_vendor_manufacturing_details.append(field.fieldname, new_child)
-        #             else:
-        #                 setattr(extend_vendor_manufacturing_details, field.fieldname, value)
+            for field in prev_vendor_manufacturing_details.meta.fields:
+                if field.fieldname not in exclude_mfg_fields and hasattr(prev_vendor_manufacturing_details, field.fieldname):
+                    value = getattr(prev_vendor_manufacturing_details, field.fieldname)
+                    if field.fieldtype == "Table":
+                        # Handle child tables
+                        for child_row in value:
+                            new_child = {}
+                            for child_field in child_row.meta.fields:
+                                if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus']:
+                                    new_child[child_field.fieldname] = getattr(child_row, child_field.fieldname)
+                            extend_vendor_manufacturing_details.append(field.fieldname, new_child)
+                    else:
+                        setattr(extend_vendor_manufacturing_details, field.fieldname, value)
             
-        #     extend_vendor_manufacturing_details.insert(ignore_permissions=True)
-        #     extend_vendor_onb.manufacturing_details = extend_vendor_manufacturing_details.name
+            extend_vendor_manufacturing_details.vendor_onboarding = extend_vendor_onb.name
+            extend_vendor_manufacturing_details.insert(ignore_permissions=True)
+
+            extend_vendor_onb.manufacturing_details = extend_vendor_manufacturing_details.name
+            # extend_vendor_onb.save(ignore_permissions=True)
+
         
-        # # Copy all table fields from the main vendor onboarding document
-        # for field in prev_vendor_onb.meta.fields:
-        #     if field.fieldtype == "Table" and hasattr(prev_vendor_onb, field.fieldname):
-        #         table_data = getattr(prev_vendor_onb, field.fieldname)
-        #         for row in table_data:
-        #             new_row = {}
-        #             for child_field in row.meta.fields:
-        #                 if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus']:
-        #                     new_row[child_field.fieldname] = getattr(row, child_field.fieldname)
-        #             extend_vendor_onb.append(field.fieldname, new_row)
+        # Copy all table fields from the main vendor onboarding document
+        for field in prev_vendor_onb.meta.fields:
+            if field.fieldtype == "Table" and hasattr(prev_vendor_onb, field.fieldname):
+                table_data = getattr(prev_vendor_onb, field.fieldname)
+                for row in table_data:
+                    new_row = {}
+                    for child_field in row.meta.fields:
+                        if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'column_break_sejv']:
+                            new_row[child_field.fieldname] = getattr(row, child_field.fieldname)
+                    extend_vendor_onb.append(field.fieldname, new_row)
         
         # Insert the new vendor onboarding record
         # extend_vendor_onb.insert(ignore_permissions=True)
         
+        extend_vendor_onb.save(ignore_permissions=True)
         frappe.db.commit()
 
 
@@ -439,3 +382,8 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
             "status": "error",
             "message": f"Failed to extend vendor data: {str(e)}"
         }
+
+
+# still there is problem in above function
+# 1. The table data is not populated in legal documents doc
+# 2. in vendor onb doc, check table data duplicate entries are created
