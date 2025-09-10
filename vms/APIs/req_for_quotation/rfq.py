@@ -1201,10 +1201,14 @@ def total_rfq_count():
 
 
 @frappe.whitelist(allow_guest=True)
-def check_duplicate_vendor(data):
+def check_duplicate_vendor():
     try:
-        if isinstance(data, str):
-            data = json.loads(data)
+        data = frappe.form_dict
+        
+        if isinstance(data.get('email'), str):
+            data['email'] = json.loads(data['email'])
+        if isinstance(data.get('mobile_number'), str):
+            data['mobile_number'] = json.loads(data['mobile_number'])
 
         mobile_number = data.get('mobile_number', '').strip()
         email = data.get('email', '').strip().lower()
