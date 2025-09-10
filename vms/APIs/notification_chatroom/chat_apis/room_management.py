@@ -5,6 +5,121 @@ from frappe.utils import now_datetime, cint
 import json
 
 @frappe.whitelist()
+def check_room_permissions(room_id, user_id=None):
+    """
+    Check user permissions for a chat room based on member role
+    
+    Args:
+        room_id (str): Chat room ID
+        user_id (str): User ID (defaults to current user)
+        
+    Returns:
+        dict: Permission details
+    """
+    try:
+        if not user_id:
+            user_id = frappe.session.user
+            
+        # Check if room exists
+        if not frappe.db.exists("Chat Room", room_id):
+            return {
+                "success": False,
+                "error": "Room not found"
+            }
+            
+        # Get member role
+        member_data = frappe.db.get_value(
+            "Chat Room Member",
+            {"parent": room_id, "user": user_id},
+            ["role", "is_muted", "joined_date"],
+            as_dict=True
+        )
+        
+        if not member_data:
+            return {
+                "success": True,
+                "permissions": {
+                    "is_member": False,
+                    "role": None,
+                    "can_send_messages": False,
+                    "can_edit_messages": False,
+                    "can_delete_messages": False,
+                    "can_add_members": False,
+                    "can_remove_members": False,
+                    "can_update_roles": False,
+                    "can_mute_members": False,
+                    "can_update_room_settings": False,
+                    "can_archive_room": False,
+                    "can_delete_room": False,
+                    "is_muted": False
+                }
+            }
+            
+        role = member_data.role
+        is_muted = member_data.get("is_muted", 0)
+        
+        # Define permissions based on role
+        permissions = {
+            "is_member": True,
+            "role": role,
+            "can_send_messages": not is_muted,
+            "can_edit_messages": not is_muted,  # Can edit own messages
+            "can_delete_messages": not is_muted,  # Can delete own messages
+            "is_muted": bool(is_muted),
+            "joined_date": str(member_data.joined_date) if member_data.joined_date else None
+        }
+        
+        # Role-based permissions
+        if role == "Admin":
+            permissions.update({
+                "can_add_members": True,
+                "can_remove_members": True,
+                "can_update_roles": True,
+                "can_mute_members": True,
+                "can_update_room_settings": True,
+                "can_archive_room": True,
+                "can_delete_room": True,
+                "can_delete_any_message": True,
+                "can_edit_any_message": False  # Usually not allowed even for admins
+            })
+        elif role == "Moderator":
+            permissions.update({
+                "can_add_members": True,
+                "can_remove_members": True,  # Can remove regular members only
+                "can_update_roles": False,   # Cannot change roles
+                "can_mute_members": True,
+                "can_update_room_settings": False,
+                "can_archive_room": False,
+                "can_delete_room": False,
+                "can_delete_any_message": True,  # Can delete others' messages
+                "can_edit_any_message": False
+            })
+        else:  # Member
+            permissions.update({
+                "can_add_members": False,
+                "can_remove_members": False,
+                "can_update_roles": False,
+                "can_mute_members": False,
+                "can_update_room_settings": False,
+                "can_archive_room": False,
+                "can_delete_room": False,
+                "can_delete_any_message": False,
+                "can_edit_any_message": False
+            })
+            
+        return {
+            "success": True,
+            "permissions": permissions
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in check_room_permissions: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@frappe.whitelist()
 def get_room_details(room_id):
     """
     Get detailed information about a chat room
@@ -13,18 +128,27 @@ def get_room_details(room_id):
         room_id (str): Chat room ID
         
     Returns:
-        dict: Room details with members
+        dict: Room details with members and permissions
     """
     try:
         current_user = frappe.session.user
         
-        # Get room details
-        room = frappe.get_doc("Chat Room", room_id)
-        permissions = room.get_member_permissions(current_user)
+        # Check permissions first
+        perm_check = check_room_permissions(room_id, current_user)
+        if not perm_check["success"]:
+            return perm_check
+            
+        permissions = perm_check["permissions"]
         
         if not permissions["is_member"]:
-            frappe.throw("You are not a member of this chat room")
+            return {
+                "success": False,
+                "error": "You are not a member of this chat room"
+            }
             
+        # Get room details
+        room = frappe.get_doc("Chat Room", room_id)
+        
         # Get member details with user info
         members = []
         for member in room.members:
@@ -46,30 +170,34 @@ def get_room_details(room_id):
             members.append({
                 "user": member.user,
                 "role": member.role,
-                "is_admin": member.is_admin,
                 "is_muted": member.is_muted,
                 "joined_date": str(member.joined_date) if member.joined_date else None,
                 "last_read_timestamp": str(member.last_read_timestamp) if member.last_read_timestamp else None,
-                "user_info": user_info or {},
+                "user_full_name": user_info.get("full_name") if user_info else member.user,
+                "user_image": user_info.get("user_image") if user_info else None,
+                "user_email": user_info.get("email") if user_info else None,
                 "employee_info": employee_info or {}
             })
             
         return {
             "success": True,
             "data": {
-                "room_id": room.name,
-                "room_name": room.room_name,
-                "room_type": room.room_type,
-                "description": room.description,
-                "room_status": room.room_status,
-                "is_private": room.is_private,
-                "max_members": room.max_members,
-                "allow_file_sharing": room.allow_file_sharing,
-                "created_by": room.created_by,
-                "creation_date": str(room.creation_date) if room.creation_date else None,
-                "team_master": room.team_master,
-                "members": members,
-                "member_count": len(members),
+                "room": {
+                    "name": room.name,
+                    "room_name": room.room_name,
+                    "room_type": room.room_type,
+                    "description": room.description,
+                    "room_status": room.room_status,
+                    "is_private": room.is_private,
+                    "max_members": room.max_members,
+                    "allow_file_sharing": room.allow_file_sharing,
+                    "auto_delete_messages_after_days": room.auto_delete_messages_after_days,
+                    "created_by": room.created_by,
+                    "creation_date": str(room.creation_date) if room.creation_date else None,
+                    "team_master": room.team_master,
+                    "members": members,
+                    "member_count": len(members)
+                },
                 "user_permissions": permissions
             }
         }
@@ -78,10 +206,7 @@ def get_room_details(room_id):
         frappe.log_error(f"Error in get_room_details: {str(e)}")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
 
 @frappe.whitelist()
@@ -92,7 +217,7 @@ def add_room_member(room_id, user_id, role="Member"):
     Args:
         room_id (str): Chat room ID
         user_id (str): User ID to add
-        role (str): Role for the new member
+        role (str): Role for the new member (Member, Moderator, Admin)
         
     Returns:
         dict: Success response
@@ -100,36 +225,92 @@ def add_room_member(room_id, user_id, role="Member"):
     try:
         current_user = frappe.session.user
         
-        # Get room and check permissions
-        room = frappe.get_doc("Chat Room", room_id)
-        permissions = room.get_member_permissions(current_user)
+        # Check permissions
+        perm_check = check_room_permissions(room_id, current_user)
+        if not perm_check["success"]:
+            return perm_check
+            
+        permissions = perm_check["permissions"]
         
-        if not permissions["is_member"]:
-            frappe.throw("You are not a member of this chat room")
+        if not permissions["can_add_members"]:
+            return {
+                "success": False,
+                "error": "You don't have permission to add members to this room"
+            }
             
-        if not permissions["is_admin"]:
-            frappe.throw("Only admins can add members")
+        # Validate role
+        valid_roles = ["Member", "Moderator", "Admin"]
+        if role not in valid_roles:
+            return {
+                "success": False,
+                "error": f"Invalid role. Must be one of: {', '.join(valid_roles)}"
+            }
             
-        # Check if user exists
-        if not frappe.db.exists("User", user_id):
-            frappe.throw(f"User {user_id} does not exist")
+        # Only admins can assign Admin or Moderator roles
+        if role in ["Admin", "Moderator"] and permissions["role"] != "Admin":
+            return {
+                "success": False,
+                "error": "Only admins can assign Admin or Moderator roles"
+            }
+            
+        # Check if user exists and is enabled
+        user_exists = frappe.db.get_value("User", user_id, ["enabled"], as_dict=True)
+        if not user_exists:
+            return {
+                "success": False,
+                "error": f"User {user_id} does not exist"
+            }
+            
+        if not user_exists.enabled:
+            return {
+                "success": False,
+                "error": f"User {user_id} is disabled"
+            }
+            
+        # Check if user is already a member
+        existing_member = frappe.db.exists("Chat Room Member", {
+            "parent": room_id,
+            "user": user_id
+        })
+        
+        if existing_member:
+            return {
+                "success": False,
+                "error": f"User {user_id} is already a member of this room"
+            }
+            
+        # Get room and check capacity
+        room = frappe.get_doc("Chat Room", room_id)
+        if len(room.members) >= room.max_members:
+            return {
+                "success": False,
+                "error": f"Room has reached maximum capacity of {room.max_members} members"
+            }
             
         # Add member
-        room.add_member(user_id, role)
+        room.append('members', {
+            'user': user_id,
+            'role': role,
+            'joined_date': now_datetime(),
+            'is_muted': 0
+        })
+        
+        room.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        # Get user's display name for response
+        user_name = frappe.db.get_value("User", user_id, "full_name") or user_id
         
         return {
             "success": True,
-            "message": f"User {user_id} added to the room successfully"
+            "message": f"{user_name} added to room as {role}"
         }
         
     except Exception as e:
         frappe.log_error(f"Error in add_room_member: {str(e)}")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
 
 @frappe.whitelist()
@@ -147,33 +328,66 @@ def remove_room_member(room_id, user_id):
     try:
         current_user = frappe.session.user
         
-        # Get room and check permissions
-        room = frappe.get_doc("Chat Room", room_id)
-        permissions = room.get_member_permissions(current_user)
+        # Check permissions
+        perm_check = check_room_permissions(room_id, current_user)
+        if not perm_check["success"]:
+            return perm_check
+            
+        permissions = perm_check["permissions"]
         
-        if not permissions["is_member"]:
-            frappe.throw("You are not a member of this chat room")
+        # Users can remove themselves, or those with remove permissions can remove others
+        if user_id == current_user:
+            # Users can always leave a room
+            pass
+        elif not permissions["can_remove_members"]:
+            return {
+                "success": False,
+                "error": "You don't have permission to remove members from this room"
+            }
+        else:
+            # Check target user's role - moderators cannot remove admins
+            target_perm_check = check_room_permissions(room_id, user_id)
+            if target_perm_check["success"]:
+                target_permissions = target_perm_check["permissions"]
+                if (permissions["role"] == "Moderator" and 
+                    target_permissions["role"] in ["Admin", "Moderator"]):
+                    return {
+                        "success": False,
+                        "error": "Moderators cannot remove Admins or other Moderators"
+                    }
+                    
+        # Get room and remove member
+        room = frappe.get_doc("Chat Room", room_id)
+        
+        member_found = False
+        for i, member in enumerate(room.members):
+            if member.user == user_id:
+                room.members.pop(i)
+                member_found = True
+                break
+                
+        if not member_found:
+            return {
+                "success": False,
+                "error": f"User {user_id} is not a member of this room"
+            }
             
-        # Users can remove themselves or admins can remove others
-        if user_id != current_user and not permissions["is_admin"]:
-            frappe.throw("Only admins can remove other members")
-            
-        # Remove member
-        room.remove_member(user_id)
+        room.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        user_name = frappe.db.get_value("User", user_id, "full_name") or user_id
+        action = "left" if user_id == current_user else "removed from"
         
         return {
             "success": True,
-            "message": f"User {user_id} removed from the room successfully"
+            "message": f"{user_name} {action} the room"
         }
         
     except Exception as e:
         frappe.log_error(f"Error in remove_room_member: {str(e)}")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
 
 @frappe.whitelist()
@@ -184,7 +398,7 @@ def update_member_role(room_id, user_id, new_role):
     Args:
         room_id (str): Chat room ID
         user_id (str): User ID
-        new_role (str): New role (Member, Admin, Moderator)
+        new_role (str): New role (Member, Moderator, Admin)
         
     Returns:
         dict: Success response
@@ -192,43 +406,66 @@ def update_member_role(room_id, user_id, new_role):
     try:
         current_user = frappe.session.user
         
-        # Get room and check permissions
-        room = frappe.get_doc("Chat Room", room_id)
-        permissions = room.get_member_permissions(current_user)
-        
-        if not permissions["is_admin"]:
-            frappe.throw("Only admins can update member roles")
+        # Check permissions
+        perm_check = check_room_permissions(room_id, current_user)
+        if not perm_check["success"]:
+            return perm_check
             
-        # Find and update member
+        permissions = perm_check["permissions"]
+        
+        if not permissions["can_update_roles"]:
+            return {
+                "success": False,
+                "error": "You don't have permission to update member roles"
+            }
+            
+        # Validate role
+        valid_roles = ["Member", "Moderator", "Admin"]
+        if new_role not in valid_roles:
+            return {
+                "success": False,
+                "error": f"Invalid role. Must be one of: {', '.join(valid_roles)}"
+            }
+            
+        # Users cannot change their own role
+        if user_id == current_user:
+            return {
+                "success": False,
+                "error": "You cannot change your own role"
+            }
+            
+        # Get room and find member
+        room = frappe.get_doc("Chat Room", room_id)
+        
         member_found = False
         for member in room.members:
             if member.user == user_id:
+                old_role = member.role
                 member.role = new_role
-                member.is_admin = 1 if new_role == "Admin" else 0
                 member_found = True
                 break
                 
         if not member_found:
-            frappe.throw(f"User {user_id} is not a member of this room")
+            return {
+                "success": False,
+                "error": f"User {user_id} is not a member of this room"
+            }
             
         room.save(ignore_permissions=True)
+        frappe.db.commit()
         
-        # Create system message
-        room.create_system_message(f"{user_id} role updated to {new_role}")
+        user_name = frappe.db.get_value("User", user_id, "full_name") or user_id
         
         return {
             "success": True,
-            "message": f"User {user_id} role updated to {new_role}"
+            "message": f"{user_name} role updated from {old_role} to {new_role}"
         }
         
     except Exception as e:
         frappe.log_error(f"Error in update_member_role: {str(e)}")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
 
 @frappe.whitelist()
@@ -248,14 +485,40 @@ def mute_unmute_member(room_id, user_id, is_muted):
         current_user = frappe.session.user
         is_muted = cint(is_muted)
         
-        # Get room and check permissions
-        room = frappe.get_doc("Chat Room", room_id)
-        permissions = room.get_member_permissions(current_user)
-        
-        if not permissions["is_admin"]:
-            frappe.throw("Only admins can mute/unmute members")
+        # Check permissions
+        perm_check = check_room_permissions(room_id, current_user)
+        if not perm_check["success"]:
+            return perm_check
             
-        # Find and update member
+        permissions = perm_check["permissions"]
+        
+        if not permissions["can_mute_members"]:
+            return {
+                "success": False,
+                "error": "You don't have permission to mute/unmute members"
+            }
+            
+        # Cannot mute yourself
+        if user_id == current_user:
+            return {
+                "success": False,
+                "error": "You cannot mute/unmute yourself"
+            }
+            
+        # Check target user's role - moderators cannot mute admins
+        target_perm_check = check_room_permissions(room_id, user_id)
+        if target_perm_check["success"]:
+            target_permissions = target_perm_check["permissions"]
+            if (permissions["role"] == "Moderator" and 
+                target_permissions["role"] in ["Admin", "Moderator"]):
+                return {
+                    "success": False,
+                    "error": "Moderators cannot mute Admins or other Moderators"
+                }
+                
+        # Get room and find member
+        room = frappe.get_doc("Chat Room", room_id)
+        
         member_found = False
         for member in room.members:
             if member.user == user_id:
@@ -264,42 +527,37 @@ def mute_unmute_member(room_id, user_id, is_muted):
                 break
                 
         if not member_found:
-            frappe.throw(f"User {user_id} is not a member of this room")
+            return {
+                "success": False,
+                "error": f"User {user_id} is not a member of this room"
+            }
             
         room.save(ignore_permissions=True)
+        frappe.db.commit()
         
-        # Create system message
+        user_name = frappe.db.get_value("User", user_id, "full_name") or user_id
         action = "muted" if is_muted else "unmuted"
-        room.create_system_message(f"{user_id} has been {action}")
         
         return {
             "success": True,
-            "message": f"User {user_id} has been {action}"
+            "message": f"{user_name} has been {action}"
         }
         
     except Exception as e:
         frappe.log_error(f"Error in mute_unmute_member: {str(e)}")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
 
 @frappe.whitelist()
-def update_room_settings(room_id, room_name=None, description=None, max_members=None, 
-                        allow_file_sharing=None, auto_delete_messages_after_days=None):
+def update_room_settings(room_id, settings):
     """
     Update room settings
     
     Args:
         room_id (str): Chat room ID
-        room_name (str): New room name
-        description (str): New description
-        max_members (int): Maximum members allowed
-        allow_file_sharing (int): Allow file sharing (1 or 0)
-        auto_delete_messages_after_days (int): Auto delete messages after days
+        settings (dict): Settings to update
         
     Returns:
         dict: Success response
@@ -307,51 +565,71 @@ def update_room_settings(room_id, room_name=None, description=None, max_members=
     try:
         current_user = frappe.session.user
         
-        # Get room and check permissions
-        room = frappe.get_doc("Chat Room", room_id)
-        permissions = room.get_member_permissions(current_user)
+        # Parse settings if it's a JSON string
+        if isinstance(settings, str):
+            settings = json.loads(settings)
+            
+        # Check permissions
+        perm_check = check_room_permissions(room_id, current_user)
+        if not perm_check["success"]:
+            return perm_check
+            
+        permissions = perm_check["permissions"]
         
-        if not permissions["is_admin"]:
-            frappe.throw("Only admins can update room settings")
+        if not permissions["can_update_room_settings"]:
+            return {
+                "success": False,
+                "error": "Only admins can update room settings"
+            }
             
-        # Update settings
-        if room_name is not None:
-            room.room_name = room_name
-            
-        if description is not None:
-            room.description = description
-            
-        if max_members is not None:
-            max_members = cint(max_members)
-            if max_members < len(room.members):
-                frappe.throw("Maximum members cannot be less than current member count")
-            room.max_members = max_members
-            
-        if allow_file_sharing is not None:
-            room.allow_file_sharing = cint(allow_file_sharing)
-            
-        if auto_delete_messages_after_days is not None:
-            room.auto_delete_messages_after_days = cint(auto_delete_messages_after_days)
+        # Get room
+        room = frappe.get_doc("Chat Room", room_id)
+        
+        # Update allowed settings
+        allowed_settings = [
+            'room_name', 'description', 'max_members', 'allow_file_sharing', 
+            'auto_delete_messages_after_days', 'is_private', 'room_type'
+        ]
+        
+        changes_made = []
+        
+        for setting, value in settings.items():
+            if setting not in allowed_settings:
+                continue
+                
+            if setting == 'max_members':
+                value = cint(value)
+                if value < len(room.members):
+                    return {
+                        "success": False,
+                        "error": "Maximum members cannot be less than current member count"
+                    }
+                    
+            old_value = getattr(room, setting)
+            if old_value != value:
+                setattr(room, setting, value)
+                changes_made.append(f"{setting}: {old_value} → {value}")
+                
+        if not changes_made:
+            return {
+                "success": True,
+                "message": "No changes were made"
+            }
             
         room.save(ignore_permissions=True)
+        frappe.db.commit()
         
-        # Create system message for significant changes
-        if room_name is not None:
-            room.create_system_message(f"Room name changed to '{room_name}'")
-            
         return {
             "success": True,
-            "message": "Room settings updated successfully"
+            "message": "Room settings updated successfully",
+            "changes": changes_made
         }
         
     except Exception as e:
         frappe.log_error(f"Error in update_room_settings: {str(e)}")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
 
 @frappe.whitelist()
@@ -368,18 +646,23 @@ def archive_room(room_id):
     try:
         current_user = frappe.session.user
         
-        # Get room and check permissions
-        room = frappe.get_doc("Chat Room", room_id)
-        permissions = room.get_member_permissions(current_user)
-        
-        if not permissions["is_admin"]:
-            frappe.throw("Only admins can archive rooms")
+        # Check permissions
+        perm_check = check_room_permissions(room_id, current_user)
+        if not perm_check["success"]:
+            return perm_check
             
+        permissions = perm_check["permissions"]
+        
+        if not permissions["can_archive_room"]:
+            return {
+                "success": False,
+                "error": "Only admins can archive rooms"
+            }
+            
+        room = frappe.get_doc("Chat Room", room_id)
         room.room_status = "Archived"
         room.save(ignore_permissions=True)
-        
-        # Create system message
-        room.create_system_message("Room has been archived")
+        frappe.db.commit()
         
         return {
             "success": True,
@@ -390,210 +673,51 @@ def archive_room(room_id):
         frappe.log_error(f"Error in archive_room: {str(e)}")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }
 
 @frappe.whitelist()
-def search_users_for_room(search_term, room_id=None, exclude_current_members=1):
+def get_user_room_role(room_id, user_id=None):
     """
-    Search users to add to a room
+    Get user's role in a specific room
     
     Args:
-        search_term (str): Search term for user names/emails
-        room_id (str): Room ID to exclude current members
-        exclude_current_members (int): Whether to exclude current room members
+        room_id (str): Chat room ID
+        user_id (str): User ID (defaults to current user)
         
     Returns:
-        dict: List of users
+        dict: User's role and basic permissions
     """
     try:
-        current_user = frappe.session.user
-        exclude_current_members = cint(exclude_current_members)
-        
-        # Get current room members if excluding
-        excluded_users = [current_user]  # Always exclude current user
-        if room_id and exclude_current_members:
-            room = frappe.get_doc("Chat Room", room_id)
-            excluded_users.extend([member.user for member in room.members])
+        if not user_id:
+            user_id = frappe.session.user
             
-        # Search users
-        conditions = ["enabled = 1", "name != 'Guest'"]
-        values = []
+        perm_check = check_room_permissions(room_id, user_id)
         
-        if search_term:
-            conditions.append("(full_name LIKE %(search)s OR email LIKE %(search)s)")
-            values.append(f"%{search_term}%")
+        if not perm_check["success"]:
+            return perm_check
             
-        if excluded_users:
-            placeholders = ", ".join(["%s"] * len(excluded_users))
-            conditions.append(f"name NOT IN ({placeholders})")
-            values.extend(excluded_users)
-            
-        where_clause = " AND ".join(conditions)
+        permissions = perm_check["permissions"]
         
-        query = f"""
-            SELECT 
-                name as user_id,
-                full_name,
-                email,
-                user_image
-            FROM `tabUser`
-            WHERE {where_clause}
-            ORDER BY full_name
-            LIMIT 50
-        """
-        
-        users = frappe.db.sql(query, values, as_dict=True)
-        
-        # Get employee info for each user
-        for user in users:
-            employee_info = frappe.db.get_value(
-                "Employee",
-                {"user_id": user.user_id},
-                ["designation", "department", "team"],
-                as_dict=True
-            )
-            user["employee_info"] = employee_info or {}
-            
         return {
             "success": True,
             "data": {
-                "users": users
-            }
-        }
-        
-    except Exception as e:
-        frappe.log_error(f"Error in search_users_for_room: {str(e)}")
-        return {
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
-        }
-
-@frappe.whitelist()
-def get_team_chat_rooms():
-    """
-    Get available team chat rooms based on user's team
-    
-    Returns:
-        dict: List of team chat rooms
-    """
-    try:
-        current_user = frappe.session.user
-        
-        # Get user's employee record
-        employee = frappe.db.get_value(
-            "Employee",
-            {"user_id": current_user},
-            ["team", "full_name"],
-            as_dict=True
-        )
-        
-        if not employee or not employee.team:
-            return {
-                "success": True,
-                "data": {
-                    "team_rooms": [],
-                    "message": "No team assigned to current user"
+                "user_id": user_id,
+                "room_id": room_id,
+                "is_member": permissions["is_member"],
+                "role": permissions["role"],
+                "is_muted": permissions["is_muted"],
+                "key_permissions": {
+                    "can_send_messages": permissions["can_send_messages"],
+                    "can_add_members": permissions["can_add_members"],
+                    "can_update_room_settings": permissions["can_update_room_settings"]
                 }
             }
-            
-        # Get team chat rooms for user's team
-        team_rooms = frappe.get_all(
-            "Chat Room",
-            filters={
-                "room_type": "Team Chat",
-                "team_master": employee.team,
-                "room_status": "Active"
-            },
-            fields=[
-                "name", "room_name", "description", "creation",
-                "created_by", "is_private"
-            ]
-        )
-        
-        # Check if user is member of each room
-        for room in team_rooms:
-            is_member = frappe.db.exists(
-                "Chat Room Member",
-                {"parent": room.name, "user": current_user}
-            )
-            room["is_member"] = bool(is_member)
-            room["creation"] = str(room.creation)
-            
-        return {
-            "success": True,
-            "data": {
-                "team_rooms": team_rooms,
-                "user_team": employee.team
-            }
         }
         
     except Exception as e:
-        frappe.log_error(f"Error in get_team_chat_rooms: {str(e)}")
+        frappe.log_error(f"Error in get_user_room_role: {str(e)}")
         return {
             "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
-        }
-
-@frappe.whitelist()
-def join_team_room(room_id):
-    """
-    Join a team chat room
-    
-    Args:
-        room_id (str): Team chat room ID
-        
-    Returns:
-        dict: Success response
-    """
-    try:
-        current_user = frappe.session.user
-        
-        # Get room and validate it's a team chat
-        room = frappe.get_doc("Chat Room", room_id)
-        
-        if room.room_type != "Team Chat":
-            frappe.throw("This function only works for team chat rooms")
-            
-        # Check if user belongs to the team
-        employee = frappe.db.get_value(
-            "Employee",
-            {"user_id": current_user},
-            ["team"],
-            as_dict=True
-        )
-        
-        if not employee or employee.team != room.team_master:
-            frappe.throw("You can only join team rooms for your assigned team")
-            
-        # Check if already a member
-        permissions = room.get_member_permissions(current_user)
-        if permissions["is_member"]:
-            frappe.throw("You are already a member of this room")
-            
-        # Add user to room
-        room.add_member(current_user, "Member")
-        
-        return {
-            "success": True,
-            "message": "Successfully joined the team room"
-        }
-        
-    except Exception as e:
-        frappe.log_error(f"Error in join_team_room: {str(e)}")
-        return {
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
+            "error": str(e)
         }

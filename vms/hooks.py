@@ -24,10 +24,11 @@ app_license = "mit"
 # Includes in <head>
 # ------------------
 
-# include js, css files in header of desk.html
+# include js, css files in header of desk.html.nav_chat_style
 app_include_css = [
-    "assets/vms/css/chat_styles.css",
-    "assets/vms/css/chat_enhanced.css"
+    # "assets/vms/css/chat_styles.css",
+    # "assets/vms/css/chat_enhanced.css"
+    "assets/vms/css/nav_chat_style2.css"
 ]
 # app_include_js = "/assets/vms/js/vms.js"
 app_include_js = [
@@ -35,7 +36,10 @@ app_include_js = [
     # "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js",
     # "assets/vms/js/chat_integratioonn.js",
     # "assets/vms/js/chat_realtimee.js" 
+    "assets/vms/js/nav_chatf7.js",
+
     # "assets/vms/js/nav_chat27.js",
+
     # "assets/vms/js/nav_chat_enhanced3.js"  
 ]
 
@@ -320,7 +324,13 @@ override_whitelisted_methods = {
     # Chat Utility APIs (from chat_vms DocType controllers)
     "vms.get_user_chat_status": "vms.chat_vms.doctype.chat_message.chat_message.get_user_chat_status",
     "vms.mark_room_as_read": "vms.chat_vms.doctype.chat_message.chat_message.mark_room_as_read",
-    "vms.get_recent_chat_activity": "vms.chat_vms.doctype.chat_message.chat_message.get_recent_chat_activity"
+    "vms.get_recent_chat_activity": "vms.chat_vms.doctype.chat_message.chat_message.get_recent_chat_activity",
+    "vms.search_users_for_chat_room": "vms.APIs.notification_chatroom.chat_apis.user_search.search_users_for_chat_room",
+    "vms.add_member_to_room": "vms.APIs.notification_chatroom.chat_apis.user_search.add_member_to_room", 
+    "vms.add_multiple_members_to_room": "vms.APIs.notification_chatroom.chat_apis.user_search.add_multiple_members_to_room",
+    "vms.check_room_permissions": "vms.APIs.notification_chatroom.chat_apis.room_management.check_room_permissions",
+    "vms.get_user_room_role": "vms.APIs.notification_chatroom.chat_apis.room_management.get_user_room_role",
+
 
 }
 #

@@ -27,8 +27,8 @@ def create_user_chat_status_field():
             custom_field.fieldname = "custom_chat_status"
             custom_field.label = "Chat Status"
             custom_field.fieldtype = "Select"
-            custom_field.options = "Online\nAway\nBusy\nOffline"
-            custom_field.default = "Offline"
+            custom_field.options = "online\naway\nbusy\noffline"
+            custom_field.default = "offline"
             custom_field.insert_after = "desk_theme"
             custom_field.in_list_view = 0
             custom_field.read_only = 1
