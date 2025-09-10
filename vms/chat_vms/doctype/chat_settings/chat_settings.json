@@ -1,209 +1,168 @@
 {
-  "actions": [],
-  "creation": "2025-01-15 10:00:00.000000",
-  "doctype": "DocType",
-  "engine": "InnoDB",
-  "field_order": [
-    "chat_enable_section",
-    "enable_chat",
-    "general_settings_section",
-    "max_file_size",
-    "allowed_file_types",
-    "default_room_max_members",
-    "column_break_1",
-    "enable_desktop_notifications",
-    "auto_delete_old_messages",
-    "message_settings_section",
-    "enable_message_editing",
-    "message_edit_time_limit",
-    "column_break_2",
-    "enable_message_reactions",
-    "enable_typing_indicators",
-    "cron_monitoring_section",
-    "enable_cron_monitoring",
-    "cron_last_run_timestamp",
-    "column_break_3",
-    "cron_status",
-    "cron_error_logs"
-  ],
-  "fields": [
-    {
-      "fieldname": "chat_enable_section",
-      "fieldtype": "Section Break",
-      "label": "Chat Module Control"
-    },
-    {
-      "fieldname": "enable_chat",
-      "fieldtype": "Check",
-      "label": "Enable Chat Module",
-      "default": 1,
-      "description": "Enable/disable the entire chat module. When disabled, nav_chat will not run and chat functionality will be hidden.",
-      "reqd": 0
-    },
-    {
-      "fieldname": "general_settings_section",
-      "fieldtype": "Section Break",
-      "label": "General Settings",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "max_file_size",
-      "fieldtype": "Int",
-      "label": "Max File Size (bytes)",
-      "default": 10485760,
-      "description": "Maximum file size allowed for uploads (10MB = 10485760 bytes)",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "allowed_file_types",
-      "fieldtype": "Data",
-      "label": "Allowed File Types",
-      "default": "image/*,application/pdf,text/*,.doc,.docx,.xls,.xlsx",
-      "description": "Comma-separated list of allowed MIME types and extensions",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "default_room_max_members",
-      "fieldtype": "Int",
-      "label": "Default Room Max Members",
-      "default": 50,
-      "description": "Default maximum number of members per chat room",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "column_break_1",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "enable_desktop_notifications",
-      "fieldtype": "Check",
-      "label": "Enable Desktop Notifications",
-      "default": 1,
-      "description": "Allow users to receive desktop notifications for new messages",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "auto_delete_old_messages",
-      "fieldtype": "Check",
-      "label": "Auto Delete Old Messages",
-      "default": 0,
-      "description": "Automatically delete old messages after specified days",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "message_settings_section",
-      "fieldtype": "Section Break",
-      "label": "Message Settings",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "enable_message_editing",
-      "fieldtype": "Check",
-      "label": "Enable Message Editing",
-      "default": 1,
-      "description": "Allow users to edit their sent messages",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "message_edit_time_limit",
-      "fieldtype": "Int",
-      "label": "Message Edit Time Limit (hours)",
-      "default": 24,
-      "description": "Time limit for editing messages (in hours, 0 = no limit)",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "column_break_2",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "enable_message_reactions",
-      "fieldtype": "Check",
-      "label": "Enable Message Reactions",
-      "default": 1,
-      "description": "Allow users to react to messages with emojis",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "enable_typing_indicators",
-      "fieldtype": "Check",
-      "label": "Enable Typing Indicators",
-      "default": 1,
-      "description": "Show typing indicators when users are typing",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "cron_monitoring_section",
-      "fieldtype": "Section Break",
-      "label": "Cron Job Monitoring",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "enable_cron_monitoring",
-      "fieldtype": "Check",
-      "label": "Enable Cron Monitoring",
-      "default": 1,
-      "description": "Monitor cron job execution status and logs",
-      "depends_on": "enable_chat"
-    },
-    {
-      "fieldname": "cron_last_run_timestamp",
-      "fieldtype": "Datetime",
-      "label": "Last Cron Run",
-      "read_only": 1,
-      "description": "Timestamp of the last successful cron execution",
-      "depends_on": "enable_cron_monitoring"
-    },
-    {
-      "fieldname": "column_break_3",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "cron_status",
-      "fieldtype": "Select",
-      "label": "Cron Status",
-      "options": "Running\nStopped\nError\nUnknown",
-      "default": "Unknown",
-      "read_only": 1,
-      "description": "Current status of chat-related cron jobs",
-      "depends_on": "enable_cron_monitoring"
-    },
-    {
-      "fieldname": "cron_error_logs",
-      "fieldtype": "Long Text",
-      "label": "Cron Error Logs",
-      "read_only": 1,
-      "description": "Recent error logs from cron job executions",
-      "depends_on": "enable_cron_monitoring"
-    }
-  ],
-  "issingle": 1,
-  "links": [],
-  "modified": "2025-01-15 10:00:00.000000",
-  "modified_by": "Administrator",
-  "module": "Chat VMS",
-  "name": "Chat Settings",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    },
-    {
-      "read": 1,
-      "role": "Chat Admin",
-      "write": 1
-    }
-  ],
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "states": [],
-  "track_changes": 1
+ "actions": [],
+ "creation": "2025-01-15 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable_section",
+  "enable_chat",
+  "enable_cron_monitoring",
+  "general_settings_section",
+  "max_file_size",
+  "allowed_file_types",
+  "default_room_max_members",
+  "column_break_1",
+  "enable_desktop_notifications",
+  "auto_delete_old_messages",
+  "message_settings_section",
+  "enable_message_editing",
+  "message_edit_time_limit",
+  "column_break_2",
+  "enable_message_reactions",
+  "enable_typing_indicators"
+ ],
+ "fields": [
+  {
+   "fieldname": "enable_section",
+   "fieldtype": "Section Break",
+   "label": "Enable/Disable Chat"
+  },
+  {
+   "fieldname": "enable_chat",
+   "fieldtype": "Check",
+   "label": "Enable Chat System",
+   "default": 1,
+   "description": "Master switch to enable/disable entire chat functionality. When unchecked, nav_chat will not run.",
+   "bold": 1
+  },
+  {
+   "fieldname": "enable_cron_monitoring",
+   "fieldtype": "Check",
+   "label": "Enable Cron Monitoring",
+   "default": 1,
+   "description": "Enable monitoring of chat-related cron jobs",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "general_settings_section",
+   "fieldtype": "Section Break",
+   "label": "General Settings",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "max_file_size",
+   "fieldtype": "Int",
+   "label": "Max File Size (bytes)",
+   "default": 10485760,
+   "description": "Maximum file size allowed for uploads (10MB = 10485760 bytes)",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "allowed_file_types",
+   "fieldtype": "Data",
+   "label": "Allowed File Types",
+   "default": "image/*,application/pdf,text/*,.doc,.docx,.xls,.xlsx",
+   "description": "Comma-separated list of allowed MIME types and extensions",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "default_room_max_members",
+   "fieldtype": "Int",
+   "label": "Default Room Max Members",
+   "default": 50,
+   "description": "Default maximum number of members per chat room",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "enable_desktop_notifications",
+   "fieldtype": "Check",
+   "label": "Enable Desktop Notifications",
+   "default": 1,
+   "description": "Allow users to receive desktop notifications for new messages",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "auto_delete_old_messages",
+   "fieldtype": "Check",
+   "label": "Auto Delete Old Messages",
+   "default": 0,
+   "description": "Automatically delete old messages after specified days",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "message_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Message Settings",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "enable_message_editing",
+   "fieldtype": "Check",
+   "label": "Enable Message Editing",
+   "default": 1,
+   "description": "Allow users to edit their sent messages",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "message_edit_time_limit",
+   "fieldtype": "Int",
+   "label": "Message Edit Time Limit (hours)",
+   "default": 24,
+   "description": "Time limit for editing messages (in hours, 0 = no limit)",
+   "depends_on": "eval:doc.enable_chat==1 && doc.enable_message_editing==1"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "enable_message_reactions",
+   "fieldtype": "Check",
+   "label": "Enable Message Reactions",
+   "default": 1,
+   "description": "Allow users to react to messages with emojis",
+   "depends_on": "eval:doc.enable_chat==1"
+  },
+  {
+   "fieldname": "enable_typing_indicators",
+   "fieldtype": "Check",
+   "label": "Enable Typing Indicators",
+   "default": 1,
+   "description": "Show typing indicators when users are typing",
+   "depends_on": "eval:doc.enable_chat==1"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-01-15 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Chat VMS",
+ "name": "Chat Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Chat Admin",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
 }
