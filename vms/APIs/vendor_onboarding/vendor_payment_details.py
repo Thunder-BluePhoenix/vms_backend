@@ -772,18 +772,25 @@ def update_bank_proof_purchase_team(data):
 		else:
 			linked_docs = [{"name": main_doc.name}]
 
+		new_rows = {}
+
 		for entry in linked_docs:
 			doc = frappe.get_doc("Vendor Onboarding Payment Details", entry["name"])
 
-			# Bank Proofs by Purchase Team
+			# Track which rows we add
+			new_rows[doc.name] = {
+				"bank_proofs_by_purchase_team": [],
+				"international_bank_proofs_by_purchase_team": [],
+				"intermediate_bank_proofs_by_purchase_team": []
+			}
+
 			if "bank_proofs_by_purchase_team" in file_urls:
 				for url in file_urls["bank_proofs_by_purchase_team"]:
 					doc.append("bank_proofs_by_purchase_team", {
-						"name1": frappe.utils.now(),   # or file.filename
+						"name1": frappe.utils.now(),
 						"attachment_name": url
 					})
 
-			# International Bank Proofs by Purchase Team
 			if "international_bank_proofs_by_purchase_team" in file_urls:
 				for url in file_urls["international_bank_proofs_by_purchase_team"]:
 					doc.append("international_bank_proofs_by_purchase_team", {
@@ -791,7 +798,6 @@ def update_bank_proof_purchase_team(data):
 						"attachment_name": url
 					})
 
-			# Intermediate Bank Proofs by Purchase Team
 			if "intermediate_bank_proofs_by_purchase_team" in file_urls:
 				for url in file_urls["intermediate_bank_proofs_by_purchase_team"]:
 					doc.append("intermediate_bank_proofs_by_purchase_team", {
@@ -799,7 +805,30 @@ def update_bank_proof_purchase_team(data):
 						"attachment_name": url
 					})
 
+			# Save to assign row names
 			doc.save(ignore_permissions=True)
+
+			# Now collect the newly added row names
+			if "bank_proofs_by_purchase_team" in file_urls:
+				new_rows["bank_proofs_by_purchase_team"] = [
+					{"row_name": row.name, "attachment_name": row.attachment_name}
+					for row in doc.bank_proofs_by_purchase_team
+					if row.attachment_name in file_urls["bank_proofs_by_purchase_team"]
+				]
+
+			if "international_bank_proofs_by_purchase_team" in file_urls:
+				new_rows["international_bank_proofs_by_purchase_team"] = [
+					{"row_name": row.name, "attachment_name": row.attachment_name}
+					for row in doc.international_bank_proofs_by_purchase_team
+					if row.attachment_name in file_urls["international_bank_proofs_by_purchase_team"]
+				]
+
+			if "intermediate_bank_proofs_by_purchase_team" in file_urls:
+				new_rows["intermediate_bank_proofs_by_purchase_team"] = [
+					{"row_name": row.name, "attachment_name": row.attachment_name}
+					for row in doc.intermediate_bank_proofs_by_purchase_team
+					if row.attachment_name in file_urls["intermediate_bank_proofs_by_purchase_team"]
+				]
 
 		frappe.db.commit()
 
@@ -807,7 +836,8 @@ def update_bank_proof_purchase_team(data):
 			"status": "success",
 			"message": "Vendor Onboarding Payment Details updated successfully.",
 			"docnames": [d["name"] for d in linked_docs],
-			"file_urls": file_urls
+			"file_urls": file_urls,
+			"new_rows": new_rows
 		}
 
 	except Exception as e:
@@ -886,10 +916,12 @@ def delete_bank_proof_attachment(data):
 			
 			# Get the child table
 			child_table = getattr(doc, attachment_table_name, [])
+			print(child_table)
 			
 			# Find and remove matching attachments
 			rows_to_remove = []
 			for i, row in enumerate(child_table):
+				print(row)
 				# Check if attachment matches by name1 or attachment_name
 				if (hasattr(row, 'name') and row.name == attachment_name):
 					rows_to_remove.append(i)
