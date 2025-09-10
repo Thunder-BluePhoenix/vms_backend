@@ -2239,7 +2239,7 @@ def erp_to_sap_vendor_data(onb_ref):
                             "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                             "J1ipanno": "",  # No PAN for international
                             "J1ipanref": "",
-                            "Stcd5": "",
+                            # "Stcd5": "",
                             "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                             "Name11": safe_get(onb, "contact_details", 0, "last_name"),
                             "Bankl": "N.A",  # International uses different banking fields
