@@ -370,13 +370,22 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
         extend_vendor_onb.save(ignore_permissions=True)
         frappe.db.commit()
 
+        created_docs = {
+            "vendor_onboarding": extend_vendor_onb.name,
+            "company_vendor_code": extend_company_vendor_code.name if extend_company_vendor_code else None,
+            "payment_detail": extend_vendor_payment_details.name if extend_vendor_payment_details else None,
+            "legal_documents": extend_vendor_legal_documents.name if extend_vendor_legal_documents else None,
+            "certificate_details": extend_vendor_certificate_details.name if extend_vendor_certificate_details else None,
+            "manufacturing_details": extend_vendor_manufacturing_details.name if extend_vendor_manufacturing_details else None
+        }
 
         frappe.local.response["http_status_code"] = 200
         return {
             "status": "success",
             "message": f"Vendor data extended successfully from {prev_company} to {extend_company} for {vendor_name}.",
             "vendor_master": vendor_master.name,
-            "new_company_vendor_code": extend_company_vendor_code.name if extend_company_vendor_code else None
+            "new_company_vendor_code": extend_company_vendor_code.name if extend_company_vendor_code else None,
+            **created_docs
         }
 
     except Exception as e:
