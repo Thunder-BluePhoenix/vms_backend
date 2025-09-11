@@ -5,7 +5,10 @@ import frappe
 def get_approval_matrix_single_condition(
     doctype, docname
 ):
-    filters = {"for_doc_type": doctype, "is_active": 1}
+    filters = [
+        ["Approval Matrix", "for_doc_type", "=", doctype],
+        ["Approval Matrix", "is_active", "=", 1],
+    ]
 
     
 
