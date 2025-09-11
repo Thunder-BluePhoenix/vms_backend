@@ -424,13 +424,15 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 bank_proofs_by_purchase_team.append({
                     "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                     "name": file_doc.name,
-                    "file_name": file_doc.file_name
+                    "file_name": file_doc.file_name,
+                    "row_name": row.name
                 })
             else:
                 bank_proofs_by_purchase_team.append({
                     "url": "",
                     "name": "",
-                    "file_name": ""
+                    "file_name": "",
+                    "row_name": ""
                 })
         payment_details["bank_proofs_by_purchase_team"] = bank_proofs_by_purchase_team
 
@@ -442,13 +444,15 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 international_bank_proofs_by_purchase_team.append({
                     "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                     "name": file_doc.name,
-                    "file_name": file_doc.file_name
+                    "file_name": file_doc.file_name,
+                    "row_name": row.name
                 })
             else:
                 international_bank_proofs_by_purchase_team.append({
                     "url": "",
                     "name": "",
-                    "file_name": ""
+                    "file_name": "",
+                    "row_name": ""
                 })
         payment_details["international_bank_proofs_by_purchase_team"] = international_bank_proofs_by_purchase_team
 
@@ -460,13 +464,15 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 intermediate_bank_proofs_by_purchase_team.append({
                     "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
                     "name": file_doc.name,
-                    "file_name": file_doc.file_name
+                    "file_name": file_doc.file_name,
+                    "row_name": row.name
                 })
             else:
                 intermediate_bank_proofs_by_purchase_team.append({
                     "url": "",
                     "name": "",
-                    "file_name": ""
+                    "file_name": "",
+                    "row_name": ""
                 })
         payment_details["intermediate_bank_proofs_by_purchase_team"] = intermediate_bank_proofs_by_purchase_team
 
