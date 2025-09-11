@@ -710,267 +710,250 @@ def update_vendor_onboarding_payment_details(data):
 
 @frappe.whitelist(allow_guest=True)
 def update_bank_proof_purchase_team(data):
-	try:
-		if isinstance(data, str):
-			data = json.loads(data)
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
 
-		ref_no = data.get("ref_no")
-		vendor_onboarding = data.get("vendor_onboarding")
+        ref_no = data.get("ref_no")
+        vendor_onboarding = data.get("vendor_onboarding")
 
-		if not ref_no or not vendor_onboarding:
-			return {
-				"status": "error",
-				"message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
-			}
+        if not ref_no or not vendor_onboarding:
+            return {
+                "status": "error",
+                "message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
+            }
 
-		doc_name = frappe.db.get_value(
-			"Vendor Onboarding Payment Details",
-			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
-			"name"
-		)
+        doc_name = frappe.db.get_value(
+            "Vendor Onboarding Payment Details",
+            {"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+            "name"
+        )
 
-		if not doc_name:
-			return {
-				"status": "error",
-				"message": "No record found for Vendor Onboarding Payment Details"
-			}
+        if not doc_name:
+            return {
+                "status": "error",
+                "message": "No record found for Vendor Onboarding Payment Details"
+            }
 
-		main_doc = frappe.get_doc("Vendor Onboarding Payment Details", doc_name)
+        main_doc = frappe.get_doc("Vendor Onboarding Payment Details", doc_name)
 
-		# --- Upload files ---
-		file_urls = {}
+        # --- Upload files ---
+        file_urls = {}
 
-		for file_key in [
-			"bank_proofs_by_purchase_team",
-			"international_bank_proofs_by_purchase_team",
-			"intermediate_bank_proofs_by_purchase_team"
-		]:
-			if file_key in frappe.request.files:
-				files = frappe.request.files.getlist(file_key)
-				file_urls[file_key] = []
+        for file_key in [
+            "bank_proofs_by_purchase_team",
+            "international_bank_proofs_by_purchase_team",
+            "intermediate_bank_proofs_by_purchase_team"
+        ]:
+            if file_key in frappe.request.files:
+                files = frappe.request.files.getlist(file_key)
+                file_urls[file_key] = []
 
-				for file in files:
-					saved = save_file(
-						file.filename,
-						file.stream.read(),
-						main_doc.doctype,
-						main_doc.name,
-						is_private=0
-					)
-					file_urls[file_key].append(saved.file_url)
+                for file in files:
+                    saved = save_file(
+                        file.filename,
+                        file.stream.read(),
+                        main_doc.doctype,
+                        main_doc.name,
+                        is_private=0
+                    )
+                    file_urls[file_key].append(saved.file_url)
 
-		# --- Find linked docs for multi-company ---
-		if main_doc.registered_for_multi_companies == 1:
-			linked_docs = frappe.get_all(
-				"Vendor Onboarding Payment Details",
-				filters={
-					"registered_for_multi_companies": 1,
-					"unique_multi_comp_id": main_doc.unique_multi_comp_id
-				},
-				fields=["name"]
-			)
-		else:
-			linked_docs = [{"name": main_doc.name}]
+        # --- Find linked docs for multi-company ---
+        if main_doc.registered_for_multi_companies == 1:
+            linked_docs = frappe.get_all(
+                "Vendor Onboarding Payment Details",
+                filters={
+                    "registered_for_multi_companies": 1,
+                    "unique_multi_comp_id": main_doc.unique_multi_comp_id
+                },
+                fields=["name"]
+            )
+        else:
+            linked_docs = [{"name": main_doc.name}]
 
-		new_rows = {}
+        new_rows = {
+            "bank_proofs_by_purchase_team": [],
+            "international_bank_proofs_by_purchase_team": [],
+            "intermediate_bank_proofs_by_purchase_team": []
+        }
 
-		for entry in linked_docs:
-			doc = frappe.get_doc("Vendor Onboarding Payment Details", entry["name"])
+        for entry in linked_docs:
+            doc = frappe.get_doc("Vendor Onboarding Payment Details", entry["name"])
 
-			# Track which rows we add
-			new_rows[doc.name] = {
-				"bank_proofs_by_purchase_team": [],
-				"international_bank_proofs_by_purchase_team": [],
-				"intermediate_bank_proofs_by_purchase_team": []
-			}
+            # Store current row count before adding new rows
+            existing_counts = {
+                "bank_proofs_by_purchase_team": len(doc.bank_proofs_by_purchase_team),
+                "international_bank_proofs_by_purchase_team": len(doc.international_bank_proofs_by_purchase_team),
+                "intermediate_bank_proofs_by_purchase_team": len(doc.intermediate_bank_proofs_by_purchase_team)
+            }
 
-			if "bank_proofs_by_purchase_team" in file_urls:
-				for url in file_urls["bank_proofs_by_purchase_team"]:
-					doc.append("bank_proofs_by_purchase_team", {
-						"name1": frappe.utils.now(),
-						"attachment_name": url
-					})
+            if "bank_proofs_by_purchase_team" in file_urls:
+                for url in file_urls["bank_proofs_by_purchase_team"]:
+                    doc.append("bank_proofs_by_purchase_team", {
+                        "name1": frappe.utils.now(),
+                        "attachment_name": url
+                    })
 
-			if "international_bank_proofs_by_purchase_team" in file_urls:
-				for url in file_urls["international_bank_proofs_by_purchase_team"]:
-					doc.append("international_bank_proofs_by_purchase_team", {
-						"name1": frappe.utils.now(),
-						"attachment_name": url
-					})
+            if "international_bank_proofs_by_purchase_team" in file_urls:
+                for url in file_urls["international_bank_proofs_by_purchase_team"]:
+                    doc.append("international_bank_proofs_by_purchase_team", {
+                        "name1": frappe.utils.now(),
+                        "attachment_name": url
+                    })
 
-			if "intermediate_bank_proofs_by_purchase_team" in file_urls:
-				for url in file_urls["intermediate_bank_proofs_by_purchase_team"]:
-					doc.append("intermediate_bank_proofs_by_purchase_team", {
-						"name1": frappe.utils.now(),
-						"attachment_name": url
-					})
+            if "intermediate_bank_proofs_by_purchase_team" in file_urls:
+                for url in file_urls["intermediate_bank_proofs_by_purchase_team"]:
+                    doc.append("intermediate_bank_proofs_by_purchase_team", {
+                        "name1": frappe.utils.now(),
+                        "attachment_name": url
+                    })
 
-			# Save to assign row names
-			doc.save(ignore_permissions=True)
+            # Save to assign row names
+            doc.save(ignore_permissions=True)
 
-			# Now collect the newly added row names
-			if "bank_proofs_by_purchase_team" in file_urls:
-				new_rows["bank_proofs_by_purchase_team"] = [
-					{"row_name": row.name, "attachment_name": row.attachment_name}
-					for row in doc.bank_proofs_by_purchase_team
-					if row.attachment_name in file_urls["bank_proofs_by_purchase_team"]
-				]
+            # Now collect the newly added row names (only the ones we just added)
+            if "bank_proofs_by_purchase_team" in file_urls:
+                new_bank_rows = doc.bank_proofs_by_purchase_team[existing_counts["bank_proofs_by_purchase_team"]:]
+                for row in new_bank_rows:
+                    new_rows["bank_proofs_by_purchase_team"].append({
+                        "row_name": row.name,
+                        "attachment_name": row.attachment_name
+                    })
 
-			if "international_bank_proofs_by_purchase_team" in file_urls:
-				new_rows["international_bank_proofs_by_purchase_team"] = [
-					{"row_name": row.name, "attachment_name": row.attachment_name}
-					for row in doc.international_bank_proofs_by_purchase_team
-					if row.attachment_name in file_urls["international_bank_proofs_by_purchase_team"]
-				]
+            if "international_bank_proofs_by_purchase_team" in file_urls:
+                new_intl_rows = doc.international_bank_proofs_by_purchase_team[existing_counts["international_bank_proofs_by_purchase_team"]:]
+                for row in new_intl_rows:
+                    new_rows["international_bank_proofs_by_purchase_team"].append({
+                        "row_name": row.name,
+                        "attachment_name": row.attachment_name
+                    })
 
-			if "intermediate_bank_proofs_by_purchase_team" in file_urls:
-				new_rows["intermediate_bank_proofs_by_purchase_team"] = [
-					{"row_name": row.name, "attachment_name": row.attachment_name}
-					for row in doc.intermediate_bank_proofs_by_purchase_team
-					if row.attachment_name in file_urls["intermediate_bank_proofs_by_purchase_team"]
-				]
+            if "intermediate_bank_proofs_by_purchase_team" in file_urls:
+                new_intermediate_rows = doc.intermediate_bank_proofs_by_purchase_team[existing_counts["intermediate_bank_proofs_by_purchase_team"]:]
+                for row in new_intermediate_rows:
+                    new_rows["intermediate_bank_proofs_by_purchase_team"].append({
+                        "row_name": row.name,
+                        "attachment_name": row.attachment_name
+                    })
 
-		frappe.db.commit()
+        frappe.db.commit()
 
-		return {
-			"status": "success",
-			"message": "Vendor Onboarding Payment Details updated successfully.",
-			"docnames": [d["name"] for d in linked_docs],
-			"file_urls": file_urls,
-			"new_rows": new_rows
-		}
+        return {
+            "status": "success",
+            "message": "Vendor Onboarding Payment Details updated successfully.",
+            "docnames": [d["name"] for d in linked_docs],
+            "file_urls": file_urls,
+            "new_rows": new_rows
+        }
 
-	except Exception as e:
-		frappe.db.rollback()
-		frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Payment Update Error")
-		return {
-			"status": "error",
-			"message": "Failed to update Vendor Onboarding Payment Details.",
-			"error": str(e)
-		}
-
-
-
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Payment Update Error")
+        return {
+            "status": "error",
+            "message": "Failed to update Vendor Onboarding Payment Details.",
+            "error": str(e)
+        }
 @frappe.whitelist(allow_guest=True)
 def delete_bank_proof_attachment(data):
-	try:
-		if isinstance(data, str):
-			data = json.loads(data)
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
 
-		ref_no = data.get("ref_no")
-		vendor_onboarding = data.get("vendor_onboarding")
-		attachment_table_name = data.get("attachment_table_name")  
-		attachment_name = data.get("attachment_name")  
+        ref_no = data.get("ref_no")
+        vendor_onboarding = data.get("vendor_onboarding")
+        attachment_table_name = data.get("attachment_table_name")
+        row_name = data.get("attachment_name")
 
-		if not all([ref_no, vendor_onboarding, attachment_table_name, attachment_name]):
-			return {
-				"status": "error",
-				"message": "Missing required fields: 'ref_no', 'vendor_onboarding', 'attachment_table_name', and 'attachment_name'."
-			}
+        if not all([ref_no, vendor_onboarding, attachment_table_name, row_name]):
+            return {
+                "status": "error",
+                "message": "Missing required fields: 'ref_no', 'vendor_onboarding', 'attachment_table_name', and 'attachment_name'."
+            }
 
-		# Validate attachment table name
-		valid_tables = [
-			"bank_proofs_by_purchase_team",
-			"international_bank_proofs_by_purchase_team",
-			"intermediate_bank_proofs_by_purchase_team"
-		]
+        # Validate attachment table name
+        valid_tables = [
+            "bank_proofs_by_purchase_team",
+            "international_bank_proofs_by_purchase_team",
+            "intermediate_bank_proofs_by_purchase_team"
+        ]
 
-		if attachment_table_name not in valid_tables:
-			return {
-				"status": "error",
-				"message": f"Invalid attachment table name. Must be one of: {', '.join(valid_tables)}"
-			}
+        if attachment_table_name not in valid_tables:
+            return {
+                "status": "error",
+                "message": f"Invalid attachment table name. Must be one of: {', '.join(valid_tables)}"
+            }
 
-		doc_name = frappe.db.get_value(
-			"Vendor Onboarding Payment Details",
-			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
-			"name"
-		)
+        doc_name = frappe.db.get_value(
+            "Vendor Onboarding Payment Details",
+            {"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+            "name"
+        )
 
-		if not doc_name:
-			return {
-				"status": "error",
-				"message": "No record found for Vendor Onboarding Payment Details"
-			}
+        if not doc_name:
+            return {
+                "status": "error",
+                "message": "No record found for Vendor Onboarding Payment Details"
+            }
 
-		main_doc = frappe.get_doc("Vendor Onboarding Payment Details", doc_name)
+        main_doc = frappe.get_doc("Vendor Onboarding Payment Details", doc_name)
 
-		# --- Find linked docs for multi-company ---
-		if main_doc.registered_for_multi_companies == 1:
-			linked_docs = frappe.get_all(
-				"Vendor Onboarding Payment Details",
-				filters={
-					"registered_for_multi_companies": 1,
-					"unique_multi_comp_id": main_doc.unique_multi_comp_id
-				},
-				fields=["name"]
-			)
-		else:
-			linked_docs = [{"name": main_doc.name}]
+        # --- Find linked docs for multi-company ---
+        if main_doc.registered_for_multi_companies == 1:
+            linked_docs = frappe.get_all(
+                "Vendor Onboarding Payment Details",
+                filters={
+                    "registered_for_multi_companies": 1,
+                    "unique_multi_comp_id": main_doc.unique_multi_comp_id
+                },
+                fields=["name"]
+            )
+        else:
+            linked_docs = [{"name": main_doc.name}]
 
-		deleted_from_docs = []
-		deleted_attachments = []
+        deleted_from_docs = []
+        deleted_attachments = []
 
-		for entry in linked_docs:
-			doc = frappe.get_doc("Vendor Onboarding Payment Details", entry["name"])
-			
-			# Get the child table
-			child_table = getattr(doc, attachment_table_name, [])
-			print(child_table)
-			
-			# Find and remove matching attachments
-			rows_to_remove = []
-			for i, row in enumerate(child_table):
-				print(row)
-				# Check if attachment matches by name1 or attachment_name
-				if (hasattr(row, 'name') and row.name == attachment_name):
-					rows_to_remove.append(i)
-					deleted_attachments.append({
-						"doc_name": doc.name,
-						"attachment_name": getattr(row, 'attachment_name', ''),
-						"name1": getattr(row, 'name1', ''),
-						"name": getattr(row, 'name', '')
-					})
+        for entry in linked_docs:
+            doc = frappe.get_doc("Vendor Onboarding Payment Details", entry["name"])
 
-			# Remove rows in reverse order to maintain indices
-			for i in reversed(rows_to_remove):
-				doc.get(attachment_table_name).pop(i)
+            # Get the child table
+            child_table = getattr(doc, attachment_table_name, [])
 
-			if rows_to_remove:
-				doc.save(ignore_permissions=True)
-				deleted_from_docs.append(doc.name)
+            # Find and remove matching attachments by row name
+            rows_to_remove = []
+            for i, row in enumerate(child_table):
+                if hasattr(row, 'name') and row.name == row_name:
+                    rows_to_remove.append(i)
+                    deleted_attachments.append({
+                        "doc_name": doc.name,
+                        # "attachment_name": getattr(row, 'attachment_name', ''),
+                        "row_name": row.name
+                    })
 
-		# Also try to delete the actual file from the system if it's a file URL
-		try:
-			if attachment_name.startswith('/files/'):
-				# Get the file document
-				file_doc = frappe.get_value("File", {"file_url": attachment_name}, "name")
-				if file_doc:
-					frappe.delete_doc("File", file_doc, ignore_permissions=True)
-		except Exception as file_error:
-			frappe.log_error(f"Could not delete file: {str(file_error)}", "File Deletion Error")
+            # Remove rows in reverse order to maintain indices
+            for i in reversed(rows_to_remove):
+                doc.get(attachment_table_name).pop(i)
 
-		frappe.db.commit()
+            if rows_to_remove:
+                doc.save(ignore_permissions=True)
+                deleted_from_docs.append(doc.name)
 
-		if not deleted_attachments:
-			return {
-				"status": "warning",
-				"message": "No matching attachment found to delete.",
-				"searched_in_docs": [d["name"] for d in linked_docs]
-			}
+        frappe.db.commit()
 
-		return {
-			"status": "success",
-			"message": f"Attachment deleted successfully from {len(deleted_from_docs)} document(s).",
-			"deleted_from_docs": deleted_from_docs,
-			"deleted_attachments": deleted_attachments
-		}
+        return {
+            "status": "success",
+            "message": f"Attachment deleted successfully from {len(deleted_from_docs)} document(s).",
+            "deleted_from_docs": deleted_from_docs,
+            "deleted_attachments": deleted_attachments
+        }
 
-	except Exception as e:
-		frappe.db.rollback()
-		frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Attachment Delete Error")
-		return {
-			"status": "error",
-			"message": "Failed to delete attachment.",
-			"error": str(e)
-		}
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Attachment Delete Error")
+        return {
+            "status": "error",
+            "message": "Failed to delete attachment.",
+            "error": str(e)
+        }
