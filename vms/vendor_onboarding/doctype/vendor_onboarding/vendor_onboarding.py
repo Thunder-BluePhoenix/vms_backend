@@ -784,6 +784,7 @@ def send_rejection_email(doc, method=None):
             now=True,
         )
         frappe.db.set_value("Vendor Onboarding", doc.name, "rejected_mail_sent", 1)
+        frappe.db.set_value("Vendor Onboarding", doc.name, "approvals_mail_sent_time", now_datetime())
 
         return {
             "status": "success",
