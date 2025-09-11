@@ -7,6 +7,8 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 import json
 from frappe.utils import now_datetime
+from datetime import timedelta
+
 # from vms.utils.custom_send_mail import custom_sendmail
 # from vms.vendor_onboarding.doctype.vendor_onboarding.onboarding_sap_validation import generate_sap_validation_html
 from vms.APIs.sap.sap import update_sap_vonb
@@ -20,20 +22,22 @@ populator = VendorDataPopulator()
 
 class VendorOnboarding(Document):
     # def after_save(self):
-    #     sync_maintain(self, method= None)
-    #     frappe.clear_cache(doctype=self.doctype, name=self.name)
-        # frappe.db.commit()
-        # self.reload()
+    #     # sync_maintain(self, method= None)
+    #     # frappe.clear_cache(doctype=self.doctype, name=self.name)
+    #     # frappe.db.commit()
+    #     # self.reload()
+    #     set_vonb_status_onupdate(self, method=None)
+    #     print("RUNNING after save @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         
-        # # Notify frontend about the update
-        # frappe.publish_realtime(
-        #     event="vendor_onboarding_updated",
-        #     message={
-        #         "name": self.name,
-        #         "modified": self.modified
-        #     },
-        #     user=frappe.session.user
-        # )
+    #     # Notify frontend about the update
+    #     frappe.publish_realtime(
+    #         event="vendor_onboarding_updated",
+    #         message={
+    #             "name": self.name,
+    #             "modified": self.modified
+    #         },
+    #         user=frappe.session.user
+    #     )
 
     
      
@@ -88,29 +92,34 @@ class VendorOnboarding(Document):
 
 
     def on_update(self):
-            # print("update hook start@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            
             vendor_company_update(self,method=None)
             
             on_update_check_fields(self,method=None)
-            # update_ven_onb_record_table(self, method=None)
-            # update_ven_onb_record_table(self, method=None)
-            # update_van_core_docs(self, method=None)
             
-            set_qms_required_value(self, method=None)  
-            # update_van_core_docs_multi_case(self, method=None)        
+            
+            set_qms_required_value(self, method=None)         
             update_sap_vonb(self, method= None)
             set_vonb_status_onupdate(self, method=None)
             check_vnonb_send_mails(self, method=None)
             update_ven_onb_record_table(self, method=None)
             sync_maintain(self, method= None)
             on_vendor_onboarding_submit(self, method=None)
-            # update_vendor_master_onb_status(self, method=None)
             
-        #   set_vendor_onboarding_status(self,method=None)
-        #   check_vnonb_send_mails(self, method=None)
-            # print("control reload@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
 
             send_doc_change_req_email(self, method=None)
+
+
+            frappe.enqueue(
+                method=self.run_delayed_vonb_status_update,
+                queue='default',
+                timeout=300,
+                # enqueue_after_commit=True,
+                now=False,
+                job_name=f'vendor_onboarding_status_update_check_{self.name}',
+            )
+
+
             self.reload()
             
             # Notify frontend about the update
@@ -122,6 +131,30 @@ class VendorOnboarding(Document):
                 },
                 user=frappe.session.user
             )
+
+    @frappe.whitelist()
+    def run_delayed_vonb_status_update(docname):
+        try:
+            time.sleep(15)
+            doc = frappe.get_doc("Vendor Onboarding", docname)
+
+            set_vonb_status_onupdate(doc, method=None)
+            
+            doc.reload()
+            
+            # Notify frontend about the update
+            frappe.publish_realtime(
+                event="vendor_onboarding_updated",
+                message={
+                    "name": doc.name,
+                    "modified": doc.modified
+                },
+                user=frappe.session.user
+            )
+            frappe.log_error(f"Delayed set_vonb_status_onupdate executed for {docname}")
+        except Exception as e:
+            frappe.log_error(f"Error in delayed vonb_status update for {docname}: {str(e)}")
+
 	
 
 
@@ -171,6 +204,7 @@ def set_vonb_status_onupdate(doc, method=None):
     if new_rejected is not None and new_rejected != doc.rejected:
         frappe.db.set_value(doc.doctype, doc.name, "rejected", new_rejected)
         doc.rejected = new_rejected  # Update the doc object too
+    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@RUNING@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     
     frappe.db.commit()
 
@@ -750,6 +784,7 @@ def send_rejection_email(doc, method=None):
             now=True,
         )
         frappe.db.set_value("Vendor Onboarding", doc.name, "rejected_mail_sent", 1)
+        frappe.db.set_value("Vendor Onboarding", doc.name, "approvals_mail_sent_time", now_datetime())
 
         return {
             "status": "success",

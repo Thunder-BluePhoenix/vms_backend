@@ -1056,12 +1056,65 @@ def get_pi_details(pi_name):
                 except frappe.DoesNotExistError:
                     pass  
 
-        # Return all necessary info
+        # Get PI data and process child table attachments
         pi_dict = pi.as_dict()
+        
+        # Get backend URL from site config
+        backend_url = frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')
+        
+        # Process cart_product child table for attachment formatting
+        if pi_dict.get("cart_product"):
+            for product in pi_dict["cart_product"]:
+                if product.get("attachment"):
+                    attachment_url = product["attachment"]
+                    
+                    # Create full URL with backend URL
+                    if attachment_url and not attachment_url.startswith(('http://', 'https://')):
+                        # If it's a relative URL, prepend backend URL
+                        full_url = f"{backend_url.rstrip('/')}{attachment_url}"
+                    elif attachment_url:
+                        # If it's already a full URL, replace the domain with backend URL
+                        import urllib.parse
+                        parsed_url = urllib.parse.urlparse(attachment_url)
+                        full_url = f"{backend_url.rstrip('/')}{parsed_url.path}"
+                    else:
+                        full_url = attachment_url
+                    
+                    # Try to get file details from File doctype
+                    try:
+                        file_doc = frappe.get_doc("File", {"file_url": attachment_url})
+                        
+                        # Format attachment as requested
+                        product["attachment"] = {
+                            "url": full_url,
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    except frappe.DoesNotExistError:
+                        # If file document not found, format with available info
+                        import os
+                        file_name = os.path.basename(attachment_url) if attachment_url else ""
+                        
+                        product["attachment"] = {
+                            "url": full_url,
+                            "name": "",
+                            "file_name": file_name
+                        }
+                    except Exception:
+                        # If any error, keep original URL format
+                        product["attachment"] = {
+                            "url": full_url,
+                            "name": "",
+                            "file_name": ""
+                        }
+                else:
+                    # If no attachment, set as null or empty object
+                    product["attachment"] = None
+
+        # Add computed fields
         pi_dict.update({
             "hod": hod,
             "purchase_team": purchase_team
-            # "is_alternate_purchase_team": pi.mailed_to_alternate_purchase_team
         })
 
         return pi_dict
@@ -1071,7 +1124,6 @@ def get_pi_details(pi_name):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "get_pi_details Error")
         frappe.throw(_("An unexpected error occurred while fetching PI details."))
-
 
 @frappe.whitelist(allow_guest=True)
 def get_pr_w(page_no=None, page_length=None):
