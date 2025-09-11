@@ -17,7 +17,8 @@ def send_vendor_code_extend_mail(ref_no=None, prev_company=None, extend_company=
                 "status": "error",
                 "message": "Please provide ref_no, prev_company and extend_company."
             }
-
+        
+        http_server = frappe.conf.get("backend_http")
         vendor_master = frappe.get_doc("Vendor Master", ref_no)
         vendor_name = vendor_master.vendor_name
 
@@ -50,6 +51,9 @@ def send_vendor_code_extend_mail(ref_no=None, prev_company=None, extend_company=
         new_company_code = new_company_doc.company_code
         new_company_name = new_company_doc.company_name
 
+        extend_url = f"{http_server}/api/method/vms.APIs.vendor_onboarding.extend_vendor_code_in_sap.create_vendor_data_from_existing_onboarding"
+        f"?ref_no={ref_no}&prev_company={prev_company}&extend_company={extend_company}&purchase_org={purchase_org}&action=extend"
+
         subject = f"Please Extend the Vendor Code for {vendor_name}"
         message = f"""
         <p>Dear SAP Team,</p>
@@ -71,13 +75,13 @@ def send_vendor_code_extend_mail(ref_no=None, prev_company=None, extend_company=
             Request you to kindly update accordingly and click on the below<b>Extend</b> button.
         </p>
 
-        <a href="#"
+        <a href="{extend_url}"
             style="background-color:green;
             color:white;
             padding:8px 16px;
             text-decoration:none;
             border-radius:4px;">
-            Allow
+            Extend
         </a>
         """
 
