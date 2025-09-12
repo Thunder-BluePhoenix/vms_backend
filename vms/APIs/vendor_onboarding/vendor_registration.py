@@ -503,9 +503,27 @@ def onboarding_form_submit(data):
             data = json.loads(data)
 
         onb_ref = data.get('onb_id')
+
         onb = frappe.get_doc("Vendor Onboarding", onb_ref)
-        onb.form_fully_submitted_by_vendor = data.get("completed")
-        onb.save()
+
+        if onb.registered_for_multi_companies == 1:
+            linked_docs = frappe.get_all(
+                "Vendor Onboarding",
+                filters={
+                    "registered_for_multi_companies": 1,
+                    "unique_multi_comp_id": onb.unique_multi_comp_id
+                },
+                fields=["name"]
+            )
+        else:
+            linked_docs = [{"name": onb.name}]
+
+        for entry in linked_docs:
+            doc = frappe.get_doc("Vendor Onboarding", entry["name"])
+            doc.form_fully_submitted_by_vendor = data.get("completed")
+            doc.save(ignore_permissions=True) 
+
+        # onb.save()
         frappe.db.commit()
         return {
             "status": "Success",
@@ -1232,12 +1250,37 @@ def send_registration_email_link(vendor_onboarding, refno):
                 now=True
             )
 
-            onboarding_doc.sent_registration_email_link = 1
-            if onboarding_doc.qms_required == "Yes":
-                onboarding_doc.sent_qms_form_link = 1
+            # handle for to mark the registration email link sent to vendor for single and multi doc
+
+            # onboarding_doc.sent_registration_email_link = 1
+            # if onboarding_doc.qms_required == "Yes":
+            #     onboarding_doc.sent_qms_form_link = 1
+
+            if onboarding_doc.registered_for_multi_companies == 1:
+                linked_docs = frappe.get_all(
+                    "Vendor Onboarding",
+                    filters={
+                        "registered_for_multi_companies": 1,
+                        "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id
+                    },
+                    fields=["name"]
+                )
+            else:
+                linked_docs = [{"name": onboarding_doc.name}]
+
+            for entry in linked_docs:
+                doc = frappe.get_doc("Vendor Onboarding", entry["name"])
+                doc.sent_registration_email_link = 1
+
+                if doc.qms_required == "Yes":
+                    doc.sent_qms_form_link = 1
+
+                doc.save(ignore_permissions=True)
+
+
             if onboarding_doc.registered_for_multi_companies == 1:
                 onboarding_doc.head_target = 1
-                vendor_master.db_set('onboarding_ref_no', vendor_onboarding.name, update_modified=False)
+                vendor_master.db_set('onboarding_ref_no', onboarding_doc.name, update_modified=False)
 
             onboarding_doc.save(ignore_permissions=True)
             frappe.db.commit()

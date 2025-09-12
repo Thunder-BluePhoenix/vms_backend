@@ -196,10 +196,11 @@ def send_sap_error_email(doctype, docname, remarks=None):
             if ven_onb.sap_error_mail_sent == 0:
                 site_url = frappe.utils.get_url()
                 button_url = f"{site_url}/api/method/vms.APIs.sap.send_sap_error_email.enable_vendor_re_resale?docname={docname}"
-                subject = f"Vendor Onboarding {docname} - SAP Error"
+                subject = f"Vendor Onboarding {docname} {vendor_master.vendor_name} - SAP Error"
                 message = f"""
                     Dear IT Head,<br><br>
-                    The Vendor Onboarding document <b>{docname}</b> has encountered a SAP error.<br><br>
+                    The Vendor Onboarding document <b>{docname}</b> has encountered a SAP error.<br>
+                    <b>Vendor Details: {vendor_details}</b><br><br>
                     <b>SAP Response:</b><br>{sap_response or f'⚠️ No SAP logs were found.<br>{vendor_details}'}<br>
                     <strong>Remarks: {remarks}</strong><br><br>
                      <div style="margin: 20px 0;">

@@ -5,6 +5,7 @@ import os
 import shutil
 from datetime import datetime
 import logging
+from urllib.parse import quote
 
 # send vendor code extend mail to sap team 
 
@@ -51,8 +52,7 @@ def send_vendor_code_extend_mail(ref_no=None, prev_company=None, extend_company=
         new_company_code = new_company_doc.company_code
         new_company_name = new_company_doc.company_name
 
-        extend_url = f"{http_server}/api/method/vms.APIs.vendor_onboarding.extend_vendor_code_in_sap.create_vendor_data_from_existing_onboarding"
-        f"?ref_no={ref_no}&prev_company={prev_company}&extend_company={extend_company}&purchase_org={purchase_org}&action=extend"
+        extend_url = f"{http_server}/api/method/vms.APIs.vendor_onboarding.extend_vendor_code_in_sap.create_vendor_data_from_existing_onboarding?ref_no={quote(str(ref_no))}&prev_company={quote(str(prev_company))}&extend_company={quote(str(extend_company))}&purchase_org={quote(str(purchase_org))}&action=extend"
 
         subject = f"Please Extend the Vendor Code for {vendor_name}"
         message = f"""
