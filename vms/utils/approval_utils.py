@@ -31,20 +31,14 @@ def get_approval_users_by_role(doctype: str, docname: str,current_role) -> list[
     if not frappe.db.exists(doctype, docname):
         return []
 
-    
-    
-    
-
     doc = frappe.get_cached_doc(doctype, docname)
     users = set()
     roles = ["QA Team","QA Head"]
+    ven_onb_role = ["Purchase Team","Purchase Head","Accounts Team","Accounts Head"]
 
-
-    if doctype == "Supplier QMS Assessment Form":
+    if doctype in ["Vendor Onboarding", "Supplier QMS Assessment Form"]:
         all_users = frappe.get_all("User", 
-            filters=[
-                ["Has Role", "role", "in", current_role],
-            ], 
+            filters=[["Has Role", "role", "in", current_role]], 
             pluck="name"
         )
         
