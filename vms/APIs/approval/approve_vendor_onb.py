@@ -48,7 +48,7 @@ def get_next_approver(stage, doc, next_stage=None):
 
         company = doc.get("company")
         
-        
+        # in get_approval_employee this funciton we need to handle team speical case for the comapny
         emp = get_approval_employee(
             next_role,
             company_list=[company] if company else [],
@@ -294,6 +294,7 @@ def approve_vendor_onb(onboard_id, action, remark="",required_optional=False):
         else:
             
             if linked_user:  
+                #while sending this we need to check the team of employe wise special case for bella mam team
                 send_approval_notification(linked_user, qms, is_approved, cur_stage)
             
 
