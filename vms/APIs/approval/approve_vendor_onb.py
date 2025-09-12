@@ -11,7 +11,7 @@ from vms.utils.custom_send_mail import custom_sendmail
 
 
 def update_status(doc, status):
-    doc.db_set("status", status)
+    # doc.db_set("status", status)
     doc.db_set("approval_status", status)
 
 
@@ -64,7 +64,7 @@ def get_next_approver(stage, doc, next_stage=None):
     linked_user = ""
     if not linked_user:
         stage_info = get_stage_info(
-            "Supplier QMS Assessment Form",
+            "Vendor Onboarding",
             doc,
             approval_stage=int(stage.get("approval_stage", 0)) + 1,
         )
@@ -93,7 +93,7 @@ def verify_approver_n_get_info(user, stage, doc, next_stage=None):
         
         if cur_role not in user_roles:
             allowed_users = get_approval_users_by_role(
-                "Supplier QMS Assessment Form", doc.name, cur_role
+                "Vendor Onboarding", doc.name, cur_role
             )
             
             if user not in allowed_users:
@@ -107,40 +107,28 @@ def verify_approver_n_get_info(user, stage, doc, next_stage=None):
     return get_next_approver(stage, doc, next_stage)
 
 
+
 def send_approval_notification(linked_user, doc, is_approved=True, current_stage=None):
     try:
-        onboarding_doc = doc.get("vendor_onboarding")
-        registered_by = None
+    
+        if not linked_user:
+            frappe.log_error("No next approver found - skipping notification")
+            return
         
-        if onboarding_doc:
-            onboarding = frappe.get_doc("Vendor Onboarding", onboarding_doc)
-            registered_by = onboarding.get("registered_by")
+    
+        to_user = frappe.get_doc("User", linked_user)
+        
 
-        
-        if doc.status == "Approved":  
-            if registered_by:
-                to_user = frappe.get_doc("User", registered_by)  
-            else:
-                to_user = frappe.get_doc("User", doc.owner) 
-            cc_user = frappe.get_doc("User", frappe.session.user) 
-            subject = f"QMS Assessment Approved - {doc.get('name', 'N/A')}"
-            action_message = "Congratulations! The QMS Assessment has been fully approved."
-            button_text = "View Document"
-        else: 
-            to_user = frappe.get_doc("User", linked_user)  
-            cc_user = frappe.get_doc("User", registered_by) if registered_by else None
-            subject = f"QMS Assessment Approval Required - {doc.get('name', 'N/A')}"
-            action_message = "Please review this QMS Assessment document and provide your approval or feedback."
-            button_text = "Review Document"
-
-        
         current_approver = frappe.get_doc("User", frappe.session.user)
         current_stage_name = current_stage.get("approval_stage_name", "Unknown Stage") if current_stage else "Unknown Stage"
+        
+        subject = f"Vendor Onboarding Approval Required - {doc.get('name', 'N/A')}"
+        action_message = "Please review this Vendor Onboarding document and provide your approval or feedback."
         
         email_body = f"""
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
             <div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
-                <h2 style="color: #2c3e50; margin: 0; font-size: 24px;">QMS Assessment {('Approved' if doc.status == 'Approved' else 'Approval Required')}</h2>
+                <h2 style="color: #2c3e50; margin: 0; font-size: 24px;">Vendor Onboarding Approval Required</h2>
             </div>
             
             <div style="margin-bottom: 20px;">
@@ -162,15 +150,19 @@ def send_approval_notification(linked_user, doc, is_approved=True, current_stage
                         <td style="padding: 10px 0; color: #333;">{doc.doctype}</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px 0; font-weight: bold; color: #555;">Vendor Name:</td>
+                        <td style="padding: 10px 0; color: #333;">{doc.get('vendor_name', 'N/A')}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px 0; font-weight: bold; color: #555;">Current Status:</td>
                         <td style="padding: 10px 0; color: #333;">
-                            <span style="background-color: {'#d4edda' if doc.status == 'Approved' else '#fff3cd'}; color: {'#155724' if doc.status == 'Approved' else '#856404'}; padding: 4px 8px; border-radius: 4px; font-size: 14px;">
+                            <span style="background-color: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-size: 14px;">
                                 {doc.get('approval_status', 'Pending Approval')}
                             </span>
                         </td>
                     </tr>
                     <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px 0; font-weight: bold; color: #555;">{'Approved By:' if doc.status == 'Approved' else 'Last Action By:'}:</td>
+                        <td style="padding: 10px 0; font-weight: bold; color: #555;">Last Action By:</td>
                         <td style="padding: 10px 0; color: #333;">{current_approver.full_name or current_approver.first_name} ({current_stage_name})</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #eee;">
@@ -188,10 +180,9 @@ def send_approval_notification(linked_user, doc, is_approved=True, current_stage
                 </table>
             </div>
             
-            
             <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px;">
                 <p style="font-size: 14px; color: #666; margin: 0;">
-                    This is an automated notification from the QMS System. Please do not reply to this email.
+                    This is an automated notification from the Vendor Management System. Please do not reply to this email.
                 </p>
                 <p style="font-size: 12px; color: #999; margin: 5px 0 0 0;">
                     If you have any questions, please contact the system administrator.
@@ -200,126 +191,9 @@ def send_approval_notification(linked_user, doc, is_approved=True, current_stage
         </div>
         """
         
-        # Prepare recipients
-        recipients = [to_user.name] if hasattr(to_user, 'name') else [to_user]
-        cc_recipients = [cc_user.name] if cc_user and hasattr(cc_user, 'name') else []
-        
-        # Send email using frappe.sendmail
-        frappe.custom_sendmail(
-            recipients=recipients,
-            cc=cc_recipients,
-            subject=subject,
-            message=email_body,
-            now=True
-        )
-        
-        # Optional: Create notification log
-        try:
-            frappe.get_doc({
-                "doctype": "Notification Log",
-                "subject": subject,
-                "email_content": email_body,
-                "for_user": to_user.name if hasattr(to_user, 'name') else to_user,
-                "type": "Alert",
-                "document_type": doc.doctype,
-                "document_name": doc.name,
-                "from_user": frappe.session.user
-            }).insert(ignore_permissions=True)
-        except:
-            pass  # If Notification Log doctype doesn't exist, skip this
-        
-        frappe.log_error(f"Approval notification sent successfully to {to_user.name if hasattr(to_user, 'name') else to_user}")
-        
-    except Exception as e:
-        frappe.log_error(f"Error sending approval notification: {str(e)}")
 
-
-def send_rejection_notification(linked_user,doc, rejected_by_user, remark, current_stage):
-    """Send notification when document is rejected"""
-    try:
-        onboarding_doc = doc.get("vendor_onboarding")
-        if onboarding_doc:
-            onboarding = frappe.get_doc("Vendor Onboarding", onboarding_doc)
-            registered_by = onboarding.get("registered_by")
-            if linked_user:
-                to_user = frappe.get_doc("User", linked_user)
-                cc_user = frappe.get_doc("User", registered_by) if registered_by else None
-            else:
-                to_user = frappe.get_doc("User", registered_by) if registered_by else frappe.get_doc("User", doc.owner)
-                cc_user = frappe.get_doc("User", frappe.session.user)
-        else:
-            to_user = frappe.get_doc("User", doc.owner)  
-        
-        rejector = frappe.get_doc("User", rejected_by_user)
-        stage_name = current_stage.get("approval_stage_name", "Unknown Stage") if current_stage else "Unknown Stage"
-        
-        subject = f"QMS Assessment Rejected - {doc.get('name', 'N/A')}"
-        
-        email_body = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-            <div style="background-color: #f8d7da; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
-                <h2 style="color: #721c24; margin: 0; font-size: 24px;">QMS Assessment Rejected</h2>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <p style="font-size: 16px; line-height: 1.6; color: #333;">Dear {to_user.full_name or to_user.first_name or 'User'},</p>
-                
-                <p style="font-size: 16px; line-height: 1.6; color: #333;">
-                    Your QMS Assessment has been rejected. Please review the feedback below and make necessary corrections before resubmitting.
-                </p>
-            </div>
-            
-            <div style="background-color: #fff; border: 1px solid #dee2e6; border-radius: 6px; padding: 20px; margin-bottom: 20px;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px 0; font-weight: bold; color: #555; width: 40%;">Document Name:</td>
-                        <td style="padding: 10px 0; color: #333;">{doc.get('name', 'N/A')}</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px 0; font-weight: bold; color: #555;">Rejected By:</td>
-                        <td style="padding: 10px 0; color: #333;">{rejector.full_name or rejector.first_name} ({stage_name})</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px 0; font-weight: bold; color: #555;">Rejection Date:</td>
-                        <td style="padding: 10px 0; color: #333;">{frappe.format(frappe.utils.now(), 'Datetime')}</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px 0; font-weight: bold; color: #555;">Current Status:</td>
-                        <td style="padding: 10px 0; color: #333;">
-                            <span style="background-color: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-size: 14px;">
-                                Rejected
-                            </span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px 0; font-weight: bold; color: #555; vertical-align: top;">Remarks:</td>
-                        <td style="padding: 10px 0; color: #333;">{remark or 'No specific remarks provided'}</td>
-                    </tr>
-                </table>
-            </div>
-            
-            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
-                <p style="font-size: 14px; line-height: 1.6; color: #856404; margin: 0;">
-                    <strong>Next Steps:</strong> Please review the rejection remarks, make necessary corrections to your QMS Assessment, and resubmit for approval.
-                </p>
-            </div>
-            
-            
-            <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px;">
-                <p style="font-size: 14px; color: #666; margin: 0;">
-                    This is an automated notification from the QMS System. Please do not reply to this email.
-                </p>
-                <p style="font-size: 12px; color: #999; margin: 5px 0 0 0;">
-                    If you have any questions, please contact the system administrator.
-                </p>
-            </div>
-        </div>
-        """
-        
-        # Send email
         frappe.custom_sendmail(
             recipients=[to_user.name],
-            cc=[cc_user.name] if cc_user else [],
             subject=subject,
             message=email_body,
             now=True
@@ -338,12 +212,12 @@ def send_rejection_notification(linked_user,doc, rejected_by_user, remark, curre
                 "from_user": frappe.session.user
             }).insert(ignore_permissions=True)
         except:
-            pass
+            pass 
         
-        frappe.log_error(f"Rejection notification sent successfully to {to_user.name}")
+        frappe.log_error(f"Vendor Onboarding approval notification sent successfully to {to_user.name}")
         
     except Exception as e:
-        frappe.log_error(f"Error sending rejection notification: {str(e)}")
+        frappe.log_error(f"Error sending vendor onboarding approval notification: {str(e)}")
 
 
 @frappe.whitelist(methods=["POST"])
@@ -417,10 +291,10 @@ def approve_vendor_onb(onboard_id, action, remark="",required_optional=False):
             
             
             # send_rejection_notification(linked_user, qms, current_user, remark, cur_stage)
-        # else:
+        else:
             
-        #     if linked_user:  
-        #         send_approval_notification(linked_user, qms, is_approved, cur_stage)
+            if linked_user:  
+                send_approval_notification(linked_user, qms, is_approved, cur_stage)
             
 
         add_approval_entry(
