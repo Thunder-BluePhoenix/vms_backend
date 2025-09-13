@@ -9,8 +9,7 @@ import json
 from frappe.utils import now_datetime
 from datetime import timedelta
 
-# from vms.utils.custom_send_mail import custom_sendmail
-# from vms.vendor_onboarding.doctype.vendor_onboarding.onboarding_sap_validation import generate_sap_validation_html
+# Import all the existing functions to maintain functionality
 from vms.APIs.sap.sap import update_sap_vonb
 from vms.vendor_onboarding.vendor_document_management import on_vendor_onboarding_submit
 from vms.APIs.vendor_onboarding.vendor_registration_helper import populate_vendor_data_from_existing_onboarding
