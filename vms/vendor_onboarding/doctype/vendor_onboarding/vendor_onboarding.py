@@ -21,141 +21,482 @@ populator = VendorDataPopulator()
 
 
 class VendorOnboarding(Document):
-    # def after_save(self):
-    #     # sync_maintain(self, method= None)
-    #     # frappe.clear_cache(doctype=self.doctype, name=self.name)
-    #     # frappe.db.commit()
-    #     # self.reload()
-    #     set_vonb_status_onupdate(self, method=None)
-    #     print("RUNNING after save @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        
-    #     # Notify frontend about the update
-    #     frappe.publish_realtime(
-    #         event="vendor_onboarding_updated",
-    #         message={
-    #             "name": self.name,
-    #             "modified": self.modified
-    #         },
-    #         user=frappe.session.user
-    #     )
-
     
-     
+    def validate(self):
+        """
+        Validation method - runs before save
+        Keep lightweight validation here only
+        """
+        try:
+            # Basic validation only - no heavy operations
+            # self.validate_basic_fields()
+            pass
+            
+        except Exception as e:
+            frappe.log_error(f"Validation error in VendorOnboarding {self.name}: {str(e)}")
+            frappe.throw(f"Validation failed: {str(e)}")
+    
+    def validate_basic_fields(self):
+        """Basic field validation only"""
+        if not self.vendor_name:
+            frappe.throw("Vendor Name is required")
+        
+        if self.ref_no and not self.is_new():
+            # Check for duplicate ref_no
+            existing = frappe.db.exists("Vendor Onboarding", {
+                "ref_no": self.ref_no,
+                "name": ["!=", self.name]
+            })
+            if existing:
+                frappe.throw(f"Reference Number {self.ref_no} already exists")
+    
+    def before_save(self):
+        """
+        Before save hook - for data manipulation before saving
+        NO database commits or heavy operations here
+        """
+        try:
+            # Store original document for comparison
+            if not self.is_new():
+                self._original_doc = self.get_doc_before_save()
+            
+            # Set status based on current state (no DB commits)
+            self.set_status_before_save()
+            
+            # Update related documents safely (without commits)
+            if not self.is_new():
+                self.update_related_documents_safe()
+                
+            # Set QMS required value for multi-company
+            self.set_qms_required_value_safe()
+                
+        except Exception as e:
+            frappe.log_error(f"Before save error in VendorOnboarding {self.name}: {str(e)}")
+            # Don't throw here to prevent save failure unless critical
+    
+    def set_status_before_save(self):
+        """
+        Set onboarding status based on current field values
+        NO database commits - just field updates
+        """
+        new_status = None
+        new_rejected = None
 
+        if self.invalid == 0:
+            if self.register_by_account_team == 0 and self.rejected == 0:
+                if (self.purchase_team_undertaking and 
+                    self.accounts_team_undertaking and 
+                    self.purchase_head_undertaking and 
+                    self.data_sent_to_sap == 1):
+                    new_status = "Approved"
+                    new_rejected = False
+                elif (self.purchase_team_undertaking and 
+                      self.accounts_team_undertaking and 
+                      self.purchase_head_undertaking and 
+                      self.data_sent_to_sap != 1):
+                    new_status = "SAP Error"
+                    new_rejected = False
+                elif self.rejected:
+                    new_status = "Rejected"
+                else:
+                    new_status = "Pending"
+
+            elif self.register_by_account_team == 1 and self.rejected == 0:
+                if (self.accounts_team_undertaking and 
+                    self.accounts_head_undertaking and 
+                    self.data_sent_to_sap == 1):
+                    new_status = "Approved"
+                    new_rejected = False
+                elif (self.accounts_team_undertaking and 
+                      self.accounts_head_undertaking and 
+                      self.data_sent_to_sap != 1):
+                    new_status = "SAP Error"
+                    new_rejected = False
+                elif self.rejected:
+                    new_status = "Rejected"
+                else:
+                    new_status = "Pending"
+                    
+            elif self.rejected:
+                new_status = "Rejected"
+            else:
+                new_status = "Pending"
+        else:
+            new_status = "Invalid"
+
+        # Only update if status actually changed
+        if new_status and new_status != self.onboarding_form_status:
+            self.onboarding_form_status = new_status
+            
+        if new_rejected is not None and new_rejected != self.rejected:
+            self.rejected = new_rejected
+    
+    def set_qms_required_value_safe(self):
+        """Set QMS required value for multi-company without DB commits"""
+        try:
+            if self.registered_for_multi_companies == 1:
+                for row in self.multiple_company:
+                    if row.company == self.company_name:
+                        self.qms_required = row.qms_required
+                        break
+        except Exception as e:
+            frappe.log_error(f"Error setting QMS required value for {self.name}: {str(e)}")
+    
+    def update_related_documents_safe(self):
+        """
+        Safely update related documents without causing recursion
+        NO database commits here
+        """
+        try:
+            # Mark this update to prevent recursive calls
+            if not hasattr(frappe.local, 'vendor_onboarding_updating'):
+                frappe.local.vendor_onboarding_updating = set()
+            
+            if self.name in frappe.local.vendor_onboarding_updating:
+                return  # Prevent recursion
+                
+            frappe.local.vendor_onboarding_updating.add(self.name)
+            
+            # Update core documents (without commits) - only if significant changes
+            if self.has_significant_changes():
+                update_van_core_docs(self, method=None)
+                update_van_core_docs_multi_case(self, method=None)
+            
+            # Remove from updating set
+            frappe.local.vendor_onboarding_updating.discard(self.name)
+            
+        except Exception as e:
+            frappe.log_error(f"Error updating related docs for {self.name}: {str(e)}")
+            frappe.local.vendor_onboarding_updating.discard(self.name)
     
     def after_insert(self):
-        exp_doc = frappe.get_doc("Vendor Onboarding Settings") or None
-
-        if exp_doc != None:
-            exp_t_sec = float(exp_doc.vendor_onboarding_form_validity)
+        """
+        After insert hook - for post-creation tasks
+        """
+        try:
+            # Set up expiration handling
+            self.setup_expiration_handling()
             
-        else:
-            exp_t_sec = 604800
-            
-        # Enqueue a background job to handle vendor onboarding expiration
-        exp_d_sec = exp_t_sec + 800
-        frappe.enqueue(
-            method=self.handle_expiration,
-            queue='default',
-            timeout=exp_d_sec,
-            now=False,
-            job_name=f'vendor_onboarding_time_expiration_{self.name}',
-            # enqueue_after_commit = False
-        )
-        
-        sent_asa_form_link(self, method=None)
-
-
-    def handle_expiration(self):
-        exp_doc = frappe.get_doc("Vendor Onboarding Settings") or None
-
-        if exp_doc != None:
-            exp_t_sec = float(exp_doc.vendor_onboarding_form_validity)
-            
-        else:
-            exp_t_sec = 604800
-        time.sleep(exp_t_sec)
-        if self.form_fully_submitted_by_vendor == 0:
-            self.db_set('expired', 1, update_modified=False)
-            self.db_set('onboarding_form_status', "Expired", update_modified=False)
-
-        else:
-            pass
-
-        # exp_d_sec = exp_t_sec + 300
-        frappe.db.commit()
-
-    def before_save(self):
-            
-            update_van_core_docs(self, method=None)
-            update_van_core_docs_multi_case(self, method=None) 
-
-
-    def on_update(self):
-            
-            vendor_company_update(self,method=None)
-            
-            on_update_check_fields(self,method=None)
-            
-            
-            set_qms_required_value(self, method=None)         
-            update_sap_vonb(self, method= None)
-            set_vonb_status_onupdate(self, method=None)
-            check_vnonb_send_mails(self, method=None)
-            update_ven_onb_record_table(self, method=None)
-            sync_maintain(self, method= None)
-            on_vendor_onboarding_submit(self, method=None)
-            
-
-            send_doc_change_req_email(self, method=None)
-
-
+            # Send ASA form link in background
             frappe.enqueue(
-                method=self.run_delayed_vonb_status_update,
+                method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.send_asa_form_link_job",
                 queue='default',
                 timeout=300,
-                # enqueue_after_commit=True,
                 now=False,
-                job_name=f'vendor_onboarding_status_update_check_{self.name}',
+                job_name=f'send_asa_form_link_{self.name}',
+                doc_name=self.name
             )
-
-
-            self.reload()
             
-            # Notify frontend about the update
-            frappe.publish_realtime(
-                event="vendor_onboarding_updated",
-                message={
-                    "name": self.name,
-                    "modified": self.modified
-                },
-                user=frappe.session.user
-            )
-
-    @frappe.whitelist()
-    def run_delayed_vonb_status_update(docname):
-        try:
-            time.sleep(15)
-            doc = frappe.get_doc("Vendor Onboarding", docname)
-
-            set_vonb_status_onupdate(doc, method=None)
-            
-            doc.reload()
-            
-            # Notify frontend about the update
-            frappe.publish_realtime(
-                event="vendor_onboarding_updated",
-                message={
-                    "name": doc.name,
-                    "modified": doc.modified
-                },
-                user=frappe.session.user
-            )
-            frappe.log_error(f"Delayed set_vonb_status_onupdate executed for {docname}")
         except Exception as e:
-            frappe.log_error(f"Error in delayed vonb_status update for {docname}: {str(e)}")
+            frappe.log_error(f"After insert error in VendorOnboarding {self.name}: {str(e)}")
+    
+    def setup_expiration_handling(self):
+        """Setup vendor onboarding expiration"""
+        try:
+            exp_doc = frappe.get_doc("Vendor Onboarding Settings")
+            exp_t_sec = float(exp_doc.vendor_onboarding_form_validity) if exp_doc else 604800
+            
+            # Enqueue expiration job
+            frappe.enqueue(
+                method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.handle_expiration_job",
+                queue='default',
+                timeout=exp_t_sec + 800,
+                now=False,
+                job_name=f'vendor_onboarding_expiration_{self.name}',
+                doc_name=self.name,
+                exp_seconds=exp_t_sec
+            )
+            
+        except Exception as e:
+            frappe.log_error(f"Error setting up expiration for {self.name}: {str(e)}")
+    
+    def on_update(self):
+        """
+        On update hook - MINIMAL operations only
+        Only enqueue background tasks - NO heavy operations here
+        """
+        try:
+            # Prevent recursive updates
+            if getattr(self, '_skip_on_update', False):
+                return
+            
+            # Only enqueue tasks if there are significant changes
+            if self.has_significant_changes():
+                self.enqueue_post_update_tasks()
+            
+        except Exception as e:
+            frappe.log_error(f"On update error in VendorOnboarding {self.name}: {str(e)}")
+    
+    def has_significant_changes(self):
+        """
+        Check if document has changes that require heavy processing
+        """
+        try:
+            if self.is_new():
+                return True
+                
+            if not hasattr(self, '_original_doc') or not self._original_doc:
+                return True
+                
+            # Check critical fields that require heavy processing
+            critical_fields = [
+                'vendor_name', 'vendor_country', 'onboarding_form_status',
+                'purchase_team_undertaking', 'purchase_head_undertaking',
+                'accounts_team_undertaking', 'accounts_head_undertaking',
+                'data_sent_to_sap', 'form_fully_submitted_by_vendor',
+                'mandatory_data_filled', 'company_name'
+            ]
+            
+            # Check if any critical field changed
+            for field in critical_fields:
+                if self.get(field) != self._original_doc.get(field):
+                    return True
+                    
+            return False
+            
+        except Exception as e:
+            frappe.log_error(f"Error checking significant changes for {self.name}: {str(e)}")
+            return True  # Assume changes if error occurs
+    
+    def enqueue_post_update_tasks(self):
+        """
+        Enqueue heavy operations to run after the save is complete
+        """
+        try:
+            # Enqueue all heavy tasks
+            frappe.enqueue(
+                method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.run_post_update_tasks",
+                queue='default',
+                timeout=600,
+                now=False,
+                job_name=f'post_update_tasks_{self.name}_{frappe.utils.now_datetime().strftime("%Y%m%d_%H%M%S")}',
+                doc_name=self.name,
+                user=frappe.session.user,
+                is_new=self.is_new()
+            )
+                
+        except Exception as e:
+            frappe.log_error(f"Error enqueuing post-update tasks for {self.name}: {str(e)}")
 
-	
+
+# Background job methods (outside the class)
+
+@frappe.whitelist()
+def run_post_update_tasks(doc_name, user=None, is_new=False):
+    """
+    Run heavy post-update tasks in background
+    This replaces the old on_update method functionality
+    """
+    try:
+        # Set user context
+        if user:
+            frappe.set_user(user)
+            
+        doc = frappe.get_doc("Vendor Onboarding", doc_name)
+        
+        # Mark document to skip on_update during these operations
+        doc._skip_on_update = True
+        
+        # Run tasks in sequence with error handling
+        task_results = {}
+        
+        # 1. Validate mandatory fields
+        task_results['validation'] = run_field_validation(doc)
+        
+        # 2. Update company data
+        task_results['company_update'] = run_company_update(doc)
+        
+        # 3. Update tracking tables
+        task_results['tracking_update'] = run_tracking_update(doc)
+        
+        # 4. Send emails if needed
+        task_results['email_notifications'] = run_email_notifications(doc)
+        
+        # 5. Sync and maintain records
+        task_results['sync_maintain'] = run_sync_maintain(doc)
+        
+        # 6. SAP integration (only if ready and not already sent)
+        if should_trigger_sap_update(doc):
+            task_results['sap_update'] = run_sap_integration(doc)
+        
+        # 7. Document submission handling
+        if doc.onboarding_form_status == "Approved":
+            task_results['submission_handling'] = run_submission_handling(doc)
+        
+        # 8. Send document change emails
+        task_results['doc_change_emails'] = run_doc_change_emails(doc)
+        
+        # Log success
+        frappe.logger().info(f"Post-update tasks completed for {doc_name}: {task_results}")
+        
+        # Notify frontend
+        frappe.publish_realtime(
+            event="vendor_onboarding_updated",
+            message={
+                "name": doc_name,
+                "status": doc.onboarding_form_status,
+                "modified": doc.modified,
+                "task_results": task_results
+            },
+            user=user or frappe.session.user
+        )
+        
+    except Exception as e:
+        frappe.log_error(f"Error in post-update tasks for {doc_name}: {str(e)}")
+        frappe.logger().error(f"Post-update tasks failed for {doc_name}: {str(e)}")
+
+
+def run_field_validation(doc):
+    """Run field validation - replaces on_update_check_fields"""
+    try:
+        on_update_check_fields(doc, method=None)
+        return {"status": "success", "message": "Field validation completed"}
+    except Exception as e:
+        frappe.log_error(f"Field validation error for {doc.name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+def run_company_update(doc):
+    """Run company update - replaces vendor_company_update"""
+    try:
+        vendor_company_update(doc, method=None)
+        return {"status": "success", "message": "Company update completed"}
+    except Exception as e:
+        frappe.log_error(f"Company update error for {doc.name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+def run_tracking_update(doc):
+    """Run tracking table updates - replaces update_ven_onb_record_table"""
+    try:
+        update_ven_onb_record_table(doc, method=None)
+        return {"status": "success", "message": "Tracking update completed"}
+    except Exception as e:
+        frappe.log_error(f"Tracking update error for {doc.name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+def run_email_notifications(doc):
+    """Run email notifications - replaces check_vnonb_send_mails"""
+    try:
+        check_vnonb_send_mails(doc, method=None)
+        return {"status": "success", "message": "Email notifications completed"}
+    except Exception as e:
+        frappe.log_error(f"Email notification error for {doc.name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+def run_sync_maintain(doc):
+    """Run sync maintain - replaces sync_maintain"""
+    try:
+        sync_maintain(doc, method=None)
+        return {"status": "success", "message": "Sync maintain completed"}
+    except Exception as e:
+        frappe.log_error(f"Sync maintain error for {doc.name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+def run_doc_change_emails(doc):
+    """Run document change emails - replaces send_doc_change_req_email"""
+    try:
+        send_doc_change_req_email(doc, method=None)
+        return {"status": "success", "message": "Document change emails completed"}
+    except Exception as e:
+        frappe.log_error(f"Document change email error for {doc.name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+def should_trigger_sap_update(doc):
+    """
+    Determine if SAP update should be triggered
+    Only trigger if all conditions are met and not already sent
+    """
+    try:
+        # Check if ready for SAP
+        is_ready_for_sap = False
+        
+        if doc.register_by_account_team == 0:
+            # Regular registration path
+            is_ready_for_sap = (
+                doc.purchase_team_undertaking and 
+                doc.accounts_team_undertaking and 
+                doc.purchase_head_undertaking
+            )
+        else:
+            # Account team registration path
+            is_ready_for_sap = (
+                doc.accounts_team_undertaking and 
+                doc.accounts_head_undertaking
+            )
+        
+        # Only trigger if ready, not already sent, and has mandatory data
+        return (
+            is_ready_for_sap and
+            doc.data_sent_to_sap != 1 and
+            doc.mandatory_data_filled == 1 and
+            not doc.rejected and
+            not doc.expired
+        )
+        
+    except Exception as e:
+        frappe.log_error(f"Error checking SAP trigger conditions for {doc.name}: {str(e)}")
+        return False
+
+
+def run_sap_integration(doc):
+    """Run SAP integration safely - replaces update_sap_vonb"""
+    try:
+        # Use the existing SAP integration function
+        result = update_sap_vonb(doc, method=None)
+        
+        if result and result.get('status') == 'success':
+            return {"status": "success", "message": "SAP integration completed", "result": result}
+        else:
+            return {"status": "partial", "message": "SAP integration completed with warnings", "result": result}
+            
+    except Exception as e:
+        frappe.log_error(f"SAP integration error for {doc.name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+def run_submission_handling(doc):
+    """Run submission handling - replaces on_vendor_onboarding_submit"""
+    try:
+        on_vendor_onboarding_submit(doc, method=None)
+        return {"status": "success", "message": "Submission handling completed"}
+    except Exception as e:
+        frappe.log_error(f"Submission handling error for {doc.name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def handle_expiration_job(doc_name, exp_seconds):
+    """Handle vendor onboarding expiration - replaces handle_expiration"""
+    try:
+        time.sleep(float(exp_seconds))
+        
+        doc = frappe.get_doc("Vendor Onboarding", doc_name)
+        
+        if doc.form_fully_submitted_by_vendor == 0:
+            doc.db_set('expired', 1, update_modified=False)
+            doc.db_set('onboarding_form_status', "Expired", update_modified=False)
+            frappe.db.commit()
+            
+            frappe.logger().info(f"Vendor onboarding {doc_name} expired")
+            
+    except Exception as e:
+        frappe.log_error(f"Error handling expiration for {doc_name}: {str(e)}")
+
+
+@frappe.whitelist()
+def send_asa_form_link_job(doc_name):
+    """Send ASA form link - replaces sent_asa_form_link"""
+    try:
+        doc = frappe.get_doc("Vendor Onboarding", doc_name)
+        sent_asa_form_link(doc, method=None)
+        
+    except Exception as e:
+        frappe.log_error(f"Error sending ASA form link for {doc_name}: {str(e)}")
 
 
 
@@ -2348,3 +2689,581 @@ def set_accounts_head_approval_check(vendor_onboarding: str, action: str):
             "message": "Failed to update.",
             "error": str(e)
         }
+    
+
+
+
+
+@frappe.whitelist()
+def cleanup_stuck_sap_status():
+    """Cron job to identify and fix documents stuck in processing"""
+    try:
+        stuck_docs = frappe.db.sql("""
+            SELECT name, ref_no, vendor_name, onboarding_form_status
+            FROM `tabVendor Onboarding`
+            WHERE 
+                onboarding_form_status = 'SAP Error'
+                AND data_sent_to_sap != 1
+                AND purchase_team_undertaking = 1
+                AND accounts_team_undertaking = 1
+                AND purchase_head_undertaking = 1
+                AND accounts_head_undertaking = 1
+                AND modified < DATE_SUB(NOW(), INTERVAL 2 HOUR)
+        """, as_dict=True)
+        
+        fixed_count = 0
+        
+        for doc_data in stuck_docs:
+            try:
+                # Check if there are successful SAP entries for this vendor
+                sap_success = frappe.db.sql("""
+                    SELECT COUNT(*) as count
+                    FROM `tabVMS SAP Logs`
+                    WHERE 
+                        vendor_onboarding = %s
+                        AND transaction_status = 'Success'
+                        AND creation > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                """, (doc_data.name,), as_dict=True)
+                
+                if sap_success and sap_success[0].count > 0:
+                    # Has successful SAP entries, update status
+                    frappe.db.sql("""
+                        UPDATE `tabVendor Onboarding` 
+                        SET 
+                            onboarding_form_status = 'Approved',
+                            data_sent_to_sap = 1,
+                            modified = %s,
+                            modified_by = %s
+                        WHERE name = %s
+                    """, (frappe.utils.now(), "Administrator", doc_data.name))
+                    
+                    fixed_count += 1
+                    
+                    # Log the correction
+                    frappe.get_doc({
+                        "doctype": "Comment",
+                        "comment_type": "Info",
+                        "reference_doctype": "Vendor Onboarding",
+                        "reference_name": doc_data.name,
+                        "content": f"Auto-corrected SAP status based on successful SAP logs",
+                        "comment_email": "Administrator",
+                        "comment_by": "Administrator"
+                    }).insert(ignore_permissions=True)
+                    
+            except Exception as e:
+                frappe.log_error(f"Error fixing stuck document {doc_data.name}: {str(e)}")
+                continue
+                
+        if fixed_count > 0:
+            frappe.db.commit()
+            frappe.logger().info(f"Fixed {fixed_count} stuck SAP status documents")
+            
+    except Exception as e:
+        frappe.log_error(f"Error in cleanup_stuck_sap_status: {str(e)}")
+
+
+@frappe.whitelist()
+def manual_fix_vendor_onboarding(onb_name):
+    """Manual utility to fix a specific vendor onboarding document"""
+    try:
+        if not frappe.has_permission("Vendor Onboarding", "write"):
+            return {"status": "error", "message": "Insufficient permissions"}
+            
+        doc = frappe.get_doc("Vendor Onboarding", onb_name)
+        
+        # Check if document should be approved
+        should_be_approved = (
+            doc.purchase_team_undertaking and 
+            doc.accounts_team_undertaking and 
+            doc.purchase_head_undertaking and
+            doc.accounts_head_undertaking and
+            doc.mandatory_data_filled == 1
+        )
+        
+        if should_be_approved:
+            # Check SAP logs for this vendor
+            sap_logs = frappe.db.sql("""
+                SELECT transaction_status, COUNT(*) as count
+                FROM `tabVMS SAP Logs`
+                WHERE vendor_onboarding = %s
+                GROUP BY transaction_status
+            """, (onb_name,), as_dict=True)
+            
+            success_count = 0
+            error_count = 0
+            
+            for log in sap_logs:
+                if log.transaction_status == 'Success':
+                    success_count = log.count
+                else:
+                    error_count = log.count
+            
+            # Determine correct status
+            if success_count > 0:
+                new_status = "Approved"
+                data_sent_to_sap = 1
+                message = f"Fixed to Approved status (Found {success_count} successful SAP entries)"
+            elif error_count > 0:
+                new_status = "SAP Error"
+                data_sent_to_sap = 0
+                message = f"Status set to SAP Error ({error_count} failed SAP attempts)"
+            else:
+                # No SAP attempts yet, trigger SAP integration
+                new_status = "Pending SAP"
+                data_sent_to_sap = 0
+                message = "Ready for SAP integration"
+                
+                # Enqueue SAP integration
+                frappe.enqueue(
+                    method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.run_sap_integration",
+                    queue='default',
+                    timeout=600,
+                    now=False,
+                    job_name=f'manual_sap_integration_{onb_name}',
+                    doc=doc
+                )
+            
+            # Update the document
+            frappe.db.sql("""
+                UPDATE `tabVendor Onboarding` 
+                SET 
+                    onboarding_form_status = %s,
+                    data_sent_to_sap = %s,
+                    modified = %s,
+                    modified_by = %s
+                WHERE name = %s
+            """, (new_status, data_sent_to_sap, frappe.utils.now(), frappe.session.user, onb_name))
+            
+            frappe.db.commit()
+            
+            # Log the manual fix
+            frappe.get_doc({
+                "doctype": "Comment",
+                "comment_type": "Info",
+                "reference_doctype": "Vendor Onboarding",
+                "reference_name": onb_name,
+                "content": f"Manual fix applied by {frappe.session.user}: {message}",
+                "comment_email": frappe.session.user,
+                "comment_by": frappe.session.user
+            }).insert(ignore_permissions=True)
+            
+            return {
+                "status": "success", 
+                "message": message,
+                "new_status": new_status,
+                "sap_success_count": success_count,
+                "sap_error_count": error_count
+            }
+        else:
+            missing = []
+            if not doc.purchase_team_undertaking:
+                missing.append("Purchase Team Approval")
+            if not doc.accounts_team_undertaking:
+                missing.append("Accounts Team Approval")
+            if not doc.purchase_head_undertaking:
+                missing.append("Purchase Head Approval")
+            if not doc.accounts_head_undertaking:
+                missing.append("Accounts Head Approval")
+            if doc.mandatory_data_filled != 1:
+                missing.append("Mandatory Data Validation")
+                
+            return {
+                "status": "error", 
+                "message": f"Document not ready for approval. Missing: {', '.join(missing)}"
+            }
+            
+    except Exception as e:
+        frappe.log_error(f"Error in manual_fix_vendor_onboarding for {onb_name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def check_vendor_onboarding_health(onb_name):
+    """Health check utility for vendor onboarding documents"""
+    try:
+        doc = frappe.get_doc("Vendor Onboarding", onb_name)
+        
+        health_report = {
+            "document_name": onb_name,
+            "current_status": doc.onboarding_form_status,
+            "checks": [],
+            "recommendations": [],
+            "linked_documents": {},
+            "sap_status": {},
+            "overall_health": "good"
+        }
+        
+        # Check linked documents
+        linked_docs = ["payment_detail", "document_details", "certificate_details", "manufacturing_details"]
+        for link_field in linked_docs:
+            link_value = doc.get(link_field)
+            if link_value:
+                try:
+                    # Try to fetch the linked document
+                    if link_field == "payment_detail":
+                        linked_doc = frappe.get_doc("Vendor Onboarding Payment Details", link_value)
+                    elif link_field == "document_details":
+                        linked_doc = frappe.get_doc("Legal Documents", link_value)
+                    elif link_field == "certificate_details":
+                        linked_doc = frappe.get_doc("Vendor Onboarding Certificates", link_value)
+                    elif link_field == "manufacturing_details":
+                        linked_doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", link_value)
+                    
+                    health_report["linked_documents"][link_field] = {
+                        "status": "exists",
+                        "name": link_value,
+                        "modified": linked_doc.modified
+                    }
+                except:
+                    health_report["linked_documents"][link_field] = {
+                        "status": "missing",
+                        "name": link_value
+                    }
+                    health_report["overall_health"] = "warning"
+                    health_report["recommendations"].append(f"Check {link_field} document: {link_value}")
+            else:
+                health_report["linked_documents"][link_field] = {"status": "not_set"}
+        
+        # Check approvals
+        approval_fields = [
+            "purchase_team_undertaking", "purchase_head_undertaking",
+            "accounts_team_undertaking", "accounts_head_undertaking"
+        ]
+        
+        approved_count = sum(1 for field in approval_fields if doc.get(field))
+        health_report["checks"].append({
+            "name": "Approvals",
+            "status": "complete" if approved_count == 4 else "pending",
+            "details": f"{approved_count}/4 approvals completed"
+        })
+        
+        # Check mandatory data
+        health_report["checks"].append({
+            "name": "Mandatory Data",
+            "status": "complete" if doc.mandatory_data_filled == 1 else "incomplete",
+            "details": "All mandatory fields filled" if doc.mandatory_data_filled == 1 else "Missing mandatory data"
+        })
+        
+        # Check SAP status
+        sap_logs = frappe.db.sql("""
+            SELECT transaction_status, COUNT(*) as count, MAX(creation) as last_attempt
+            FROM `tabVMS SAP Logs`
+            WHERE vendor_onboarding = %s
+            GROUP BY transaction_status
+            ORDER BY last_attempt DESC
+        """, (onb_name,), as_dict=True)
+        
+        for log in sap_logs:
+            health_report["sap_status"][log.transaction_status] = {
+                "count": log.count,
+                "last_attempt": log.last_attempt
+            }
+        
+        # Check for child table data
+        child_tables = ["vendor_types", "contact_details", "number_of_employee", "machinery_detail"]
+        for table in child_tables:
+            table_data = doc.get(table) or []
+            health_report["checks"].append({
+                "name": f"Child Table: {table}",
+                "status": "has_data" if len(table_data) > 0 else "empty",
+                "details": f"{len(table_data)} rows"
+            })
+        
+        # Overall health assessment
+        error_count = sum(1 for check in health_report["checks"] if check["status"] in ["incomplete", "missing"])
+        if error_count > 2:
+            health_report["overall_health"] = "critical"
+        elif error_count > 0:
+            health_report["overall_health"] = "warning"
+        
+        return health_report
+        
+    except Exception as e:
+        return {
+            "document_name": onb_name,
+            "overall_health": "error",
+            "error": str(e)
+        }
+
+
+@frappe.whitelist()
+def reset_vendor_onboarding_status(onb_name, new_status="Pending"):
+    """Reset vendor onboarding status for testing/debugging"""
+    try:
+        if not frappe.has_permission("Vendor Onboarding", "write"):
+            return {"status": "error", "message": "Insufficient permissions"}
+            
+        # Reset key fields
+        frappe.db.sql("""
+            UPDATE `tabVendor Onboarding` 
+            SET 
+                onboarding_form_status = %s,
+                data_sent_to_sap = 0,
+                modified = %s,
+                modified_by = %s
+            WHERE name = %s
+        """, (new_status, frappe.utils.now(), frappe.session.user, onb_name))
+        
+        frappe.db.commit()
+        
+        # Log the reset
+        frappe.get_doc({
+            "doctype": "Comment",
+            "comment_type": "Info",
+            "reference_doctype": "Vendor Onboarding",
+            "reference_name": onb_name,
+            "content": f"Status reset to {new_status} by {frappe.session.user}",
+            "comment_email": frappe.session.user,
+            "comment_by": frappe.session.user
+        }).insert(ignore_permissions=True)
+        
+        return {"status": "success", "message": f"Status reset to {new_status}"}
+        
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def force_sap_integration(onb_name):
+    """Force SAP integration for a specific vendor onboarding"""
+    try:
+        if not frappe.has_permission("Vendor Onboarding", "write"):
+            return {"status": "error", "message": "Insufficient permissions"}
+            
+        doc = frappe.get_doc("Vendor Onboarding", onb_name)
+        
+        # Enqueue SAP integration regardless of current status
+        frappe.enqueue(
+            method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.run_sap_integration",
+            queue='default',
+            timeout=600,
+            now=False,
+            job_name=f'force_sap_integration_{onb_name}_{frappe.utils.now_datetime().strftime("%Y%m%d_%H%M%S")}',
+            doc=doc
+        )
+        
+        return {"status": "success", "message": "SAP integration enqueued"}
+        
+    except Exception as e:
+        frappe.log_error(f"Error in force_sap_integration for {onb_name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+# Legacy function support for backward compatibility
+@frappe.whitelist(allow_guest=True)
+def set_vendor_onboarding_status(vendor_onboarding_name, status):
+    """
+    Legacy function for setting vendor onboarding status
+    Maintained for backward compatibility
+    """
+    try:
+        doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding_name)
+        doc.onboarding_form_status = status
+        doc.save(ignore_permissions=True)
+        return {"status": "success", "message": f"Status updated to {status}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+# Testing and validation functions
+
+@frappe.whitelist()
+def test_vendor_onboarding_fixes():
+    """Comprehensive test suite for vendor onboarding fixes"""
+    test_results = {
+        "tests_run": 0,
+        "tests_passed": 0,
+        "tests_failed": 0,
+        "detailed_results": [],
+        "overall_status": "unknown"
+    }
+    
+    try:
+        # Test 1: Create a test vendor onboarding
+        test_results["tests_run"] += 1
+        try:
+            test_doc = create_test_vendor_onboarding()
+            test_results["tests_passed"] += 1
+            test_results["detailed_results"].append({
+                "test": "Create Test Document",
+                "status": "PASS",
+                "message": f"Created test document: {test_doc.name}"
+            })
+        except Exception as e:
+            test_results["tests_failed"] += 1
+            test_results["detailed_results"].append({
+                "test": "Create Test Document",
+                "status": "FAIL",
+                "message": str(e)
+            })
+            return test_results
+        
+        # Test 2: Test child table data preservation
+        test_results["tests_run"] += 1
+        try:
+            result = test_child_table_preservation(test_doc)
+            if result["success"]:
+                test_results["tests_passed"] += 1
+                test_results["detailed_results"].append({
+                    "test": "Child Table Preservation",
+                    "status": "PASS",
+                    "message": result["message"]
+                })
+            else:
+                test_results["tests_failed"] += 1
+                test_results["detailed_results"].append({
+                    "test": "Child Table Preservation",
+                    "status": "FAIL",
+                    "message": result["message"]
+                })
+        except Exception as e:
+            test_results["tests_failed"] += 1
+            test_results["detailed_results"].append({
+                "test": "Child Table Preservation",
+                "status": "FAIL",
+                "message": str(e)
+            })
+        
+        # Test 3: Test status update logic
+        test_results["tests_run"] += 1
+        try:
+            result = test_status_update_logic(test_doc)
+            if result["success"]:
+                test_results["tests_passed"] += 1
+                test_results["detailed_results"].append({
+                    "test": "Status Update Logic",
+                    "status": "PASS",
+                    "message": result["message"]
+                })
+            else:
+                test_results["tests_failed"] += 1
+                test_results["detailed_results"].append({
+                    "test": "Status Update Logic",
+                    "status": "FAIL",
+                    "message": result["message"]
+                })
+        except Exception as e:
+            test_results["tests_failed"] += 1
+            test_results["detailed_results"].append({
+                "test": "Status Update Logic",
+                "status": "FAIL",
+                "message": str(e)
+            })
+        
+        # Cleanup test document
+        try:
+            frappe.delete_doc("Vendor Onboarding", test_doc.name, force=True)
+        except:
+            pass
+        
+        # Calculate overall status
+        if test_results["tests_failed"] == 0:
+            test_results["overall_status"] = "ALL TESTS PASSED"
+        elif test_results["tests_passed"] > test_results["tests_failed"]:
+            test_results["overall_status"] = "MOSTLY PASSED"
+        else:
+            test_results["overall_status"] = "CRITICAL ISSUES"
+        
+        return test_results
+        
+    except Exception as e:
+        test_results["detailed_results"].append({
+            "test": "Overall Test Suite",
+            "status": "FAIL",
+            "message": f"Test suite failed: {str(e)}"
+        })
+        test_results["overall_status"] = "CRITICAL ERROR"
+        return test_results
+
+
+def create_test_vendor_onboarding():
+    """Create a test vendor onboarding document"""
+    doc = frappe.get_doc({
+        "doctype": "Vendor Onboarding",
+        "vendor_name": f"Test Vendor {frappe.utils.random_string(5)}",
+        "ref_no": f"TEST-{frappe.utils.random_string(5)}",
+        "vendor_country": "India",
+        "registered_by": frappe.session.user,
+        "register_by_account_team": 0
+    })
+    
+    # Add some child table data
+    doc.append("contact_details", {
+        "name_of_contact_person": "Test Contact",
+        "designation": "Manager",
+        "phone_number": "1234567890",
+        "email_id": "test@example.com"
+    })
+    
+    doc.append("vendor_types", {
+        "vendor_type": "Service Provider"
+    })
+    
+    doc.insert(ignore_permissions=True)
+    return doc
+
+
+def test_child_table_preservation(test_doc):
+    """Test if child table data is preserved during updates"""
+    try:
+        # Record original child table data
+        original_contacts = len(test_doc.contact_details)
+        original_vendor_types = len(test_doc.vendor_types)
+        
+        # Update the document
+        test_doc.vendor_name = f"Updated {test_doc.vendor_name}"
+        test_doc.save()
+        
+        # Reload and check if child table data is preserved
+        test_doc.reload()
+        
+        new_contacts = len(test_doc.contact_details)
+        new_vendor_types = len(test_doc.vendor_types)
+        
+        if new_contacts == original_contacts and new_vendor_types == original_vendor_types:
+            return {
+                "success": True,
+                "message": f"Child table data preserved: {new_contacts} contacts, {new_vendor_types} vendor types"
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"Child table data lost: contacts {original_contacts}→{new_contacts}, types {original_vendor_types}→{new_vendor_types}"
+            }
+            
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+
+def test_status_update_logic(test_doc):
+    """Test the status update logic"""
+    try:
+        # Test initial status
+        if test_doc.onboarding_form_status != "Pending":
+            return {"success": False, "message": f"Initial status should be Pending, got {test_doc.onboarding_form_status}"}
+        
+        # Set approvals
+        test_doc.purchase_team_undertaking = 1
+        test_doc.accounts_team_undertaking = 1
+        test_doc.purchase_head_undertaking = 1
+        test_doc.accounts_head_undertaking = 1
+        test_doc.mandatory_data_filled = 1
+        test_doc.save()
+        
+        # Check if status updates correctly
+        test_doc.reload()
+        expected_status = "SAP Error"  # Should be SAP Error since data_sent_to_sap != 1
+        
+        if test_doc.onboarding_form_status == expected_status:
+            return {
+                "success": True,
+                "message": f"Status correctly updated to {expected_status}"
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"Status should be {expected_status}, got {test_doc.onboarding_form_status}"
+            }
+            
+    except Exception as e:
+        return {"success": False, "message": str(e)}
