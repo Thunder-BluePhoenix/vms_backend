@@ -1,5 +1,31 @@
 import frappe
 
+@frappe.whitelist(allow_guest=True)
+def team_filter_options():
+    try:
+        teams = frappe.db.sql(
+            "SELECT name, team_name FROM `tabTeam Master`",
+            as_dict=True
+        )
+
+        # Add "All" option at the top
+        teams.insert(0, {
+            "name": "All",
+            "team_name": "All"
+        })
+
+        return {
+            "teams": teams
+        }
+
+    except Exception as e:
+        frappe.local.response["http_status_code"] = 500
+        frappe.log_error(f"Error in team_filter_options: {str(e)}", "Team Filter Options")
+        return {
+            "error": "An error occurred while fetching team options."
+        }
+
+
 # for accounts team
 @frappe.whitelist(allow_guest=False)
 def filtering_total_vendor_details_by_accounts(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None):
