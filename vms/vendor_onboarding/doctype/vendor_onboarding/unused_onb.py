@@ -20,7 +20,7 @@ populator = VendorDataPopulator()
 
 
 
-class VendorOnboarding(Document):
+class UnUseVendorOnboarding(Document):
     # def after_save(self):
     #     # sync_maintain(self, method= None)
     #     # frappe.clear_cache(doctype=self.doctype, name=self.name)

@@ -704,6 +704,9 @@ def calculate_vendor_analytics():
     
     # Registered via VMS (via_data_import = 0)
     vms_registered = frappe.db.count('Vendor Master', {'via_data_import': 0})
+
+    total_vc_code = frappe.db.count("Vendor Code", filters={"vendor_code": ["is", "set"]})
+
     
     # Get vendors with approved onboarding and categorize by registration team
     approved_by_accounts = 0
@@ -731,6 +734,7 @@ def calculate_vendor_analytics():
     
     return {
         'total_vendors': total_vendors,
+        'total_vc_code':total_vc_code,
         'imported_vendors': imported_vendors,
         'vms_registered': vms_registered,
         'approved_by_accounts_team': approved_by_accounts,
