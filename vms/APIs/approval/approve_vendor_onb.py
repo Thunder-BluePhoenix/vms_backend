@@ -52,6 +52,7 @@ def get_next_approver(stage, doc, next_stage=None):
         emp = get_approval_employee(
             next_role,
             company_list=[company] if company else [],
+            team=doc.get("team"),
             fields=["user_id"],
         )
 
@@ -194,6 +195,7 @@ def send_approval_notification(linked_user, doc, is_approved=True, current_stage
 
         frappe.custom_sendmail(
             recipients=[to_user.name],
+            cc = current_approver.email if current_approver else None,
             subject=subject,
             message=email_body,
             now=True
