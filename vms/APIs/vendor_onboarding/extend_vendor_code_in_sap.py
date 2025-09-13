@@ -141,7 +141,7 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
         # Append new row in Vendor Master → multiple_company_data
         new_row = vendor_master.append("multiple_company_data", {
             "company_name": extend_company,
-            "purchase_organization": prev_row.purchase_organization,
+            "purchase_organization": purchase_org,
             "account_group": prev_row.account_group,
             "terms_of_payment": prev_row.terms_of_payment,
             "purchase_group": prev_row.purchase_group,
@@ -190,7 +190,7 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
         
         # Copy all basic fields from previous onboarding
         exclude_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 
-                         'company_name', 'company', 'vendor_company_details', 'payment_detail',
+                         'company_name', 'company', 'purchase_organization', 'vendor_company_details', 'payment_detail',
                          'document_details', 'certificate_details', 'manufacturing_details']
         
         for field in prev_vendor_onb.meta.fields:
@@ -199,6 +199,7 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
         
         # Set the new company
         extend_vendor_onb.company_name = extend_company
+        extend_vendor_onb.purchase_organization = purchase_org
 
         extend_vendor_onb.insert(ignore_permissions=True)
         
@@ -293,7 +294,7 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
             # extend_vendor_onb.save(ignore_permissions=True)
 
         
-        # # Copy Certificate Details
+        # Copy Certificate Details
         if prev_vendor_onb.certificate_details:
             prev_vendor_certificate_details = frappe.get_doc("Vendor Onboarding Certificates", prev_vendor_onb.certificate_details)
 
@@ -354,15 +355,15 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
 
         
         # Copy all table fields from the main vendor onboarding document
-        for field in prev_vendor_onb.meta.fields:
-            if field.fieldtype == "Table" and hasattr(prev_vendor_onb, field.fieldname):
-                table_data = getattr(prev_vendor_onb, field.fieldname)
-                for row in table_data:
-                    new_row = {}
-                    for child_field in row.meta.fields:
-                        if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'column_break_sejv']:
-                            new_row[child_field.fieldname] = getattr(row, child_field.fieldname)
-                    extend_vendor_onb.append(field.fieldname, new_row)
+        # for field in prev_vendor_onb.meta.fields:
+        #     if field.fieldtype == "Table" and hasattr(prev_vendor_onb, field.fieldname):
+        #         table_data = getattr(prev_vendor_onb, field.fieldname)
+        #         for row in table_data:
+        #             new_row = {}
+        #             for child_field in row.meta.fields:
+        #                 if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'column_break_sejv']:
+        #                     new_row[child_field.fieldname] = getattr(row, child_field.fieldname)
+        #             extend_vendor_onb.append(field.fieldname, new_row)
         
         # Insert the new vendor onboarding record
         # extend_vendor_onb.insert(ignore_permissions=True)
