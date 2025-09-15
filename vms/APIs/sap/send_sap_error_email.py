@@ -227,8 +227,11 @@ def send_sap_error_email(doctype, docname, remarks=None):
                     message=message
                 )
                 
-                frappe.set_value("Vendor Onboarding", docname, {"sap_error_mail_sent": 1,"sap_error_mail_sent_time": now_datetime()})
-                
+                frappe.set_value("Vendor Onboarding", docname, {
+                    "sap_error_mail_sent": 1,
+                    "sap_error_mail_sent_time": now_datetime(),
+                    "approvals_mail_sent_time": now_datetime()
+                })
 
                 return {
                     "status": "success",
