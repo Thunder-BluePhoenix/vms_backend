@@ -52,7 +52,7 @@ def get_next_approver(stage, doc, next_stage=None):
         emp = get_approval_employee(
             next_role,
             company_list=[company] if company else [],
-            team=doc.get("team"),
+            doc=doc,
             fields=["user_id"],
         )
 
