@@ -8,6 +8,7 @@ from frappe.utils.background_jobs import enqueue
 import json
 from frappe.utils import now_datetime
 from datetime import timedelta
+from vms.utils.custom_send_mail import custom_sendmail
 
 # Import all the existing functions to maintain functionality
 from vms.APIs.sap.sap import update_sap_vonb
