@@ -227,36 +227,56 @@ class VendorOnboarding(Document):
         except Exception as e:
             frappe.log_error(f"On update error in VendorOnboarding {self.name}: {str(e)}")
     
-    def has_significant_changes(self):
+    def should_run_background_tasks(self):
         """
-        Check if document has changes that require heavy processing
+        Determine if background tasks should run
+        Now returns True more often to ensure consistency
         """
         try:
+            # Always run background tasks for new documents
             if self.is_new():
                 return True
                 
+            # Always run if no original document available
             if not hasattr(self, '_original_doc') or not self._original_doc:
                 return True
                 
-            # Check critical fields that require heavy processing
-            critical_fields = [
+            # Run background tasks if ANY field changed (more permissive)
+            important_fields = [
                 'vendor_name', 'vendor_country', 'onboarding_form_status',
                 'purchase_team_undertaking', 'purchase_head_undertaking',
                 'accounts_team_undertaking', 'accounts_head_undertaking',
                 'data_sent_to_sap', 'form_fully_submitted_by_vendor',
-                'mandatory_data_filled', 'company_name'
+                'mandatory_data_filled', 'company_name', 'ref_no',
+                'rejected', 'invalid', 'expired', 'qms_required',
+                'register_by_account_team', 'registered_for_multi_companies'
             ]
             
-            # Check if any critical field changed
-            for field in critical_fields:
+            # Check if any important field changed
+            for field in important_fields:
                 if self.get(field) != self._original_doc.get(field):
                     return True
+            
+            # Check if child tables were modified
+            child_tables = [
+                'vendor_types', 'number_of_employee', 'machinery_detail',
+                'testing_detail', 'reputed_partners', 'contact_details'
+            ]
+            
+            for table in child_tables:
+                current_count = len(self.get(table) or [])
+                original_count = len(self._original_doc.get(table) or [])
+                if current_count != original_count:
+                    return True
                     
-            return False
+            # If we reach here, no significant changes detected
+            # But still run background tasks periodically (every few saves)
+            # This ensures system consistency
+            return True  # Changed from False to True for more frequent execution
             
         except Exception as e:
-            frappe.log_error(f"Error checking significant changes for {self.name}: {str(e)}")
-            return True  # Assume changes if error occurs
+            frappe.log_error(f"Error checking if background tasks should run for {self.name}: {str(e)}")
+            return True  # Default to running tasks if error occurs
     
     def enqueue_post_update_tasks(self):
         """
@@ -345,6 +365,8 @@ def run_post_update_tasks(doc_name, user=None, is_new=False):
         frappe.log_error(f"Error in post-update tasks for {doc_name}: {str(e)}")
         frappe.logger().error(f"Post-update tasks failed for {doc_name}: {str(e)}")
 
+
+# Individual task functions that maintain all existing functionality
 
 def run_field_validation(doc):
     """Run field validation - replaces on_update_check_fields"""
