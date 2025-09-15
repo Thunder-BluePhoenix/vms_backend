@@ -48,12 +48,13 @@ def get_next_approver(stage, doc, next_stage=None):
 
         company = doc.get("company")
         
+        
         # in get_approval_employee this funciton we need to handle team speical case for the comapny
         emp = get_approval_employee(
             next_role,
             company_list=[company] if company else [],
-            team=doc.get("team"),
             fields=["user_id"],
+            doc=doc,
         )
 
         linked_user = emp.get("user_id") if emp else ""
@@ -240,7 +241,7 @@ def approve_vendor_onb(onboard_id, action, remark="",required_optional=False):
 
         if current_user not in allowed_users:
             frappe.throw(
-                f"You are not authorized to {action} this QMS Assessment. Please contact the approver."
+                f"You are not authorized to {action} this Vendor Onboarding. Please contact the approver."
             )
 
        
@@ -283,7 +284,7 @@ def approve_vendor_onb(onboard_id, action, remark="",required_optional=False):
         else:
             new_status = cur_stage.get("approval_stage_name", "Pending Approval")
 
-        update_status(qms, new_status)
+        update_status(ven_onb, new_status)
 
     
         if not is_approved:
@@ -292,12 +293,12 @@ def approve_vendor_onb(onboard_id, action, remark="",required_optional=False):
             next_stage = None
             
             
-            # send_rejection_notification(linked_user, qms, current_user, remark, cur_stage)
+            # send_rejection_notification(linked_user, ven_onb, current_user, remark, cur_stage)
         else:
             
             if linked_user:  
                 #while sending this we need to check the team of employe wise special case for bella mam team
-                send_approval_notification(linked_user, qms, is_approved, cur_stage)
+                send_approval_notification(linked_user, ven_onb, is_approved, cur_stage)
             
 
         add_approval_entry(

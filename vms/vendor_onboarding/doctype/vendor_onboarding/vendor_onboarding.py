@@ -209,6 +209,7 @@ class VendorOnboarding(Document):
                         cur_stage.role,
                         company_list=[company],
                         fields=["user_id"],
+                        doc=self,
                     )
                     if cur_stage
                     else None

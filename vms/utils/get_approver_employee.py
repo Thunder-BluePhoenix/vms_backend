@@ -3,13 +3,54 @@ import frappe
 from vms.utils.get_employee_for_cur_user import get_employee_name_for_cur_user
 
 
-def get_approval_employee(role_short, company_list, filters={}, fields=["*"]):
-    # Handle single company or list of companies
+def get_approval_employee(role_short, company_list, filters={}, fields=["*"], doc=None):
+    if doc and doc.get("doctype") == "Vendor Onboarding":
+        return get_vendor_onboarding_approval_employee(role_short, company_list, doc, filters, fields)
+    
+    return get_standard_approval_employee(role_short, company_list, filters, fields)
+
+
+def get_vendor_onboarding_approval_employee(role_short, company_list, doc, filters={}, fields=["*"]):
+    
+ 
+    registered_by_accounts_team = doc.get("register_by_account_team", 0)
+    
+    if registered_by_accounts_team:
+        return get_standard_approval_employee(role_short, company_list, filters, fields)
+    else:
+        registered_by_user = doc.get("registered_by")
+        
+        if not registered_by_user:
+            return get_standard_approval_employee(role_short, company_list, filters, fields)
+        
+        registered_employee = frappe.get_all(
+            "Employee",
+            filters={
+                "user_id": registered_by_user,
+                "status": "Active"
+            },
+            fields=["name", "multiple_purchase_heads"],
+            limit=1
+        )
+        
+        if not registered_employee:
+            return get_standard_approval_employee(role_short, company_list, filters, fields)
+        
+        registered_emp = registered_employee[0]
+        team_checkbox_checked = registered_emp.get("multiple_purchase_heads", 0)
+        
+        if team_checkbox_checked:
+            return get_standard_approval_employee(role_short, company_list, filters, fields)
+        else:
+            return get_approval_employee_no_company(role_short, filters, fields)
+
+
+def get_standard_approval_employee(role_short, company_list, filters={}, fields=["*"]):
+
     if isinstance(company_list, str):
         company_list = [company_list]
 
-    
-    # Get employees with companies
+
     employees_with_companies = frappe.get_all(
         "Multiple Company Name",  
         filters={"company_name": ("in", company_list)},  
@@ -20,9 +61,8 @@ def get_approval_employee(role_short, company_list, filters={}, fields=["*"]):
     if not employees_with_companies:
         return None
     
-    # Extract employee names
-    employee_names = [emp.parent for emp in employees_with_companies]
     
+    employee_names = [emp.parent for emp in employees_with_companies]
     
     # Get users who have the required role from Has Role child table
     users_with_role = frappe.get_all(
@@ -41,7 +81,7 @@ def get_approval_employee(role_short, company_list, filters={}, fields=["*"]):
     final_filters = {
         **filters,
         "name": ("in", employee_names),
-        "user_id": ("in", user_ids_with_role),  # Users who have the role
+        "user_id": ("in", user_ids_with_role),  
         "status": "Active",  
     }
     
@@ -52,7 +92,36 @@ def get_approval_employee(role_short, company_list, filters={}, fields=["*"]):
         limit=1
     )
     
+    return employee_list[0] if employee_list else None
 
+
+def get_approval_employee_no_company(role_short, filters={}, fields=["*"]):
+    
+    users_with_role = frappe.get_all(
+        "Has Role",
+        filters={"role": role_short},
+        fields=["parent"]
+    )
+    
+    if not users_with_role:
+        return None
+    
+    user_ids_with_role = [user.parent for user in users_with_role]
+    
+    
+    final_filters = {
+        **filters,
+        "user_id": ("in", user_ids_with_role),  
+        "status": "Active",  
+    }
+    
+    employee_list = frappe.get_all(
+        "Employee", 
+        filters=final_filters, 
+        fields=fields, 
+        limit=1
+    )
+    
     return employee_list[0] if employee_list else None
 
 def get_approval_employee_by_state_for_rdm(

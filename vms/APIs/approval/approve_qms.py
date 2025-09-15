@@ -53,6 +53,7 @@ def get_next_approver(stage, doc, next_stage=None):
             next_role,
             company_list=[company] if company else [],
             fields=["user_id"],
+            doc=doc,
         )
 
         linked_user = emp.get("user_id") if emp else ""
