@@ -227,7 +227,7 @@ class VendorOnboarding(Document):
         except Exception as e:
             frappe.log_error(f"On update error in VendorOnboarding {self.name}: {str(e)}")
     
-    def should_run_background_tasks(self):
+    def has_significant_changes(self):
         """
         Determine if background tasks should run
         Now returns True more often to ensure consistency
