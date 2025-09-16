@@ -2680,21 +2680,100 @@ def send_failure_notification(onb_name, failure_type, error_details):
         # Send email to all recipients
         for recipient in recipients:
             try:
-                frappe.sendmail(
+                frappe.custom_sendmail(
                     recipients=[
                         # recipient["email"], 
                         "rishi.hingad@merillife.com",
                         "thunder00799@gmail.com"],
-                    cc = [registered_by],
+                    # cc = [registered_by],
                     subject=subject,
                     message=message,
                     now=True
                 )
                 print(f"📧 Notification sent to: {recipient['name']} ({recipient['email']})")
-                
+
             except Exception as email_err:
                 print(f"❌ Failed to send email to {recipient['email']}: {str(email_err)}")
                 frappe.log_error(f"Failed to send notification email to {recipient['email']}: {str(email_err)}")
+
+
+        # Prepare email content for purchase team for sap error
+        pur_subject = f"🚨 SAP Error: {onb_doc.vendor_name or 'Unknown Vendor'}"
+        
+        pur_message = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <div style="padding: 20px;">
+                <p>Dear Purchase Team,</p>
+                <p>The Accounts Team has approved the vendor onboarding, but the document is encountering an SAP error.</p>
+                
+                <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">📋 Vendor Information</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 40%;">Vendor Name</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['vendor_name']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Reference Number</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['ref_no']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Onboarding ID</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{onb_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Company</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['company']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Email</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['email']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Mobile</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['mobile']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Registered By</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{registered_by}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Date & Time</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{frappe.utils.now()}</td>
+                    </tr>
+                </table>
+                
+                <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <h4 style="color: #856404; margin-top: 0;">🔍 Next Steps</h4>
+                    <ul style="margin: 0; color: #856404;">
+                        <li>Review the vendor onboarding details</li>
+                        <li>Check SAP connectivity and credentials</li>
+                        <li>Verify vendor data completeness</li>
+                        <li>Contact IT team if technical issues persist</li>
+                        <li>Retry the SAP integration after resolving issues</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 0 0 8px 8px; text-align: center; color: #666; font-size: 12px;">
+                <p style="margin: 0;">This is an automated alert from the VMS SAP Integration System (Session-Based)</p>
+                <p style="margin: 5px 0 0 0;">Please do not reply to this email</p>
+            </div>
+        </div>
+        """
+
+        cc = [
+            onb_doc.purchase_h_approval if onb_doc.purchase_h_approval else None,
+            onb_doc.accounts_t_approval if onb_doc.accounts_t_approval else None,
+            onb_doc.accounts_head_approval if onb_doc.accounts_head_approval else None
+        ]
+
+        frappe.custom_sendmail(
+            recipients=[registered_by],
+            cc = [email for email in cc if email],
+            subject=pur_subject,
+            message=pur_message,
+            now=True
+        )
         
         # Log the notification
         frappe.log_error(
