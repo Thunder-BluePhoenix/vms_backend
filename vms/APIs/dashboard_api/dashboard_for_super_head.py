@@ -465,13 +465,27 @@ def filtering_total_vendor_details_by_purchase(page_no=None, page_length=None, c
         values = {}
 
         if team:
-            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
-            if not user_ids:
+            team_details = frappe.get_all("Team Master", filters={"name": team}, limit=1)
+            
+            if not team_details:
                 return {
                     "status": "error",
-                    "message": "No users found in the given team.",
+                    "message": "Team not found.",
                     "vendor_onboarding": []
                 }
+            
+            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+            
+            if not user_ids:
+                return {
+                    "status": "success",
+                    "message": "No users found in the given team.",
+                    "total_vendor_onboarding": [],
+                    "total_count": 0,
+                    "page_no": 1,
+                    "page_length": int(page_length) if page_length else 5
+                }
+            
             conditions.append("vo.registered_by IN %(user_ids)s")
             values["user_ids"] = user_ids
 
