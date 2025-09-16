@@ -4,6 +4,7 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 from vms.utils.custom_send_mail import custom_sendmail
+from vms.APIs.vendor_onboarding.extend_vendor_code_in_sap import send_vendor_code_extend_mail_for_sap_team
 
 # @frappe.whitelist(allow_guest=True)
 # def erp_to_sap_vendor_data(onb_ref):
@@ -2076,9 +2077,26 @@ def erp_to_sap_vendor_data(onb_ref):
                                             vedno, gst_num, gst_state, onb.name
                                         )
                                         print(f"      📝 Vendor Master Update for Duplicate: {update_result['status']}")
+                                        
+                                        # **STEP 2: CHECK FOR DUPLICATES AND SEND MAIL**
+                                        try:
+                                            duplicate_result = check_and_handle_duplicate_vendor_codes(
+                                                onb.ref_no, vcd.company_name, sap_client_code, 
+                                                vedno, gst_num, gst_state, onb.name
+                                            )
+                                            print(f"      📝 Duplicate Handler Result: {duplicate_result}")
+                                            
+                                            if duplicate_result["duplicate_found"] and duplicate_result["mail_sent"]:
+                                                print(f"      📧 Extension mail sent to SAP team for {duplicate_result['prev_company']} -> {duplicate_result['extend_company']}")
+                                                
+                                        except Exception as duplicate_err:
+                                            print(f"      ❌ Duplicate Handler Error: {str(duplicate_err)}")
+                                            frappe.log_error(str(duplicate_err), "Duplicate Handler Error")
+                                            
                                     except Exception as update_err:
                                         print(f"      ❌ Update Error for Duplicate: {str(update_err)}")
                                         frappe.log_error(str(update_err), "Vendor Master Update Error - Duplicate")
+                                
                                 
                                 elif vedno == 'E' or vedno == '' or not vedno:
                                     failed_sap_calls += 1
@@ -2300,13 +2318,33 @@ def erp_to_sap_vendor_data(onb_ref):
                                 )
                                 
                                 # **POPULATE VENDOR CODE FOR INTERNATIONAL DUPLICATE**
+                                # Updated International Duplicate Handling Code for SAP.py
+
                                 try:
                                     vcc_state = f"International-{gst_state}-{gst_city}"
+                                    
+                                    # **STEP 1: POPULATE VENDOR CODE FIRST**
                                     update_result = update_vendor_master(
                                         onb.ref_no, vcd.company_name, sap_client_code, 
                                         vedno, gst_num, vcc_state, onb.name
                                     )
                                     print(f"      📝 Vendor Master Update for International Duplicate: {update_result['status']}")
+                                    
+                                    # **STEP 2: CHECK FOR DUPLICATES AND SEND MAIL**
+                                    try:
+                                        duplicate_result = check_and_handle_duplicate_vendor_codes(
+                                            onb.ref_no, vcd.company_name, sap_client_code, 
+                                            vedno, gst_num, vcc_state, onb.name
+                                        )
+                                        print(f"      📝 International Duplicate Handler Result: {duplicate_result}")
+                                        
+                                        if duplicate_result["duplicate_found"] and duplicate_result["mail_sent"]:
+                                            print(f"      📧 Extension mail sent to SAP team for international vendor: {duplicate_result['prev_company']} -> {duplicate_result['extend_company']}")
+                                            
+                                    except Exception as duplicate_err:
+                                        print(f"      ❌ International Duplicate Handler Error: {str(duplicate_err)}")
+                                        frappe.log_error(str(duplicate_err), "International Duplicate Handler Error")
+                                        
                                 except Exception as update_err:
                                     print(f"      ❌ Update Error for International Duplicate: {str(update_err)}")
                                     frappe.log_error(str(update_err), "Vendor Master Update Error - International Duplicate")
@@ -2563,6 +2601,99 @@ def log_sap_transaction_enhanced(onb_name, request_data, response_data, status, 
 # =====================================================================================
 # HELPER FUNCTIONS (SAME AS ORIGINAL)
 # =====================================================================================
+
+
+
+def check_and_handle_duplicate_vendor_codes(vendor_master_name, company_name, sap_code, vendor_code, gst, state, onb_name):
+    """
+    Streamlined function to check for duplicate vendor codes across different companies
+    and trigger extension mail to SAP team when duplicates are found.
+    
+    NOTE: This function assumes that update_vendor_master() has already been called
+    and the vendor code has been populated in the current company.
+    
+    Args:
+        vendor_master_name (str): Vendor Master document name
+        company_name (str): Current company name
+        sap_code (str): SAP client code
+        vendor_code (str): Generated vendor code from SAP
+        gst (str): GST number
+        state (str): State
+        onb_name (str): Vendor Onboarding document name
+    
+    Returns:
+        dict: Result with status and actions taken
+    """
+    try:
+        result = {
+            "status": "success",
+            "duplicate_found": False,
+            "prev_company": None,
+            "extend_company": company_name,
+            "mail_sent": False
+        }
+        
+        # Search for existing vendor codes matching this vendor_code in OTHER companies
+        existing_cvc_query = """
+        SELECT DISTINCT 
+            cvc.name as cvc_name,
+            cvc.company_name,
+            cvc.vendor_ref_no,
+            vc.vendor_code,
+            vc.gst_no,
+            vc.state
+        FROM `tabCompany Vendor Code` cvc
+        JOIN `tabVendor Code` vc ON vc.parent = cvc.name
+        WHERE vc.vendor_code = %s 
+        AND cvc.vendor_ref_no = %s
+        AND cvc.company_name != %s
+        ORDER BY cvc.creation ASC
+        LIMIT 1
+        """
+        
+        existing_records = frappe.db.sql(
+            existing_cvc_query, 
+            [vendor_code, vendor_master_name, company_name], 
+            as_dict=True
+        )
+        
+        if existing_records and len(existing_records) > 0:
+            # Duplicate vendor code found in different company
+            result["duplicate_found"] = True
+            result["prev_company"] = existing_records[0]["company_name"]
+            
+            print(f"🔍 DUPLICATE DETECTED: Vendor code {vendor_code} exists in {result['prev_company']}")
+            
+            # Send extension mail to SAP team
+            try:
+                mail_result = send_vendor_code_extend_mail_for_sap_team(
+                    ref_no=vendor_master_name,
+                    prev_company=result["prev_company"],
+                    extend_company=company_name
+                )
+                
+                if mail_result.get("status") == "success":
+                    result["mail_sent"] = True
+                    print(f"📧 Extension mail sent successfully for vendor {vendor_master_name}")
+                else:
+                    print(f"❌ Failed to send extension mail: {mail_result.get('message', 'Unknown error')}")
+                    
+            except Exception as mail_error:
+                frappe.log_error(f"Error sending extension mail: {str(mail_error)}", "Duplicate Vendor Mail Error")
+                print(f"❌ Mail sending error: {str(mail_error)}")
+        else:
+            print(f"✅ No duplicate found for vendor code {vendor_code}")
+            
+        return result
+        
+    except Exception as e:
+        frappe.log_error(f"Error in check_and_handle_duplicate_vendor_codes: {str(e)}", "Duplicate Handler Error")
+        return {
+            "status": "error",
+            "message": str(e),
+            "duplicate_found": False,
+            "mail_sent": False
+        }
 
 def safe_get_doc(doctype, name):
     try:

@@ -86,7 +86,7 @@ def send_vendor_code_extend_mail(ref_no=None, prev_company=None, extend_company=
         """
 
         frappe.sendmail(
-            recipients=["rishi.hingad@merillife.com", "abhishek@mail.hybrowlabs.com"],
+            recipients=["rishi.hingad@merillife.com", "abhishek@mail.hybrowlabs.com", "thunder00799@gmail.com"],
             subject=subject,
             message=message
         )
@@ -401,3 +401,141 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
 # still there is problem in above function
 # 1. The table data is not populated in legal documents doc
 # 2. in vendor onb doc, check table data duplicate entries are created
+
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def send_vendor_code_extend_mail_for_sap_team(ref_no=None, prev_company=None, extend_company=None):
+    """
+    Streamlined version that directly fetches vendor code information without depending on multiple_company_data
+    """
+    try:
+        if not ref_no or not prev_company or not extend_company:
+            frappe.local.response["http_status_code"] = 400
+            return {
+                "status": "error",
+                "message": "Please provide ref_no, prev_company and extend_company."
+            }
+        
+        # Validate vendor master exists
+        if not frappe.db.exists("Vendor Master", ref_no):
+            frappe.local.response["http_status_code"] = 404
+            return {
+                "status": "error",
+                "message": f"Vendor Master {ref_no} not found."
+            }
+        
+        vendor_master = frappe.get_doc("Vendor Master", ref_no)
+        vendor_name = vendor_master.vendor_name
+
+        # Validate company masters exist
+        if not frappe.db.exists("Company Master", prev_company):
+            return {
+                "status": "error", 
+                "message": f"Previous company {prev_company} not found in Company Master."
+            }
+            
+        if not frappe.db.exists("Company Master", extend_company):
+            return {
+                "status": "error",
+                "message": f"Extend company {extend_company} not found in Company Master."
+            }
+
+        prev_company_doc = frappe.get_doc("Company Master", prev_company)
+        prev_company_code = prev_company_doc.company_code
+        prev_company_name = prev_company_doc.company_name
+
+        # Directly fetch vendor codes from Company Vendor Code for previous company
+        prev_cvc = frappe.db.exists("Company Vendor Code", {
+            "vendor_ref_no": ref_no,
+            "company_name": prev_company
+        })
+        
+        vendor_codes = []
+        purchase_org = "N/A"
+        purchase_group = "N/A"
+        account_group = "N/A"
+        reconciliation_account = "N/A"
+        incoterm = "N/A"
+        terms_of_payment = "N/A"
+        order_currency = "N/A"
+        
+        if prev_cvc:
+            prev_cvc_doc = frappe.get_doc("Company Vendor Code", prev_cvc)
+            vendor_codes = [vc.vendor_code for vc in prev_cvc_doc.vendor_code if vc.vendor_code]
+            
+            # Try to get additional details from multiple_company_data if available
+            for row in vendor_master.multiple_company_data:
+                if row.company_name == prev_company:
+                    purchase_org = getattr(row, 'purchase_organization', 'N/A')
+                    purchase_group = getattr(row, 'purchase_group', 'N/A')
+                    account_group = getattr(row, 'account_group', 'N/A')
+                    reconciliation_account = getattr(row, 'reconciliation_account', 'N/A')
+                    incoterm = getattr(row, 'incoterm', 'N/A')
+                    terms_of_payment = getattr(row, 'terms_of_payment', 'N/A')
+                    order_currency = getattr(row, 'order_currency', 'N/A')
+                    break
+
+        vendor_codes_str = ", ".join(vendor_codes) if vendor_codes else "N/A"
+
+        # New company details
+        new_company_doc = frappe.get_doc("Company Master", extend_company)
+        new_company_code = new_company_doc.company_code
+        new_company_name = new_company_doc.company_name
+
+        subject = f"Please Extend the Vendor Code for {vendor_name}"
+        message = f"""
+        <p>Dear SAP Team,</p>
+        <p>
+            Kindly extend <b>{vendor_name}</b> as a vendor in <b>Company {new_company_code} - {new_company_name}</b>.
+            Please note, this vendor already exists in <b>Company {prev_company_code} - {prev_company_name}</b>.
+        </p>
+
+        <p><b>Vendor Details:</b><br>
+        <b>Vendor Name:</b> {vendor_name}<br>
+        <b>Reference Number:</b> {ref_no}<br>
+        <b>Existing Vendor Codes:</b> {vendor_codes_str}<br>
+        <b>Purchase Organization:</b> {purchase_org}<br>
+        <b>Purchase Group:</b> {purchase_group}<br>
+        <b>Account Group:</b> {account_group}<br>
+        <b>Reconciliation Account:</b> {reconciliation_account}<br>
+        <b>Incoterm:</b> {incoterm}<br>
+        <b>Terms of Payment:</b> {terms_of_payment}<br>
+        <b>Order Currency:</b> {order_currency}</p>
+
+        <p>
+            Request you to kindly extend the vendor code from <b>{prev_company_name}</b> to <b>{new_company_name}</b> 
+            and update the system accordingly.
+        </p>
+        <p>
+            <i>This is an automated notification triggered by duplicate vendor code detection.</i>
+        </p>
+        """
+
+        frappe.sendmail(
+            recipients=["rishi.hingad@merillife.com", "abhishek@mail.hybrowlabs.com", "thunder00799@gmail.com"],
+            subject=subject,
+            message=message
+        )
+
+        frappe.local.response["http_status_code"] = 200
+        return {
+            "status": "success",
+            "message": f"Extend mail sent successfully for vendor {vendor_name}.",
+            "vendor_name": vendor_name,
+            "prev_company": prev_company_name,
+            "extend_company": new_company_name,
+            "vendor_codes": vendor_codes_str
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendor Code Extend Mail Error")
+        frappe.local.response["http_status_code"] = 500
+        return {
+            "status": "error",
+            "message": f"Failed to send email due to: {str(e)}"
+        }
