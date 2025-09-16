@@ -8,30 +8,19 @@ from frappe.utils.background_jobs import enqueue
 import json
 from frappe.utils import now_datetime
 from datetime import timedelta
-from vms.utils.custom_send_mail import custom_sendmail
 
 # Import all the existing functions to maintain functionality
 from vms.APIs.sap.sap import update_sap_vonb
 from vms.vendor_onboarding.vendor_document_management import on_vendor_onboarding_submit
 from vms.APIs.vendor_onboarding.vendor_registration_helper import populate_vendor_data_from_existing_onboarding
 from vms.vendor_onboarding.doctype.vendor_onboarding.update_related_doc import VendorDataPopulator
-from vms.utils.execute_if_allowed import execute_if_allowed
-from vms.utils.next_approver import update_next_approver
-from vms.utils.notification_triggers import NotificationTrigger
-from vms.APIs.approval.helpers.get_approval_matrix import get_stage_info
-from vms.utils.get_approver_employee import (
-    get_approval_employee,
-    get_user_for_role_short,
-)
-from vms.utils.approval_utils import get_approval_next_role
-from vms.utils.verify_user import get_current_user_document
 
 populator = VendorDataPopulator()
 
 
 
 
-class VendorOnboarding(Document):
+class UnUseVendorOnboarding(Document):
     # def after_save(self):
     #     # sync_maintain(self, method= None)
     #     # frappe.clear_cache(doctype=self.doctype, name=self.name)
@@ -75,9 +64,6 @@ class VendorOnboarding(Document):
         )
         
         sent_asa_form_link(self, method=None)
-
-        self.add_first_in_approval_workflow()
-        self.update_next_approver_role()
 
 
     def handle_expiration(self):
@@ -145,121 +131,6 @@ class VendorOnboarding(Document):
                 },
                 user=frappe.session.user
             )
-
-            self.update_next_approver_role()
-            update_next_approver(self)
-
-    def update_next_approver_role(self):
-        approvals = self.get("approvals") or []
-        if not approvals:
-            self.db_set("next_approver_role", "")
-            return
-
-        last = approvals[-1]
-        updated = last.get("next_action_role", "")
-
-        if not updated:
-            self.db_set("next_approver_role", updated)
-            return
-
-        if updated != self.get("next_approver_role", ""):
-            self.db_set("next_approver_role", updated)
-        
-
-
-    
-    def add_first_in_approval_workflow(self, approval_stage=None):
-        try:
-
-            stage_info = get_stage_info(
-                "Vendor Onboarding", self, approval_stage
-            )
-            if not stage_info or not stage_info.get("cur_stage_info"):
-                frappe.log_error(f"No approval matrix found for {self.name}")
-                self.approval_status = "Pending Review"
-                self.save(ignore_permissions=True)
-                return
-            
-            self.approval_matrix = stage_info.get("approval_matrix", "")
-            cur_stage = stage_info["cur_stage_info"]
-            
-
-            role = cur_stage.get("role", "") if cur_stage else ""
-            from_hierarchy = cur_stage.get("from_hierarchy") if cur_stage else None
-
-            approver = cur_stage.get("user") if cur_stage else ""
-            stage_count = (
-                cur_stage.get("approval_stage") if cur_stage.get("approval_stage") else 0
-            )
-            
-
-            next_approver_role = ""
-
-            
-            next_approver_role = get_approval_next_role(cur_stage)
-        
-
-            if not next_approver_role and not approver:
-                
-
-                company = self.get("company")
-                
-                emp = (
-                    get_approval_employee(
-                        cur_stage.role,
-                        company_list=[company],
-                        fields=["user_id"],
-                        doc=self,
-                    )
-                    if cur_stage
-                    else None
-                )
-                
-
-                approver = (
-                    cur_stage.get("user")
-                    if cur_stage
-                    and cur_stage.get("approver_type") == "User"
-                    and cur_stage.get("user")
-                    else emp.get("user_id") if emp else ""
-                )
-                
-                if not approver:
-                    return self.add_first_in_approval_workflow(cur_stage.get("approval_stage") + 1)
-
-            self.approval_status = cur_stage.get("approval_stage_name") or ""
-            self.append(
-                "approvals",
-                {
-                    "for_doc_type": "Vendor Onboarding",
-                    "approval_stage": 0,
-                    "approval_stage_name": cur_stage.get("approval_stage_name"),
-                    "approved_by": "",
-                    "approval_status": 0,
-                    "next_approval_stage": stage_count,
-                    "action": "",
-                    "next_action_by": "" if next_approver_role else approver,
-                    "next_action_role": next_approver_role,
-                    "remark": "",
-                },
-            )
-            
-
-            self.save(ignore_permissions=True)
-
-        except frappe.DoesNotExistError:
-            frappe.log_error(f"No approval matrix configured for {self.name}")
-            self.approval_status = "Pending Review"
-            self.save(ignore_permissions=True)
-            return
-
-        except Exception as e:
-            frappe.log_error(f"Approval workflow error: {str(e)}")
-            self.approval_status = "Pending Review"  
-            self.save(ignore_permissions=True)
-            return
-            
-
 
     @frappe.whitelist()
     def run_delayed_vonb_status_update(docname):
