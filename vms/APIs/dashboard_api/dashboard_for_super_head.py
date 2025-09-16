@@ -863,3 +863,235 @@ def sap_error_vendor_details_by_purchase(page_no=None, page_length=None, company
             "error": str(e),
             "vendor_onboarding": []
         }
+    
+
+# Purchase Order Dashboard team wise for Purchase Team
+@frappe.whitelist(allow_guest=False)
+def po_details_dashboard(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, team=None):
+    try:
+        if usr is None:
+            usr = frappe.session.user
+        elif usr != frappe.session.user:
+            frappe.local.response["http_status_code"] = 404
+            return {
+                "status": "error",
+                "message": "User mismatch or unauthorized access."
+            }
+
+        allowed_roles = {"Super Head"}
+        user_roles = frappe.get_roles(usr)
+
+        if not any(role in allowed_roles for role in user_roles):
+            return {
+                "status": "error",
+                "message": "User does not have the required role.",
+                "vendor_onboarding": []
+            }
+
+        conditions = []
+        values = {}
+
+        if team:
+            team_details = frappe.get_all("Team Master", filters={"name": team}, limit=1)
+            if not team_details:
+                return {
+                    "status": "error",
+                    "message": "Team not found.",
+                    "vendor_onboarding": []
+                }
+
+            user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+            if not user_ids:
+                return {
+                    "status": "success",
+                    "message": "No users found in the given team.",
+                    "total_vendor_onboarding": [],
+                    "total_count": 0,
+                    "page_no": 1,
+                    "page_length": int(page_length) if page_length else 5
+                }
+
+            # Assuming POs created by owner
+            conditions.append("po.owner IN %(user_ids)s")
+            values["user_ids"] = tuple(user_ids)
+
+        if company:
+            conditions.append("po.company_code = %(company)s")
+            values["company"] = company
+
+        if status:
+            conditions.append("po.vendor_status = %(status)s")
+            values["status"] = status
+
+        filter_clause = " AND ".join(conditions) if conditions else "1=1"
+
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 5
+        offset = (page_no - 1) * page_length
+        values["limit"] = page_length
+        values["offset"] = offset
+
+        total_count = frappe.db.sql(f"""
+            SELECT COUNT(*) AS count
+            FROM `tabPurchase Order` po
+            WHERE {filter_clause}
+        """, values)[0][0]
+
+        po_docs = frappe.db.sql(f"""
+            SELECT po.*
+            FROM `tabPurchase Order` po
+            WHERE {filter_clause}
+            ORDER BY po.creation DESC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """, values, as_dict=True)
+
+        return {
+            "status": "success",
+            "message": "Paginated and filtered purchase order records fetched successfully.",
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length,
+            "total_po": po_docs,
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Total po Details API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch purchase order data.",
+            "error": str(e),
+            "po": []
+        }
+
+
+
+# RFQ Dashboard for super head
+@frappe.whitelist(allow_guest=False)
+def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_type=None, status=None, team=None):
+	try:
+		usr = frappe.session.user
+		user_roles = frappe.get_roles(usr)
+
+		# Restrict access to only "Super Head"
+		if "Super Head" not in user_roles:
+			return {
+				"status": "error",
+				"message": "You do not have permission to access this dashboard."
+			}
+
+		# Pagination setup
+		page_no = int(page_no) if page_no else 1
+		page_length = int(page_length) if page_length else 5
+		offset = (page_no - 1) * page_length
+
+		# Filtering conditions
+		conditions = []
+		values = {}
+
+		if team:
+			# Validate team
+			team_details = frappe.get_all("Team Master", filters={"name": team}, limit=1)
+			if not team_details:
+				return {
+					"status": "error",
+					"message": "Team not found.",
+					"data": [],
+					"total_count": 0,
+					"overall_total_rfq": 0,
+					"page_no": page_no,
+					"page_length": page_length
+				}
+
+			# Get all user IDs from employees in the given team
+			user_ids = frappe.get_all("Employee", filters={"team": team}, pluck="user_id")
+			if not user_ids:
+				return {
+					"status": "success",
+					"message": "No users found in the given team.",
+					"data": [],
+					"total_count": 0,
+					"overall_total_rfq": 0,
+					"page_no": page_no,
+					"page_length": page_length
+				}
+
+			# Filter RFQs raised by these users
+			conditions.append("raised_by IN %(user_ids)s")
+			values["user_ids"] = tuple(user_ids)
+
+		if company_name:
+			conditions.append("(company_name LIKE %(company_name)s OR company_name_logistic LIKE %(company_name)s)")
+			values["company_name"] = f"%{company_name}%"
+
+		if name:
+			conditions.append("name LIKE %(name)s")
+			values["name"] = f"%{name}%"
+
+		if rfq_type:
+			conditions.append("rfq_type = %(rfq_type)s")
+			values["rfq_type"] = rfq_type
+
+		if status:
+			conditions.append("status = %(status)s")
+			values["status"] = status
+
+		# Combine all conditions
+		condition_clause = " AND ".join(conditions)
+		condition_clause = f"WHERE {condition_clause}" if condition_clause else ""
+
+		# Total count for current filters
+		total_count = frappe.db.sql(f"""
+			SELECT COUNT(*) FROM (
+				SELECT 1 FROM `tabRequest For Quotation`
+				{condition_clause}
+				GROUP BY unique_id
+			) AS grouped
+		""", values)[0][0]
+
+		# Total RFQs (unfiltered, for overview)
+		overall_total_rfq = frappe.db.sql("""
+			SELECT COUNT(*) FROM (
+				SELECT 1 FROM `tabRequest For Quotation`
+				GROUP BY unique_id
+			) AS grouped
+		""")[0][0]
+
+		# Fetch data
+		data = frappe.db.sql(f"""
+			SELECT
+				rfq.name,
+				IFNULL(rfq.company_name_logistic, rfq.company_name) AS company_name,
+				rfq.creation,
+				rfq.rfq_type,
+				rfq.logistic_type,
+				rfq.unique_id,
+				IFNULL(rfq.rfq_date_logistic, rfq.quotation_deadline) AS rfq_date,
+				IFNULL(rfq.delivery_date, rfq.shipment_date) AS delivery_date,
+				rfq.status
+			FROM `tabRequest For Quotation` rfq
+			INNER JOIN (
+				SELECT MAX(name) AS name FROM `tabRequest For Quotation`
+				{condition_clause}
+				GROUP BY unique_id
+			) latest_rfq ON rfq.name = latest_rfq.name
+			ORDER BY rfq.creation DESC
+			LIMIT %(limit)s OFFSET %(offset)s
+		""", {**values, "limit": page_length, "offset": offset}, as_dict=True)
+
+		return {
+			"status": "success",
+			"message": f"{len(data)} RFQ(s) found",
+			"data": data,
+			"total_count": total_count or 0,
+			"overall_total_rfq": overall_total_rfq,
+			"page_no": page_no,
+			"page_length": page_length
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Super Head RFQ Dashboard Error")
+		return {
+			"status": "error",
+			"message": "Failed to fetch Super Head RFQ dashboard.",
+			"error": str(e)
+		}
