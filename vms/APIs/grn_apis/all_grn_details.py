@@ -271,7 +271,7 @@ def get_pr_details_simple(pr_name=None):
 
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def update_grn_with_data():
     form_data = frappe.local.form_dict
     files = frappe.request.files
@@ -295,38 +295,44 @@ def update_grn_with_data():
     if miro_no:
         grn_doc.miro_no = miro_no
     
-
     attachments_added = []
+    uploaded_filenames = [] 
     
     if files:
-        for file_key, uploaded_file in files.items():
-            if uploaded_file and uploaded_file.filename:
-                file_doc = save_file(
-                    fname=uploaded_file.filename,
-                    content=uploaded_file.read(),
-                    dt="GRN",
-                    dn=grn_doc.name,
-                    is_private=1
-                )
+        
+        for file_key in files:
+            file_list = files.getlist(file_key)  
             
-                attachment_row = grn_doc.append("attachments", {})
-                attachment_row.attachment_name = file_doc.file_url 
-                attachment_row.name1 = uploaded_file.filename
-    
+            for uploaded_file in file_list:
+                if uploaded_file and uploaded_file.filename:
+                    file_doc = save_file(
+                        fname=uploaded_file.filename,
+                        content=uploaded_file.read(),
+                        dt="GRN",
+                        dn=grn_doc.name,
+                        is_private=1
+                    )
+                
+                    attachment_row = grn_doc.append("attachments", {})
+                    attachment_row.attachment_name = file_doc.file_url 
+                    attachment_row.name1 = uploaded_file.filename
+                    
+                   
+                    uploaded_filenames.append(uploaded_file.filename)
     
     grn_doc.save()
     
-  
-    if files:
+   
+    if uploaded_filenames:
         for attachment in grn_doc.attachments:
-            for file_key, uploaded_file in files.items():
-                if uploaded_file and uploaded_file.filename == attachment.name1:
-                    attachments_added.append({
-                        "attachment_name": attachment.attachment_name,
-                        "row_name": attachment.name,  
-                        "file_name": attachment.name1
-                    })
-                    break
+            if attachment.name1 in uploaded_filenames:
+                attachments_added.append({
+                    "attachment_name": attachment.attachment_name,
+                    "row_name": attachment.name,  
+                    "file_name": attachment.name1
+                })
+               
+                uploaded_filenames.remove(attachment.name1)
     
     frappe.db.commit()
     
@@ -337,8 +343,59 @@ def update_grn_with_data():
         "attachments": attachments_added
     }
 
+@frappe.whitelist(allow_guest=True)
+def delete_grn_attachments():
+    form_data = frappe.local.form_dict
+    
+    grn_number = form_data.get("grn_number")
+    row_names = form_data.get("row_names") 
+    
+    if not grn_number:
+        frappe.throw("GRN Number is required")
+    
+    if not row_names:
+        frappe.throw("Row names are required")
+    
+  
+    if isinstance(row_names, str):
+        import json
+        try:
+            row_names = json.loads(row_names)
+        except:
+            row_names = [row_names]  
+    
+    
+    grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
+    if not grn_name:
+        frappe.throw("GRN not found")
+    
+    grn_doc = frappe.get_doc("GRN", grn_name)
+    
+    deleted_attachments = []
+    
+    
+    for row_name in row_names:
+        for i, attachment in enumerate(grn_doc.attachments):
+            if attachment.name == row_name:
+                deleted_attachments.append({
+                    "row_name": attachment.name,
+                    "file_name": attachment.name1,
+                    "attachment_name": attachment.attachment_name
+                })
+                
+                grn_doc.attachments.pop(i)
+                break
+    
 
-
+    grn_doc.save()
+    frappe.db.commit()
+    
+    return {
+        "status": "success",
+        "message": f"Deleted {len(deleted_attachments)} attachment(s) successfully",
+        "grn_number": grn_doc.grn_number,
+        "deleted_attachments": deleted_attachments
+    }
 
 
 # @frappe.whitelist()
