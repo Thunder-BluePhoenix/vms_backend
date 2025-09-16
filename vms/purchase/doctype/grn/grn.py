@@ -12,14 +12,17 @@ class GRN(Document):
         
     #     self._notification_sent = True
 
-    # def on_update(self):
+    def on_update(self):
+
+        self.set_sap_status()
       
-    #     if hasattr(self, '_notification_sent') and self._notification_sent:
-    #         self._notification_sent = False  
-    #         return
+        # if hasattr(self, '_notification_sent') and self._notification_sent:
+        #     self._notification_sent = False  
+        #     return
             
-    #     if not self.is_new():
-    #         self.send_grn_notification(action="updated")
+        # if not self.is_new():
+        #     self.send_grn_notification(action="updated")
+
 
     def send_grn_notification(self, action="updated"):
         try:
@@ -121,3 +124,9 @@ class GRN(Document):
     </div>"""
         
         return message
+
+    def set_sap_status(self):
+        if self.sap_booking_id and self.miro_no:
+            self.db_set("sap_status", "Closed")
+        else:
+            self.db_set("sap_status", "Open")

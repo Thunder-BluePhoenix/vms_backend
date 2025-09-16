@@ -11,12 +11,16 @@
   "grn_number",
   "grn_year",
   "company_code",
+  "company_name",
   "column_break_wynz",
   "grn_date",
   "sap_status",
   "sap_booking_id",
+  "miro_no",
   "grn_items_section",
-  "grn_items_table"
+  "grn_items_table",
+  "attachments_section",
+  "attachments"
  ],
  "fields": [
   {
@@ -60,7 +64,7 @@
   {
    "fieldname": "sap_booking_id",
    "fieldtype": "Data",
-   "label": "SAP Booking ID"
+   "label": "Accounts Document No"
   },
   {
    "fieldname": "grn_number",
@@ -74,14 +78,38 @@
   },
   {
    "fieldname": "company_code",
+   "fieldtype": "Link",
+   "label": "Company Code",
+   "options": "Company Master"
+  },
+  {
+   "fetch_from": "company_code.company_name",
+   "fieldname": "company_name",
    "fieldtype": "Data",
-   "label": "Company Code"
+   "label": "Company Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "miro_no",
+   "fieldtype": "Data",
+   "label": "Miro No"
+  },
+  {
+   "fieldname": "attachments_section",
+   "fieldtype": "Section Break",
+   "label": "Attachments"
+  },
+  {
+   "fieldname": "attachments",
+   "fieldtype": "Table",
+   "label": "Attachments",
+   "options": "Multiple Attachment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-05 11:07:43.084817",
+ "modified": "2025-09-16 14:19:52.467694",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GRN",

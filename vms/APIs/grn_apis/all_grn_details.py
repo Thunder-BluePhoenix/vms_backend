@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 import json
 from datetime import datetime, date
+from frappe.utils.file_manager import save_file
 
 
 
@@ -270,32 +271,71 @@ def get_pr_details_simple(pr_name=None):
 
 
 
+@frappe.whitelist()
+def update_grn_with_data():
+    form_data = frappe.local.form_dict
+    files = frappe.request.files
+    
+    grn_number = form_data.get("grn_number")
+    sap_booking_id = form_data.get("sap_booking_id")
+    miro_no = form_data.get("miro_no")
+    
+    if not grn_number:
+        frappe.throw("GRN Number is required")
+    
+    grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
+    if not grn_name:
+        frappe.throw("GRN not found")
+    
+    grn_doc = frappe.get_doc("GRN", grn_name)
+    
+    if sap_booking_id:
+        grn_doc.sap_booking_id = sap_booking_id
+    
+    if miro_no:
+        grn_doc.miro_no = miro_no
+    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    attachments_added = []
+    
+    if files:
+        for file_key, uploaded_file in files.items():
+            if uploaded_file and uploaded_file.filename:
+                file_doc = save_file(
+                    fname=uploaded_file.filename,
+                    content=uploaded_file.read(),
+                    dt="GRN",
+                    dn=grn_doc.name,
+                    is_private=1
+                )
+            
+                attachment_row = grn_doc.append("attachments", {})
+                attachment_row.attachment_name = file_doc.file_url 
+                attachment_row.name1 = uploaded_file.filename
+    
+    
+    grn_doc.save()
+    
+  
+    if files:
+        for attachment in grn_doc.attachments:
+            for file_key, uploaded_file in files.items():
+                if uploaded_file and uploaded_file.filename == attachment.name1:
+                    attachments_added.append({
+                        "attachment_name": attachment.attachment_name,
+                        "row_name": attachment.name,  
+                        "file_name": attachment.name1
+                    })
+                    break
+    
+    frappe.db.commit()
+    
+    return {
+        "status": "success",
+        "message": "GRN updated successfully",
+        "grn_number": grn_doc.grn_number,
+        "attachments": attachments_added
+    }
 
 
 
