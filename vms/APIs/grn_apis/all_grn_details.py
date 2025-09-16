@@ -39,6 +39,49 @@ def get_all_grn_details():
                     break
 
             if found_match or not team:
+                try:
+                    grn_doc = frappe.get_doc("GRN", grn["name"])
+                    
+                  
+                    attachments_data = []
+                    if hasattr(grn_doc, 'attachments') and grn_doc.attachments:
+                        for attachment in grn_doc.attachments:
+                            attachment_url = attachment.get('attachment_name')
+                            
+                            attachment_info = {
+                                "row_name": attachment.name,    
+                                "file_name": attachment.get('name1'),
+                            }
+                            
+                            if attachment_url:
+                                try:
+                                    file_doc = frappe.get_doc("File", {"file_url": attachment_url})
+                                    attachment_info["full_url"] = f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}"
+                                    attachment_info["file_doc_name"] = file_doc.name
+                                    attachment_info["actual_file_name"] = file_doc.file_name
+                                except frappe.DoesNotExistError:
+                                    attachment_info["full_url"] = None
+                                    attachment_info["error"] = "File document not found"
+                                except Exception as e:
+                                    attachment_info["full_url"] = None
+                                    attachment_info["error"] = str(e)
+                            else:
+                                attachment_info["full_url"] = None
+                            
+                            attachments_data.append(attachment_info)
+                    
+                    
+                    grn["attachments"] = attachments_data
+                    
+                    grn["sap_booking_id"] = grn_doc.sap_booking_id
+                    grn["miro_no"] = grn_doc.miro_no
+                    
+                except Exception as doc_error:
+                    print(f"Error getting GRN document {grn['name']}: {str(doc_error)}")
+                    grn["attachments"] = []
+                    grn["sap_booking_id"] = None
+                    grn["miro_no"] = None
+                
                 grn["grn_items"] = grn_items
                 result.append(grn)
 
@@ -98,10 +141,41 @@ def get_grn_details_of_grn_number(grn_number=None):
     if not filtered_items:
         frappe.throw("You are not authorized to view any items in this GRN.")
 
+    attachments_data = []
+    if hasattr(grn_doc, 'attachments') and grn_doc.attachments: 
+        for attachment in grn_doc.attachments:
+            attachment_url = attachment.get('attachment_name')
+            attachment_info = {
+                "row_name": attachment.name,    
+                "file_name": attachment.get('name1'),  
+            }
+            attachments_data.append(attachment_info)
+
+
+            if attachment_url:
+                try:
+                    file_doc = frappe.get_doc("File", {"file_url": attachment_url})
+                    attachment_info["full_url"] = f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}"
+                    attachment_info["file_doc_name"] = file_doc.name
+                    attachment_info["actual_file_name"] = file_doc.file_name
+                except frappe.DoesNotExistError:
+                    attachment_info["full_url"] = None
+                    attachment_info["error"] = "File document not found"
+                except Exception as e:
+                    attachment_info["full_url"] = None
+                    attachment_info["error"] = str(e)
+            else:
+                attachment_info["full_url"] = None
+            
+            attachments_data.append(attachment_info)
+
     return {
         "grn_no": grn_doc.grn_number,
         "grn_date": grn_doc.grn_date,
-        "grn_items": filtered_items
+        "grn_items": filtered_items,
+        "sap_booking_id":grn_doc.sap_booking_id,
+        "miro_no":grn_doc.miro_no,
+        "attachments": attachments_data
     }
 
 
