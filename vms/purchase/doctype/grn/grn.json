@@ -18,7 +18,9 @@
   "sap_booking_id",
   "miro_no",
   "grn_items_section",
-  "grn_items_table"
+  "grn_items_table",
+  "attachments_section",
+  "attachments"
  ],
  "fields": [
   {
@@ -91,12 +93,23 @@
    "fieldname": "miro_no",
    "fieldtype": "Data",
    "label": "Miro No"
+  },
+  {
+   "fieldname": "attachments_section",
+   "fieldtype": "Section Break",
+   "label": "Attachments"
+  },
+  {
+   "fieldname": "attachments",
+   "fieldtype": "Table",
+   "label": "Attachments",
+   "options": "Multiple Attachment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 12:51:29.764557",
+ "modified": "2025-09-16 14:19:52.467694",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GRN",
