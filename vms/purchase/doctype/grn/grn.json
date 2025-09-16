@@ -11,10 +11,12 @@
   "grn_number",
   "grn_year",
   "company_code",
+  "company_name",
   "column_break_wynz",
   "grn_date",
   "sap_status",
   "sap_booking_id",
+  "miro_no",
   "grn_items_section",
   "grn_items_table"
  ],
@@ -60,7 +62,7 @@
   {
    "fieldname": "sap_booking_id",
    "fieldtype": "Data",
-   "label": "SAP Booking ID"
+   "label": "Accounts Document No"
   },
   {
    "fieldname": "grn_number",
@@ -74,14 +76,27 @@
   },
   {
    "fieldname": "company_code",
+   "fieldtype": "Link",
+   "label": "Company Code",
+   "options": "Company Master"
+  },
+  {
+   "fetch_from": "company_code.company_name",
+   "fieldname": "company_name",
    "fieldtype": "Data",
-   "label": "Company Code"
+   "label": "Company Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "miro_no",
+   "fieldtype": "Data",
+   "label": "Miro No"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-05 11:07:43.084817",
+ "modified": "2025-09-16 12:51:29.764557",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GRN",
