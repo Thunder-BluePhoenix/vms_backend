@@ -2,67 +2,6 @@ import fnmatch
 import frappe
 
 
-def get_approval_matrix_single_condition(
-    doctype, docname
-):
-    filters = [
-        ["Approval Matrix", "for_doc_type", "=", doctype],
-        ["Approval Matrix", "is_active", "=", 1],
-    ]
-
-    
-
-    matrix_list = frappe.get_all(
-        "Approval Matrix",
-        filters=filters,
-        fields=["name", "conditional_field", "value"],
-        order_by="creation desc",
-    )
-
-    if not matrix_list:
-        frappe.throw(
-            "No active Approval Matrix found for this document type.",
-            exc=frappe.DoesNotExistError,
-        )
-
-    doc = frappe.get_cached_doc(doctype, docname)
-    matrix_doc = None
-
-    priority_matrix_list = []
-
-    for matrix in matrix_list:
-        conditional_field = matrix.get("conditional_field")
-        value = matrix.get("value")
-        if conditional_field and value and doc.get(conditional_field) == value:
-            priority_matrix_list.append(matrix)
-
-    if not priority_matrix_list:
-        matrix_list = [
-            matrix for matrix in matrix_list if not matrix.get("conditional_field")
-        ]
-        if not matrix_list:
-            frappe.throw(
-                "No active Approval Matrix found for this document type.",
-                exc=frappe.DoesNotExistError,
-            )
-
-        matrix_doc = frappe.get_cached_doc(
-            "Approval Matrix", matrix_list[0].get("name")
-        )
-
-    if priority_matrix_list:
-        matrix_doc = frappe.get_cached_doc(
-            "Approval Matrix", priority_matrix_list[0].get("name")
-        )
-
-    if not matrix_doc:
-        frappe.throw(
-            "No active Approval Matrix found for this document type.",
-            exc=frappe.DoesNotExistError,
-        )
-
-    return matrix_doc
-
 
 def get_approval_matrix_multiple_condition(
     doctype, docname

@@ -8,12 +8,6 @@
   "is_active",
   "for_doc_type",
   "description",
-  "section_break_kbvs",
-  "conditional_field",
-  "column_break_ibbo",
-  "condition",
-  "column_break_zqft",
-  "value",
   "section_break_dfyq",
   "conditions",
   "section_break_rluz",
@@ -54,37 +48,6 @@
    "options": "Approval Stage"
   },
   {
-   "fieldname": "section_break_kbvs",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "conditional_field",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Conditional Field"
-  },
-  {
-   "fieldname": "column_break_ibbo",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "=",
-   "fieldname": "condition",
-   "fieldtype": "Select",
-   "label": "Condition",
-   "options": "="
-  },
-  {
-   "fieldname": "column_break_zqft",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "value",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Value"
-  },
-  {
    "fieldname": "section_break_dfyq",
    "fieldtype": "Section Break"
   },
@@ -98,7 +61,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-28 17:40:37.905525",
+ "modified": "2025-09-17 17:29:46.313114",
  "modified_by": "Administrator",
  "module": "Approval",
  "name": "Approval Matrix",

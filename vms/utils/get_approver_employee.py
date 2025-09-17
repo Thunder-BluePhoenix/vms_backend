@@ -38,11 +38,12 @@ def get_vendor_onboarding_approval_employee(role_short, company_list, doc, filte
         
         registered_emp = registered_employee[0]
         team_checkbox_checked = registered_emp.get("multiple_purchase_heads", 0)
+        employee_team = registered_emp.get("team")
         
         if team_checkbox_checked:
             return get_standard_approval_employee(role_short, company_list, filters, fields)
         else:
-            return get_approval_employee_no_company(role_short, filters, fields)
+            return get_approval_employee_no_company(role_short, filters, fields,employee_team)
 
 
 def get_standard_approval_employee(role_short, company_list, filters={}, fields=["*"]):
@@ -95,7 +96,7 @@ def get_standard_approval_employee(role_short, company_list, filters={}, fields=
     return employee_list[0] if employee_list else None
 
 
-def get_approval_employee_no_company(role_short, filters={}, fields=["*"]):
+def get_approval_employee_no_company(role_short, filters={}, fields=["*"],employee_team):
     
     users_with_role = frappe.get_all(
         "Has Role",
@@ -113,6 +114,7 @@ def get_approval_employee_no_company(role_short, filters={}, fields=["*"]):
         **filters,
         "user_id": ("in", user_ids_with_role),  
         "status": "Active",  
+        "team": employee_team
     }
     
     employee_list = frappe.get_all(
