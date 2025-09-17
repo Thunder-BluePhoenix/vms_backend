@@ -75,12 +75,20 @@ def get_all_grn_details():
                     
                     grn["sap_booking_id"] = grn_doc.sap_booking_id
                     grn["miro_no"] = grn_doc.miro_no
+                    grn["sap_status"] = grn_doc.sap_status
+                    grn["grn_date"] = grn_doc.grn_date
+                    grn["grn_year"] = grn_doc.grn_year
+                    grn["company_name"] = grn_doc.company_name
                     
                 except Exception as doc_error:
                     print(f"Error getting GRN document {grn['name']}: {str(doc_error)}")
                     grn["attachments"] = []
                     grn["sap_booking_id"] = None
                     grn["miro_no"] = None
+                    grn["sap_status"] = None
+                    grn["grn_date"] = None
+                    grn["grn_year"] = None
+                    grn["company_name"] = None
                 
                 grn["grn_items"] = grn_items
                 result.append(grn)
@@ -175,6 +183,9 @@ def get_grn_details_of_grn_number(grn_number=None):
         "grn_items": filtered_items,
         "sap_booking_id":grn_doc.sap_booking_id,
         "miro_no":grn_doc.miro_no,
+        "sap_status": grn_doc.sap_status,
+        "grn_year": grn_doc.grn_year,
+        "company_name": grn_doc.company_name,
         "attachments": attachments_data
     }
 
