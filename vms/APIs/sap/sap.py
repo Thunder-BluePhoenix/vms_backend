@@ -4,6 +4,7 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 from vms.utils.custom_send_mail import custom_sendmail
+from vms.APIs.vendor_onboarding.extend_vendor_code_in_sap import send_vendor_code_extend_mail_for_sap_team
 
 # @frappe.whitelist(allow_guest=True)
 # def erp_to_sap_vendor_data(onb_ref):
@@ -2009,7 +2010,7 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "Stcd3": gst_num,
                                 "J1ivtyp": vendor_type_names[0] if vendor_type_names else "",
                                 "J1ipanno": vcd.company_pan_number if vcd else "",
-                                "J1ipanref": onb_legal_doc.name_on_company_pan if onb_legal_doc else "",
+                                "J1ipanref": "",
                                 "Stcd5": onb_legal_doc.udyam_number if (onb_legal_doc and onb_legal_doc.udyam_number) else "",
                                 "Namev": safe_get(onb, "contact_details", 0, "first_name"),
                                 "Name11": safe_get(onb, "contact_details", 0, "last_name"),
@@ -2017,7 +2018,7 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "Bankn": onb_pmd.account_number if onb_pmd else "",
                                 "Bkref": onb_pmd.ifsc_code if onb_pmd else "",
                                 "Banka": "",
-                                "Koinh": onb_pmd.name_of_account_holder if onb_pmd else "",
+                                "Koinh": "",
                                 "Xezer": "",
                                 "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
                                 "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
@@ -2076,9 +2077,26 @@ def erp_to_sap_vendor_data(onb_ref):
                                             vedno, gst_num, gst_state, onb.name
                                         )
                                         print(f"      📝 Vendor Master Update for Duplicate: {update_result['status']}")
+                                        
+                                        # **STEP 2: CHECK FOR DUPLICATES AND SEND MAIL**
+                                        try:
+                                            duplicate_result = check_and_handle_duplicate_vendor_codes(
+                                                onb.ref_no, vcd.company_name, sap_client_code, 
+                                                vedno, gst_num, gst_state, onb.name
+                                            )
+                                            print(f"      📝 Duplicate Handler Result: {duplicate_result}")
+                                            
+                                            if duplicate_result["duplicate_found"] and duplicate_result["mail_sent"]:
+                                                print(f"      📧 Extension mail sent to SAP team for {duplicate_result['prev_company']} -> {duplicate_result['extend_company']}")
+                                                
+                                        except Exception as duplicate_err:
+                                            print(f"      ❌ Duplicate Handler Error: {str(duplicate_err)}")
+                                            frappe.log_error(str(duplicate_err), "Duplicate Handler Error")
+                                            
                                     except Exception as update_err:
                                         print(f"      ❌ Update Error for Duplicate: {str(update_err)}")
                                         frappe.log_error(str(update_err), "Vendor Master Update Error - Duplicate")
+                                
                                 
                                 elif vedno == 'E' or vedno == '' or not vedno:
                                     failed_sap_calls += 1
@@ -2300,13 +2318,33 @@ def erp_to_sap_vendor_data(onb_ref):
                                 )
                                 
                                 # **POPULATE VENDOR CODE FOR INTERNATIONAL DUPLICATE**
+                                # Updated International Duplicate Handling Code for SAP.py
+
                                 try:
                                     vcc_state = f"International-{gst_state}-{gst_city}"
+                                    
+                                    # **STEP 1: POPULATE VENDOR CODE FIRST**
                                     update_result = update_vendor_master(
                                         onb.ref_no, vcd.company_name, sap_client_code, 
                                         vedno, gst_num, vcc_state, onb.name
                                     )
                                     print(f"      📝 Vendor Master Update for International Duplicate: {update_result['status']}")
+                                    
+                                    # **STEP 2: CHECK FOR DUPLICATES AND SEND MAIL**
+                                    try:
+                                        duplicate_result = check_and_handle_duplicate_vendor_codes(
+                                            onb.ref_no, vcd.company_name, sap_client_code, 
+                                            vedno, gst_num, vcc_state, onb.name
+                                        )
+                                        print(f"      📝 International Duplicate Handler Result: {duplicate_result}")
+                                        
+                                        if duplicate_result["duplicate_found"] and duplicate_result["mail_sent"]:
+                                            print(f"      📧 Extension mail sent to SAP team for international vendor: {duplicate_result['prev_company']} -> {duplicate_result['extend_company']}")
+                                            
+                                    except Exception as duplicate_err:
+                                        print(f"      ❌ International Duplicate Handler Error: {str(duplicate_err)}")
+                                        frappe.log_error(str(duplicate_err), "International Duplicate Handler Error")
+                                        
                                 except Exception as update_err:
                                     print(f"      ❌ Update Error for International Duplicate: {str(update_err)}")
                                     frappe.log_error(str(update_err), "Vendor Master Update Error - International Duplicate")
@@ -2564,6 +2602,99 @@ def log_sap_transaction_enhanced(onb_name, request_data, response_data, status, 
 # HELPER FUNCTIONS (SAME AS ORIGINAL)
 # =====================================================================================
 
+
+
+def check_and_handle_duplicate_vendor_codes(vendor_master_name, company_name, sap_code, vendor_code, gst, state, onb_name):
+    """
+    Streamlined function to check for duplicate vendor codes across different companies
+    and trigger extension mail to SAP team when duplicates are found.
+    
+    NOTE: This function assumes that update_vendor_master() has already been called
+    and the vendor code has been populated in the current company.
+    
+    Args:
+        vendor_master_name (str): Vendor Master document name
+        company_name (str): Current company name
+        sap_code (str): SAP client code
+        vendor_code (str): Generated vendor code from SAP
+        gst (str): GST number
+        state (str): State
+        onb_name (str): Vendor Onboarding document name
+    
+    Returns:
+        dict: Result with status and actions taken
+    """
+    try:
+        result = {
+            "status": "success",
+            "duplicate_found": False,
+            "prev_company": None,
+            "extend_company": company_name,
+            "mail_sent": False
+        }
+        
+        # Search for existing vendor codes matching this vendor_code in OTHER companies
+        existing_cvc_query = """
+        SELECT DISTINCT 
+            cvc.name as cvc_name,
+            cvc.company_name,
+            cvc.vendor_ref_no,
+            vc.vendor_code,
+            vc.gst_no,
+            vc.state
+        FROM `tabCompany Vendor Code` cvc
+        JOIN `tabVendor Code` vc ON vc.parent = cvc.name
+        WHERE vc.vendor_code = %s 
+        AND cvc.vendor_ref_no = %s
+        AND cvc.company_name != %s
+        ORDER BY cvc.creation ASC
+        LIMIT 1
+        """
+        
+        existing_records = frappe.db.sql(
+            existing_cvc_query, 
+            [vendor_code, vendor_master_name, company_name], 
+            as_dict=True
+        )
+        
+        if existing_records and len(existing_records) > 0:
+            # Duplicate vendor code found in different company
+            result["duplicate_found"] = True
+            result["prev_company"] = existing_records[0]["company_name"]
+            
+            print(f"🔍 DUPLICATE DETECTED: Vendor code {vendor_code} exists in {result['prev_company']}")
+            
+            # Send extension mail to SAP team
+            try:
+                mail_result = send_vendor_code_extend_mail_for_sap_team(
+                    ref_no=vendor_master_name,
+                    prev_company=result["prev_company"],
+                    extend_company=company_name
+                )
+                
+                if mail_result.get("status") == "success":
+                    result["mail_sent"] = True
+                    print(f"📧 Extension mail sent successfully for vendor {vendor_master_name}")
+                else:
+                    print(f"❌ Failed to send extension mail: {mail_result.get('message', 'Unknown error')}")
+                    
+            except Exception as mail_error:
+                frappe.log_error(f"Error sending extension mail: {str(mail_error)}", "Duplicate Vendor Mail Error")
+                print(f"❌ Mail sending error: {str(mail_error)}")
+        else:
+            print(f"✅ No duplicate found for vendor code {vendor_code}")
+            
+        return result
+        
+    except Exception as e:
+        frappe.log_error(f"Error in check_and_handle_duplicate_vendor_codes: {str(e)}", "Duplicate Handler Error")
+        return {
+            "status": "error",
+            "message": str(e),
+            "duplicate_found": False,
+            "mail_sent": False
+        }
+
 def safe_get_doc(doctype, name):
     try:
         if name:  # only try if not None/empty
@@ -2680,21 +2811,100 @@ def send_failure_notification(onb_name, failure_type, error_details):
         # Send email to all recipients
         for recipient in recipients:
             try:
-                frappe.sendmail(
+                frappe.custom_sendmail(
                     recipients=[
                         # recipient["email"], 
                         "rishi.hingad@merillife.com",
                         "thunder00799@gmail.com"],
-                    cc = [registered_by],
+                    # cc = [registered_by],
                     subject=subject,
                     message=message,
                     now=True
                 )
                 print(f"📧 Notification sent to: {recipient['name']} ({recipient['email']})")
-                
+
             except Exception as email_err:
                 print(f"❌ Failed to send email to {recipient['email']}: {str(email_err)}")
                 frappe.log_error(f"Failed to send notification email to {recipient['email']}: {str(email_err)}")
+
+
+        # Prepare email content for purchase team for sap error
+        pur_subject = f"🚨 SAP Error: {onb_doc.vendor_name or 'Unknown Vendor'}"
+        
+        pur_message = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <div style="padding: 20px;">
+                <p>Dear Purchase Team,</p>
+                <p>The Accounts Team has approved the vendor onboarding, but the document is encountering an SAP error.</p>
+                
+                <h3 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">📋 Vendor Information</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 40%;">Vendor Name</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['vendor_name']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Reference Number</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['ref_no']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Onboarding ID</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{onb_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Company</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['company']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Email</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['email']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Mobile</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{vendor_details['mobile']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Registered By</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{registered_by}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Date & Time</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{frappe.utils.now()}</td>
+                    </tr>
+                </table>
+                
+                <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <h4 style="color: #856404; margin-top: 0;">🔍 Next Steps</h4>
+                    <ul style="margin: 0; color: #856404;">
+                        <li>Review the vendor onboarding details</li>
+                        <li>Check SAP connectivity and credentials</li>
+                        <li>Verify vendor data completeness</li>
+                        <li>Contact IT team if technical issues persist</li>
+                        <li>Retry the SAP integration after resolving issues</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 0 0 8px 8px; text-align: center; color: #666; font-size: 12px;">
+                <p style="margin: 0;">This is an automated alert from the VMS SAP Integration System (Session-Based)</p>
+                <p style="margin: 5px 0 0 0;">Please do not reply to this email</p>
+            </div>
+        </div>
+        """
+
+        cc = [
+            onb_doc.purchase_h_approval if onb_doc.purchase_h_approval else None,
+            onb_doc.accounts_t_approval if onb_doc.accounts_t_approval else None,
+            onb_doc.accounts_head_approval if onb_doc.accounts_head_approval else None
+        ]
+
+        frappe.custom_sendmail(
+            recipients=[registered_by],
+            cc = [email for email in cc if email],
+            subject=pur_subject,
+            message=pur_message,
+            now=True
+        )
         
         # Log the notification
         frappe.log_error(

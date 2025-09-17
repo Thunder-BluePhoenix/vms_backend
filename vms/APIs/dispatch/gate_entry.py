@@ -57,7 +57,8 @@ def create_new_gate_entry(data):
     return {
         "success": True,
         "message": "Gate Entry created successfully",
-        "name": doc.name
+        "name": doc.name,
+        "date": doc.gate_entry_date
     }
 
 def update_gate_entry(name, data):

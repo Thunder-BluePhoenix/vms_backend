@@ -39,6 +39,8 @@
   "driver_mobile_no",
   "section_break_npxo",
   "gate_entry_details",
+  "vehicle_details_section",
+  "vehicle_details_item",
   "section_break_vlid",
   "created_by",
   "invoice_value",
@@ -97,11 +99,13 @@
    "label": "Gate Entry No (Manual)"
   },
   {
+   "default": "Today",
    "fieldname": "gate_entry_date",
    "fieldtype": "Date",
    "label": "Gate Entry Date"
   },
   {
+   "default": "Now",
    "fieldname": "posting_time",
    "fieldtype": "Time",
    "label": "Posting Time"
@@ -267,12 +271,23 @@
    "fieldname": "received_remark",
    "fieldtype": "Small Text",
    "label": "Received Remark"
+  },
+  {
+   "fieldname": "vehicle_details_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Details"
+  },
+  {
+   "fieldname": "vehicle_details_item",
+   "fieldtype": "Table",
+   "label": "Vehicle Details Item",
+   "options": "Vehicle Details Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:37:46.428599",
+ "modified": "2025-09-17 12:19:35.419908",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Gate Entry",
