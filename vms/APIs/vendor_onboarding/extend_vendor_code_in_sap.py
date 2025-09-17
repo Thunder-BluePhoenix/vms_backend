@@ -268,24 +268,24 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
             extend_vendor_legal_documents = frappe.new_doc("Legal Documents")
             
             # Copy all fields except excluded ones
-            exclude_legal_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'vendor_onboarding']
+            # exclude_legal_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'vendor_onboarding']
             
-            for field in prev_vendor_legal_documents.meta.fields:
-                if field.fieldname not in exclude_legal_fields and hasattr(prev_vendor_legal_documents, field.fieldname):
-                    value = getattr(prev_vendor_legal_documents, field.fieldname)
+            # for field in prev_vendor_legal_documents.meta.fields:
+            #     if field.fieldname not in exclude_legal_fields and hasattr(prev_vendor_legal_documents, field.fieldname):
+            #         value = getattr(prev_vendor_legal_documents, field.fieldname)
 
-                    if field.fieldtype == "Table":
-                        # Handle child tables
-                        for child_row in value:
-                            new_child = {}
-                            for child_field in child_row.meta.fields:
-                                if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'company']:
-                                    new_child[child_field.fieldname] = getattr(child_row, child_field.fieldname)
+            #         if field.fieldtype == "Table":
+            #             # Handle child tables
+            #             for child_row in value:
+            #                 new_child = {}
+            #                 for child_field in child_row.meta.fields:
+            #                     if child_field.fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'company']:
+            #                         new_child[child_field.fieldname] = getattr(child_row, child_field.fieldname)
                         
-                            new_child["company"] = extend_company
-                            extend_vendor_legal_documents.append(field.fieldname, new_child)
-                    else:
-                        setattr(extend_vendor_legal_documents, field.fieldname, value)
+            #                 new_child["company"] = extend_company
+            #                 extend_vendor_legal_documents.append(field.fieldname, new_child)
+            #         else:
+            #             setattr(extend_vendor_legal_documents, field.fieldname, value)
 
             extend_vendor_legal_documents.vendor_onboarding = extend_vendor_onb.name
             extend_vendor_legal_documents.insert(ignore_permissions=True)
@@ -369,6 +369,40 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
         # extend_vendor_onb.insert(ignore_permissions=True)
         
         extend_vendor_onb.save(ignore_permissions=True)
+
+        if prev_vendor_onb.document_details:
+            prev_vendor_legal_documents = frappe.get_doc("Legal Documents", prev_vendor_onb.document_details)
+            extend_vendor_legal_documents = frappe.get_doc("Legal Documents", extend_vendor_onb.document_details)
+
+            exclude_legal_fields = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'vendor_onboarding']
+
+            for field in prev_vendor_legal_documents.meta.fields:
+                fieldname = field.fieldname
+                if fieldname not in exclude_legal_fields and hasattr(prev_vendor_legal_documents, fieldname):
+                    value = getattr(prev_vendor_legal_documents, fieldname)
+
+                    if field.fieldtype == "Table" and value:
+                        extend_vendor_legal_documents.set(fieldname, [])
+
+                        for child_row in value:
+                            new_child = {}
+
+                            child_meta = frappe.get_meta(child_row.doctype)
+
+                            for child_field in child_meta.fields:
+                                child_fieldname = child_field.fieldname
+                                if child_fieldname not in ['name', 'parent', 'parenttype', 'parentfield', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'company']:
+                                    new_child[child_fieldname] = getattr(child_row, child_fieldname)
+
+                            new_child["company"] = extend_company
+
+                            extend_vendor_legal_documents.append(fieldname, new_child)
+
+                    else:
+                        setattr(extend_vendor_legal_documents, fieldname, value)
+
+            extend_vendor_legal_documents.save(ignore_permissions=True)
+
         frappe.db.commit()
 
         created_docs = {
