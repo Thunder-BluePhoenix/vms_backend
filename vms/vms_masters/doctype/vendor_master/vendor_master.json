@@ -58,6 +58,7 @@
   "column_break_xmpu",
   "remarks_ok",
   "via_data_import",
+  "is_blocked",
   "remarks",
   "column_break_pfge",
   "validity",
@@ -367,12 +368,18 @@
    "fieldtype": "Select",
    "label": "Validity Label",
    "options": "\nGSTN No is Invalid\nState and GST No Mistmatch\nPAN No is Invalid\nGST Not match with PAN No\nBlank\nNot matched with any Validity"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_blocked",
+   "fieldtype": "Check",
+   "label": "Blocked Via Import"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-02 19:06:35.105553",
+ "modified": "2025-09-17 11:09:53.494209",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
