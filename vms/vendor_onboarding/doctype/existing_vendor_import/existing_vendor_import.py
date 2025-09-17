@@ -209,6 +209,7 @@ class ExistingVendorImport(Document):
 				'supplier_type', 'type'
 			],
 			'remarks': ['remarks', 'comments', 'notes', 'remark'],
+			'is_blocked': ['is_blocked', 'blocked', 'Blocked', 'Is Blocked'],
 			'established_year': [
 				'established year', 'year established', 'established_year',
 				'year_established', 'incorporation year'
@@ -657,6 +658,11 @@ class ExistingVendorImport(Document):
 		norm_remarks = re.sub(r'[^a-z0-9]', '', remarks.lower()).strip()
 		if remarks and norm_remarks == "ok":
 			vendor_master.remarks_ok = 1
+
+		is_blocked = (self.safe_get_value(mapped_row, 'is_blocked'))
+		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2 CHECK BLOCK", is_blocked)
+		if is_blocked == 1 or is_blocked == "1" or is_blocked == "1.0":
+			vendor_master.is_blocked = 1
 
 		vendor_master.save(ignore_permissions=True)
 		return vendor_master
@@ -1362,7 +1368,8 @@ class ExistingVendorImport(Document):
 				"contact_person": "Contact Person",
 				"hod": "HOD",
 				"enterprise_registration_no": "Enterprise Registration Number",
-				"validity": "Validity"
+				"validity": "Validity",
+				"is_blocked": "Blocked"
 			}
 		}
 
