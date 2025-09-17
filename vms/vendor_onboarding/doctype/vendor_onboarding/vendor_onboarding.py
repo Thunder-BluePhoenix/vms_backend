@@ -223,6 +223,7 @@ class VendorOnboarding(Document):
             # Only enqueue tasks if there are significant changes
             if self.has_significant_changes():
                 self.enqueue_post_update_tasks()
+            run_email_notifications(self)
             
         except Exception as e:
             frappe.log_error(f"On update error in VendorOnboarding {self.name}: {str(e)}")
