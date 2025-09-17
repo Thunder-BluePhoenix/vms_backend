@@ -1,0 +1,325 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "SHIPMENT-.#####",
+ "creation": "2025-09-17 12:26:17.388404",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enter_document_no",
+  "column_break_bpbu",
+  "enter_rfq_no",
+  "section_break_tgov",
+  "rfq_number",
+  "jrn",
+  "consignee_name",
+  "port_of_loading",
+  "shipment_type",
+  "incoterms",
+  "value_of_goods",
+  "column_break_teii",
+  "rfq_date",
+  "jrn_date",
+  "consignor_name",
+  "port_of_discharge",
+  "pickup_type",
+  "shipment_mode",
+  "section_break_rqkb",
+  "house_bill",
+  "house_bill_date",
+  "estimated_arrival",
+  "actual_departure_at_origin",
+  "booking_date",
+  "column_break_iafb",
+  "master_bill",
+  "mawb_date",
+  "estimated_departure",
+  "estimated_pickup",
+  "actual_pickup",
+  "section_break_bzmp",
+  "packs_units",
+  "chargeable_weight",
+  "cha_name",
+  "actual_volume",
+  "shipment_amount",
+  "tracking_url",
+  "remarks",
+  "column_break_colu",
+  "number_of_packs",
+  "actual_weight",
+  "carrier_name",
+  "shipment_status",
+  "month_year",
+  "tracking_status_info",
+  "tracking_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "enter_document_no",
+   "fieldtype": "Select",
+   "label": "Enter Document No",
+   "options": "Search By\nBy RFQ No"
+  },
+  {
+   "fieldname": "column_break_bpbu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "enter_rfq_no",
+   "fieldtype": "Link",
+   "label": "Enter RFQ No",
+   "options": "Request For Quotation"
+  },
+  {
+   "fieldname": "section_break_tgov",
+   "fieldtype": "Section Break",
+   "label": "Shipment Details"
+  },
+  {
+   "fieldname": "rfq_number",
+   "fieldtype": "Data",
+   "label": "RFQ Number"
+  },
+  {
+   "fieldname": "column_break_teii",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rfq_date",
+   "fieldtype": "Date",
+   "label": "RFQ Date"
+  },
+  {
+   "fieldname": "jrn",
+   "fieldtype": "Data",
+   "label": "JRN"
+  },
+  {
+   "fieldname": "consignee_name",
+   "fieldtype": "Data",
+   "label": "Consignee Name"
+  },
+  {
+   "fieldname": "port_of_loading",
+   "fieldtype": "Link",
+   "label": "Port of Loading",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "incoterms",
+   "fieldtype": "Link",
+   "label": "Incoterms",
+   "options": "Incoterm Master"
+  },
+  {
+   "fieldname": "jrn_date",
+   "fieldtype": "Date",
+   "label": "JRN Date"
+  },
+  {
+   "fieldname": "consignor_name",
+   "fieldtype": "Data",
+   "label": "Consignor Name"
+  },
+  {
+   "fieldname": "port_of_discharge",
+   "fieldtype": "Link",
+   "label": "Port of Discharge",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "shipment_mode",
+   "fieldtype": "Link",
+   "label": "Shipment Mode",
+   "options": "Mode Of Shipment"
+  },
+  {
+   "fieldname": "section_break_rqkb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "house_bill",
+   "fieldtype": "Data",
+   "label": "House Bill"
+  },
+  {
+   "fieldname": "house_bill_date",
+   "fieldtype": "Date",
+   "label": "House Bill date"
+  },
+  {
+   "fieldname": "estimated_arrival",
+   "fieldtype": "Date",
+   "label": "Estimated Arrival"
+  },
+  {
+   "fieldname": "actual_departure_at_origin",
+   "fieldtype": "Date",
+   "label": "Actual Departure at Origin"
+  },
+  {
+   "fieldname": "booking_date",
+   "fieldtype": "Date",
+   "label": "Booking Date"
+  },
+  {
+   "fieldname": "column_break_iafb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "master_bill",
+   "fieldtype": "Data",
+   "label": "Master Bill"
+  },
+  {
+   "fieldname": "mawb_date",
+   "fieldtype": "Date",
+   "label": "MAWB Date"
+  },
+  {
+   "fieldname": "estimated_departure",
+   "fieldtype": "Date",
+   "label": "Estimated Departure"
+  },
+  {
+   "fieldname": "estimated_pickup",
+   "fieldtype": "Date",
+   "label": "Estimated Pickup"
+  },
+  {
+   "fieldname": "actual_pickup",
+   "fieldtype": "Date",
+   "label": "Actual Pickup"
+  },
+  {
+   "fieldname": "section_break_bzmp",
+   "fieldtype": "Section Break",
+   "label": "Shipment Information"
+  },
+  {
+   "fieldname": "packs_units",
+   "fieldtype": "Data",
+   "label": "Packs Units"
+  },
+  {
+   "fieldname": "chargeable_weight",
+   "fieldtype": "Data",
+   "label": "Chargeable Weight"
+  },
+  {
+   "fieldname": "cha_name",
+   "fieldtype": "Data",
+   "label": "CHA Name"
+  },
+  {
+   "fieldname": "actual_volume",
+   "fieldtype": "Data",
+   "label": "Actual Volume"
+  },
+  {
+   "fieldname": "column_break_colu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "number_of_packs",
+   "fieldtype": "Data",
+   "label": "Number of Packs"
+  },
+  {
+   "fieldname": "actual_weight",
+   "fieldtype": "Data",
+   "label": "Actual Weight"
+  },
+  {
+   "fieldname": "carrier_name",
+   "fieldtype": "Data",
+   "label": "Carrier Name"
+  },
+  {
+   "fieldname": "shipment_status",
+   "fieldtype": "Select",
+   "label": "Shipment Status",
+   "options": "Select Shipment Status\nAWAITING DUTY - COURIER SHIPMENT - ACCOUNT TEAM\nAWAITING DUTY CHEQUE\nAWAITING REVISED DOCUMENTS - DHL / FEDEX\nAWAITING SHIPPER CONFIRMATION FOR PICK UP\nBARD - FEDEX CLEARANCE\nDUAL USE\nIN-TRANSIT\nMATERIAL NOT READY\nPENDING FROM PURCHASE TEAM - PRODUCT LABEL\nPENDING FROM PURCHASE TEAM - SHIPPER NAME MISMATCHED\nSHIPMENT UNDER CUSTOM MORE THAN 5 WORKING DAYS\nSHIPMENT UNDER CUSTOM QUERY\nUNDER CLEARANCE\nUNDER PICK UP\nUNDER RFQ\nCLOSED\nDELIVERED"
+  },
+  {
+   "fieldname": "month_year",
+   "fieldtype": "Date",
+   "label": "Month/Year"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "default": "Goods",
+   "fieldname": "shipment_type",
+   "fieldtype": "Select",
+   "label": "Shipment Type",
+   "options": "Goods\nDocuments"
+  },
+  {
+   "fieldname": "value_of_goods",
+   "fieldtype": "Data",
+   "label": "Value of Goods"
+  },
+  {
+   "default": "Pickup",
+   "fieldname": "pickup_type",
+   "fieldtype": "Select",
+   "label": "Pickup Type",
+   "options": "Pickup\nSelf delivery"
+  },
+  {
+   "fieldname": "shipment_amount",
+   "fieldtype": "Data",
+   "label": "Shipment Amount"
+  },
+  {
+   "fieldname": "tracking_url",
+   "fieldtype": "Small Text",
+   "label": "Tracking URL"
+  },
+  {
+   "fieldname": "tracking_status_info",
+   "fieldtype": "Data",
+   "label": "Tracking Status Info"
+  },
+  {
+   "fieldname": "tracking_status",
+   "fieldtype": "Select",
+   "label": "Tracking Status",
+   "options": "\nIn Progress\nDelivered\nReturned\nLost"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "make_attachments_public": 1,
+ "modified": "2025-09-17 14:17:40.794517",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Shipment Status",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
