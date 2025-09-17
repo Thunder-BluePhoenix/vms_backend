@@ -432,9 +432,7 @@ def create_vendor_data_from_existing_onboarding(ref_no=None, prev_company=None, 
         }
 
 
-# still there is problem in above function
-# 1. The table data is not populated in legal documents doc
-# 2. in vendor onb doc, check table data duplicate entries are created
+
 
 
 
