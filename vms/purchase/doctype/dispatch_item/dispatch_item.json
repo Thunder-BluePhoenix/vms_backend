@@ -19,6 +19,7 @@
   "e_way_bill_attachment",
   "dispatch_form_submitted",
   "e_way_bill_no",
+  "e_way_bill_date",
   "column_break_rtsd",
   "docket_number",
   "dispatch_date",
@@ -211,12 +212,17 @@
    "fieldtype": "Table",
    "label": "Vehicle Details Item",
    "options": "Vehicle Details Item"
+  },
+  {
+   "fieldname": "e_way_bill_date",
+   "fieldtype": "Date",
+   "label": "E-way Bill Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-01 12:56:13.297371",
+ "modified": "2025-09-17 11:11:14.750146",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Dispatch Item",
