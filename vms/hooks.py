@@ -248,7 +248,10 @@ scheduler_events_enhanced = {
         ],
         "*/1 * * * *": [  # Every minute - for real-time status updates
             "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.update_user_activity_status"
-        ]
+        ],
+        "0 */2 * * *": [  # Every 2 hours - cleanup stuck SAP status
+            "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.cleanup_stuck_sap_status"
+        ],
     }    
 	# "hourly": [
 	# 	"vms.tasks.hourly"
@@ -277,6 +280,21 @@ override_whitelisted_methods = {
     "vms.sync_vendor_documents": "vms.vendor_onboarding.vendor_document_management.sync_vendor_documents_on_approval",
     "vms.get_vendor_history": "vms.vendor_onboarding.vendor_document_management.get_vendor_document_history",
     "vms.restore_vendor_docs": "vms.vendor_onboarding.vendor_document_management.restore_from_onboarding",
+
+    # Vendor Onboarding Utility Functions
+    "vms.cleanup_stuck_sap_status": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.cleanup_stuck_sap_status",
+    "vms.manual_fix_vendor_onboarding": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.manual_fix_vendor_onboarding",
+    "vms.check_vendor_onboarding_health": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.check_vendor_onboarding_health",
+    "vms.reset_vendor_onboarding_status": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.reset_vendor_onboarding_status",
+    "vms.force_sap_integration": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.force_sap_integration",
+    "vms.test_vendor_onboarding_fixes": "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.test_vendor_onboarding_fixes",
+    
+    # Monitoring Dashboard Functions
+    "vms.get_monitoring_data": "vms.vendor_onboarding.monitoring_dashboard.get_monitoring_data",
+    "vms.bulk_cleanup_stuck_documents": "vms.vendor_onboarding.monitoring_dashboard.bulk_cleanup_stuck_documents",
+    "vms.bulk_health_check": "vms.vendor_onboarding.monitoring_dashboard.bulk_health_check",
+    "vms.run_comprehensive_test_suite": "vms.vendor_onboarding.monitoring_dashboard.run_comprehensive_test_suite",
+
 
     # Core Chat Room APIs (from APIs/notification_chatroom/chat_apis/)
     "vms.get_user_chat_rooms": "vms.APIs.notification_chatroom.chat_apis.chat_api.get_user_chat_rooms",
