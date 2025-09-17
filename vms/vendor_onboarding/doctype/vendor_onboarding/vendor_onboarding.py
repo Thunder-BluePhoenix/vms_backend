@@ -2717,105 +2717,179 @@ def set_accounts_head_approval_check(vendor_onboarding: str, action: str):
 
 
 @frappe.whitelist()
-def cleanup_stuck_sap_status():
-    """Cron job to identify and fix documents stuck in processing"""
+def check_vendor_onboarding_health(onb_name):
+    """Health check utility for vendor onboarding documents with correct approval logic"""
     try:
-        stuck_docs = frappe.db.sql("""
-            SELECT name, ref_no, vendor_name, onboarding_form_status
-            FROM `tabVendor Onboarding`
-            WHERE 
-                onboarding_form_status = 'SAP Error'
-                AND data_sent_to_sap != 1
-                AND purchase_team_undertaking = 1
-                AND accounts_team_undertaking = 1
-                AND purchase_head_undertaking = 1
-                AND accounts_head_undertaking = 1
-                AND modified < DATE_SUB(NOW(), INTERVAL 2 HOUR)
-        """, as_dict=True)
+        doc = frappe.get_doc("Vendor Onboarding", onb_name)
         
-        fixed_count = 0
+        health_report = {
+            "document_name": onb_name,
+            "current_status": doc.onboarding_form_status,
+            "checks": [],
+            "recommendations": [],
+            "linked_documents": {},
+            "sap_status": {},
+            "overall_health": "good",
+            "register_by_account_team": doc.register_by_account_team
+        }
         
-        for doc_data in stuck_docs:
-            try:
-                # Check if there are successful SAP entries for this vendor
-                sap_success = frappe.db.sql("""
-                    SELECT COUNT(*) as count
-                    FROM `tabVMS SAP Logs`
-                    WHERE 
-                        vendor_onboarding = %s
-                        AND transaction_status = 'Success'
-                        AND creation > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-                """, (doc_data.name,), as_dict=True)
-                
-                if sap_success and sap_success[0].count > 0:
-                    # Has successful SAP entries, update status
-                    frappe.db.sql("""
-                        UPDATE `tabVendor Onboarding` 
-                        SET 
-                            onboarding_form_status = 'Approved',
-                            data_sent_to_sap = 1,
-                            modified = %s,
-                            modified_by = %s
-                        WHERE name = %s
-                    """, (frappe.utils.now(), "Administrator", doc_data.name))
+        # Check linked documents
+        linked_docs = ["payment_detail", "document_details", "certificate_details", "manufacturing_details"]
+        for link_field in linked_docs:
+            link_value = doc.get(link_field)
+            if link_value:
+                try:
+                    # Try to fetch the linked document
+                    if link_field == "payment_detail":
+                        linked_doc = frappe.get_doc("Vendor Onboarding Payment Details", link_value)
+                    elif link_field == "document_details":
+                        linked_doc = frappe.get_doc("Legal Documents", link_value)
+                    elif link_field == "certificate_details":
+                        linked_doc = frappe.get_doc("Vendor Onboarding Certificates", link_value)
+                    elif link_field == "manufacturing_details":
+                        linked_doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", link_value)
                     
-                    fixed_count += 1
-                    
-                    # Log the correction
-                    frappe.get_doc({
-                        "doctype": "Comment",
-                        "comment_type": "Info",
-                        "reference_doctype": "Vendor Onboarding",
-                        "reference_name": doc_data.name,
-                        "content": f"Auto-corrected SAP status based on successful SAP logs",
-                        "comment_email": "Administrator",
-                        "comment_by": "Administrator"
-                    }).insert(ignore_permissions=True)
-                    
-            except Exception as e:
-                frappe.log_error(f"Error fixing stuck document {doc_data.name}: {str(e)}")
-                continue
-                
-        if fixed_count > 0:
-            frappe.db.commit()
-            frappe.logger().info(f"Fixed {fixed_count} stuck SAP status documents")
-            
+                    health_report["linked_documents"][link_field] = {
+                        "status": "exists",
+                        "name": link_value,
+                        "modified": linked_doc.modified
+                    }
+                except:
+                    health_report["linked_documents"][link_field] = {
+                        "status": "missing",
+                        "name": link_value
+                    }
+                    health_report["overall_health"] = "warning"
+                    health_report["recommendations"].append(f"Check {link_field} document: {link_value}")
+            else:
+                health_report["linked_documents"][link_field] = {"status": "not_set"}
+        
+        # Check approvals based on register_by_account_team
+        if doc.register_by_account_team:
+            # Only need accounts team and accounts head approvals
+            required_approvals = [
+                ("accounts_team_undertaking", "Accounts Team"),
+                ("accounts_head_undertaking", "Accounts Head")
+            ]
+        else:
+            # Need purchase team, purchase head, and accounts team approvals
+            required_approvals = [
+                ("purchase_team_undertaking", "Purchase Team"),
+                ("purchase_head_undertaking", "Purchase Head"),
+                ("accounts_team_undertaking", "Accounts Team")
+            ]
+        
+        approved_count = 0
+        required_count = len(required_approvals)
+        missing_approvals = []
+        
+        for field, label in required_approvals:
+            if doc.get(field):
+                approved_count += 1
+            else:
+                missing_approvals.append(label)
+        
+        health_report["checks"].append({
+            "name": "Approvals",
+            "status": "complete" if approved_count == required_count else "pending",
+            "details": f"{approved_count}/{required_count} required approvals completed",
+            "missing_approvals": missing_approvals,
+            "approval_type": "Account Team Only" if doc.register_by_account_team else "Full Approval Process"
+        })
+        
+        # Check mandatory data
+        health_report["checks"].append({
+            "name": "Mandatory Data",
+            "status": "complete" if doc.mandatory_data_filled == 1 else "incomplete",
+            "details": "All mandatory fields filled" if doc.mandatory_data_filled == 1 else "Missing mandatory data"
+        })
+        
+        # Check SAP status
+        sap_logs = frappe.db.sql("""
+            SELECT status, COUNT(*) as count, MAX(creation) as last_attempt
+            FROM `tabVMS SAP Logs`
+            WHERE vendor_onboarding_link = %s
+            GROUP BY status
+            ORDER BY last_attempt DESC
+        """, (onb_name,), as_dict=True)
+        
+        for log in sap_logs:
+            health_report["sap_status"][log.status] = {
+                "count": log.count,
+                "last_attempt": log.last_attempt
+            }
+        
+        # Check for child table data
+        child_tables = ["vendor_types", "contact_details", "number_of_employee", "machinery_detail"]
+        for table in child_tables:
+            table_data = doc.get(table) or []
+            health_report["checks"].append({
+                "name": f"Child Table: {table}",
+                "status": "has_data" if len(table_data) > 0 else "empty",
+                "details": f"{len(table_data)} rows"
+            })
+        
+        # Overall health assessment
+        error_count = sum(1 for check in health_report["checks"] if check["status"] in ["incomplete", "missing", "pending"])
+        if error_count > 2:
+            health_report["overall_health"] = "critical"
+        elif error_count > 0:
+            health_report["overall_health"] = "warning"
+        
+        # Add recommendations for missing approvals
+        if missing_approvals:
+            health_report["recommendations"].append(f"Missing approvals: {', '.join(missing_approvals)}")
+        
+        return health_report
+        
     except Exception as e:
-        frappe.log_error(f"Error in cleanup_stuck_sap_status: {str(e)}")
+        return {
+            "document_name": onb_name,
+            "overall_health": "error",
+            "error": str(e)
+        }
 
 
 @frappe.whitelist()
 def manual_fix_vendor_onboarding(onb_name):
-    """Manual utility to fix a specific vendor onboarding document"""
+    """Manual utility to fix a specific vendor onboarding document with correct approval logic"""
     try:
         if not frappe.has_permission("Vendor Onboarding", "write"):
             return {"status": "error", "message": "Insufficient permissions"}
             
         doc = frappe.get_doc("Vendor Onboarding", onb_name)
         
-        # Check if document should be approved
-        should_be_approved = (
-            doc.purchase_team_undertaking and 
-            doc.accounts_team_undertaking and 
-            doc.purchase_head_undertaking and
-            doc.accounts_head_undertaking and
-            doc.mandatory_data_filled == 1
-        )
+        # Check if document should be approved based on register_by_account_team
+        if doc.register_by_account_team:
+            # Account team registration: only need accounts team and head approvals
+            should_be_approved = (
+                doc.accounts_team_undertaking and 
+                doc.accounts_head_undertaking and
+                doc.mandatory_data_filled == 1
+            )
+        else:
+            # Regular registration: need purchase team, purchase head, and accounts team
+            should_be_approved = (
+                doc.purchase_team_undertaking and 
+                doc.purchase_head_undertaking and 
+                doc.accounts_team_undertaking and
+                doc.mandatory_data_filled == 1
+            )
         
         if should_be_approved:
             # Check SAP logs for this vendor
             sap_logs = frappe.db.sql("""
-                SELECT transaction_status, COUNT(*) as count
+                SELECT status, COUNT(*) as count
                 FROM `tabVMS SAP Logs`
-                WHERE vendor_onboarding = %s
-                GROUP BY transaction_status
+                WHERE vendor_onboarding_link = %s
+                GROUP BY status
             """, (onb_name,), as_dict=True)
             
             success_count = 0
             error_count = 0
             
             for log in sap_logs:
-                if log.transaction_status == 'Success':
+                if log.status == 'Success':
                     success_count = log.count
                 else:
                     error_count = log.count
@@ -2874,24 +2948,33 @@ def manual_fix_vendor_onboarding(onb_name):
                 "message": message,
                 "new_status": new_status,
                 "sap_success_count": success_count,
-                "sap_error_count": error_count
+                "sap_error_count": error_count,
+                "approval_type": "Account Team Only" if doc.register_by_account_team else "Full Process"
             }
         else:
             missing = []
-            if not doc.purchase_team_undertaking:
-                missing.append("Purchase Team Approval")
-            if not doc.accounts_team_undertaking:
-                missing.append("Accounts Team Approval")
-            if not doc.purchase_head_undertaking:
-                missing.append("Purchase Head Approval")
-            if not doc.accounts_head_undertaking:
-                missing.append("Accounts Head Approval")
+            if doc.register_by_account_team:
+                # Account team registration
+                if not doc.accounts_team_undertaking:
+                    missing.append("Accounts Team Approval")
+                if not doc.accounts_head_undertaking:
+                    missing.append("Accounts Head Approval")
+            else:
+                # Regular registration
+                if not doc.purchase_team_undertaking:
+                    missing.append("Purchase Team Approval")
+                if not doc.purchase_head_undertaking:
+                    missing.append("Purchase Head Approval")
+                if not doc.accounts_team_undertaking:
+                    missing.append("Accounts Team Approval")
+                    
             if doc.mandatory_data_filled != 1:
                 missing.append("Mandatory Data Validation")
                 
             return {
                 "status": "error", 
-                "message": f"Document not ready for approval. Missing: {', '.join(missing)}"
+                "message": f"Document not ready for approval. Missing: {', '.join(missing)}",
+                "approval_type": "Account Team Only" if doc.register_by_account_team else "Full Process"
             }
             
     except Exception as e:
@@ -2900,110 +2983,151 @@ def manual_fix_vendor_onboarding(onb_name):
 
 
 @frappe.whitelist()
-def check_vendor_onboarding_health(onb_name):
-    """Health check utility for vendor onboarding documents"""
+def cleanup_stuck_sap_status():
+    """Cron job to identify and fix documents stuck in processing with correct approval logic"""
     try:
-        doc = frappe.get_doc("Vendor Onboarding", onb_name)
+        # Get stuck documents with their registration type
+        stuck_docs = frappe.db.sql("""
+            SELECT name, ref_no, vendor_name, onboarding_form_status, register_by_account_team,
+                   purchase_team_undertaking, purchase_head_undertaking, 
+                   accounts_team_undertaking, accounts_head_undertaking
+            FROM `tabVendor Onboarding`
+            WHERE 
+                onboarding_form_status = 'SAP Error'
+                AND data_sent_to_sap != 1
+                AND mandatory_data_filled = 1
+                AND modified < DATE_SUB(NOW(), INTERVAL 2 HOUR)
+        """, as_dict=True)
         
-        health_report = {
-            "document_name": onb_name,
-            "current_status": doc.onboarding_form_status,
-            "checks": [],
-            "recommendations": [],
-            "linked_documents": {},
-            "sap_status": {},
-            "overall_health": "good"
-        }
+        fixed_count = 0
         
-        # Check linked documents
-        linked_docs = ["payment_detail", "document_details", "certificate_details", "manufacturing_details"]
-        for link_field in linked_docs:
-            link_value = doc.get(link_field)
-            if link_value:
-                try:
-                    # Try to fetch the linked document
-                    if link_field == "payment_detail":
-                        linked_doc = frappe.get_doc("Vendor Onboarding Payment Details", link_value)
-                    elif link_field == "document_details":
-                        linked_doc = frappe.get_doc("Legal Documents", link_value)
-                    elif link_field == "certificate_details":
-                        linked_doc = frappe.get_doc("Vendor Onboarding Certificates", link_value)
-                    elif link_field == "manufacturing_details":
-                        linked_doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", link_value)
+        for doc_data in stuck_docs:
+            try:
+                # Check if approvals are complete based on registration type
+                if doc_data.register_by_account_team:
+                    approvals_complete = (
+                        doc_data.accounts_team_undertaking and 
+                        doc_data.accounts_head_undertaking
+                    )
+                else:
+                    approvals_complete = (
+                        doc_data.purchase_team_undertaking and
+                        doc_data.purchase_head_undertaking and 
+                        doc_data.accounts_team_undertaking
+                    )
+                
+                if not approvals_complete:
+                    continue  # Skip if approvals not complete
+                
+                # Check if there are successful SAP entries for this vendor
+                sap_success = frappe.db.sql("""
+                    SELECT COUNT(*) as count
+                    FROM `tabVMS SAP Logs`
+                    WHERE 
+                        vendor_onboarding_link = %s
+                        AND status = 'Success'
+                        AND creation > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                """, (doc_data.name,), as_dict=True)
+                
+                if sap_success and sap_success[0].count > 0:
+                    # Has successful SAP entries, update status
+                    frappe.db.sql("""
+                        UPDATE `tabVendor Onboarding` 
+                        SET 
+                            onboarding_form_status = 'Approved',
+                            data_sent_to_sap = 1,
+                            modified = %s,
+                            modified_by = %s
+                        WHERE name = %s
+                    """, (frappe.utils.now(), "Administrator", doc_data.name))
                     
-                    health_report["linked_documents"][link_field] = {
-                        "status": "exists",
-                        "name": link_value,
-                        "modified": linked_doc.modified
-                    }
-                except:
-                    health_report["linked_documents"][link_field] = {
-                        "status": "missing",
-                        "name": link_value
-                    }
-                    health_report["overall_health"] = "warning"
-                    health_report["recommendations"].append(f"Check {link_field} document: {link_value}")
-            else:
-                health_report["linked_documents"][link_field] = {"status": "not_set"}
+                    fixed_count += 1
+                    
+                    # Log the correction
+                    frappe.get_doc({
+                        "doctype": "Comment",
+                        "comment_type": "Info",
+                        "reference_doctype": "Vendor Onboarding",
+                        "reference_name": doc_data.name,
+                        "content": f"Auto-corrected SAP status based on successful SAP logs (Registration: {'Account Team' if doc_data.register_by_account_team else 'Full Process'})",
+                        "comment_email": "Administrator",
+                        "comment_by": "Administrator"
+                    }).insert(ignore_permissions=True)
+                    
+            except Exception as e:
+                frappe.log_error(f"Error fixing stuck document {doc_data.name}: {str(e)}")
+                continue
+                
+        if fixed_count > 0:
+            frappe.db.commit()
+            frappe.logger().info(f"Fixed {fixed_count} stuck SAP status documents")
+            
+        return {"status": "success", "fixed_count": fixed_count}
+            
+    except Exception as e:
+        frappe.log_error(f"Error in cleanup_stuck_sap_status: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+def get_pending_approvals():
+    """Get pending approval statistics with correct approval logic"""
+    try:
+        # Pending approvals for account team registration
+        account_team_pending = frappe.db.sql("""
+            SELECT COUNT(*) as count
+            FROM `tabVendor Onboarding`
+            WHERE 
+                onboarding_form_status = 'Pending'
+                AND register_by_account_team = 1
+                AND (accounts_team_undertaking = 0 OR accounts_head_undertaking = 0)
+        """, as_dict=True)[0].count
         
-        # Check approvals
-        approval_fields = [
-            "purchase_team_undertaking", "purchase_head_undertaking",
-            "accounts_team_undertaking", "accounts_head_undertaking"
-        ]
+        # Pending approvals for regular registration
+        regular_pending = frappe.db.sql("""
+            SELECT COUNT(*) as count
+            FROM `tabVendor Onboarding`
+            WHERE 
+                onboarding_form_status = 'Pending'
+                AND register_by_account_team = 0
+                AND (purchase_team_undertaking = 0 OR purchase_head_undertaking = 0 OR accounts_team_undertaking = 0)
+        """, as_dict=True)[0].count
         
-        approved_count = sum(1 for field in approval_fields if doc.get(field))
-        health_report["checks"].append({
-            "name": "Approvals",
-            "status": "complete" if approved_count == 4 else "pending",
-            "details": f"{approved_count}/4 approvals completed"
-        })
+        # Overdue approvals (more than 3 days) with details
+        overdue_approvals = frappe.db.sql("""
+            SELECT 
+                name, 
+                vendor_name, 
+                ref_no,
+                modified,
+                register_by_account_team,
+                purchase_team_undertaking,
+                purchase_head_undertaking,
+                accounts_team_undertaking,
+                accounts_head_undertaking,
+                DATEDIFF(NOW(), modified) as days_pending
+            FROM `tabVendor Onboarding`
+            WHERE 
+                onboarding_form_status = 'Pending'
+                AND modified < DATE_SUB(NOW(), INTERVAL 3 DAY)
+            ORDER BY modified ASC
+            LIMIT 20
+        """, as_dict=True)
         
-        # Check mandatory data
-        health_report["checks"].append({
-            "name": "Mandatory Data",
-            "status": "complete" if doc.mandatory_data_filled == 1 else "incomplete",
-            "details": "All mandatory fields filled" if doc.mandatory_data_filled == 1 else "Missing mandatory data"
-        })
-        
-        # Check SAP status
-        sap_logs = frappe.db.sql("""
-            SELECT transaction_status, COUNT(*) as count, MAX(creation) as last_attempt
-            FROM `tabVMS SAP Logs`
-            WHERE vendor_onboarding = %s
-            GROUP BY transaction_status
-            ORDER BY last_attempt DESC
-        """, (onb_name,), as_dict=True)
-        
-        for log in sap_logs:
-            health_report["sap_status"][log.transaction_status] = {
-                "count": log.count,
-                "last_attempt": log.last_attempt
+        return {
+            "account_team_registration": account_team_pending,
+            "regular_registration": regular_pending,
+            "total_pending": account_team_pending + regular_pending,
+            "overdue": {
+                "count": len(overdue_approvals),
+                "documents": overdue_approvals
             }
-        
-        # Check for child table data
-        child_tables = ["vendor_types", "contact_details", "number_of_employee", "machinery_detail"]
-        for table in child_tables:
-            table_data = doc.get(table) or []
-            health_report["checks"].append({
-                "name": f"Child Table: {table}",
-                "status": "has_data" if len(table_data) > 0 else "empty",
-                "details": f"{len(table_data)} rows"
-            })
-        
-        # Overall health assessment
-        error_count = sum(1 for check in health_report["checks"] if check["status"] in ["incomplete", "missing"])
-        if error_count > 2:
-            health_report["overall_health"] = "critical"
-        elif error_count > 0:
-            health_report["overall_health"] = "warning"
-        
-        return health_report
-        
+        }
     except Exception as e:
         return {
-            "document_name": onb_name,
-            "overall_health": "error",
+            "account_team_registration": 0,
+            "regular_registration": 0,
+            "total_pending": 0,
+            "overdue": {"count": 0, "documents": []},
             "error": str(e)
         }
 
@@ -3218,7 +3342,7 @@ def create_test_vendor_onboarding():
     })
     
     doc.append("vendor_types", {
-        "vendor_type": "Service Provider"
+        "vendor_type": "Service Vendor"
     })
     
     doc.insert(ignore_permissions=True)
