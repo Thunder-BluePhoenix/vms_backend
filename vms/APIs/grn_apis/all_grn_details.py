@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 import json
 from datetime import datetime, date
+from frappe.utils.file_manager import save_file
 
 
 
@@ -38,6 +39,57 @@ def get_all_grn_details():
                     break
 
             if found_match or not team:
+                try:
+                    grn_doc = frappe.get_doc("GRN", grn["name"])
+                    
+                  
+                    attachments_data = []
+                    if hasattr(grn_doc, 'attachments') and grn_doc.attachments:
+                        for attachment in grn_doc.attachments:
+                            attachment_url = attachment.get('attachment_name')
+                            
+                            attachment_info = {
+                                "row_name": attachment.name,    
+                                "file_name": attachment.get('name1'),
+                            }
+                            
+                            if attachment_url:
+                                try:
+                                    file_doc = frappe.get_doc("File", {"file_url": attachment_url})
+                                    attachment_info["full_url"] = f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}"
+                                    attachment_info["file_doc_name"] = file_doc.name
+                                    attachment_info["actual_file_name"] = file_doc.file_name
+                                except frappe.DoesNotExistError:
+                                    attachment_info["full_url"] = None
+                                    attachment_info["error"] = "File document not found"
+                                except Exception as e:
+                                    attachment_info["full_url"] = None
+                                    attachment_info["error"] = str(e)
+                            else:
+                                attachment_info["full_url"] = None
+                            
+                            attachments_data.append(attachment_info)
+                    
+                    
+                    grn["attachments"] = attachments_data
+                    
+                    grn["sap_booking_id"] = grn_doc.sap_booking_id
+                    grn["miro_no"] = grn_doc.miro_no
+                    grn["sap_status"] = grn_doc.sap_status
+                    grn["grn_date"] = grn_doc.grn_date
+                    grn["grn_year"] = grn_doc.grn_year
+                    grn["company_name"] = grn_doc.company_name
+                    
+                except Exception as doc_error:
+                    print(f"Error getting GRN document {grn['name']}: {str(doc_error)}")
+                    grn["attachments"] = []
+                    grn["sap_booking_id"] = None
+                    grn["miro_no"] = None
+                    grn["sap_status"] = None
+                    grn["grn_date"] = None
+                    grn["grn_year"] = None
+                    grn["company_name"] = None
+                
                 grn["grn_items"] = grn_items
                 result.append(grn)
 
@@ -97,10 +149,44 @@ def get_grn_details_of_grn_number(grn_number=None):
     if not filtered_items:
         frappe.throw("You are not authorized to view any items in this GRN.")
 
+    attachments_data = []
+    if hasattr(grn_doc, 'attachments') and grn_doc.attachments: 
+        for attachment in grn_doc.attachments:
+            attachment_url = attachment.get('attachment_name')
+            attachment_info = {
+                "row_name": attachment.name,    
+                "file_name": attachment.get('name1'),  
+            }
+            attachments_data.append(attachment_info)
+
+
+            if attachment_url:
+                try:
+                    file_doc = frappe.get_doc("File", {"file_url": attachment_url})
+                    attachment_info["full_url"] = f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}"
+                    attachment_info["file_doc_name"] = file_doc.name
+                    attachment_info["actual_file_name"] = file_doc.file_name
+                except frappe.DoesNotExistError:
+                    attachment_info["full_url"] = None
+                    attachment_info["error"] = "File document not found"
+                except Exception as e:
+                    attachment_info["full_url"] = None
+                    attachment_info["error"] = str(e)
+            else:
+                attachment_info["full_url"] = None
+            
+            attachments_data.append(attachment_info)
+
     return {
         "grn_no": grn_doc.grn_number,
         "grn_date": grn_doc.grn_date,
-        "grn_items": filtered_items
+        "grn_items": filtered_items,
+        "sap_booking_id":grn_doc.sap_booking_id,
+        "miro_no":grn_doc.miro_no,
+        "sap_status": grn_doc.sap_status,
+        "grn_year": grn_doc.grn_year,
+        "company_name": grn_doc.company_name,
+        "attachments": attachments_data
     }
 
 
@@ -270,35 +356,131 @@ def get_pr_details_simple(pr_name=None):
 
 
 
+@frappe.whitelist(allow_guest=True)
+def update_grn_with_data():
+    form_data = frappe.local.form_dict
+    files = frappe.request.files
+    
+    grn_number = form_data.get("grn_number")
+    sap_booking_id = form_data.get("sap_booking_id")
+    miro_no = form_data.get("miro_no")
+    
+    if not grn_number:
+        frappe.throw("GRN Number is required")
+    
+    grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
+    if not grn_name:
+        frappe.throw("GRN not found")
+    
+    grn_doc = frappe.get_doc("GRN", grn_name)
+    
+    if sap_booking_id:
+        grn_doc.sap_booking_id = sap_booking_id
+    
+    if miro_no:
+        grn_doc.miro_no = miro_no
+    
+    attachments_added = []
+    uploaded_filenames = [] 
+    
+    if files:
+        
+        for file_key in files:
+            file_list = files.getlist(file_key)  
+            
+            for uploaded_file in file_list:
+                if uploaded_file and uploaded_file.filename:
+                    file_doc = save_file(
+                        fname=uploaded_file.filename,
+                        content=uploaded_file.read(),
+                        dt="GRN",
+                        dn=grn_doc.name,
+                        is_private=1
+                    )
+                
+                    attachment_row = grn_doc.append("attachments", {})
+                    attachment_row.attachment_name = file_doc.file_url 
+                    attachment_row.name1 = uploaded_file.filename
+                    
+                   
+                    uploaded_filenames.append(uploaded_file.filename)
+    
+    grn_doc.save()
+    
+   
+    if uploaded_filenames:
+        for attachment in grn_doc.attachments:
+            if attachment.name1 in uploaded_filenames:
+                attachments_added.append({
+                    "attachment_name": attachment.attachment_name,
+                    "row_name": attachment.name,  
+                    "file_name": attachment.name1
+                })
+               
+                uploaded_filenames.remove(attachment.name1)
+    
+    frappe.db.commit()
+    
+    return {
+        "status": "success",
+        "message": "GRN updated successfully",
+        "grn_number": grn_doc.grn_number,
+        "attachments": attachments_added
+    }
 
+@frappe.whitelist(allow_guest=True)
+def delete_grn_attachments():
+    form_data = frappe.local.form_dict
+    
+    grn_number = form_data.get("grn_number")
+    row_names = form_data.get("row_names") 
+    
+    if not grn_number:
+        frappe.throw("GRN Number is required")
+    
+    if not row_names:
+        frappe.throw("Row names are required")
+    
+  
+    if isinstance(row_names, str):
+        import json
+        try:
+            row_names = json.loads(row_names)
+        except:
+            row_names = [row_names]  
+    
+    
+    grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
+    if not grn_name:
+        frappe.throw("GRN not found")
+    
+    grn_doc = frappe.get_doc("GRN", grn_name)
+    
+    deleted_attachments = []
+    
+    
+    for row_name in row_names:
+        for i, attachment in enumerate(grn_doc.attachments):
+            if attachment.name == row_name:
+                deleted_attachments.append({
+                    "row_name": attachment.name,
+                    "file_name": attachment.name1,
+                    "attachment_name": attachment.attachment_name
+                })
+                
+                grn_doc.attachments.pop(i)
+                break
+    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    grn_doc.save()
+    frappe.db.commit()
+    
+    return {
+        "status": "success",
+        "message": f"Deleted {len(deleted_attachments)} attachment(s) successfully",
+        "grn_number": grn_doc.grn_number,
+        "deleted_attachments": deleted_attachments
+    }
 
 
 # @frappe.whitelist()
