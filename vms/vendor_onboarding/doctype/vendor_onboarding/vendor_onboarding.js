@@ -39,6 +39,17 @@ frappe.ui.form.on('Vendor Onboarding', {
                 show_detailed_validation_report(frm);
             }, __('Actions'));
         }
+
+        if (!frm.is_new()) {
+            // Add Tools dropdown menu
+            add_tools_buttons(frm);
+            
+            // Add status indicators
+            add_status_indicators(frm);
+            
+            // Add real-time status updates
+            setup_realtime_updates(frm);
+        }
         
         
         // Add validation indicator to form header
@@ -49,11 +60,13 @@ frappe.ui.form.on('Vendor Onboarding', {
     },
     onload: function(frm) {
         // Listen for real-time updates
+        setup_field_properties(frm);
         frappe.realtime.on("vendor_onboarding_updated", function(data) {
             if (data.name === frm.doc.name) {
                 frm.refresh();
             }
         });
+        
     },
     
     after_save: function(frm) {
@@ -62,6 +75,11 @@ frappe.ui.form.on('Vendor Onboarding', {
             render_sap_validation_display(frm);
         }, 500);
         // frm.refresh();
+    },
+    onboarding_form_status: function(frm) {
+        // Update form styling based on status
+        update_form_styling(frm);
+        add_status_indicators(frm);
     },
     
     // Trigger re-render when key fields change
@@ -1139,4 +1157,787 @@ function scroll_to_validation(frm) {
             backgroundColor: 'transparent'
         }, 1000);
     }
+}
+
+
+// vendor_onboarding.js - Fixed version with proper error handling
+// Place this file in: vms/vendor_onboarding/doctype/vendor_onboarding/vendor_onboarding.js
+
+// frappe.ui.form.on('Vendor Onboarding', {
+//     refresh: function(frm) {
+//         if (!frm.is_new()) {
+//             // Add Tools dropdown menu
+//             add_tools_buttons(frm);
+            
+//             // Add status indicators
+//             add_status_indicators(frm);
+            
+//             // Add real-time status updates
+//             setup_realtime_updates(frm);
+//         }
+//     },
+    
+//     onload: function(frm) {
+//         // Set field properties and validations
+//         setup_field_properties(frm);
+//     },
+    
+//     onboarding_form_status: function(frm) {
+//         // Update form styling based on status
+//         update_form_styling(frm);
+        
+//         // Update status indicator (this will replace the old one)
+//         add_status_indicators(frm);
+//     }
+// });
+
+function add_tools_buttons(frm) {
+    // Health Check - What it does: Analyzes document completeness, linked documents, approvals, and SAP status
+    frm.add_custom_button(__('Health Check'), function() {
+        run_health_check(frm);
+    }, __('Tools'));
+    
+    // Manual Fix - What it does: Automatically corrects status based on approvals and SAP logs
+    frm.add_custom_button(__('Manual Fix'), function() {
+        run_manual_fix(frm);
+    }, __('Tools'));
+    
+    // Document Inspector - What it does: Shows detailed technical information about the document
+    frm.add_custom_button(__('Document Inspector'), function() {
+        show_document_inspector(frm);
+    }, __('Tools'));
+    
+    // Force SAP Integration - What it does: Manually triggers SAP integration bypassing normal conditions
+    if (frm.doc.onboarding_form_status === 'SAP Error' || 
+        (frm.doc.purchase_team_undertaking && frm.doc.accounts_team_undertaking && 
+         frm.doc.purchase_head_undertaking && frm.doc.accounts_head_undertaking)) {
+        frm.add_custom_button(__('Force SAP Integration'), function() {
+            force_sap_integration(frm);
+        }, __('Tools'));
+    }
+    
+    // View SAP Logs - What it does: Opens filtered list of SAP logs for this document
+    frm.add_custom_button(__('View SAP Logs'), function() {
+        view_sap_logs(frm);
+    }, __('Tools'));
+    
+    // Reset Status (only for development/testing) - What it does: Resets document status for testing
+    if (frappe.boot.developer_mode) {
+        frm.add_custom_button(__('Reset Status'), function() {
+            reset_status(frm);
+        }, __('Tools'));
+    }
+}
+
+function add_status_indicators(frm) {
+    if (frm.doc.onboarding_form_status) {
+        let status_field = frm.get_field('onboarding_form_status');
+        if (status_field && status_field.$wrapper) {
+            // Remove any existing status indicators first
+            status_field.$wrapper.find('.status-indicator-wrapper').remove();
+            
+            // Add new status indicator
+            let status_html = get_status_indicator_html(frm.doc.onboarding_form_status);
+            status_field.$wrapper.append(status_html);
+        }
+    }
+}
+
+function setup_realtime_updates(frm) {
+    frappe.realtime.on('vendor_onboarding_update', function(data) {
+        if (data.name === frm.doc.name) {
+            frappe.show_alert({
+                message: `Document updated: ${data.message}`,
+                indicator: 'blue'
+            });
+            frm.reload_doc();
+        }
+    });
+    
+    frappe.realtime.on('sap_integration_update', function(data) {
+        if (data.vendor_onboarding === frm.doc.name) {
+            frappe.show_alert({
+                message: `SAP Integration: ${data.status}`,
+                indicator: data.status === 'success' ? 'green' : 'red'
+            });
+            frm.reload_doc();
+        }
+    });
+}
+
+function setup_field_properties(frm) {
+    frm.set_df_property('onboarding_form_status', 'description', 
+        'Current status of the onboarding process. Updated automatically based on approvals.');
+        
+    frm.set_df_property('data_sent_to_sap', 'description',
+        'Indicates whether data has been successfully sent to SAP system.');
+}
+
+function update_form_styling(frm) {
+    let status = frm.doc.onboarding_form_status;
+    let colors = {
+        'Pending': '#ffc107',
+        'Approved': '#28a745',
+        'Rejected': '#dc3545',
+        'SAP Error': '#fd7e14',
+        'Processing': '#17a2b8'
+    };
+    
+    if (colors[status]) {
+        frm.page.set_indicator(status, colors[status].replace('#', ''));
+    }
+}
+
+function run_health_check(frm) {
+    let loading = frappe.show_alert({
+        message: 'Running health check...',
+        indicator: 'blue'
+    });
+    
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.check_vendor_onboarding_health',
+        args: {
+            onb_name: frm.doc.name
+        },
+        callback: function(r) {
+            loading.hide();
+            if (r.message) {
+                show_health_check_dialog(r.message);
+            } else {
+                frappe.msgprint('No health check data received');
+            }
+        },
+        error: function(err) {
+            loading.hide();
+            frappe.msgprint({
+                title: 'Error',
+                message: 'Failed to run health check: ' + (err.message || 'Unknown error'),
+                indicator: 'red'
+            });
+        }
+    });
+}
+
+function run_manual_fix(frm) {
+    frappe.confirm(
+        `This will analyze and fix any issues with document <strong>${frm.doc.name}</strong>. Continue?`,
+        function() {
+            let loading = frappe.show_alert({
+                message: 'Running manual fix...',
+                indicator: 'orange'
+            });
+            
+            frappe.call({
+                method: 'vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.manual_fix_vendor_onboarding',
+                args: {
+                    onb_name: frm.doc.name
+                },
+                callback: function(r) {
+                    loading.hide();
+                    if (r.message) {
+                        show_fix_result_dialog(r.message);
+                        if (r.message.status === 'success') {
+                            frm.reload_doc();
+                        }
+                    } else {
+                        frappe.msgprint('No response received from manual fix');
+                    }
+                },
+                error: function(err) {
+                    loading.hide();
+                    frappe.msgprint({
+                        title: 'Error',
+                        message: 'Manual fix failed: ' + (err.message || 'Unknown error'),
+                        indicator: 'red'
+                    });
+                }
+            });
+        }
+    );
+}
+
+function force_sap_integration(frm) {
+    frappe.confirm(
+        'Warning: This will force SAP integration regardless of current status. This action should only be used when normal SAP processing has failed. Continue?',
+        function() {
+            frappe.call({
+                method: 'vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.force_sap_integration',
+                args: {
+                    onb_name: frm.doc.name
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        frappe.show_alert({
+                            message: r.message.message,
+                            indicator: r.message.status === 'success' ? 'green' : 'red'
+                        });
+                        
+                        if (r.message.status === 'success') {
+                            frappe.show_alert({
+                                message: 'SAP integration has been queued. Check back in a few minutes.',
+                                indicator: 'blue'
+                            });
+                        }
+                    }
+                },
+                error: function(err) {
+                    frappe.msgprint({
+                        title: 'Error',
+                        message: 'Force SAP integration failed: ' + (err.message || 'Unknown error'),
+                        indicator: 'red'
+                    });
+                }
+            });
+        }
+    );
+}
+
+function reset_status(frm) {
+    let status_dialog = new frappe.ui.Dialog({
+        title: 'Reset Document Status',
+        fields: [
+            {
+                label: 'New Status',
+                fieldname: 'new_status',
+                fieldtype: 'Select',
+                options: ['Pending', 'Approved', 'Rejected', 'SAP Error'],
+                reqd: 1,
+                default: 'Pending',
+                description: 'Select the new status for this document'
+            },
+            {
+                fieldtype: 'HTML',
+                options: `<div class="alert alert-warning">
+                    <strong>Warning:</strong> This is a development tool. Use only for testing purposes.
+                    Resetting status may cause inconsistencies in production data.
+                </div>`
+            }
+        ],
+        primary_action_label: 'Reset Status',
+        primary_action(values) {
+            frappe.call({
+                method: 'vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.reset_vendor_onboarding_status',
+                args: {
+                    onb_name: frm.doc.name,
+                    new_status: values.new_status
+                },
+                callback: function(r) {
+                    if (r.message && r.message.status === 'success') {
+                        frappe.show_alert({
+                            message: r.message.message,
+                            indicator: 'green'
+                        });
+                        frm.reload_doc();
+                    } else {
+                        frappe.msgprint({
+                            title: 'Error',
+                            message: r.message ? r.message.message : 'Reset failed',
+                            indicator: 'red'
+                        });
+                    }
+                    status_dialog.hide();
+                }
+            });
+        }
+    });
+    
+    status_dialog.show();
+}
+
+function show_document_inspector(frm) {
+    let loading = frappe.show_alert({
+        message: 'Inspecting document...',
+        indicator: 'blue'
+    });
+    
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.check_vendor_onboarding_health',
+        args: {
+            onb_name: frm.doc.name
+        },
+        callback: function(r) {
+            loading.hide();
+            if (r.message) {
+                show_document_inspector_dialog(frm, r.message);
+            } else {
+                frappe.msgprint('No inspection data received');
+            }
+        },
+        error: function(err) {
+            loading.hide();
+            frappe.msgprint({
+                title: 'Error',
+                message: 'Document inspection failed: ' + (err.message || 'Unknown error'),
+                indicator: 'red'
+            });
+        }
+    });
+}
+
+function view_sap_logs(frm) {
+    frappe.route_options = {
+        "vendor_onboarding": frm.doc.name
+    };
+    frappe.set_route("List", "VMS SAP Logs");
+}
+
+function show_health_check_dialog(health_report) {
+    // Ensure health_report has all required properties with defaults
+    health_report = health_report || {};
+    health_report.overall_health = health_report.overall_health || 'unknown';
+    health_report.document_name = health_report.document_name || 'Unknown';
+    health_report.current_status = health_report.current_status || 'Unknown';
+    health_report.checks = health_report.checks || [];
+    health_report.linked_documents = health_report.linked_documents || {};
+    health_report.sap_status = health_report.sap_status || {};
+    health_report.recommendations = health_report.recommendations || [];
+    
+    let status_colors = {
+        'good': '#28a745',
+        'warning': '#ffc107',
+        'critical': '#dc3545',
+        'error': '#6c757d',
+        'unknown': '#6c757d'
+    };
+    
+    let html = `
+        <div class="health-check-report">
+            <style>
+                .health-check-report {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                }
+                .health-header {
+                    background: ${status_colors[health_report.overall_health]};
+                    color: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                    text-align: center;
+                }
+                .health-header h3 {
+                    margin: 0;
+                    font-size: 24px;
+                }
+                .health-header p {
+                    margin: 10px 0 0 0;
+                    opacity: 0.9;
+                }
+                .check-item {
+                    display: flex;
+                    align-items: center;
+                    padding: 12px;
+                    margin: 8px 0;
+                    border-radius: 6px;
+                    border-left: 4px solid #28a745;
+                }
+                .check-item.warning {
+                    border-left-color: #ffc107;
+                    background-color: #fff3cd;
+                }
+                .check-item.error {
+                    border-left-color: #dc3545;
+                    background-color: #f8d7da;
+                }
+                .check-icon {
+                    font-size: 20px;
+                    margin-right: 12px;
+                }
+                .check-content {
+                    flex: 1;
+                }
+                .check-name {
+                    font-weight: 600;
+                    margin-bottom: 4px;
+                }
+                .check-details {
+                    color: #6c757d;
+                    font-size: 14px;
+                }
+                .linked-docs {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 12px;
+                    margin-top: 20px;
+                }
+                .doc-card {
+                    border: 1px solid #dee2e6;
+                    border-radius: 6px;
+                    padding: 12px;
+                    text-align: center;
+                }
+                .doc-status {
+                    display: inline-block;
+                    padding: 4px 8px;
+                    border-radius: 12px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                }
+                .doc-status.exists {
+                    background: #d4edda;
+                    color: #155724;
+                }
+                .doc-status.missing {
+                    background: #f8d7da;
+                    color: #721c24;
+                }
+                .doc-status.not_set {
+                    background: #e2e3e5;
+                    color: #383d41;
+                }
+                .recommendations {
+                    background: #fff3cd;
+                    border: 1px solid #ffeaa7;
+                    border-radius: 6px;
+                    padding: 15px;
+                    margin-top: 20px;
+                }
+                .sap-status {
+                    background: #f8f9fa;
+                    border-radius: 6px;
+                    padding: 15px;
+                    margin-top: 20px;
+                }
+            </style>
+            
+            <div class="health-header">
+                <h3>${health_report.overall_health.toUpperCase()} HEALTH</h3>
+                <p>Document: ${health_report.document_name}</p>
+                <p>Current Status: ${health_report.current_status}</p>
+            </div>
+            
+            <h4>System Checks</h4>
+            ${health_report.checks.length > 0 ? health_report.checks.map(check => {
+                let isHealthy = check.status === 'complete' || check.status === 'has_data';
+                let isWarning = check.status === 'pending' || check.status === 'incomplete' || check.status === 'empty';
+                return `
+                    <div class="check-item ${isWarning ? 'warning' : isHealthy ? '' : 'error'}">
+                        <div class="check-icon">
+                            ${isHealthy ? '✅' : isWarning ? '⚠️' : '❌'}
+                        </div>
+                        <div class="check-content">
+                            <div class="check-name">${check.name || 'Unknown Check'}</div>
+                            <div class="check-details">${check.details || 'No details available'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('') : '<p>No checks performed</p>'}
+            
+            <h4>Linked Documents</h4>
+            <div class="linked-docs">
+                ${Object.keys(health_report.linked_documents).length > 0 ? Object.entries(health_report.linked_documents).map(([field, info]) => `
+                    <div class="doc-card">
+                        <div style="font-weight: 600; margin-bottom: 8px;">
+                            ${field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </div>
+                        <div class="doc-status ${info.status || 'not_set'}">${info.status || 'not_set'}</div>
+                        ${info.name ? `<div style="font-size: 12px; margin-top: 4px; color: #6c757d;">${info.name}</div>` : ''}
+                        ${info.modified ? `<div style="font-size: 11px; margin-top: 2px; color: #6c757d;">Modified: ${info.modified}</div>` : ''}
+                    </div>
+                `).join('') : '<p>No linked documents found</p>'}
+            </div>
+            
+            ${Object.keys(health_report.sap_status).length > 0 ? `
+                <div class="sap-status">
+                    <h4>SAP Integration Status</h4>
+                    ${Object.entries(health_report.sap_status).map(([status, info]) => `
+                        <div style="margin: 8px 0;">
+                            <strong>${status}:</strong> ${info.count || 0} attempts
+                            ${info.last_attempt ? `<br><small>Last: ${info.last_attempt}</small>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            
+            ${health_report.recommendations.length > 0 ? `
+                <div class="recommendations">
+                    <h4 style="margin-top: 0;">Recommendations</h4>
+                    ${health_report.recommendations.map(rec => `
+                        <div style="margin: 8px 0;">• ${rec}</div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    let dialog = new frappe.ui.Dialog({
+        title: `Health Check - ${health_report.document_name}`,
+        size: 'large',
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'health_html',
+                options: html
+            }
+        ],
+        primary_action_label: 'Run Fix',
+        primary_action() {
+            dialog.hide();
+            if (health_report.overall_health !== 'good') {
+                run_manual_fix_from_health_check(health_report.document_name);
+            } else {
+                frappe.msgprint('Document is healthy. No fix needed.');
+            }
+        }
+    });
+    
+    dialog.show();
+}
+
+function show_fix_result_dialog(fix_result) {
+    fix_result = fix_result || {};
+    let icon = fix_result.status === 'success' ? '✅' : '❌';
+    let color = fix_result.status === 'success' ? '#28a745' : '#dc3545';
+    
+    let html = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 48px; margin-bottom: 20px;">${icon}</div>
+            <h3 style="color: ${color}; margin-bottom: 15px;">
+                ${fix_result.status === 'success' ? 'Fix Applied Successfully' : 'Fix Failed'}
+            </h3>
+            <p style="font-size: 16px; margin-bottom: 20px;">${fix_result.message || 'No message provided'}</p>
+            
+            ${fix_result.new_status ? `
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                    <strong>New Status:</strong> ${fix_result.new_status}<br>
+                    ${fix_result.sap_success_count !== undefined ? `<strong>SAP Success Count:</strong> ${fix_result.sap_success_count}<br>` : ''}
+                    ${fix_result.sap_error_count !== undefined ? `<strong>SAP Error Count:</strong> ${fix_result.sap_error_count}` : ''}
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    let dialog = new frappe.ui.Dialog({
+        title: 'Manual Fix Results',
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'fix_html',
+                options: html
+            }
+        ],
+        primary_action_label: 'OK',
+        primary_action() {
+            dialog.hide();
+        }
+    });
+    
+    dialog.show();
+}
+
+function show_document_inspector_dialog(frm, health_report) {
+    health_report = health_report || {};
+    health_report.linked_documents = health_report.linked_documents || {};
+    
+    let html = `
+        <div class="document-inspector">
+            <style>
+                .document-inspector {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                }
+                .inspector-section {
+                    border: 1px solid #dee2e6;
+                    border-radius: 8px;
+                    margin: 15px 0;
+                    overflow: hidden;
+                }
+                .inspector-header {
+                    background: #f8f9fa;
+                    padding: 12px 15px;
+                    font-weight: 600;
+                    border-bottom: 1px solid #dee2e6;
+                }
+                .inspector-content {
+                    padding: 15px;
+                }
+                .field-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 10px;
+                }
+                .field-item {
+                    background: #f8f9fa;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    font-size: 13px;
+                }
+                .field-label {
+                    font-weight: 600;
+                    color: #495057;
+                }
+                .field-value {
+                    color: #6c757d;
+                    margin-top: 2px;
+                }
+                .child-table {
+                    overflow-x: auto;
+                }
+                .child-table table {
+                    width: 100%;
+                    font-size: 12px;
+                    border-collapse: collapse;
+                }
+                .child-table th,
+                .child-table td {
+                    padding: 8px;
+                    border: 1px solid #dee2e6;
+                    text-align: left;
+                }
+                .child-table th {
+                    background: #f8f9fa;
+                    font-weight: 600;
+                }
+            </style>
+            
+            <div class="inspector-section">
+                <div class="inspector-header">Document Information</div>
+                <div class="inspector-content">
+                    <div class="field-grid">
+                        <div class="field-item">
+                            <div class="field-label">Document Name</div>
+                            <div class="field-value">${frm.doc.name || 'Not Available'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">Reference No</div>
+                            <div class="field-value">${frm.doc.ref_no || 'Not Set'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">Vendor Name</div>
+                            <div class="field-value">${frm.doc.vendor_name || 'Not Set'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">Current Status</div>
+                            <div class="field-value">${frm.doc.onboarding_form_status || 'Not Set'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">Created</div>
+                            <div class="field-value">${frm.doc.creation ? frappe.datetime.str_to_user(frm.doc.creation) : 'Not Available'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">Last Modified</div>
+                            <div class="field-value">${frm.doc.modified ? frappe.datetime.str_to_user(frm.doc.modified) : 'Not Available'}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="inspector-section">
+                <div class="inspector-header">Approval Status</div>
+                <div class="inspector-content">
+                    <div class="field-grid">
+                        <div class="field-item">
+                            <div class="field-label">Purchase Team</div>
+                            <div class="field-value">${frm.doc.purchase_team_undertaking ? '✅ Approved' : '⏳ Pending'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">Purchase Head</div>
+                            <div class="field-value">${frm.doc.purchase_head_undertaking ? '✅ Approved' : '⏳ Pending'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">Accounts Team</div>
+                            <div class="field-value">${frm.doc.accounts_team_undertaking ? '✅ Approved' : '⏳ Pending'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">Accounts Head</div>
+                            <div class="field-value">${frm.doc.accounts_head_undertaking ? '✅ Approved' : '⏳ Pending'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">Mandatory Data</div>
+                            <div class="field-value">${frm.doc.mandatory_data_filled ? '✅ Complete' : '❌ Incomplete'}</div>
+                        </div>
+                        <div class="field-item">
+                            <div class="field-label">SAP Integration</div>
+                            <div class="field-value">${frm.doc.data_sent_to_sap ? '✅ Completed' : '⏳ Pending'}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="inspector-section">
+                <div class="inspector-header">Linked Documents Status</div>
+                <div class="inspector-content">
+                    <div class="field-grid">
+                        ${Object.keys(health_report.linked_documents).length > 0 ? Object.entries(health_report.linked_documents).map(([field, info]) => `
+                            <div class="field-item">
+                                <div class="field-label">${field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                                <div class="field-value">
+                                    <span style="color: ${info.status === 'exists' ? '#28a745' : info.status === 'missing' ? '#dc3545' : '#6c757d'}">
+                                        ${info.status === 'exists' ? '✅ Exists' : info.status === 'missing' ? '❌ Missing' : '⚪ Not Set'}
+                                    </span>
+                                    ${info.name ? `<br><small>${info.name}</small>` : ''}
+                                </div>
+                            </div>
+                        `).join('') : '<div class="field-item"><div class="field-label">No linked documents information available</div></div>'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    let dialog = new frappe.ui.Dialog({
+        title: `Document Inspector - ${frm.doc.name}`,
+        size: 'extra-large',
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'inspector_html',
+                options: html
+            }
+        ],
+        primary_action_label: 'Run Health Check',
+        primary_action() {
+            dialog.hide();
+            run_health_check(frm);
+        }
+    });
+    
+    dialog.show();
+}
+
+function run_manual_fix_from_health_check(document_name) {
+    frappe.confirm(
+        `Run manual fix on document ${document_name}?`,
+        function() {
+            frappe.call({
+                method: 'vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.manual_fix_vendor_onboarding',
+                args: {
+                    onb_name: document_name
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        show_fix_result_dialog(r.message);
+                        cur_frm.reload_doc();
+                    }
+                }
+            });
+        }
+    );
+}
+
+function get_status_indicator_html(status) {
+    let indicators = {
+        'Pending': { color: '#ffc107', icon: '⏳' },
+        'Approved': { color: '#28a745', icon: '✅' },
+        'Rejected': { color: '#dc3545', icon: '❌' },
+        'SAP Error': { color: '#fd7e14', icon: '⚠️' },
+        'Processing': { color: '#17a2b8', icon: '🔄' }
+    };
+    
+    let indicator = indicators[status] || { color: '#6c757d', icon: '❓' };
+    
+    return `
+        <div class="status-indicator-wrapper" style="margin-top: 8px;">
+            <span style="
+                display: inline-block;
+                background: ${indicator.color};
+                color: white;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+            ">
+                ${indicator.icon} ${status}
+            </span>
+        </div>
+    `;
 }
