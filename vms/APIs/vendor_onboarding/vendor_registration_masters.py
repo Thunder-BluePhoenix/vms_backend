@@ -7,6 +7,18 @@ import json
 @frappe.whitelist(allow_guest=True)
 def vendor_registration_dropdown_masters(sap_client_code=None):
     try:
+        usr = frappe.session.user
+        employee_list = frappe.get_all("Employee", filters={"user_id": usr}, limit_page_length=1)
+        if employee_list:
+            employee = frappe.get_doc("Employee", employee_list[0].name)
+            team = employee.team
+        else:
+            team = None
+
+        user_list = []
+        if team:
+            user_list = frappe.get_all("Employee", filters={"team": team, "designation": "Purchase Team"}, fields=["user_id", "full_name"])
+
         vendor_type = frappe.db.sql("SELECT name  FROM `tabVendor Type Master`", as_dict=True)
         vendor_title = frappe.db.sql("SELECT name FROM `tabVendor Title`", as_dict=True)
         country_master = frappe.db.sql("SELECT name, country_name, mobile_code FROM `tabCountry Master`", as_dict=True)
@@ -38,7 +50,8 @@ def vendor_registration_dropdown_masters(sap_client_code=None):
                 "company_master": company_master,
                 "currency_master": currency_master,
                 "incoterm_master": incoterm_master,
-                "reconciliation_account": reconciliation_account
+                "reconciliation_account": reconciliation_account,
+                "users_list": user_list
             }
         }
 
