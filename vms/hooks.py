@@ -225,7 +225,7 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-scheduler_events_enhanced = {
+scheduler_events = {
     "all": [
         "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
     ],
