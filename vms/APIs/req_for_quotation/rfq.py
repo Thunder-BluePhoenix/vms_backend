@@ -517,6 +517,7 @@ def send_revised_rfq(data):
     rfq = frappe.new_doc("Request For Quotation")
     rfq.unique_id = old_rfq.unique_id
     rfq.prev_rfq = old_rfq.name
+    rfq.sr_no = old_rfq.sr_no
     rfq.raised_by = frappe.local.session.user
     rfq.form_fully_submitted = 1
     rfq.status = "Pending"
