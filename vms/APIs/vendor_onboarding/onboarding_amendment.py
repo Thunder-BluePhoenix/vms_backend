@@ -75,9 +75,9 @@ def create_vendor_onboarding_amendment(data):
         
         # Reset rejection fields as required
         vendor_onboarding_doc.rejected = 0
-        vendor_onboarding_doc.rejected_by = None
-        vendor_onboarding_doc.rejected_by_designation = None
-        vendor_onboarding_doc.reason_for_rejection = None
+        # vendor_onboarding_doc.rejected_by = None
+        # vendor_onboarding_doc.rejected_by_designation = None
+        # vendor_onboarding_doc.reason_for_rejection = None
         vendor_onboarding_doc.rejected_mail_sent = 0
         vendor_onboarding_doc.is_amendment = 1
 
