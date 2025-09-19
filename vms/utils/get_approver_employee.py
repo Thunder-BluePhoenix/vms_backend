@@ -96,7 +96,7 @@ def get_standard_approval_employee(role_short, company_list, filters={}, fields=
     return employee_list[0] if employee_list else None
 
 
-def get_approval_employee_no_company(role_short, filters={}, fields=["*"],employee_team):
+def get_approval_employee_no_company(role_short, filters={}, fields=["*"],employee_team=None):
     
     users_with_role = frappe.get_all(
         "Has Role",
@@ -113,8 +113,9 @@ def get_approval_employee_no_company(role_short, filters={}, fields=["*"],employ
     final_filters = {
         **filters,
         "user_id": ("in", user_ids_with_role),  
-        "status": "Active",  
-        "team": employee_team
+        "team": employee_team,
+        "status": "Active"
+        
     }
     
     employee_list = frappe.get_all(
