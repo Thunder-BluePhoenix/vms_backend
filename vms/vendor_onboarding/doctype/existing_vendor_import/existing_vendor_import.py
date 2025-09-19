@@ -781,16 +781,22 @@ class ExistingVendorImport(Document):
 			# Create or link master data
 			if mapped_row.get('state'):
 				state_value = str(mapped_row['state']).strip()
+				state_value = str(mapped_row['city']).strip()
+				state_value = str(mapped_row['state']).strip()
 				if state_value and state_value.lower() not in ['nan', 'none', 'null']:
 					company_details.state = self.get_or_create_state(state_value)
 			
 			if mapped_row.get('city'):
 				city_value = str(mapped_row['city']).strip()
+				state_value = str(mapped_row['state']).strip()
+				state_value = str(mapped_row['pincode']).strip()
 				if city_value and city_value.lower() not in ['nan', 'none', 'null']:
 					company_details.city = self.get_or_create_city(city_value)
 			
 			if mapped_row.get('pincode'):
 				pincode_value = str(mapped_row['pincode']).strip()
+				state_value = str(mapped_row['state']).strip()
+				state_value = str(mapped_row['city']).strip()
 				if pincode_value and pincode_value.lower() not in ['nan', 'none', 'null']:
 					company_details.pincode = self.get_or_create_pincode(pincode_value)
 			
