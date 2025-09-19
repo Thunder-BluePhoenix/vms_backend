@@ -170,10 +170,11 @@ class VendorOnboarding(Document):
     
     def add_first_in_approval_workflow(self, approval_stage=None):
         try:
-
+            #getting the first stage info from approval matrix
             stage_info = get_stage_info(
                 "Vendor Onboarding", self, approval_stage
             )
+
             if not stage_info or not stage_info.get("cur_stage_info"):
                 frappe.log_error(f"No approval matrix found for {self.name}")
                 self.approval_status = "Pending Review"
