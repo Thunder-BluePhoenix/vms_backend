@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "vehicle_type",
   "vehicle_no",
   "driver_phone",
   "loading_state",
@@ -86,12 +87,17 @@
    "fieldtype": "Select",
    "label": "Vehicle Details Series",
    "options": "VDN-.###"
+  },
+  {
+   "fieldname": "vehicle_type",
+   "fieldtype": "Data",
+   "label": "Vehicle Type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:37:47.309104",
+ "modified": "2025-09-18 14:26:34.776003",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Vehicle Details",
