@@ -14,7 +14,9 @@
   "column_break_ahym",
   "company",
   "section_break_dujv",
-  "note"
+  "note",
+  "section_break_mcku",
+  "inactive"
  ],
  "fields": [
   {
@@ -62,12 +64,22 @@
   {
    "fieldname": "section_break_dujv",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_mcku",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "inactive",
+   "fieldtype": "Check",
+   "label": "Inactive"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:29.822745",
+ "modified": "2025-09-20 14:07:30.174302",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Incoterm Master",

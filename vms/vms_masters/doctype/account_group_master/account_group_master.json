@@ -10,7 +10,9 @@
   "account_group_name",
   "account_group_description",
   "purchase_organization",
-  "vendor_type"
+  "vendor_type",
+  "section_break_gkld",
+  "inactive"
  ],
  "fields": [
   {
@@ -39,12 +41,22 @@
    "fieldtype": "Table",
    "label": "Vendor Type",
    "options": "Vendor Type for Account"
+  },
+  {
+   "fieldname": "section_break_gkld",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "inactive",
+   "fieldtype": "Check",
+   "label": "Inactive"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:36.899924",
+ "modified": "2025-09-20 14:06:29.472611",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Account Group Master",

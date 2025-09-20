@@ -21,24 +21,25 @@ def vendor_registration_dropdown_masters(sap_client_code=None):
 
         vendor_type = frappe.db.sql("SELECT name  FROM `tabVendor Type Master`", as_dict=True)
         vendor_title = frappe.db.sql("SELECT name FROM `tabVendor Title`", as_dict=True)
-        country_master = frappe.db.sql("SELECT name, country_name, mobile_code FROM `tabCountry Master`", as_dict=True)
+        country_master = frappe.db.sql("SELECT name, country_name, mobile_code FROM `tabCountry Master` WHERE inactive = 0", as_dict=True)
 
         # Conditional company master filter
         if sap_client_code:
             company_master = frappe.db.sql("""
                 SELECT name, company_name, company_code, description, sap_client_code
                 FROM `tabCompany Master`
-                WHERE sap_client_code = %s
+                WHERE sap_client_code = %s AND inactive = 0
             """, (sap_client_code,), as_dict=True)
         else:
             company_master = frappe.db.sql("""
                 SELECT name, company_name, company_code, description 
                 FROM `tabCompany Master`
+                WHERE inactive = 0
             """, as_dict=True)
 
-        currency_master = frappe.db.sql("SELECT name, currency_name FROM `tabCurrency Master`", as_dict=True)
-        incoterm_master = frappe.db.sql("SELECT name, incoterm_name FROM `tabIncoterm Master`", as_dict=True)
-        reconciliation_account = frappe.db.sql("SELECT name, reconcil_account_code, reconcil_account, reconcil_description FROM `tabReconciliation Account`", as_dict=True)
+        currency_master = frappe.db.sql("SELECT name, currency_name FROM `tabCurrency Master` WHERE inactive = 0", as_dict=True)
+        incoterm_master = frappe.db.sql("SELECT name, incoterm_name FROM `tabIncoterm Master` WHERE inactive = 0", as_dict=True)
+        reconciliation_account = frappe.db.sql("SELECT name, reconcil_account_code, reconcil_account, reconcil_description FROM `tabReconciliation Account` WHERE inactive = 0", as_dict=True)
 
         return {
             "status": "success",

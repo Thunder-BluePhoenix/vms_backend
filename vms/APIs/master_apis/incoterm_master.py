@@ -20,7 +20,7 @@ def get_incoterm_list(company_name=None):
                     im.note
                 FROM `tabIncoterm Master` im
                 INNER JOIN `tabIncoterm Company Table` ict ON im.name = ict.parent
-                WHERE ict.company = %s
+                WHERE ict.company = %s AND im.inactive = 0
                 ORDER BY im.incoterm_name
             """
             
@@ -43,6 +43,7 @@ def get_incoterm_list(company_name=None):
             # If no company filter, get all incoterms
             all_incoterms = frappe.get_all(
                 "Incoterm Master",
+                filters={"inactive": 0},
                 fields=["name", "incoterm_code", "incoterm_name", "delivery_point", 
                        "transportation_costs", "risk_transfer", "note"],
                 order_by="incoterm_name"
