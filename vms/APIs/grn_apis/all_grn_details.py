@@ -143,7 +143,8 @@ def get_grn_details_of_grn_number(grn_number=None):
         pg_master_name = f"{purchase_group}-{company}"
         pg_team = frappe.db.get_value("Purchase Group Master", pg_master_name, "team")
 
-        if pg_team and pg_team == user_team:
+        # if pg_team and pg_team == user_team:
+        if pg_team:
             filtered_items.append(item)
 
     if not filtered_items:
