@@ -109,8 +109,8 @@ def get_grn_details_of_grn_number(grn_number=None):
     user = frappe.session.user
     user_team = frappe.db.get_value("Employee", {"user_id": user}, "team")
 
-    if not user_team:
-        frappe.throw("Your team is not mapped. Contact Admin.")
+    # if not user_team:
+    #     frappe.throw("Your team is not mapped. Contact Admin.")
 
     grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
     if not grn_name:
