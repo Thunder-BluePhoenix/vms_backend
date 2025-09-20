@@ -255,7 +255,7 @@ class VendorDocumentManager:
                 existing = True
                 # Update existing record
                 record.onboarding_date = onboarding.creation
-                record.onboarding_status = onboarding.onboarding_form_status
+                record.onboarding_form_status = onboarding.onboarding_form_status
                 record.payment_details = onboarding.payment_detail
                 record.document_details = onboarding.document_details
                 record.certificate_details = onboarding.certificate_details
@@ -274,7 +274,7 @@ class VendorDocumentManager:
             vendor_master.append("vendor_onb_records", {
                 "vendor_onboarding_no": onboarding.name,
                 "onboarding_date": onboarding.creation,
-                "onboarding_status": onboarding.onboarding_form_status,
+                "onboarding_form_status": onboarding.onboarding_form_status,
                 "payment_details": onboarding.payment_detail,
                 "document_details": onboarding.document_details,
                 "certificate_details": onboarding.certificate_details,
