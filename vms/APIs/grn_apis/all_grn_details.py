@@ -101,94 +101,177 @@ def get_all_grn_details():
         frappe.throw(_("Something went wrong while fetching GRNs."))
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_grn_details_of_grn_number(grn_number=None):
     if not grn_number:
         frappe.throw("GRN Number is required")
 
     user = frappe.session.user
-    user_team = frappe.db.get_value("Employee", {"user_id": user}, "team")
 
-    # if not user_team:
-    #     frappe.throw("Your team is not mapped. Contact Admin.")
+    employee = frappe.get_all("Employee", filters={"user_id": user}, fields=["name", "designation", "team"])
 
-    grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
-    if not grn_name:
-        frappe.throw("GRN not found.")
+    if not employee:
+        frappe.throw("Employee record not found for user.")
 
-    try:
-        grn_doc = frappe.get_doc("GRN", grn_name)
-    except frappe.DoesNotExistError:
-        frappe.throw("GRN document does not exist.")
+    employee = frappe.get_doc("Employee", employee[0]) 
 
-    filtered_items = []
+    if employee.designation in ["Purchase Team", "Purchase Head"]:
+        user_team = employee.team
+        if not user_team:
+            frappe.throw("Your team is not mapped. Contact Admin.")
 
-    grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn_name})
-    if not grn_items:
-        frappe.throw("No GRN Items found in this GRN.")
+        grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
+        if not grn_name:
+            frappe.throw("GRN not found.")
 
-    for item in grn_items:
-        po_no = item.get("po_no")
-        plant = item.get("plant")
+        try:
+            grn_doc = frappe.get_doc("GRN", grn_name)
+        except frappe.DoesNotExistError:
+            frappe.throw("GRN document does not exist.")
 
-        if not po_no or not plant:
-            continue
+        filtered_items = []
 
-        purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
-        company = frappe.db.get_value("Plant Master", plant, "company")
+        grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn_name})
+        if not grn_items:
+            frappe.throw("No GRN Items found in this GRN.")
 
-        if not purchase_group or not company:
-            continue
+        for item in grn_items:
+            po_no = item.get("po_no")
+            plant = item.get("plant")
 
-        pg_master_name = f"{purchase_group}-{company}"
-        pg_team = frappe.db.get_value("Purchase Group Master", pg_master_name, "team")
+            if not po_no or not plant:
+                continue
 
-        # if pg_team and pg_team == user_team:
-        if pg_team:
+            purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
+            company = frappe.db.get_value("Plant Master", plant, "company")
+
+            if not purchase_group or not company:
+                continue
+
+            pg_master_name = f"{purchase_group}-{company}"
+            pg_team = frappe.db.get_value("Purchase Group Master", pg_master_name, "team")
+
+            if pg_team and pg_team == user_team:
+                filtered_items.append(item)
+
+        if not filtered_items:
+            frappe.throw("You are not authorized to view any items in this GRN.")
+
+        attachments_data = []
+        if hasattr(grn_doc, 'attachments') and grn_doc.attachments: 
+            for attachment in grn_doc.attachments:
+                attachment_url = attachment.get('attachment_name')
+                attachment_info = {
+                    "row_name": attachment.name,    
+                    "file_name": attachment.get('name1'),  
+                }
+                attachments_data.append(attachment_info)
+
+
+                if attachment_url:
+                    try:
+                        file_doc = frappe.get_doc("File", {"file_url": attachment_url})
+                        attachment_info["full_url"] = f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}"
+                        attachment_info["file_doc_name"] = file_doc.name
+                        attachment_info["actual_file_name"] = file_doc.file_name
+                    except frappe.DoesNotExistError:
+                        attachment_info["full_url"] = None
+                        attachment_info["error"] = "File document not found"
+                    except Exception as e:
+                        attachment_info["full_url"] = None
+                        attachment_info["error"] = str(e)
+                else:
+                    attachment_info["full_url"] = None
+                
+                attachments_data.append(attachment_info)
+
+        return {
+            "grn_no": grn_doc.grn_number,
+            "grn_date": grn_doc.grn_date,
+            "grn_items": filtered_items,
+            "sap_booking_id":grn_doc.sap_booking_id,
+            "miro_no":grn_doc.miro_no,
+            "sap_status": grn_doc.sap_status,
+            "grn_year": grn_doc.grn_year,
+            "company_name": grn_doc.company_name,
+            "attachments": attachments_data
+        }
+    
+    else:
+        grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
+        if not grn_name:
+            frappe.throw("GRN not found.")
+
+        try:
+            grn_doc = frappe.get_doc("GRN", grn_name)
+        except frappe.DoesNotExistError:
+            frappe.throw("GRN document does not exist.")
+
+        filtered_items = []
+
+        grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn_name})
+        if not grn_items:
+            frappe.throw("No GRN Items found in this GRN.")
+
+        for item in grn_items:
+            po_no = item.get("po_no")
+            plant = item.get("plant")
+
+            if not po_no or not plant:
+                continue
+
+            purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
+            company = frappe.db.get_value("Plant Master", plant, "company")
+
+            if not purchase_group or not company:
+                continue
+
+            pg_master_name = f"{purchase_group}-{company}"
+            
             filtered_items.append(item)
 
-    if not filtered_items:
-        frappe.throw("You are not authorized to view any items in this GRN.")
+        if not filtered_items:
+            frappe.throw("No valid items found in this GRN.")
 
-    attachments_data = []
-    if hasattr(grn_doc, 'attachments') and grn_doc.attachments: 
-        for attachment in grn_doc.attachments:
-            attachment_url = attachment.get('attachment_name')
-            attachment_info = {
-                "row_name": attachment.name,    
-                "file_name": attachment.get('name1'),  
-            }
-            attachments_data.append(attachment_info)
+        attachments_data = []
+        if hasattr(grn_doc, 'attachments') and grn_doc.attachments: 
+            for attachment in grn_doc.attachments:
+                attachment_url = attachment.get('attachment_name')
+                attachment_info = {
+                    "row_name": attachment.name,    
+                    "file_name": attachment.get('name1'),  
+                }
+                attachments_data.append(attachment_info)
 
 
-            if attachment_url:
-                try:
-                    file_doc = frappe.get_doc("File", {"file_url": attachment_url})
-                    attachment_info["full_url"] = f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}"
-                    attachment_info["file_doc_name"] = file_doc.name
-                    attachment_info["actual_file_name"] = file_doc.file_name
-                except frappe.DoesNotExistError:
+                if attachment_url:
+                    try:
+                        file_doc = frappe.get_doc("File", {"file_url": attachment_url})
+                        attachment_info["full_url"] = f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}"
+                        attachment_info["file_doc_name"] = file_doc.name
+                        attachment_info["actual_file_name"] = file_doc.file_name
+                    except frappe.DoesNotExistError:
+                        attachment_info["full_url"] = None
+                        attachment_info["error"] = "File document not found"
+                    except Exception as e:
+                        attachment_info["full_url"] = None
+                        attachment_info["error"] = str(e)
+                else:
                     attachment_info["full_url"] = None
-                    attachment_info["error"] = "File document not found"
-                except Exception as e:
-                    attachment_info["full_url"] = None
-                    attachment_info["error"] = str(e)
-            else:
-                attachment_info["full_url"] = None
-            
-            attachments_data.append(attachment_info)
+                
+                attachments_data.append(attachment_info)
 
-    return {
-        "grn_no": grn_doc.grn_number,
-        "grn_date": grn_doc.grn_date,
-        "grn_items": filtered_items,
-        "sap_booking_id":grn_doc.sap_booking_id,
-        "miro_no":grn_doc.miro_no,
-        "sap_status": grn_doc.sap_status,
-        "grn_year": grn_doc.grn_year,
-        "company_name": grn_doc.company_name,
-        "attachments": attachments_data
-    }
+        return {
+            "grn_no": grn_doc.grn_number,
+            "grn_date": grn_doc.grn_date,
+            "grn_items": filtered_items,
+            "sap_booking_id":grn_doc.sap_booking_id,
+            "miro_no":grn_doc.miro_no,
+            "sap_status": grn_doc.sap_status,
+            "grn_year": grn_doc.grn_year,
+            "company_name": grn_doc.company_name,
+            "attachments": attachments_data
+        }
 
 
 
