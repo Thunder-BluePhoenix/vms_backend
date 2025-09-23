@@ -171,19 +171,33 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         
         # attach field
         if doc.address_proofattachment:
-            file_doc = frappe.get_doc("File", {"file_url": doc.address_proofattachment})
-            address_details["address_proofattachment"] = {
-                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                "name": file_doc.name,
-                "file_name": file_doc.file_name
-
-            }
+            try:
+                if frappe.db.exists("File", {"file_url": doc.address_proofattachment}):
+                    file_doc = frappe.get_doc("File", {"file_url": doc.address_proofattachment})
+                    address_details["address_proofattachment"] = {
+                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                        "name": file_doc.name,
+                        "file_name": file_doc.file_name
+                    }
+                else:
+                    address_details["address_proofattachment"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
+            except Exception as e:
+                frappe.log_error(f"Error fetching address_proofattachment: {str(e)}")
+                address_details["address_proofattachment"] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
         else:
             address_details["address_proofattachment"] = {
                 "url": "",
-                "name": ""
+                "name": "",
+                "file_name": ""
             }
-
 
         #--- Documents details Tab--------
 
@@ -212,12 +226,27 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         for field in ["pan_proof", "entity_proof", "msme_proof", "iec_proof", "form_10f_proof", "trc_certificate", "pe_certificate"]:
             file_url = legal_doc.get(field)
             if file_url:
-                file_doc = frappe.get_doc("File", {"file_url": file_url})
-                document_details[field] = {
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name
-                }
+                try:
+                    if frappe.db.exists("File", {"file_url": file_url}):
+                        file_doc = frappe.get_doc("File", {"file_url": file_url})
+                        document_details[field] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        document_details[field] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Error fetching file for field '{field}': {str(e)}")
+                    document_details[field] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
             else:
                 document_details[field] = {
                     "url": "",
@@ -228,25 +257,44 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         # Child Table: GST Table with attachment
         gst_table = []
         company_gst_table = []
+
         for row in legal_doc.gst_table:
             gst_row = row.as_dict()
+
             gst_row["state_details"] = (
                 frappe.db.get_value("State Master", row.gst_state, ["name", "state_code", "state_name"], as_dict=True)
                 if row.gst_state and frappe.db.exists("State Master", row.gst_state) else {}
             )
+
             if row.gst_document:
-                file_doc = frappe.get_doc("File", {"file_url": row.gst_document})
-                gst_row["gst_document"] = {
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name
-                }
+                try:
+                    if frappe.db.exists("File", {"file_url": row.gst_document}):
+                        file_doc = frappe.get_doc("File", {"file_url": row.gst_document})
+                        gst_row["gst_document"] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        gst_row["gst_document"] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Error fetching GST document for GSTIN '{row.gstin}': {str(e)}")
+                    gst_row["gst_document"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
             else:
                 gst_row["gst_document"] = {
                     "url": "",
                     "name": "",
                     "file_name": ""
                 }
+
             gst_table.append(gst_row)
 
         document_details["gst_table"] = gst_table
@@ -304,12 +352,27 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         # bank proof and bank proof by purchase team
         if payment_doc.bank_proof:
-            file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof})
-            payment_details["bank_proof"] = {
-                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                "name": file_doc.name,
-                "file_name": file_doc.file_name
-            }
+            try:
+                if frappe.db.exists("File", {"file_url": payment_doc.bank_proof}):
+                    file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof})
+                    payment_details["bank_proof"] = {
+                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                        "name": file_doc.name,
+                        "file_name": file_doc.file_name
+                    }
+                else:
+                    payment_details["bank_proof"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
+            except Exception as e:
+                frappe.log_error(f"Error fetching bank_proof file: {str(e)}")
+                payment_details["bank_proof"] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
         else:
             payment_details["bank_proof"] = {
                 "url": "",
@@ -317,13 +380,29 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 "file_name": ""
             }
 
+
         if payment_doc.bank_proof_by_purchase_team:
-            file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof_by_purchase_team})
-            payment_details["bank_proof_by_purchase_team"] = {
-                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                "name": file_doc.name,
-                "file_name": file_doc.file_name
-            }
+            try:
+                if frappe.db.exists("File", {"file_url": payment_doc.bank_proof_by_purchase_team}):
+                    file_doc = frappe.get_doc("File", {"file_url": payment_doc.bank_proof_by_purchase_team})
+                    payment_details["bank_proof_by_purchase_team"] = {
+                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                        "name": file_doc.name,
+                        "file_name": file_doc.file_name
+                    }
+                else:
+                    payment_details["bank_proof_by_purchase_team"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
+            except Exception as e:
+                frappe.log_error(f"Error fetching bank_proof_by_purchase_team file: {str(e)}")
+                payment_details["bank_proof_by_purchase_team"] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
         else:
             payment_details["bank_proof_by_purchase_team"] = {
                 "url": "",
@@ -347,12 +426,27 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             bank_row = row.as_dict()
             
             if row.bank_proof_for_beneficiary_bank:
-                file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_beneficiary_bank})
-                bank_row["bank_proof_for_beneficiary_bank"] = {
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name
-                }
+                try:
+                    if frappe.db.exists("File", {"file_url": row.bank_proof_for_beneficiary_bank}):
+                        file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_beneficiary_bank})
+                        bank_row["bank_proof_for_beneficiary_bank"] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        bank_row["bank_proof_for_beneficiary_bank"] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Error fetching bank_proof_for_beneficiary_bank: {str(e)}")
+                    bank_row["bank_proof_for_beneficiary_bank"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
             else:
                 bank_row["bank_proof_for_beneficiary_bank"] = {
                     "url": "",
@@ -361,12 +455,27 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 }
 
             if row.international_bank_proof_by_purchase_team:
-                file_doc = frappe.get_doc("File", {"file_url": row.international_bank_proof_by_purchase_team})
-                bank_row["international_bank_proof_by_purchase_team"] = {
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name
-                }
+                try:
+                    if frappe.db.exists("File", {"file_url": row.international_bank_proof_by_purchase_team}):
+                        file_doc = frappe.get_doc("File", {"file_url": row.international_bank_proof_by_purchase_team})
+                        bank_row["international_bank_proof_by_purchase_team"] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        bank_row["international_bank_proof_by_purchase_team"] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Error fetching international_bank_proof_by_purchase_team: {str(e)}")
+                    bank_row["international_bank_proof_by_purchase_team"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
             else:
                 bank_row["international_bank_proof_by_purchase_team"] = {
                     "url": "",
@@ -385,12 +494,27 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             bank_row = row.as_dict()
             
             if row.bank_proof_for_intermediate_bank:
-                file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_intermediate_bank})
-                bank_row["bank_proof_for_intermediate_bank"] = {
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name
-                }
+                try:
+                    if frappe.db.exists("File", {"file_url": row.bank_proof_for_intermediate_bank}):
+                        file_doc = frappe.get_doc("File", {"file_url": row.bank_proof_for_intermediate_bank})
+                        bank_row["bank_proof_for_intermediate_bank"] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        bank_row["bank_proof_for_intermediate_bank"] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Error fetching bank_proof_for_intermediate_bank: {str(e)}")
+                    bank_row["bank_proof_for_intermediate_bank"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
             else:
                 bank_row["bank_proof_for_intermediate_bank"] = {
                     "url": "",
@@ -399,12 +523,27 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 }
 
             if row.intermediate_bank_proof_by_purchase_team:
-                file_doc = frappe.get_doc("File", {"file_url": row.intermediate_bank_proof_by_purchase_team})
-                bank_row["intermediate_bank_proof_by_purchase_team"] = {
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name
-                }
+                try:
+                    if frappe.db.exists("File", {"file_url": row.intermediate_bank_proof_by_purchase_team}):
+                        file_doc = frappe.get_doc("File", {"file_url": row.intermediate_bank_proof_by_purchase_team})
+                        bank_row["intermediate_bank_proof_by_purchase_team"] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        bank_row["intermediate_bank_proof_by_purchase_team"] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Error fetching intermediate_bank_proof_by_purchase_team: {str(e)}")
+                    bank_row["intermediate_bank_proof_by_purchase_team"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
             else:
                 bank_row["intermediate_bank_proof_by_purchase_team"] = {
                     "url": "",
@@ -420,19 +559,36 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         bank_proofs_by_purchase_team = []
         for row in payment_doc.bank_proofs_by_purchase_team:
             if row.attachment_name:
-                file_doc = frappe.get_doc("File", {"file_url": row.attachment_name})
-                bank_proofs_by_purchase_team.append({
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name,
-                    "row_name": row.name
-                })
+                try:
+                    if frappe.db.exists("File", {"file_url": row.attachment_name}):
+                        file_doc = frappe.get_doc("File", {"file_url": row.attachment_name})
+                        bank_proofs_by_purchase_team.append({
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name,
+                            "row_name": row.name
+                        })
+                    else:
+                        bank_proofs_by_purchase_team.append({
+                            "url": "",
+                            "name": "",
+                            "file_name": "",
+                            "row_name": row.name
+                        })
+                except Exception as e:
+                    frappe.log_error(f"Error fetching bank_proofs_by_purchase_team attachment: {str(e)}")
+                    bank_proofs_by_purchase_team.append({
+                        "url": "",
+                        "name": "",
+                        "file_name": "",
+                        "row_name": row.name
+                    })
             else:
                 bank_proofs_by_purchase_team.append({
                     "url": "",
                     "name": "",
                     "file_name": "",
-                    "row_name": ""
+                    "row_name": row.name
                 })
         payment_details["bank_proofs_by_purchase_team"] = bank_proofs_by_purchase_team
 
@@ -440,19 +596,36 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         international_bank_proofs_by_purchase_team = []
         for row in payment_doc.international_bank_proofs_by_purchase_team:
             if row.attachment_name:
-                file_doc = frappe.get_doc("File", {"file_url": row.attachment_name})
-                international_bank_proofs_by_purchase_team.append({
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name,
-                    "row_name": row.name
-                })
+                try:
+                    if frappe.db.exists("File", {"file_url": row.attachment_name}):
+                        file_doc = frappe.get_doc("File", {"file_url": row.attachment_name})
+                        international_bank_proofs_by_purchase_team.append({
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name,
+                            "row_name": row.name
+                        })
+                    else:
+                        international_bank_proofs_by_purchase_team.append({
+                            "url": "",
+                            "name": "",
+                            "file_name": "",
+                            "row_name": row.name
+                        })
+                except Exception as e:
+                    frappe.log_error(f"Error fetching international_bank_proofs_by_purchase_team attachment: {str(e)}")
+                    international_bank_proofs_by_purchase_team.append({
+                        "url": "",
+                        "name": "",
+                        "file_name": "",
+                        "row_name": row.name
+                    })
             else:
                 international_bank_proofs_by_purchase_team.append({
                     "url": "",
                     "name": "",
                     "file_name": "",
-                    "row_name": ""
+                    "row_name": row.name
                 })
         payment_details["international_bank_proofs_by_purchase_team"] = international_bank_proofs_by_purchase_team
 
@@ -460,19 +633,36 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         intermediate_bank_proofs_by_purchase_team = []
         for row in payment_doc.intermediate_bank_proofs_by_purchase_team:
             if row.attachment_name:
-                file_doc = frappe.get_doc("File", {"file_url": row.attachment_name})
-                intermediate_bank_proofs_by_purchase_team.append({
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name,
-                    "row_name": row.name
-                })
+                try:
+                    if frappe.db.exists("File", {"file_url": row.attachment_name}):
+                        file_doc = frappe.get_doc("File", {"file_url": row.attachment_name})
+                        intermediate_bank_proofs_by_purchase_team.append({
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name,
+                            "row_name": row.name
+                        })
+                    else:
+                        intermediate_bank_proofs_by_purchase_team.append({
+                            "url": "",
+                            "name": "",
+                            "file_name": "",
+                            "row_name": row.name
+                        })
+                except Exception as e:
+                    frappe.log_error(f"Error fetching intermediate_bank_proofs_by_purchase_team attachment: {str(e)}")
+                    intermediate_bank_proofs_by_purchase_team.append({
+                        "url": "",
+                        "name": "",
+                        "file_name": "",
+                        "row_name": row.name
+                    })
             else:
                 intermediate_bank_proofs_by_purchase_team.append({
                     "url": "",
                     "name": "",
                     "file_name": "",
-                    "row_name": ""
+                    "row_name": row.name
                 })
         payment_details["intermediate_bank_proofs_by_purchase_team"] = intermediate_bank_proofs_by_purchase_team
 
@@ -490,8 +680,9 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         ven_onb_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
         contact_details = [row.as_dict() for row in ven_onb_doc.contact_details]
-        vendor_type_list = []
         
+        vendor_type_list = []
+
         for row in ven_onb_doc.vendor_types:
             vendor_type_list.append(row.vendor_type)
 
@@ -529,21 +720,39 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         manuf_details = {field: manuf_doc.get(field) for field in manuf_fields}
 
         materials_supplied = []
+
         for row in manuf_doc.materials_supplied:
             row_data = row.as_dict()
+
             if row.material_images:
-                file_doc = frappe.get_doc("File", {"file_url": row.material_images})
-                row_data["material_images"] = {
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name
-                }
+                try:
+                    if frappe.db.exists("File", {"file_url": row.material_images}):
+                        file_doc = frappe.get_doc("File", {"file_url": row.material_images})
+                        row_data["material_images"] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        row_data["material_images"] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Error fetching material_images for materials_supplied: {str(e)}")
+                    row_data["material_images"] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
             else:
                 row_data["material_images"] = {
                     "url": "",
                     "name": "",
                     "file_name": ""
                 }
+    
             materials_supplied.append(row_data)
 
         manuf_details["materials_supplied"] = materials_supplied
@@ -552,15 +761,33 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         for field in ["brochure_proof", "organisation_structure_document"]:
             file_url = manuf_doc.get(field)
             if file_url:
-                file_doc = frappe.get_doc("File", {"file_url": file_url})
-                manuf_details[field] = {
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name
-                }
+                try:
+                    if frappe.db.exists("File", {"file_url": file_url}):
+                        file_doc = frappe.get_doc("File", {"file_url": file_url})
+                        manuf_details[field] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        manuf_details[field] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Error fetching file for '{field}': {str(e)}")
+                    manuf_details[field] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
             else:
-                manuf_details[field] = {"url": "", "name": "", "file_name": ""}
-
+                manuf_details[field] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
 
         #----------------------Employee Detail Tab--------------------
 
@@ -598,12 +825,27 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 }
 
                 if row.certificate_attach:
-                    file_doc = frappe.get_doc("File", {"file_url": row.certificate_attach})
-                    row_data["certificate_attach"] = {
-                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                        "name": file_doc.name,
-                        "file_name": file_doc.file_name
-                    }
+                    try:
+                        if frappe.db.exists("File", {"file_url": row.certificate_attach}):
+                            file_doc = frappe.get_doc("File", {"file_url": row.certificate_attach})
+                            row_data["certificate_attach"] = {
+                                "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                                "name": file_doc.name,
+                                "file_name": file_doc.file_name
+                            }
+                        else:
+                            row_data["certificate_attach"] = {
+                                "url": "",
+                                "name": "",
+                                "file_name": ""
+                            }
+                    except Exception as e:
+                        frappe.log_error(f"Error fetching certificate_attach file for row '{row.name}': {str(e)}")
+                        row_data["certificate_attach"] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
                 else:
                     row_data["certificate_attach"] = {
                         "url": "",
