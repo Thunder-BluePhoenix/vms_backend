@@ -1,675 +1,675 @@
 {
-  "actions": [],
-  "allow_rename": 1,
-  "autoname": "naming_series:",
-  "creation": "2025-09-23 10:00:00.000000",
-  "doctype": "DocType",
-  "engine": "InnoDB",
-  "field_order": [
-    "basic_section",
-    "naming_series",
-    "title",
-    "column_break_basic",
-    "import_status",
-    "processing_progress",
-    "import_section",
-    "import_source",
-    "total_records",
-    "column_break_import",
-    "processed_records",
-    "failed_records",
-    "data_fields_section",
-    "c_code",
-    "vendor_code", 
-    "vendor_name",
-    "state",
-    "country",
-    "column_break_data1",
-    "gstn_no",
-    "pan_no",
-    "check_field",
-    "vendor_type",
-    "vendor_gst_classification",
-    "address_section",
-    "address01",
-    "address02",
-    "address03",
-    "address04",
-    "address05",
-    "column_break_address",
-    "city",
-    "pincode",
-    "contact_no",
-    "alternate_no",
-    "email_id",
-    "business_section",
-    "validity",
-    "created_on",
-    "count_field",
-    "account_group",
-    "type_of_industry",
-    "column_break_business",
-    "contact_person",
-    "hod",
-    "nature_of_services",
-    "nature",
-    "remarks",
-    "email_section",
-    "primary_email",
-    "secondary_email",
-    "column_break_email",
-    "purchase_organization",
-    "purchase_group",
-    "vendor_type_1",
-    "payment_section",
-    "terms_of_payment",
-    "incoterm",
-    "reconciliation_account",
-    "order_currency",
-    "blocked",
-    "bank_section",
-    "bank_name",
-    "bank_key",
-    "ifsc_code",
-    "column_break_bank",
-    "account_number",
-    "name_of_account_holder",
-    "type_of_account",
-    "enterprise_registration_no",
-    "gst_vendor_type",
-    "beneficiary_section",
-    "beneficiary_name",
-    "beneficiary_swift_code",
-    "beneficiary_iban_no",
-    "beneficiary_aba_no",
-    "beneficiary_bank_address",
-    "column_break_beneficiary",
-    "beneficiary_bank_name",
-    "beneficiary_account_no",
-    "beneficiary_ach_no",
-    "beneficiary_routing_no",
-    "beneficiary_currency",
-    "intermediate_section",
-    "intermediate_name",
-    "intermediate_bank_name",
-    "intermediate_swift_code",
-    "intermediate_iban_no",
-    "intermediate_aba_no",
-    "column_break_intermediate",
-    "intermediate_bank_address",
-    "intermediate_account_no",
-    "intermediate_ach_no",
-    "intermediate_routing_no",
-    "intermediate_currency",
-    "processing_section",
-    "batch_id",
-    "error_log",
-    "column_break_processing",
-    "validation_status",
-    "import_attempts",
-    "last_processed"
-  ],
-  "fields": [
-    {
-      "fieldname": "basic_section",
-      "fieldtype": "Section Break",
-      "label": "Basic Information"
-    },
-    {
-      "fieldname": "naming_series", 
-      "fieldtype": "Select",
-      "label": "Naming Series",
-      "options": "VIS-.YYYY.-.MM.-.#####"
-    },
-    {
-      "fieldname": "title",
-      "fieldtype": "Data",
-      "label": "Title",
-      "reqd": 1,
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "column_break_basic",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "import_status",
-      "fieldtype": "Select",
-      "label": "Import Status",
-      "options": "\nPending\nQueued\nProcessing\nCompleted\nFailed\nPartially Completed",
-      "default": "Pending",
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "processing_progress",
-      "fieldtype": "Percent",
-      "label": "Processing Progress",
-      "read_only": 1,
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "import_section",
-      "fieldtype": "Section Break",
-      "label": "Import Information"
-    },
-    {
-      "fieldname": "import_source",
-      "fieldtype": "Link",
-      "label": "Import Source",
-      "options": "Existing Vendor Import",
-      "reqd": 1
-    },
-    {
-      "fieldname": "total_records",
-      "fieldtype": "Int",
-      "label": "Total Records",
-      "read_only": 1
-    },
-    {
-      "fieldname": "column_break_import",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "processed_records",
-      "fieldtype": "Int",
-      "label": "Processed Records",
-      "read_only": 1,
-      "default": 0
-    },
-    {
-      "fieldname": "failed_records",
-      "fieldtype": "Int", 
-      "label": "Failed Records",
-      "read_only": 1,
-      "default": 0
-    },
-    {
-      "fieldname": "data_fields_section",
-      "fieldtype": "Section Break",
-      "label": "Vendor Data Fields"
-    },
-    {
-      "fieldname": "c_code",
-      "fieldtype": "Data",
-      "label": "Company Code"
-    },
-    {
-      "fieldname": "vendor_code",
-      "fieldtype": "Data", 
-      "label": "Vendor Code"
-    },
-    {
-      "fieldname": "vendor_name",
-      "fieldtype": "Data",
-      "label": "Vendor Name"
-    },
-    {
-      "fieldname": "state",
-      "fieldtype": "Data",
-      "label": "State"
-    },
-    {
-      "fieldname": "country",
-      "fieldtype": "Data",
-      "label": "Country"
-    },
-    {
-      "fieldname": "column_break_data1",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "gstn_no",
-      "fieldtype": "Data",
-      "label": "GSTN No"
-    },
-    {
-      "fieldname": "pan_no",
-      "fieldtype": "Data",
-      "label": "PAN No"
-    },
-    {
-      "fieldname": "check_field",
-      "fieldtype": "Data",
-      "label": "Check"
-    },
-    {
-      "fieldname": "vendor_type",
-      "fieldtype": "Data",
-      "label": "Vendor Type"
-    },
-    {
-      "fieldname": "vendor_gst_classification",
-      "fieldtype": "Data",
-      "label": "Vendor GST Classification"
-    },
-    {
-      "fieldname": "address_section",
-      "fieldtype": "Section Break",
-      "label": "Address Information"
-    },
-    {
-      "fieldname": "address01",
-      "fieldtype": "Data",
-      "label": "Address Line 1"
-    },
-    {
-      "fieldname": "address02", 
-      "fieldtype": "Data",
-      "label": "Address Line 2"
-    },
-    {
-      "fieldname": "address03",
-      "fieldtype": "Data",
-      "label": "Address Line 3"
-    },
-    {
-      "fieldname": "address04",
-      "fieldtype": "Data",
-      "label": "Address Line 4"
-    },
-    {
-      "fieldname": "address05",
-      "fieldtype": "Data",
-      "label": "Address Line 5"
-    },
-    {
-      "fieldname": "column_break_address",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "city",
-      "fieldtype": "Data",
-      "label": "City"
-    },
-    {
-      "fieldname": "pincode",
-      "fieldtype": "Data",
-      "label": "Pincode"
-    },
-    {
-      "fieldname": "contact_no",
-      "fieldtype": "Data",
-      "label": "Contact No"
-    },
-    {
-      "fieldname": "alternate_no",
-      "fieldtype": "Data",
-      "label": "Alternate No"
-    },
-    {
-      "fieldname": "email_id",
-      "fieldtype": "Data",
-      "label": "Email ID"
-    },
-    {
-      "fieldname": "business_section",
-      "fieldtype": "Section Break",
-      "label": "Business Information"
-    },
-    {
-      "fieldname": "validity",
-      "fieldtype": "Data",
-      "label": "Validity"
-    },
-    {
-      "fieldname": "created_on",
-      "fieldtype": "Data",
-      "label": "Created On"
-    },
-    {
-      "fieldname": "count_field",
-      "fieldtype": "Int",
-      "label": "Count"
-    },
-    {
-      "fieldname": "account_group",
-      "fieldtype": "Data",
-      "label": "Account Group"
-    },
-    {
-      "fieldname": "type_of_industry",
-      "fieldtype": "Data",
-      "label": "Type of Industry"
-    },
-    {
-      "fieldname": "column_break_business",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "contact_person",
-      "fieldtype": "Data",
-      "label": "Contact Person"
-    },
-    {
-      "fieldname": "hod",
-      "fieldtype": "Data",
-      "label": "HOD"
-    },
-    {
-      "fieldname": "nature_of_services",
-      "fieldtype": "Data",
-      "label": "Nature of Services"
-    },
-    {
-      "fieldname": "nature",
-      "fieldtype": "Data",
-      "label": "Nature"
-    },
-    {
-      "fieldname": "remarks",
-      "fieldtype": "Text",
-      "label": "Remarks"
-    },
-    {
-      "fieldname": "email_section",
-      "fieldtype": "Section Break",
-      "label": "Email & Purchase Information"
-    },
-    {
-      "fieldname": "primary_email",
-      "fieldtype": "Data",
-      "label": "Primary Email"
-    },
-    {
-      "fieldname": "secondary_email",
-      "fieldtype": "Data",
-      "label": "Secondary Email"
-    },
-    {
-      "fieldname": "column_break_email",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "purchase_organization",
-      "fieldtype": "Data",
-      "label": "Purchase Organization"
-    },
-    {
-      "fieldname": "purchase_group",
-      "fieldtype": "Data",
-      "label": "Purchase Group"
-    },
-    {
-      "fieldname": "vendor_type_1",
-      "fieldtype": "Data",
-      "label": "Vendor Type 1"
-    },
-    {
-      "fieldname": "payment_section",
-      "fieldtype": "Section Break",
-      "label": "Payment Information"
-    },
-    {
-      "fieldname": "terms_of_payment",
-      "fieldtype": "Data",
-      "label": "Terms of Payment"
-    },
-    {
-      "fieldname": "incoterm",
-      "fieldtype": "Data",
-      "label": "Incoterm"
-    },
-    {
-      "fieldname": "reconciliation_account",
-      "fieldtype": "Data",
-      "label": "Reconciliation Account"
-    },
-    {
-      "fieldname": "order_currency",
-      "fieldtype": "Data",
-      "label": "Order Currency"
-    },
-    {
-      "fieldname": "blocked",
-      "fieldtype": "Check",
-      "label": "Blocked"
-    },
-    {
-      "fieldname": "bank_section",
-      "fieldtype": "Section Break",
-      "label": "Bank Information"
-    },
-    {
-      "fieldname": "bank_name",
-      "fieldtype": "Data",
-      "label": "Bank Name"
-    },
-    {
-      "fieldname": "bank_key",
-      "fieldtype": "Data",
-      "label": "Bank Key"
-    },
-    {
-      "fieldname": "ifsc_code",
-      "fieldtype": "Data",
-      "label": "IFSC Code"
-    },
-    {
-      "fieldname": "column_break_bank",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "account_number",
-      "fieldtype": "Data",
-      "label": "Account Number"
-    },
-    {
-      "fieldname": "name_of_account_holder",
-      "fieldtype": "Data",
-      "label": "Name of Account Holder"
-    },
-    {
-      "fieldname": "type_of_account",
-      "fieldtype": "Data",
-      "label": "Type of Account"
-    },
-    {
-      "fieldname": "enterprise_registration_no",
-      "fieldtype": "Data",
-      "label": "Enterprise Registration No"
-    },
-    {
-      "fieldname": "gst_vendor_type",
-      "fieldtype": "Data",
-      "label": "GST Vendor Type"
-    },
-    {
-      "fieldname": "beneficiary_section",
-      "fieldtype": "Section Break",
-      "label": "Beneficiary Information"
-    },
-    {
-      "fieldname": "beneficiary_name",
-      "fieldtype": "Data",
-      "label": "Beneficiary Name"
-    },
-    {
-      "fieldname": "beneficiary_swift_code",
-      "fieldtype": "Data",
-      "label": "Beneficiary Swift Code"
-    },
-    {
-      "fieldname": "beneficiary_iban_no",
-      "fieldtype": "Data",
-      "label": "Beneficiary IBAN No"
-    },
-    {
-      "fieldname": "beneficiary_aba_no",
-      "fieldtype": "Data",
-      "label": "Beneficiary ABA No"
-    },
-    {
-      "fieldname": "beneficiary_bank_address",
-      "fieldtype": "Text",
-      "label": "Beneficiary Bank Address"
-    },
-    {
-      "fieldname": "column_break_beneficiary",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "beneficiary_bank_name",
-      "fieldtype": "Data",
-      "label": "Beneficiary Bank Name"
-    },
-    {
-      "fieldname": "beneficiary_account_no",
-      "fieldtype": "Data",
-      "label": "Beneficiary Account No"
-    },
-    {
-      "fieldname": "beneficiary_ach_no",
-      "fieldtype": "Data",
-      "label": "Beneficiary ACH No"
-    },
-    {
-      "fieldname": "beneficiary_routing_no",
-      "fieldtype": "Data",
-      "label": "Beneficiary Routing No"
-    },
-    {
-      "fieldname": "beneficiary_currency",
-      "fieldtype": "Data",
-      "label": "Beneficiary Currency"
-    },
-    {
-      "fieldname": "intermediate_section",
-      "fieldtype": "Section Break",
-      "label": "Intermediate Bank Information"
-    },
-    {
-      "fieldname": "intermediate_name",
-      "fieldtype": "Data",
-      "label": "Intermediate Name"
-    },
-    {
-      "fieldname": "intermediate_bank_name",
-      "fieldtype": "Data",
-      "label": "Intermediate Bank Name"
-    },
-    {
-      "fieldname": "intermediate_swift_code",
-      "fieldtype": "Data",
-      "label": "Intermediate Swift Code"
-    },
-    {
-      "fieldname": "intermediate_iban_no",
-      "fieldtype": "Data",
-      "label": "Intermediate IBAN No"
-    },
-    {
-      "fieldname": "intermediate_aba_no",
-      "fieldtype": "Data",
-      "label": "Intermediate ABA No"
-    },
-    {
-      "fieldname": "column_break_intermediate",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "intermediate_bank_address",
-      "fieldtype": "Text",
-      "label": "Intermediate Bank Address"
-    },
-    {
-      "fieldname": "intermediate_account_no",
-      "fieldtype": "Data",
-      "label": "Intermediate Account No"
-    },
-    {
-      "fieldname": "intermediate_ach_no",
-      "fieldtype": "Data",
-      "label": "Intermediate ACH No"
-    },
-    {
-      "fieldname": "intermediate_routing_no",
-      "fieldtype": "Data",
-      "label": "Intermediate Routing No"
-    },
-    {
-      "fieldname": "intermediate_currency",
-      "fieldtype": "Data",
-      "label": "Intermediate Currency"
-    },
-    {
-      "fieldname": "processing_section",
-      "fieldtype": "Section Break",
-      "label": "Processing Information"
-    },
-    {
-      "fieldname": "batch_id",
-      "fieldtype": "Data",
-      "label": "Batch ID",
-      "read_only": 1
-    },
-    {
-      "fieldname": "error_log",
-      "fieldtype": "Long Text",
-      "label": "Error Log",
-      "read_only": 1
-    },
-    {
-      "fieldname": "column_break_processing",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "validation_status",
-      "fieldtype": "Select",
-      "label": "Validation Status",
-      "options": "\nValid\nInvalid\nWarning",
-      "read_only": 1
-    },
-    {
-      "fieldname": "import_attempts",
-      "fieldtype": "Int",
-      "label": "Import Attempts",
-      "read_only": 1,
-      "default": 0
-    },
-    {
-      "fieldname": "last_processed",
-      "fieldtype": "Datetime",
-      "label": "Last Processed",
-      "read_only": 1
-    }
-  ],
-  "is_submittable": 0,
-  "links": [],
-  "modified": "2025-09-23 10:00:00.000000",
-  "modified_by": "Administrator",
-  "module": "Vendor Onboarding",
-  "name": "Vendor Import Staging",
-  "naming_rule": "By \"Naming Series\" field",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    },
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "Vendor Manager",
-      "share": 1,
-      "write": 1
-    }
-  ],
-  "quick_entry": 1,
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "states": [],
-  "track_changes": 1
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-09-23 10:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_section",
+  "naming_series",
+  "title",
+  "column_break_basic",
+  "import_status",
+  "processing_progress",
+  "import_section",
+  "import_source",
+  "total_records",
+  "column_break_import",
+  "processed_records",
+  "failed_records",
+  "data_fields_section",
+  "c_code",
+  "vendor_code",
+  "vendor_name",
+  "state",
+  "country",
+  "column_break_data1",
+  "gstn_no",
+  "pan_no",
+  "check_field",
+  "vendor_type",
+  "vendor_gst_classification",
+  "address_section",
+  "address01",
+  "address02",
+  "address03",
+  "address04",
+  "address05",
+  "column_break_address",
+  "city",
+  "pincode",
+  "contact_no",
+  "alternate_no",
+  "email_id",
+  "business_section",
+  "validity",
+  "created_on",
+  "count_field",
+  "account_group",
+  "type_of_industry",
+  "column_break_business",
+  "contact_person",
+  "hod",
+  "nature_of_services",
+  "nature",
+  "remarks",
+  "email_section",
+  "primary_email",
+  "secondary_email",
+  "column_break_email",
+  "purchase_organization",
+  "purchase_group",
+  "vendor_type_1",
+  "payment_section",
+  "terms_of_payment",
+  "incoterm",
+  "reconciliation_account",
+  "order_currency",
+  "blocked",
+  "bank_section",
+  "bank_name",
+  "bank_key",
+  "ifsc_code",
+  "column_break_bank",
+  "account_number",
+  "name_of_account_holder",
+  "type_of_account",
+  "enterprise_registration_no",
+  "gst_vendor_type",
+  "beneficiary_section",
+  "beneficiary_name",
+  "beneficiary_swift_code",
+  "beneficiary_iban_no",
+  "beneficiary_aba_no",
+  "beneficiary_bank_address",
+  "column_break_beneficiary",
+  "beneficiary_bank_name",
+  "beneficiary_account_no",
+  "beneficiary_ach_no",
+  "beneficiary_routing_no",
+  "beneficiary_currency",
+  "intermediate_section",
+  "intermediate_name",
+  "intermediate_bank_name",
+  "intermediate_swift_code",
+  "intermediate_iban_no",
+  "intermediate_aba_no",
+  "column_break_intermediate",
+  "intermediate_bank_address",
+  "intermediate_account_no",
+  "intermediate_ach_no",
+  "intermediate_routing_no",
+  "intermediate_currency",
+  "processing_section",
+  "batch_id",
+  "error_log",
+  "column_break_processing",
+  "validation_status",
+  "import_attempts",
+  "last_processed"
+ ],
+ "fields": [
+  {
+   "fieldname": "basic_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Information"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "VIS-.YYYY.-.MM.-.#####"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title"
+  },
+  {
+   "fieldname": "column_break_basic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "import_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Import Status",
+   "options": "\nPending\nQueued\nProcessing\nCompleted\nFailed\nPartially Completed"
+  },
+  {
+   "fieldname": "processing_progress",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Processing Progress",
+   "read_only": 1
+  },
+  {
+   "fieldname": "import_section",
+   "fieldtype": "Section Break",
+   "label": "Import Information"
+  },
+  {
+   "fieldname": "import_source",
+   "fieldtype": "Link",
+   "label": "Import Source",
+   "options": "Existing Vendor Import"
+  },
+  {
+   "fieldname": "total_records",
+   "fieldtype": "Int",
+   "label": "Total Records",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_import",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "processed_records",
+   "fieldtype": "Int",
+   "label": "Processed Records",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "failed_records",
+   "fieldtype": "Int",
+   "label": "Failed Records",
+   "read_only": 1
+  },
+  {
+   "fieldname": "data_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Data Fields"
+  },
+  {
+   "fieldname": "c_code",
+   "fieldtype": "Data",
+   "label": "Company Code"
+  },
+  {
+   "fieldname": "vendor_code",
+   "fieldtype": "Data",
+   "label": "Vendor Code"
+  },
+  {
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "label": "Vendor Name"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Country"
+  },
+  {
+   "fieldname": "column_break_data1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gstn_no",
+   "fieldtype": "Data",
+   "label": "GSTN No"
+  },
+  {
+   "fieldname": "pan_no",
+   "fieldtype": "Data",
+   "label": "PAN No"
+  },
+  {
+   "fieldname": "check_field",
+   "fieldtype": "Data",
+   "label": "Check"
+  },
+  {
+   "fieldname": "vendor_type",
+   "fieldtype": "Data",
+   "label": "Vendor Type"
+  },
+  {
+   "fieldname": "vendor_gst_classification",
+   "fieldtype": "Data",
+   "label": "Vendor GST Classification"
+  },
+  {
+   "fieldname": "address_section",
+   "fieldtype": "Section Break",
+   "label": "Address Information"
+  },
+  {
+   "fieldname": "address01",
+   "fieldtype": "Data",
+   "label": "Address Line 1"
+  },
+  {
+   "fieldname": "address02",
+   "fieldtype": "Data",
+   "label": "Address Line 2"
+  },
+  {
+   "fieldname": "address03",
+   "fieldtype": "Data",
+   "label": "Address Line 3"
+  },
+  {
+   "fieldname": "address04",
+   "fieldtype": "Data",
+   "label": "Address Line 4"
+  },
+  {
+   "fieldname": "address05",
+   "fieldtype": "Data",
+   "label": "Address Line 5"
+  },
+  {
+   "fieldname": "column_break_address",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City"
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Data",
+   "label": "Pincode"
+  },
+  {
+   "fieldname": "contact_no",
+   "fieldtype": "Data",
+   "label": "Contact No"
+  },
+  {
+   "fieldname": "alternate_no",
+   "fieldtype": "Data",
+   "label": "Alternate No"
+  },
+  {
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "label": "Email ID"
+  },
+  {
+   "fieldname": "business_section",
+   "fieldtype": "Section Break",
+   "label": "Business Information"
+  },
+  {
+   "fieldname": "validity",
+   "fieldtype": "Data",
+   "label": "Validity"
+  },
+  {
+   "fieldname": "created_on",
+   "fieldtype": "Data",
+   "label": "Created On"
+  },
+  {
+   "fieldname": "count_field",
+   "fieldtype": "Int",
+   "label": "Count"
+  },
+  {
+   "fieldname": "account_group",
+   "fieldtype": "Data",
+   "label": "Account Group"
+  },
+  {
+   "fieldname": "type_of_industry",
+   "fieldtype": "Data",
+   "label": "Type of Industry"
+  },
+  {
+   "fieldname": "column_break_business",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_person",
+   "fieldtype": "Data",
+   "label": "Contact Person"
+  },
+  {
+   "fieldname": "hod",
+   "fieldtype": "Data",
+   "label": "HOD"
+  },
+  {
+   "fieldname": "nature_of_services",
+   "fieldtype": "Data",
+   "label": "Nature of Services"
+  },
+  {
+   "fieldname": "nature",
+   "fieldtype": "Data",
+   "label": "Nature"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "email_section",
+   "fieldtype": "Section Break",
+   "label": "Email & Purchase Information"
+  },
+  {
+   "fieldname": "primary_email",
+   "fieldtype": "Data",
+   "label": "Primary Email"
+  },
+  {
+   "fieldname": "secondary_email",
+   "fieldtype": "Data",
+   "label": "Secondary Email"
+  },
+  {
+   "fieldname": "column_break_email",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "purchase_organization",
+   "fieldtype": "Data",
+   "label": "Purchase Organization"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Data",
+   "label": "Purchase Group"
+  },
+  {
+   "fieldname": "vendor_type_1",
+   "fieldtype": "Data",
+   "label": "Vendor Type 1"
+  },
+  {
+   "fieldname": "payment_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Information"
+  },
+  {
+   "fieldname": "terms_of_payment",
+   "fieldtype": "Data",
+   "label": "Terms of Payment"
+  },
+  {
+   "fieldname": "incoterm",
+   "fieldtype": "Data",
+   "label": "Incoterm"
+  },
+  {
+   "fieldname": "reconciliation_account",
+   "fieldtype": "Data",
+   "label": "Reconciliation Account"
+  },
+  {
+   "fieldname": "order_currency",
+   "fieldtype": "Data",
+   "label": "Order Currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "blocked",
+   "fieldtype": "Check",
+   "label": "Blocked"
+  },
+  {
+   "fieldname": "bank_section",
+   "fieldtype": "Section Break",
+   "label": "Bank Information"
+  },
+  {
+   "fieldname": "bank_name",
+   "fieldtype": "Data",
+   "label": "Bank Name"
+  },
+  {
+   "fieldname": "bank_key",
+   "fieldtype": "Data",
+   "label": "Bank Key"
+  },
+  {
+   "fieldname": "ifsc_code",
+   "fieldtype": "Data",
+   "label": "IFSC Code"
+  },
+  {
+   "fieldname": "column_break_bank",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "account_number",
+   "fieldtype": "Data",
+   "label": "Account Number"
+  },
+  {
+   "fieldname": "name_of_account_holder",
+   "fieldtype": "Data",
+   "label": "Name of Account Holder"
+  },
+  {
+   "fieldname": "type_of_account",
+   "fieldtype": "Data",
+   "label": "Type of Account"
+  },
+  {
+   "fieldname": "enterprise_registration_no",
+   "fieldtype": "Data",
+   "label": "Enterprise Registration No"
+  },
+  {
+   "fieldname": "gst_vendor_type",
+   "fieldtype": "Data",
+   "label": "GST Vendor Type"
+  },
+  {
+   "fieldname": "beneficiary_section",
+   "fieldtype": "Section Break",
+   "label": "Beneficiary Information"
+  },
+  {
+   "fieldname": "beneficiary_name",
+   "fieldtype": "Data",
+   "label": "Beneficiary Name"
+  },
+  {
+   "fieldname": "beneficiary_swift_code",
+   "fieldtype": "Data",
+   "label": "Beneficiary Swift Code"
+  },
+  {
+   "fieldname": "beneficiary_iban_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary IBAN No"
+  },
+  {
+   "fieldname": "beneficiary_aba_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary ABA No"
+  },
+  {
+   "fieldname": "beneficiary_bank_address",
+   "fieldtype": "Text",
+   "label": "Beneficiary Bank Address"
+  },
+  {
+   "fieldname": "column_break_beneficiary",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "beneficiary_bank_name",
+   "fieldtype": "Data",
+   "label": "Beneficiary Bank Name"
+  },
+  {
+   "fieldname": "beneficiary_account_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary Account No"
+  },
+  {
+   "fieldname": "beneficiary_ach_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary ACH No"
+  },
+  {
+   "fieldname": "beneficiary_routing_no",
+   "fieldtype": "Data",
+   "label": "Beneficiary Routing No"
+  },
+  {
+   "fieldname": "beneficiary_currency",
+   "fieldtype": "Data",
+   "label": "Beneficiary Currency"
+  },
+  {
+   "fieldname": "intermediate_section",
+   "fieldtype": "Section Break",
+   "label": "Intermediate Bank Information"
+  },
+  {
+   "fieldname": "intermediate_name",
+   "fieldtype": "Data",
+   "label": "Intermediate Name"
+  },
+  {
+   "fieldname": "intermediate_bank_name",
+   "fieldtype": "Data",
+   "label": "Intermediate Bank Name"
+  },
+  {
+   "fieldname": "intermediate_swift_code",
+   "fieldtype": "Data",
+   "label": "Intermediate Swift Code"
+  },
+  {
+   "fieldname": "intermediate_iban_no",
+   "fieldtype": "Data",
+   "label": "Intermediate IBAN No"
+  },
+  {
+   "fieldname": "intermediate_aba_no",
+   "fieldtype": "Data",
+   "label": "Intermediate ABA No"
+  },
+  {
+   "fieldname": "column_break_intermediate",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "intermediate_bank_address",
+   "fieldtype": "Text",
+   "label": "Intermediate Bank Address"
+  },
+  {
+   "fieldname": "intermediate_account_no",
+   "fieldtype": "Data",
+   "label": "Intermediate Account No"
+  },
+  {
+   "fieldname": "intermediate_ach_no",
+   "fieldtype": "Data",
+   "label": "Intermediate ACH No"
+  },
+  {
+   "fieldname": "intermediate_routing_no",
+   "fieldtype": "Data",
+   "label": "Intermediate Routing No"
+  },
+  {
+   "fieldname": "intermediate_currency",
+   "fieldtype": "Data",
+   "label": "Intermediate Currency"
+  },
+  {
+   "fieldname": "processing_section",
+   "fieldtype": "Section Break",
+   "label": "Processing Information"
+  },
+  {
+   "fieldname": "batch_id",
+   "fieldtype": "Data",
+   "label": "Batch ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error_log",
+   "fieldtype": "Long Text",
+   "label": "Error Log",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_processing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "validation_status",
+   "fieldtype": "Select",
+   "label": "Validation Status",
+   "options": "\nValid\nInvalid\nWarning",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "import_attempts",
+   "fieldtype": "Int",
+   "label": "Import Attempts",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_processed",
+   "fieldtype": "Datetime",
+   "label": "Last Processed",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2025-09-23 18:19:07.063549",
+ "modified_by": "Administrator",
+ "module": "Vendor Onboarding",
+ "name": "Vendor Import Staging",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Vendor Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
 }
