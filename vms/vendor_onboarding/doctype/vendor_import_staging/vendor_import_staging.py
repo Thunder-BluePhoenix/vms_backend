@@ -355,345 +355,232 @@ class VendorImportStaging(Document):
                     intermediate_bank.intermediate_currency = self.intermediate_currency
 
 
-# Background Processing Functions
-def create_staging_records_from_import(import_doc_name, batch_size=100):
-    """Create staging records from existing vendor import in batches"""
+
+@frappe.whitelist()
+def get_related_documents(staging_name, doctype):
+    """Get related documents created from staging record"""
     
     try:
-        # Get the import document
-        import_doc = frappe.get_doc("Existing Vendor Import", import_doc_name)
+        staging_doc = frappe.get_doc("Vendor Import Staging", staging_name)
         
-        if not import_doc.vendor_data:
-            frappe.throw(_("No vendor data found in import document"))
+        related_docs = []
         
-        # Parse vendor data
-        vendor_data = json.loads(import_doc.vendor_data)
-        field_mapping = json.loads(import_doc.field_mapping) if import_doc.field_mapping else {}
-        
-        total_records = len(vendor_data)
-        
-        # Process in batches
-        batch_count = 0
-        for i in range(0, total_records, batch_size):
-            batch_data = vendor_data[i:i + batch_size]
-            batch_count += 1
+        if doctype == "Vendor Master":
+            # Search by vendor name or email
+            filters = []
+            if staging_doc.vendor_name:
+                filters.append({"vendor_name": staging_doc.vendor_name})
+            if staging_doc.primary_email:
+                filters.append({"office_email_primary": staging_doc.primary_email})
             
-            # Enqueue batch processing
-            enqueue(
-                method="vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_batch",
-                queue="default",
-                timeout=3600,  # 1 hour timeout
-                job_name=f"vendor_staging_batch_{import_doc_name}_{batch_count}",
-                import_doc_name=import_doc_name,
-                batch_data=batch_data,
-                field_mapping=field_mapping,
-                batch_id=f"BATCH-{import_doc_name}-{batch_count:03d}",
-                batch_number=batch_count,
-                total_batches=((total_records - 1) // batch_size) + 1
-            )
+            for filter_dict in filters:
+                docs = frappe.get_all("Vendor Master", 
+                    filters=filter_dict,
+                    fields=["name", "vendor_name"],
+                    limit=5
+                )
+                related_docs.extend(docs)
         
-        frappe.msgprint(_(f"Queued {batch_count} batches for processing. Total records: {total_records}"))
+        elif doctype == "Vendor Onboarding Company Details":
+            if staging_doc.vendor_name:
+                docs = frappe.get_all("Vendor Onboarding Company Details",
+                    filters={"vendor_name": staging_doc.vendor_name},
+                    fields=["name", "company_name"],
+                    limit=5
+                )
+                related_docs.extend(docs)
         
-        return {
-            "status": "success",
-            "total_batches": batch_count,
-            "total_records": total_records,
-            "batch_size": batch_size
-        }
+        elif doctype == "Company Vendor Code":
+            if staging_doc.c_code:
+                # Find company master first
+                company_master = frappe.db.exists("Company Master", {"company_code": staging_doc.c_code})
+                if company_master:
+                    docs = frappe.get_all("Company Vendor Code",
+                        filters={"company_name": company_master},
+                        fields=["name"],
+                        limit=5
+                    )
+                    related_docs.extend(docs)
+        
+        elif doctype == "Vendor Bank Details":
+            # Need to find via vendor master
+            if staging_doc.vendor_name or staging_doc.primary_email:
+                vendor_filters = {}
+                if staging_doc.primary_email:
+                    vendor_filters["office_email_primary"] = staging_doc.primary_email
+                elif staging_doc.vendor_name:
+                    vendor_filters["vendor_name"] = staging_doc.vendor_name
+                
+                vendor_master = frappe.db.exists("Vendor Master", vendor_filters)
+                if vendor_master:
+                    docs = frappe.get_all("Vendor Bank Details",
+                        filters={"ref_no": vendor_master},
+                        fields=["name"],
+                        limit=5
+                    )
+                    related_docs.extend(docs)
+        
+        # Remove duplicates
+        unique_docs = []
+        seen_names = set()
+        for doc in related_docs:
+            if doc.name not in seen_names:
+                unique_docs.append(doc)
+                seen_names.add(doc.name)
+        
+        return unique_docs
         
     except Exception as e:
-        frappe.log_error(f"Error creating staging records: {str(e)}", "Vendor Staging Creation Error")
-        frappe.throw(_("Error creating staging records: {0}").format(str(e)))
+        frappe.log_error(f"Error getting related documents: {str(e)}", "Related Documents Error")
+        return []
 
 
-def process_batch(import_doc_name, batch_data, field_mapping, batch_id, batch_number, total_batches):
-    """Process a batch of vendor records and create staging documents"""
+
+@frappe.whitelist()
+def get_batch_statistics(batch_id):
+    """Get statistics for a specific batch"""
     
     try:
-        success_count = 0
-        error_count = 0
-        errors = []
-        
-        for idx, row_data in enumerate(batch_data):
-            try:
-                # Create staging record
-                staging_doc = frappe.new_doc("Vendor Import Staging")
-                staging_doc.flags.ignore_permissions = True
-                
-                # Map data from CSV to staging fields
-                map_csv_to_staging(staging_doc, row_data, field_mapping)
-                
-                # Set batch information
-                staging_doc.import_source = import_doc_name
-                staging_doc.batch_id = batch_id
-                staging_doc.import_status = "Pending"
-                staging_doc.total_records = len(batch_data)
-                
-                # Save staging record
-                staging_doc.save()
-                success_count += 1
-                
-                # Commit every 50 records to avoid memory issues
-                if success_count % 50 == 0:
-                    frappe.db.commit()
-                    
-            except Exception as e:
-                error_count += 1
-                error_msg = f"Row {idx + 1}: {str(e)}"
-                errors.append(error_msg)
-                frappe.log_error(error_msg, f"Batch Processing Error - {batch_id}")
-        
-        # Final commit
-        frappe.db.commit()
-        
-        # Update batch status
-        update_batch_status(batch_id, success_count, error_count, errors)
-        
-        # Send progress notification
-        send_batch_progress_notification(
-            import_doc_name, batch_number, total_batches, success_count, error_count
+        # Get all records in the batch
+        batch_records = frappe.get_all("Vendor Import Staging",
+            filters={"batch_id": batch_id},
+            fields=["name", "vendor_name", "import_status", "processing_progress", "modified"]
         )
         
-        return {
-            "status": "completed",
-            "success_count": success_count,
-            "error_count": error_count,
-            "batch_id": batch_id
-        }
+        if not batch_records:
+            return {
+                "batch_id": batch_id,
+                "total_records": 0,
+                "message": "No records found for this batch"
+            }
         
-    except Exception as e:
-        frappe.log_error(f"Critical error in batch processing: {str(e)}", f"Batch Error - {batch_id}")
+        # Calculate statistics
+        total_records = len(batch_records)
+        status_counts = {}
+        
+        for record in batch_records:
+            status = record.import_status or "Unknown"
+            status_counts[status] = status_counts.get(status, 0) + 1
+        
+        # Calculate completion percentage
+        completed = status_counts.get("Completed", 0)
+        completion_percentage = round((completed / total_records * 100), 2) if total_records > 0 else 0
+        
         return {
-            "status": "failed",
-            "error": str(e),
-            "batch_id": batch_id
-        }
-
-
-def map_csv_to_staging(staging_doc, row_data, field_mapping):
-    """Map CSV row data to staging document fields"""
-    
-    # Define field mapping from CSV columns to staging fields
-    csv_to_staging_mapping = {
-        "C.Code": "c_code",
-        "Vendor Code": "vendor_code", 
-        "Vendor Name": "vendor_name",
-        "State": "state",
-        "Country": "country",
-        "GSTN No": "gstn_no",
-        "PAN No": "pan_no",
-        "Check": "check_field",
-        "Vendor Type": "vendor_type",
-        "Vendor GST Classification": "vendor_gst_classification",
-        "Address01": "address01",
-        "Address02": "address02",
-        "Address03": "address03",
-        "Address04": "address04",
-        "Address05": "address05",
-        "City": "city",
-        "Pincode": "pincode",
-        "Contact No": "contact_no",
-        "Alternate No": "alternate_no",
-        "Email-Id": "email_id",
-        "Validity": "validity",
-        "Created On": "created_on",
-        "Count": "count_field",
-        "Account Group": "account_group",
-        "Type of Industry": "type_of_industry",
-        "Contact Person": "contact_person",
-        "HOD": "hod",
-        "Nature Of Services": "nature_of_services",
-        "Nature": "nature",
-        "Remarks": "remarks",
-        "Primary Email": "primary_email",
-        "Secondary Email": "secondary_email",
-        "Purchase Organization": "purchase_organization",
-        "Purchase Group": "purchase_group",
-        "Vendor Type_1": "vendor_type_1",
-        "Terms of Payment": "terms_of_payment",
-        "Incoterm": "incoterm",
-        "Reconciliation Account": "reconciliation_account",
-        "Order Currency": "order_currency",
-        "Blocked": "blocked",
-        "Bank Name": "bank_name",
-        "Bank Key": "bank_key",
-        "IFSC Code": "ifsc_code",
-        "Account Number": "account_number",
-        "Name of Account Holder": "name_of_account_holder",
-        "Type of Account": "type_of_account",
-        "Enterprise Registration No.": "enterprise_registration_no",
-        "GST Vendor Type": "gst_vendor_type",
-        "Beneficiary Name": "beneficiary_name",
-        "Beneficiary Swift Code": "beneficiary_swift_code",
-        "Beneficiary IBAN No.": "beneficiary_iban_no",
-        "Beneficiary ABA No.": "beneficiary_aba_no",
-        "Beneficiary Bank Address": "beneficiary_bank_address",
-        "Beneficiary Bank Name": "beneficiary_bank_name",
-        "Beneficiary Account No.": "beneficiary_account_no",
-        "Beneficiary ACH No.": "beneficiary_ach_no",
-        "Beneficiary Routing No.": "beneficiary_routing_no",
-        "Beneficiary Currency": "beneficiary_currency",
-        "Intermediate Name": "intermediate_name",
-        "Intermediate Bank Name": "intermediate_bank_name",
-        "Intermediate Swift Code": "intermediate_swift_code",
-        "Intermediate IBAN No.": "intermediate_iban_no",
-        "Intermediate ABA No.": "intermediate_aba_no",
-        "Intermediate Bank Address": "intermediate_bank_address",
-        "Intermediate Account No.": "intermediate_account_no",
-        "Intermediate ACH No.": "intermediate_ach_no",
-        "Intermediate Routing No.": "intermediate_routing_no",
-        "Intermediate Currency": "intermediate_currency"
-    }
-    
-    # Apply mapping
-    for csv_field, staging_field in csv_to_staging_mapping.items():
-        if csv_field in row_data and staging_field:
-            value = row_data[csv_field]
-            
-            # Clean and convert value
-            if value is not None:
-                if staging_field == "blocked":
-                    # Convert to boolean
-                    staging_doc.set(staging_field, cint(value) == 1)
-                elif staging_field in ["count_field", "pincode"]:
-                    # Convert to int
-                    staging_doc.set(staging_field, cint(value) if value else None)
-                else:
-                    # String fields
-                    staging_doc.set(staging_field, cstr(value).strip() if value else "")
-
-
-def update_batch_status(batch_id, success_count, error_count, errors):
-    """Update batch processing status"""
-    
-    try:
-        # Create or update batch status record
-        batch_status = {
             "batch_id": batch_id,
-            "success_count": success_count,
-            "error_count": error_count,
-            "total_processed": success_count + error_count,
-            "status": "Completed" if error_count == 0 else "Completed with Errors",
-            "processed_at": now_datetime(),
-            "errors": "\n".join(errors[:50])  # Store first 50 errors
+            "total_records": total_records,
+            "completed_records": status_counts.get("Completed", 0),
+            "processing_records": status_counts.get("Processing", 0),
+            "failed_records": status_counts.get("Failed", 0),
+            "pending_records": status_counts.get("Pending", 0),
+            "queued_records": status_counts.get("Queued", 0),
+            "completion_percentage": completion_percentage,
+            "status_breakdown": status_counts,
+            "sample_records": batch_records[:10]  # Return first 10 as sample
         }
         
-        # Store in custom doctype or log
-        frappe.log_error(
-            f"Batch {batch_id} completed: {success_count} success, {error_count} errors",
-            "Batch Processing Status"
-        )
-        
     except Exception as e:
-        frappe.log_error(f"Error updating batch status: {str(e)}", "Batch Status Update Error")
+        frappe.log_error(f"Error getting batch statistics: {str(e)}", "Batch Statistics Error")
+        return {
+            "batch_id": batch_id,
+            "total_records": 0,
+            "error": str(e)
+        }
 
 
-def send_batch_progress_notification(import_doc_name, batch_number, total_batches, success_count, error_count):
-    """Send progress notification for batch completion"""
-    
-    try:
-        progress_percentage = (batch_number / total_batches) * 100
-        
-        message = f"""
-        Vendor Import Staging Progress Update:
-        
-        Import Document: {import_doc_name}
-        Batch: {batch_number} of {total_batches}
-        Progress: {progress_percentage:.1f}%
-        
-        Batch Results:
-        - Successful: {success_count}
-        - Errors: {error_count}
-        
-        {f"Processing complete!" if batch_number == total_batches else "Processing continues..."}
-        """
-        
-        # Send notification to users with Vendor Manager role
-        users = frappe.get_all("Has Role", 
-            filters={"role": "Vendor Manager", "parenttype": "User"},
-            fields=["parent"]
-        )
-        
-        for user in users:
-            frappe.share.add(
-                "Existing Vendor Import", 
-                import_doc_name, 
-                user.parent, 
-                notify=1,
-                message=message
-            )
-            
-    except Exception as e:
-        frappe.log_error(f"Error sending progress notification: {str(e)}", "Progress Notification Error")
 
 
-# API Methods for List View Button Integration
-@frappe.whitelist()
-def initiate_staging_import(import_doc_name, batch_size=100):
-    """API method to initiate staging import process"""
-    
-    # Validate permissions
-    if not frappe.has_permission("Vendor Import Staging", "create"):
-        frappe.throw(_("Insufficient permissions to create staging records"))
-    
-    # Check if import document exists and has data
-    if not frappe.db.exists("Existing Vendor Import", import_doc_name):
-        frappe.throw(_("Import document not found"))
-    
-    import_doc = frappe.get_doc("Existing Vendor Import", import_doc_name)
-    if not import_doc.vendor_data:
-        frappe.throw(_("No vendor data found in import document"))
-    
-    # Start the staging process
-    result = create_staging_records_from_import(import_doc_name, cint(batch_size))
-    
-    return result
+
 
 
 @frappe.whitelist()
-def process_bulk_staging_to_vendor_master(record_names, batch_size=50):
-    """Process multiple staging records to vendor master via background jobs"""
-    
-    if not record_names:
-        return {"status": "error", "error": "No records provided"}
-    
-    if isinstance(record_names, str):
-        record_names = json.loads(record_names)
+def export_single_record_data(docname):
+    """Export single record data to Excel"""
     
     try:
-        batch_size = cint(batch_size)
-        total_records = len(record_names)
+        import pandas as pd
+        from frappe.utils.file_manager import save_file
+        import io
         
-        # Process in batches via background jobs
-        batch_count = 0
-        for i in range(0, total_records, batch_size):
-            batch_records = record_names[i:i + batch_size]
-            batch_count += 1
+        staging_doc = frappe.get_doc("Vendor Import Staging", docname)
+        
+        # Prepare data for export
+        record_data = {
+            "Field": [],
+            "Value": [],
+            "Data Type": [],
+            "Required": []
+        }
+        
+        # Get field metadata
+        staging_meta = frappe.get_meta("Vendor Import Staging")
+        required_fields = ["vendor_name", "vendor_code", "c_code"]
+        
+        for field in staging_meta.fields:
+            if field.fieldtype not in ["Section Break", "Column Break", "HTML", "Button"]:
+                field_value = getattr(staging_doc, field.fieldname, "")
+                
+                record_data["Field"].append(field.label or field.fieldname)
+                record_data["Value"].append(str(field_value) if field_value else "")
+                record_data["Data Type"].append(field.fieldtype)
+                record_data["Required"].append("Yes" if field.fieldname in required_fields else "No")
+        
+        # Create DataFrame and Excel file
+        df = pd.DataFrame(record_data)
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Record Data', index=False)
             
-            # Enqueue batch processing
-            enqueue(
-                method="vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_staging_batch_to_vendor_master",
-                queue="default",
-                timeout=3600,  # 1 hour timeout
-                job_name=f"vendor_master_creation_batch_{batch_count}",
-                record_names=batch_records,
-                batch_number=batch_count,
-                total_batches=((total_records - 1) // batch_size) + 1
-            )
+            # Add summary sheet
+            summary_data = {
+                "Attribute": ["Record Name", "Vendor Name", "Company Code", "Import Status", "Validation Status", "Last Modified"],
+                "Value": [
+                    staging_doc.name,
+                    staging_doc.vendor_name or "",
+                    staging_doc.c_code or "",
+                    staging_doc.import_status or "",
+                    staging_doc.validation_status or "",
+                    str(staging_doc.modified) if staging_doc.modified else ""
+                ]
+            }
+            
+            summary_df = pd.DataFrame(summary_data)
+            summary_df.to_excel(writer, sheet_name='Summary', index=False)
+        
+        # Save file
+        output.seek(0)
+        file_name = f"staging_record_{docname}_{now_datetime().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        file_doc = save_file(
+            file_name,
+            output.getvalue(),
+            "Vendor Import Staging",
+            docname,
+            decode=False,
+            is_private=0
+        )
         
         return {
             "status": "success",
-            "message": f"Initiated {batch_count} background jobs for {total_records} records",
-            "total_batches": batch_count,
-            "total_records": total_records
+            "message": "Record data exported successfully",
+            "file_url": file_doc.file_url,
+            "file_name": file_name
         }
         
     except Exception as e:
-        frappe.log_error(f"Error initiating bulk processing: {str(e)}", "Bulk Processing Initiation Error")
-        return {"status": "error", "error": str(e)}
+        frappe.log_error(f"Error exporting single record data: {str(e)}", "Single Record Export Error")
+        return {
+            "status": "error",
+            "error": str(e)
+        }
 
 
 
+
+
+
+# Document View Specific Methods
 @frappe.whitelist()
 def process_single_staging_record(docname):
     """Process a single staging record to vendor master"""
@@ -730,70 +617,6 @@ def process_single_staging_record(docname):
 
 
 @frappe.whitelist()
-def process_bulk_staging_records(record_names):
-    """Process multiple staging records in background"""
-    
-    if not record_names:
-        return {"status": "error", "error": "No records provided"}
-    
-    if isinstance(record_names, str):
-        record_names = json.loads(record_names)
-    
-    # Enqueue background job for bulk processing
-    frappe.enqueue(
-        method="vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_staging_to_vendor_master",
-        queue="default",
-        timeout=3600,
-        job_name=f"bulk_staging_process_{len(record_names)}_records",
-        batch_size=len(record_names)
-    )
-    
-    return {
-        "status": "success",
-        "message": f"Bulk processing initiated for {len(record_names)} records"
-    }
-
-
-@frappe.whitelist()
-def retry_bulk_staging_records(record_names):
-    """Retry processing for failed staging records"""
-    
-    if not record_names:
-        return {"status": "error", "error": "No records provided"}
-    
-    if isinstance(record_names, str):
-        record_names = json.loads(record_names)
-    
-    try:
-        # Reset status of failed records
-        for name in record_names:
-            frappe.db.set_value("Vendor Import Staging", name, {
-                "import_status": "Pending",
-                "error_log": ""
-            })
-        
-        frappe.db.commit()
-        
-        # Enqueue for processing
-        frappe.enqueue(
-            method="vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_staging_to_vendor_master",
-            queue="default",
-            timeout=3600,
-            job_name=f"retry_staging_process_{len(record_names)}_records",
-            batch_size=len(record_names)
-        )
-        
-        return {
-            "status": "success",
-            "message": f"Retry initiated for {len(record_names)} records"
-        }
-        
-    except Exception as e:
-        frappe.log_error(f"Error retrying bulk staging records: {str(e)}", "Bulk Retry Error")
-        return {"status": "error", "error": str(e)}
-
-
-@frappe.whitelist()
 def revalidate_staging_record(docname):
     """Re-validate a single staging record"""
     
@@ -813,42 +636,117 @@ def revalidate_staging_record(docname):
         return {"status": "error", "error": str(e)}
 
 
-@frappe.whitelist() 
-def revalidate_bulk_staging_records(record_names):
-    """Re-validate multiple staging records"""
-    
-    if not record_names:
-        return {"status": "error", "error": "No records provided"}
-    
-    if isinstance(record_names, str):
-        record_names = json.loads(record_names)
-    
-    try:
-        success_count = 0
-        error_count = 0
-        
-        for name in record_names:
-            try:
-                staging_doc = frappe.get_doc("Vendor Import Staging", name)
-                staging_doc.set_validation_status()
-                staging_doc.save()
-                success_count += 1
-            except Exception as e:
-                error_count += 1
-                frappe.log_error(f"Error revalidating {name}: {str(e)}", "Individual Revalidation Error")
-        
-        frappe.db.commit()
-        
-        return {
-            "status": "success",
-            "message": f"Revalidated {success_count} records, {error_count} errors",
-            "success_count": success_count,
-            "error_count": error_count
-        }
-        
-    except Exception as e:
-        frappe.log_error(f"Error in bulk revalidation: {str(e)}", "Bulk Revalidation Error")
-        return {"status": "error", "error": str(e)}
+@frappe.whitelist()
+def single_record_health_check(docname):
+	"""Run health check on a single staging record"""
+
+	try:
+		staging_doc = frappe.get_doc("Vendor Import Staging", docname)
+		
+		checks = {}
+		overall_status = "Healthy"
+		recommendations = []
+		
+		# Check 1: Required fields
+		required_fields = ["vendor_name", "vendor_code", "c_code"]
+		missing_required = [field for field in required_fields if not getattr(staging_doc, field)]
+		
+		if missing_required:
+			checks["Required Fields"] = {
+				"passed": False,
+				"message": f"Missing required fields: {', '.join(missing_required)}"
+			}
+			overall_status = "Critical"
+			recommendations.append("Fill in all required fields")
+		else:
+			checks["Required Fields"] = {
+				"passed": True,
+				"message": "All required fields present"
+			}
+		
+		# Check 2: Company Master exists
+		if staging_doc.c_code:
+			company_exists = frappe.db.exists("Company Master", {"company_code": staging_doc.c_code})
+			if company_exists:
+				checks["Company Master"] = {
+					"passed": True,
+					"message": f"Company Master exists for code {staging_doc.c_code}"
+				}
+			else:
+				checks["Company Master"] = {
+					"passed": False,
+					"message": f"Company Master not found for code {staging_doc.c_code}"
+				}
+				if overall_status == "Healthy":
+					overall_status = "Warning"
+				recommendations.append(f"Create Company Master for code {staging_doc.c_code}")
+		
+		# Check 3: Data format validation
+		format_issues = []
+		if staging_doc.gstn_no and len(staging_doc.gstn_no) != 15:
+			format_issues.append("GST number should be 15 characters")
+		
+		if staging_doc.pan_no:
+			import re
+			if not re.match(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$', staging_doc.pan_no.upper()):
+				format_issues.append("PAN number format is invalid")
+
+		
+		if format_issues:
+			checks["Data Format"] = {
+				"passed": False,
+				"message": "; ".join(format_issues)
+			}
+			if overall_status == "Healthy":
+				overall_status = "Warning"
+			recommendations.append("Fix data format issues")
+		else:
+			checks["Data Format"] = {
+				"passed": True,
+				"message": "All data formats are valid"
+			}
+		
+		# Check 4: Duplicate vendor check
+		duplicate_filters = []
+		if staging_doc.vendor_name:
+			duplicate_filters.append({"vendor_name": staging_doc.vendor_name})
+		if staging_doc.primary_email:
+			duplicate_filters.append({"office_email_primary": staging_doc.primary_email})
+		
+		duplicate_found = False
+		for filter_dict in duplicate_filters:
+			if frappe.db.exists("Vendor Master", filter_dict):
+				duplicate_found = True
+				break
+		
+		if duplicate_found:
+			checks["Duplicate Check"] = {
+				"passed": False,
+				"message": "Potential duplicate vendor exists"
+			}
+			if overall_status == "Healthy":
+				overall_status = "Warning"
+			recommendations.append("Review potential duplicate vendor")
+		else:
+			checks["Duplicate Check"] = {
+				"passed": True,
+				"message": "No duplicate vendors found"
+			}
+		
+		return {
+			"overall_status": overall_status,
+			"checks": checks,
+			"recommendations": recommendations
+		}
+		
+	except Exception as e:
+		frappe.log_error(f"Error in single record health check: {str(e)}", "Single Record Health Check Error")
+		return {
+			"overall_status": "Error",
+			"checks": {"System": {"passed": False, "message": str(e)}},
+			"recommendations": ["Contact system administrator"]
+		}
+
 
 
 
@@ -3350,3 +3248,505 @@ def bulk_fix_validation_errors():
 			"status": "error",
 			"error": str(e)
 		}
+
+
+
+
+
+
+
+
+# # Background Processing Functions
+# def create_staging_records_from_import(import_doc_name, batch_size=100):
+#     """Create staging records from existing vendor import in batches"""
+    
+#     try:
+#         # Get the import document
+#         import_doc = frappe.get_doc("Existing Vendor Import", import_doc_name)
+        
+#         if not import_doc.vendor_data:
+#             frappe.throw(_("No vendor data found in import document"))
+        
+#         # Parse vendor data
+#         vendor_data = json.loads(import_doc.vendor_data)
+#         field_mapping = json.loads(import_doc.field_mapping) if import_doc.field_mapping else {}
+        
+#         total_records = len(vendor_data)
+        
+#         # Process in batches
+#         batch_count = 0
+#         for i in range(0, total_records, batch_size):
+#             batch_data = vendor_data[i:i + batch_size]
+#             batch_count += 1
+            
+#             # Enqueue batch processing
+#             enqueue(
+#                 method="vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_batch",
+#                 queue="default",
+#                 timeout=3600,  # 1 hour timeout
+#                 job_name=f"vendor_staging_batch_{import_doc_name}_{batch_count}",
+#                 import_doc_name=import_doc_name,
+#                 batch_data=batch_data,
+#                 field_mapping=field_mapping,
+#                 batch_id=f"BATCH-{import_doc_name}-{batch_count:03d}",
+#                 batch_number=batch_count,
+#                 total_batches=((total_records - 1) // batch_size) + 1
+#             )
+        
+#         frappe.msgprint(_(f"Queued {batch_count} batches for processing. Total records: {total_records}"))
+        
+#         return {
+#             "status": "success",
+#             "total_batches": batch_count,
+#             "total_records": total_records,
+#             "batch_size": batch_size
+#         }
+        
+#     except Exception as e:
+#         frappe.log_error(f"Error creating staging records: {str(e)}", "Vendor Staging Creation Error")
+#         frappe.throw(_("Error creating staging records: {0}").format(str(e)))
+
+
+# def process_batch(import_doc_name, batch_data, field_mapping, batch_id, batch_number, total_batches):
+#     """Process a batch of vendor records and create staging documents"""
+    
+#     try:
+#         success_count = 0
+#         error_count = 0
+#         errors = []
+        
+#         for idx, row_data in enumerate(batch_data):
+#             try:
+#                 # Create staging record
+#                 staging_doc = frappe.new_doc("Vendor Import Staging")
+#                 staging_doc.flags.ignore_permissions = True
+                
+#                 # Map data from CSV to staging fields
+#                 map_csv_to_staging(staging_doc, row_data, field_mapping)
+                
+#                 # Set batch information
+#                 staging_doc.import_source = import_doc_name
+#                 staging_doc.batch_id = batch_id
+#                 staging_doc.import_status = "Pending"
+#                 staging_doc.total_records = len(batch_data)
+                
+#                 # Save staging record
+#                 staging_doc.save()
+#                 success_count += 1
+                
+#                 # Commit every 50 records to avoid memory issues
+#                 if success_count % 50 == 0:
+#                     frappe.db.commit()
+                    
+#             except Exception as e:
+#                 error_count += 1
+#                 error_msg = f"Row {idx + 1}: {str(e)}"
+#                 errors.append(error_msg)
+#                 frappe.log_error(error_msg, f"Batch Processing Error - {batch_id}")
+        
+#         # Final commit
+#         frappe.db.commit()
+        
+#         # Update batch status
+#         update_batch_status(batch_id, success_count, error_count, errors)
+        
+#         # Send progress notification
+#         send_batch_progress_notification(
+#             import_doc_name, batch_number, total_batches, success_count, error_count
+#         )
+        
+#         return {
+#             "status": "completed",
+#             "success_count": success_count,
+#             "error_count": error_count,
+#             "batch_id": batch_id
+#         }
+        
+#     except Exception as e:
+#         frappe.log_error(f"Critical error in batch processing: {str(e)}", f"Batch Error - {batch_id}")
+#         return {
+#             "status": "failed",
+#             "error": str(e),
+#             "batch_id": batch_id
+#         }
+
+
+# def map_csv_to_staging(staging_doc, row_data, field_mapping):
+#     """Map CSV row data to staging document fields"""
+    
+#     # Define field mapping from CSV columns to staging fields
+#     csv_to_staging_mapping = {
+#         "C.Code": "c_code",
+#         "Vendor Code": "vendor_code", 
+#         "Vendor Name": "vendor_name",
+#         "State": "state",
+#         "Country": "country",
+#         "GSTN No": "gstn_no",
+#         "PAN No": "pan_no",
+#         "Check": "check_field",
+#         "Vendor Type": "vendor_type",
+#         "Vendor GST Classification": "vendor_gst_classification",
+#         "Address01": "address01",
+#         "Address02": "address02",
+#         "Address03": "address03",
+#         "Address04": "address04",
+#         "Address05": "address05",
+#         "City": "city",
+#         "Pincode": "pincode",
+#         "Contact No": "contact_no",
+#         "Alternate No": "alternate_no",
+#         "Email-Id": "email_id",
+#         "Validity": "validity",
+#         "Created On": "created_on",
+#         "Count": "count_field",
+#         "Account Group": "account_group",
+#         "Type of Industry": "type_of_industry",
+#         "Contact Person": "contact_person",
+#         "HOD": "hod",
+#         "Nature Of Services": "nature_of_services",
+#         "Nature": "nature",
+#         "Remarks": "remarks",
+#         "Primary Email": "primary_email",
+#         "Secondary Email": "secondary_email",
+#         "Purchase Organization": "purchase_organization",
+#         "Purchase Group": "purchase_group",
+#         "Vendor Type_1": "vendor_type_1",
+#         "Terms of Payment": "terms_of_payment",
+#         "Incoterm": "incoterm",
+#         "Reconciliation Account": "reconciliation_account",
+#         "Order Currency": "order_currency",
+#         "Blocked": "blocked",
+#         "Bank Name": "bank_name",
+#         "Bank Key": "bank_key",
+#         "IFSC Code": "ifsc_code",
+#         "Account Number": "account_number",
+#         "Name of Account Holder": "name_of_account_holder",
+#         "Type of Account": "type_of_account",
+#         "Enterprise Registration No.": "enterprise_registration_no",
+#         "GST Vendor Type": "gst_vendor_type",
+#         "Beneficiary Name": "beneficiary_name",
+#         "Beneficiary Swift Code": "beneficiary_swift_code",
+#         "Beneficiary IBAN No.": "beneficiary_iban_no",
+#         "Beneficiary ABA No.": "beneficiary_aba_no",
+#         "Beneficiary Bank Address": "beneficiary_bank_address",
+#         "Beneficiary Bank Name": "beneficiary_bank_name",
+#         "Beneficiary Account No.": "beneficiary_account_no",
+#         "Beneficiary ACH No.": "beneficiary_ach_no",
+#         "Beneficiary Routing No.": "beneficiary_routing_no",
+#         "Beneficiary Currency": "beneficiary_currency",
+#         "Intermediate Name": "intermediate_name",
+#         "Intermediate Bank Name": "intermediate_bank_name",
+#         "Intermediate Swift Code": "intermediate_swift_code",
+#         "Intermediate IBAN No.": "intermediate_iban_no",
+#         "Intermediate ABA No.": "intermediate_aba_no",
+#         "Intermediate Bank Address": "intermediate_bank_address",
+#         "Intermediate Account No.": "intermediate_account_no",
+#         "Intermediate ACH No.": "intermediate_ach_no",
+#         "Intermediate Routing No.": "intermediate_routing_no",
+#         "Intermediate Currency": "intermediate_currency"
+#     }
+    
+#     # Apply mapping
+#     for csv_field, staging_field in csv_to_staging_mapping.items():
+#         if csv_field in row_data and staging_field:
+#             value = row_data[csv_field]
+            
+#             # Clean and convert value
+#             if value is not None:
+#                 if staging_field == "blocked":
+#                     # Convert to boolean
+#                     staging_doc.set(staging_field, cint(value) == 1)
+#                 elif staging_field in ["count_field", "pincode"]:
+#                     # Convert to int
+#                     staging_doc.set(staging_field, cint(value) if value else None)
+#                 else:
+#                     # String fields
+#                     staging_doc.set(staging_field, cstr(value).strip() if value else "")
+
+
+# def update_batch_status(batch_id, success_count, error_count, errors):
+#     """Update batch processing status"""
+    
+#     try:
+#         # Create or update batch status record
+#         batch_status = {
+#             "batch_id": batch_id,
+#             "success_count": success_count,
+#             "error_count": error_count,
+#             "total_processed": success_count + error_count,
+#             "status": "Completed" if error_count == 0 else "Completed with Errors",
+#             "processed_at": now_datetime(),
+#             "errors": "\n".join(errors[:50])  # Store first 50 errors
+#         }
+        
+#         # Store in custom doctype or log
+#         frappe.log_error(
+#             f"Batch {batch_id} completed: {success_count} success, {error_count} errors",
+#             "Batch Processing Status"
+#         )
+        
+#     except Exception as e:
+#         frappe.log_error(f"Error updating batch status: {str(e)}", "Batch Status Update Error")
+
+
+# def send_batch_progress_notification(import_doc_name, batch_number, total_batches, success_count, error_count):
+#     """Send progress notification for batch completion"""
+    
+#     try:
+#         progress_percentage = (batch_number / total_batches) * 100
+        
+#         message = f"""
+#         Vendor Import Staging Progress Update:
+        
+#         Import Document: {import_doc_name}
+#         Batch: {batch_number} of {total_batches}
+#         Progress: {progress_percentage:.1f}%
+        
+#         Batch Results:
+#         - Successful: {success_count}
+#         - Errors: {error_count}
+        
+#         {f"Processing complete!" if batch_number == total_batches else "Processing continues..."}
+#         """
+        
+#         # Send notification to users with Vendor Manager role
+#         users = frappe.get_all("Has Role", 
+#             filters={"role": "Vendor Manager", "parenttype": "User"},
+#             fields=["parent"]
+#         )
+        
+#         for user in users:
+#             frappe.share.add(
+#                 "Existing Vendor Import", 
+#                 import_doc_name, 
+#                 user.parent, 
+#                 notify=1,
+#                 message=message
+#             )
+            
+#     except Exception as e:
+#         frappe.log_error(f"Error sending progress notification: {str(e)}", "Progress Notification Error")
+
+
+# # API Methods for List View Button Integration
+# @frappe.whitelist()
+# def initiate_staging_import(import_doc_name, batch_size=100):
+#     """API method to initiate staging import process"""
+    
+#     # Validate permissions
+#     if not frappe.has_permission("Vendor Import Staging", "create"):
+#         frappe.throw(_("Insufficient permissions to create staging records"))
+    
+#     # Check if import document exists and has data
+#     if not frappe.db.exists("Existing Vendor Import", import_doc_name):
+#         frappe.throw(_("Import document not found"))
+    
+#     import_doc = frappe.get_doc("Existing Vendor Import", import_doc_name)
+#     if not import_doc.vendor_data:
+#         frappe.throw(_("No vendor data found in import document"))
+    
+#     # Start the staging process
+#     result = create_staging_records_from_import(import_doc_name, cint(batch_size))
+    
+#     return result
+
+
+# @frappe.whitelist()
+# def process_bulk_staging_to_vendor_master(record_names, batch_size=50):
+#     """Process multiple staging records to vendor master via background jobs"""
+    
+#     if not record_names:
+#         return {"status": "error", "error": "No records provided"}
+    
+#     if isinstance(record_names, str):
+#         record_names = json.loads(record_names)
+    
+#     try:
+#         batch_size = cint(batch_size)
+#         total_records = len(record_names)
+        
+#         # Process in batches via background jobs
+#         batch_count = 0
+#         for i in range(0, total_records, batch_size):
+#             batch_records = record_names[i:i + batch_size]
+#             batch_count += 1
+            
+#             # Enqueue batch processing
+#             enqueue(
+#                 method="vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_staging_batch_to_vendor_master",
+#                 queue="default",
+#                 timeout=3600,  # 1 hour timeout
+#                 job_name=f"vendor_master_creation_batch_{batch_count}",
+#                 record_names=batch_records,
+#                 batch_number=batch_count,
+#                 total_batches=((total_records - 1) // batch_size) + 1
+#             )
+        
+#         return {
+#             "status": "success",
+#             "message": f"Initiated {batch_count} background jobs for {total_records} records",
+#             "total_batches": batch_count,
+#             "total_records": total_records
+#         }
+        
+#     except Exception as e:
+#         frappe.log_error(f"Error initiating bulk processing: {str(e)}", "Bulk Processing Initiation Error")
+#         return {"status": "error", "error": str(e)}
+
+
+
+# @frappe.whitelist()
+# def process_single_staging_record(docname):
+#     """Process a single staging record to vendor master"""
+    
+#     try:
+#         staging_doc = frappe.get_doc("Vendor Import Staging", docname)
+        
+#         if staging_doc.validation_status == "Invalid":
+#             return {
+#                 "status": "error",
+#                 "error": "Cannot process invalid record. Please fix validation errors first."
+#             }
+        
+#         vendor_name = staging_doc.create_vendor_master()
+        
+#         if vendor_name:
+#             return {
+#                 "status": "success",
+#                 "vendor_name": vendor_name,
+#                 "message": f"Vendor Master {vendor_name} created/updated successfully"
+#             }
+#         else:
+#             return {
+#                 "status": "error", 
+#                 "error": "Failed to create vendor master. Check error log for details."
+#             }
+            
+#     except Exception as e:
+#         frappe.log_error(f"Error processing single staging record: {str(e)}", "Single Staging Processing Error")
+#         return {
+#             "status": "error",
+#             "error": str(e)
+#         }
+
+
+# @frappe.whitelist()
+# def process_bulk_staging_records(record_names):
+#     """Process multiple staging records in background"""
+    
+#     if not record_names:
+#         return {"status": "error", "error": "No records provided"}
+    
+#     if isinstance(record_names, str):
+#         record_names = json.loads(record_names)
+    
+#     # Enqueue background job for bulk processing
+#     frappe.enqueue(
+#         method="vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_staging_to_vendor_master",
+#         queue="default",
+#         timeout=3600,
+#         job_name=f"bulk_staging_process_{len(record_names)}_records",
+#         batch_size=len(record_names)
+#     )
+    
+#     return {
+#         "status": "success",
+#         "message": f"Bulk processing initiated for {len(record_names)} records"
+#     }
+
+
+# @frappe.whitelist()
+# def retry_bulk_staging_records(record_names):
+#     """Retry processing for failed staging records"""
+    
+#     if not record_names:
+#         return {"status": "error", "error": "No records provided"}
+    
+#     if isinstance(record_names, str):
+#         record_names = json.loads(record_names)
+    
+#     try:
+#         # Reset status of failed records
+#         for name in record_names:
+#             frappe.db.set_value("Vendor Import Staging", name, {
+#                 "import_status": "Pending",
+#                 "error_log": ""
+#             })
+        
+#         frappe.db.commit()
+        
+#         # Enqueue for processing
+#         frappe.enqueue(
+#             method="vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_staging_to_vendor_master",
+#             queue="default",
+#             timeout=3600,
+#             job_name=f"retry_staging_process_{len(record_names)}_records",
+#             batch_size=len(record_names)
+#         )
+        
+#         return {
+#             "status": "success",
+#             "message": f"Retry initiated for {len(record_names)} records"
+#         }
+        
+#     except Exception as e:
+#         frappe.log_error(f"Error retrying bulk staging records: {str(e)}", "Bulk Retry Error")
+#         return {"status": "error", "error": str(e)}
+
+
+# @frappe.whitelist()
+# def revalidate_staging_record(docname):
+#     """Re-validate a single staging record"""
+    
+#     try:
+#         staging_doc = frappe.get_doc("Vendor Import Staging", docname)
+#         staging_doc.set_validation_status()
+#         staging_doc.save()
+        
+#         return {
+#             "status": "success",
+#             "validation_status": staging_doc.validation_status,
+#             "error_log": staging_doc.error_log
+#         }
+        
+#     except Exception as e:
+#         frappe.log_error(f"Error revalidating staging record: {str(e)}", "Staging Revalidation Error")
+#         return {"status": "error", "error": str(e)}
+
+
+# @frappe.whitelist() 
+# def revalidate_bulk_staging_records(record_names):
+#     """Re-validate multiple staging records"""
+    
+#     if not record_names:
+#         return {"status": "error", "error": "No records provided"}
+    
+#     if isinstance(record_names, str):
+#         record_names = json.loads(record_names)
+    
+#     try:
+#         success_count = 0
+#         error_count = 0
+        
+#         for name in record_names:
+#             try:
+#                 staging_doc = frappe.get_doc("Vendor Import Staging", name)
+#                 staging_doc.set_validation_status()
+#                 staging_doc.save()
+#                 success_count += 1
+#             except Exception as e:
+#                 error_count += 1
+#                 frappe.log_error(f"Error revalidating {name}: {str(e)}", "Individual Revalidation Error")
+        
+#         frappe.db.commit()
+        
+#         return {
+#             "status": "success",
+#             "message": f"Revalidated {success_count} records, {error_count} errors",
+#             "success_count": success_count,
+#             "error_count": error_count
+#         }
+        
+#     except Exception as e:
+#         frappe.log_error(f"Error in bulk revalidation: {str(e)}", "Bulk Revalidation Error")
+#         return {"status": "error", "error": str(e)}
