@@ -10,7 +10,9 @@
   "reconcil_account",
   "reconcil_account_code",
   "reconcil_description",
-  "company"
+  "company",
+  "section_break_lhzs",
+  "inactive"
  ],
  "fields": [
   {
@@ -40,12 +42,22 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "section_break_lhzs",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "inactive",
+   "fieldtype": "Check",
+   "label": "Inactive"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:39:46.501227",
+ "modified": "2025-09-20 14:06:54.676144",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Reconciliation Account",

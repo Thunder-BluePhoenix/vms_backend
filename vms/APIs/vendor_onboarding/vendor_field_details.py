@@ -25,7 +25,7 @@ def get_purchase_team_details(company_name=None):
         # Fetch Purchase Organizations
         purchase_organizations = frappe.get_all(
             "Purchase Organization Master",
-            filters={"company": company},
+            filters={"company": company, "inactive": 0},
             fields=["name", "purchase_organization_name", "description", "org_type"]
         )
 
@@ -34,20 +34,20 @@ def get_purchase_team_details(company_name=None):
         if emp.show_all_purchase_groups == 1:
             purchase_groups = frappe.get_all(
                 "Purchase Group Master",
-                filters={"company": company},
+                filters={"company": company, "inactive": 0},
                 fields=["name", "purchase_group_name", "description"]
             )
         else:
             purchase_groups = frappe.get_all(
                 "Purchase Group Master",
-                filters={"company": company, "team": emp.team},
+                filters={"company": company, "team": emp.team, "inactive": 0},
                 fields=["name", "purchase_group_name", "description"]
             )
 
         # Fetch Terms of Payment
         terms_of_payment = frappe.get_all(
             "Terms of Payment Master",
-            filters={"company": company},
+            filters={"company": company, "inactive": 0},
             fields=["name", "terms_of_payment_name", "description"]
         )
 
@@ -65,7 +65,7 @@ def get_purchase_team_details(company_name=None):
                     im.note
                 FROM `tabIncoterm Master` im
                 INNER JOIN `tabIncoterm Company Table` ict ON im.name = ict.parent
-                WHERE ict.company = %s
+                WHERE ict.company = %s AND im.inactive = 0
                 ORDER BY im.incoterm_name
             """
             
@@ -131,7 +131,7 @@ def account_group_details(data):
     # Get all Account Group Master records that match the purchase_organization
     account_groups = frappe.get_all(
         "Account Group Master",
-        filters={"purchase_organization": purchase_organization},
+        filters={"purchase_organization": purchase_organization, "inactive": 0},
         fields=["name", "account_group_name", "account_group_description"]
     )
 
