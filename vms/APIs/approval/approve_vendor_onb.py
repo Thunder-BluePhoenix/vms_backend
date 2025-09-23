@@ -49,12 +49,13 @@ def get_next_approver(stage, doc, next_stage=None):
         company = doc.get("company")
         
         
-        # in get_approval_employee this funciton we need to handle team speical case for the comapny
+        
         emp = get_approval_employee(
             next_role,
             company_list=[company] if company else [],
             fields=["user_id"],
             doc=doc,
+            stage=next_stage
         )
 
         linked_user = emp.get("user_id") if emp else ""

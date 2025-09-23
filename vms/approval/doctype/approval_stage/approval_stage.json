@@ -98,12 +98,14 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:parent.for_doc_type=='Vendor Onboarding'",
    "fieldname": "company_wise",
    "fieldtype": "Check",
    "label": "Company Wise"
   },
   {
    "default": "0",
+   "depends_on": "eval:parent.for_doc_type=='Vendor Onboarding'",
    "fieldname": "team_wise",
    "fieldtype": "Check",
    "label": "Team Wise"
@@ -113,7 +115,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-17 17:59:23.297315",
+ "modified": "2025-09-23 17:22:13.078598",
  "modified_by": "Administrator",
  "module": "Approval",
  "name": "Approval Stage",
