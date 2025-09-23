@@ -78,6 +78,7 @@ class VendorOnboarding(Document):
 
         self.add_first_in_approval_workflow()
         self.update_next_approver_role()
+        
 
 
     def handle_expiration(self):
