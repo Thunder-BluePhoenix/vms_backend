@@ -506,10 +506,10 @@ def get_vendors_with_pagination(
                 WHERE vor.parent = %(vendor_name)s
             """, {'vendor_name': vendor['name']}, as_dict=True)
             
-            # Get vendor types
+            # Get vendor types.Vendor Type Group
             vendor['vendor_types'] = frappe.db.sql("""
                 SELECT vt.*
-                FROM `tabVendor Type for Account` vt
+                FROM `tabVendor Type Group` vt
                 WHERE vt.parent = %(vendor_name)s
             """, {'vendor_name': vendor['name']}, as_dict=True)
             
@@ -964,19 +964,19 @@ def calculate_company_wise_analytics(filter_company=None):
                 # Get vendor types breakdown for this company
                 vendor_types_query = """
                 SELECT 
-                    vt.vendor_type_ac,
+                    vt.vendor_type,
                     COUNT(DISTINCT vm.name) as count
                 FROM `tabVendor Master` vm
                 INNER JOIN `tabMultiple Company Data` mcd ON vm.name = mcd.parent
-                INNER JOIN `tabVendor Type for Account` vt ON vm.name = vt.parent
+                INNER JOIN `tabVendor Type Group` vt ON vm.name = vt.parent
                 WHERE mcd.company_name = %(company_name)s
-                GROUP BY vt.vendor_type_ac
+                GROUP BY vt.vendor_type
                 ORDER BY count DESC
                 """
                 
                 vendor_types_results = frappe.db.sql(vendor_types_query, 
                                                     {'company_name': company_name}, as_dict=True)
-                vendor_types_breakdown = {item['vendor_type_ac']: item['count'] for item in vendor_types_results}
+                vendor_types_breakdown = {item['vendor_type']: item['count'] for item in vendor_types_results}
                 
             else:
                 # No vendors for this company
