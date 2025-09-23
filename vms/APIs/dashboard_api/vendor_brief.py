@@ -328,12 +328,18 @@ import frappe
 from frappe import _
 import math
 
+import frappe
+from frappe import _
+import math
+
 @frappe.whitelist(allow_guest = True)
 def get_vendors_with_pagination(
     page=1, 
     page_size=20, 
     search_filters=None,
-    company_name=None
+    company_name=None,
+    onboarding_form=None,
+    via_data_import=None
 ):
     """
     API to fetch vendor masters with pagination, multiple search filters and advanced analytics
@@ -344,6 +350,8 @@ def get_vendors_with_pagination(
     - search_filters: JSON string with multiple search fields and parameters
       Example: '{"vendor_name": ["ABC", "XYZ"], "office_email_primary": ["@gmail.com", "@yahoo.com"]}'
     - company_name: Filter by specific company name from multiple_company_data
+    - onboarding_form: Filter by onboarding form status in vendor_onb_records
+    - via_data_import: Filter by via_data_import field (1/true for imported vendors)
     
     Returns:
     - vendors: List of vendor data with all fields
@@ -416,6 +424,27 @@ def get_vendors_with_pagination(
             conditions.append("cm.company_name LIKE %(company_name)s")
             values['company_name'] = f"%{company_name}%"
         
+        # Onboarding form filter from vendor_onb_records table
+        onboarding_join = ""
+        if onboarding_form:
+            onboarding_join = """
+            INNER JOIN `tabVendor Onboarding Records` vor 
+            ON vm.name = vor.parent
+            """
+            conditions.append("vor.onboarding_form_status = %(onboarding_form)s")
+            values['onboarding_form'] = onboarding_form
+        
+        # Via data import filter
+        if via_data_import is not None:
+            # Handle various truthy values (1, "1", True, "true", etc.)
+            if str(via_data_import).lower() in ['1', 'true', 'yes']:
+                conditions.append("vm.via_data_import = 1")
+            else:
+                conditions.append("(vm.via_data_import = 0 OR vm.via_data_import IS NULL)")
+        
+        # Combine all joins
+        all_joins = f"{company_join} {onboarding_join}"
+        
         # Build WHERE clause
         where_clause = ""
         if conditions:
@@ -425,7 +454,7 @@ def get_vendors_with_pagination(
         count_query = f"""
         SELECT COUNT(DISTINCT vm.name) as total_count
         FROM `tabVendor Master` vm
-        {company_join}
+        {all_joins}
         {where_clause}
         """
         
@@ -439,7 +468,7 @@ def get_vendors_with_pagination(
         main_query = f"""
         SELECT DISTINCT vm.*
         FROM `tabVendor Master` vm
-        {company_join}
+        {all_joins}
         {where_clause}
         ORDER BY vm.modified DESC
         LIMIT %(page_size)s OFFSET %(offset)s
@@ -520,7 +549,7 @@ def get_vendors_with_pagination(
         company_analytics = calculate_company_wise_analytics()
         
         # Calculate search result analytics
-        search_analytics = calculate_search_analytics(search_filters, company_name, values, company_join, where_clause)
+        search_analytics = calculate_search_analytics(search_filters, company_name, values, all_joins, where_clause, onboarding_form, via_data_import)
         
         # Build pagination metadata
         pagination = {
@@ -544,7 +573,9 @@ def get_vendors_with_pagination(
                 'search_analytics': search_analytics,
                 'applied_filters': {
                     'search_filters': search_filters,
-                    'company_name': company_name
+                    'company_name': company_name,
+                    'onboarding_form': onboarding_form,
+                    'via_data_import': via_data_import
                 }
             }
         }
@@ -556,13 +587,12 @@ def get_vendors_with_pagination(
             'error': str(e)
         }
 
-
-def calculate_search_analytics(search_filters, company_name, query_values, company_join, where_clause):
+def calculate_search_analytics(search_filters, company_name, query_values, all_joins, where_clause, onboarding_form=None, via_data_import=None):
     """Calculate detailed analytics for search results"""
     
     try:
         # If no filters applied, return basic stats
-        if not search_filters and not company_name:
+        if not search_filters and not company_name and not onboarding_form and via_data_import is None:
             return {
                 'search_applied': False,
                 'message': 'No search filters applied - showing all vendors'
@@ -575,95 +605,151 @@ def calculate_search_analytics(search_filters, company_name, query_values, compa
         imported_query = f"""
         SELECT COUNT(DISTINCT vm.name) as count
         FROM `tabVendor Master` vm
-        {company_join}
-        {where_clause} AND vm.via_data_import = 1
+        {all_joins}
+        {where_clause + ' AND' if where_clause else 'WHERE'} vm.via_data_import = 1
         """
         
         vms_registered_query = f"""
         SELECT COUNT(DISTINCT vm.name) as count
         FROM `tabVendor Master` vm
-        {company_join}
-        {where_clause} AND vm.via_data_import = 0
+        {all_joins}
+        {where_clause + ' AND' if where_clause else 'WHERE'} (vm.via_data_import = 0 OR vm.via_data_import IS NULL)
         """
         
         # Count by approval status with current filters
+        # Need to handle case where onboarding join might already be present
+        onboarding_join_for_approval = ""
+        if "tabVendor Onboarding Records" not in all_joins:
+            onboarding_join_for_approval = """
+            INNER JOIN `tabVendor Onboarding Records` vor ON vm.name = vor.parent
+            INNER JOIN `tabVendor Onboarding` vo ON vor.vendor_onboarding_no = vo.name
+            """
+        else:
+            onboarding_join_for_approval = """
+            INNER JOIN `tabVendor Onboarding` vo ON vor.vendor_onboarding_no = vo.name
+            """
+        
         approved_by_accounts_query = f"""
         SELECT COUNT(DISTINCT vm.name) as count
         FROM `tabVendor Master` vm
-        INNER JOIN `tabVendor Onboarding Records` vor ON vm.name = vor.parent
-        INNER JOIN `tabVendor Onboarding` vo ON vor.vendor_onboarding_no = vo.name
-        {company_join.replace('vm', 'vm') if company_join else ''}
-        {where_clause} AND vor.onboarding_form_status = 'Approved' AND vo.register_by_account_team = 1
+        {all_joins}
+        {onboarding_join_for_approval}
+        {where_clause + ' AND' if where_clause else 'WHERE'} vor.onboarding_form_status = 'Approved' AND vo.register_by_account_team = 1
         """
         
         approved_by_purchase_query = f"""
         SELECT COUNT(DISTINCT vm.name) as count
         FROM `tabVendor Master` vm
-        INNER JOIN `tabVendor Onboarding Records` vor ON vm.name = vor.parent
-        INNER JOIN `tabVendor Onboarding` vo ON vor.vendor_onboarding_no = vo.name
-        {company_join.replace('vm', 'vm') if company_join else ''}
-        {where_clause} AND vor.onboarding_form_status = 'Approved' AND vo.register_by_account_team = 0
+        {all_joins}
+        {onboarding_join_for_approval}
+        {where_clause + ' AND' if where_clause else 'WHERE'} vor.onboarding_form_status = 'Approved' AND vo.register_by_account_team = 0
         """
         
-        # Execute queries
-        imported_count = frappe.db.sql(imported_query, query_values, as_dict=True)[0]['count']
-        vms_registered_count = frappe.db.sql(vms_registered_query, query_values, as_dict=True)[0]['count']
-        approved_accounts_count = frappe.db.sql(approved_by_accounts_query, query_values, as_dict=True)[0]['count']
-        approved_purchase_count = frappe.db.sql(approved_by_purchase_query, query_values, as_dict=True)[0]['count']
+        # Execute queries with error handling
+        try:
+            imported_count = frappe.db.sql(imported_query, query_values, as_dict=True)[0]['count']
+        except Exception as e:
+            frappe.log_error(f"Error in imported_count query: {str(e)}")
+            imported_count = 0
+            
+        try:
+            vms_registered_count = frappe.db.sql(vms_registered_query, query_values, as_dict=True)[0]['count']
+        except Exception as e:
+            frappe.log_error(f"Error in vms_registered_count query: {str(e)}")
+            vms_registered_count = 0
+            
+        try:
+            approved_accounts_count = frappe.db.sql(approved_by_accounts_query, query_values, as_dict=True)[0]['count']
+        except Exception as e:
+            frappe.log_error(f"Error in approved_accounts_count query: {str(e)}")
+            approved_accounts_count = 0
+            
+        try:
+            approved_purchase_count = frappe.db.sql(approved_by_purchase_query, query_values, as_dict=True)[0]['count']
+        except Exception as e:
+            frappe.log_error(f"Error in approved_purchase_count query: {str(e)}")
+            approved_purchase_count = 0
         
         # Count by status with current filters
         status_breakdown = {}
-        if where_clause:
-            status_query = f"""
-            SELECT 
-                COALESCE(vm.status, 'Not Set') as status_value,
-                COUNT(DISTINCT vm.name) as count
-            FROM `tabVendor Master` vm
-            {company_join}
-            {where_clause}
-            GROUP BY vm.status
-            ORDER BY count DESC
-            """
-            status_results = frappe.db.sql(status_query, query_values, as_dict=True)
-            status_breakdown = {item['status_value']: item['count'] for item in status_results}
+        if where_clause or all_joins:
+            try:
+                status_query = f"""
+                SELECT 
+                    COALESCE(vm.status, 'Not Set') as status_value,
+                    COUNT(DISTINCT vm.name) as count
+                FROM `tabVendor Master` vm
+                {all_joins}
+                {where_clause if where_clause else ''}
+                GROUP BY vm.status
+                ORDER BY count DESC
+                """
+                status_results = frappe.db.sql(status_query, query_values, as_dict=True)
+                status_breakdown = {item['status_value']: item['count'] for item in status_results}
+            except Exception as e:
+                frappe.log_error(f"Error in status_breakdown query: {str(e)}")
+                status_breakdown = {}
         
         # Count by onboarding status with current filters
         onboarding_status_breakdown = {}
-        if where_clause:
-            onboarding_status_query = f"""
-            SELECT 
-                COALESCE(vm.onboarding_form_status, 'Not Set') as onboarding_status,
-                COUNT(DISTINCT vm.name) as count
-            FROM `tabVendor Master` vm
-            {company_join}
-            {where_clause}
-            GROUP BY vm.onboarding_form_status
-            ORDER BY count DESC
-            """
-            onboarding_results = frappe.db.sql(onboarding_status_query, query_values, as_dict=True)
-            onboarding_status_breakdown = {item['onboarding_status']: item['count'] for item in onboarding_results}
+        if where_clause or all_joins:
+            try:
+                onboarding_status_query = f"""
+                SELECT 
+                    COALESCE(vm.onboarding_form_status, 'Not Set') as onboarding_status,
+                    COUNT(DISTINCT vm.name) as count
+                FROM `tabVendor Master` vm
+                {all_joins}
+                {where_clause if where_clause else ''}
+                GROUP BY vm.onboarding_form_status
+                ORDER BY count DESC
+                """
+                onboarding_results = frappe.db.sql(onboarding_status_query, query_values, as_dict=True)
+                onboarding_status_breakdown = {item['onboarding_status']: item['count'] for item in onboarding_results}
+            except Exception as e:
+                frappe.log_error(f"Error in onboarding_status_breakdown query: {str(e)}")
+                onboarding_status_breakdown = {}
         
         # Breakdown by search fields if search filters are applied
         field_breakdown = {}
         if search_filters:
-            for field, params in search_filters.items():
-                if isinstance(params, list) and params:
-                    field_counts = {}
-                    for param in params:
-                        if param and str(param).strip():
-                            # Count vendors matching this specific parameter
-                            param_query = f"""
-                            SELECT COUNT(DISTINCT vm.name) as count
-                            FROM `tabVendor Master` vm
-                            {company_join}
-                            WHERE vm.{field} LIKE %s
-                            """ + (f" AND {company_join.split('WHERE')[0] if 'WHERE' in company_join else ''}" if company_join else "")
-                            
-                            param_count = frappe.db.sql(param_query, [f"%{param}%"], as_dict=True)[0]['count']
-                            field_counts[str(param)] = param_count
-                    
-                    if field_counts:
-                        field_breakdown[field] = field_counts
+            try:
+                for field, params in search_filters.items():
+                    if isinstance(params, list) and params:
+                        field_counts = {}
+                        for param in params:
+                            if param and str(param).strip():
+                                # Count vendors matching this specific parameter
+                                # Use simpler query for field breakdown to avoid complex join issues
+                                param_query = f"""
+                                SELECT COUNT(DISTINCT vm.name) as count
+                                FROM `tabVendor Master` vm
+                                WHERE vm.{field} LIKE %s
+                                """
+                                
+                                try:
+                                    param_count = frappe.db.sql(param_query, [f"%{param}%"], as_dict=True)[0]['count']
+                                    field_counts[str(param)] = param_count
+                                except Exception as e:
+                                    frappe.log_error(f"Error in field breakdown for {field}-{param}: {str(e)}")
+                                    field_counts[str(param)] = 0
+                        
+                        if field_counts:
+                            field_breakdown[field] = field_counts
+            except Exception as e:
+                frappe.log_error(f"Error in field_breakdown: {str(e)}")
+                field_breakdown = {}
+        
+        # Count active filters
+        active_filters = []
+        if search_filters:
+            active_filters.extend(list(search_filters.keys()))
+        if company_name:
+            active_filters.append('company_name')
+        if onboarding_form:
+            active_filters.append('onboarding_form')
+        if via_data_import is not None:
+            active_filters.append('via_data_import')
         
         return {
             'search_applied': True,
@@ -680,14 +766,17 @@ def calculate_search_analytics(search_filters, company_name, query_values, compa
             'search_summary': {
                 'fields_searched': list(search_filters.keys()) if search_filters else [],
                 'company_filter_applied': bool(company_name),
-                'total_search_criteria': len(search_filters.keys()) if search_filters else 0
+                'onboarding_form_filter_applied': bool(onboarding_form),
+                'via_data_import_filter_applied': via_data_import is not None,
+                'active_filters': active_filters,
+                'total_search_criteria': len(active_filters)
             }
         }
         
     except Exception as e:
         frappe.log_error(f"Error in calculate_search_analytics: {str(e)}")
         return {
-            'search_applied': bool(search_filters or company_name),
+            'search_applied': bool(search_filters or company_name or onboarding_form or via_data_import is not None),
             'error': 'Could not calculate search analytics',
             'message': str(e)
         }
@@ -703,7 +792,7 @@ def calculate_vendor_analytics():
     imported_vendors = frappe.db.count('Vendor Master', {'via_data_import': 1})
     
     # Registered via VMS (via_data_import = 0)
-    vms_registered = frappe.db.count('Vendor Master', {'via_data_import': 0})
+    vms_registered = frappe.db.count('Vendor Master', {'created_from_registration': 1})
 
     total_vc_code = frappe.db.count("Vendor Code", filters={"vendor_code": ["is", "set"]})
 
@@ -739,6 +828,7 @@ def calculate_vendor_analytics():
         'vms_registered': vms_registered,
         'approved_by_accounts_team': approved_by_accounts,
         'approved_by_purchase_team': approved_by_purchase,
+        'approved_by_any': approved_by_accounts + approved_by_purchase ,
         'approval_breakdown': {
             'accounts_team': approved_by_accounts,
             'purchase_team': approved_by_purchase,

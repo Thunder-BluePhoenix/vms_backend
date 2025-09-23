@@ -7,26 +7,39 @@ import json
 @frappe.whitelist(allow_guest=True)
 def vendor_registration_dropdown_masters(sap_client_code=None):
     try:
+        usr = frappe.session.user
+        employee_list = frappe.get_all("Employee", filters={"user_id": usr}, limit_page_length=1)
+        if employee_list:
+            employee = frappe.get_doc("Employee", employee_list[0].name)
+            team = employee.team
+        else:
+            team = None
+
+        user_list = []
+        if team:
+            user_list = frappe.get_all("Employee", filters={"team": team, "designation": "Purchase Team"}, fields=["user_id", "full_name"])
+
         vendor_type = frappe.db.sql("SELECT name  FROM `tabVendor Type Master`", as_dict=True)
         vendor_title = frappe.db.sql("SELECT name FROM `tabVendor Title`", as_dict=True)
-        country_master = frappe.db.sql("SELECT name, country_name, mobile_code FROM `tabCountry Master`", as_dict=True)
+        country_master = frappe.db.sql("SELECT name, country_name, mobile_code FROM `tabCountry Master` WHERE inactive = 0", as_dict=True)
 
         # Conditional company master filter
         if sap_client_code:
             company_master = frappe.db.sql("""
                 SELECT name, company_name, company_code, description, sap_client_code
                 FROM `tabCompany Master`
-                WHERE sap_client_code = %s
+                WHERE sap_client_code = %s AND inactive = 0
             """, (sap_client_code,), as_dict=True)
         else:
             company_master = frappe.db.sql("""
                 SELECT name, company_name, company_code, description 
                 FROM `tabCompany Master`
+                WHERE inactive = 0
             """, as_dict=True)
 
-        currency_master = frappe.db.sql("SELECT name, currency_name FROM `tabCurrency Master`", as_dict=True)
-        incoterm_master = frappe.db.sql("SELECT name, incoterm_name FROM `tabIncoterm Master`", as_dict=True)
-        reconciliation_account = frappe.db.sql("SELECT name, reconcil_account_code, reconcil_account, reconcil_description FROM `tabReconciliation Account`", as_dict=True)
+        currency_master = frappe.db.sql("SELECT name, currency_name FROM `tabCurrency Master` WHERE inactive = 0", as_dict=True)
+        incoterm_master = frappe.db.sql("SELECT name, incoterm_name FROM `tabIncoterm Master` WHERE inactive = 0", as_dict=True)
+        reconciliation_account = frappe.db.sql("SELECT name, reconcil_account_code, reconcil_account, reconcil_description FROM `tabReconciliation Account` WHERE inactive = 0", as_dict=True)
 
         return {
             "status": "success",
@@ -38,7 +51,8 @@ def vendor_registration_dropdown_masters(sap_client_code=None):
                 "company_master": company_master,
                 "currency_master": currency_master,
                 "incoterm_master": incoterm_master,
-                "reconciliation_account": reconciliation_account
+                "reconciliation_account": reconciliation_account,
+                "users_list": user_list
             }
         }
 

@@ -156,7 +156,7 @@ from frappe.utils import today, get_first_day, get_last_day
 #         }
 
 @frappe.whitelist(allow_guest=False)
-def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None, purchase_head_filter=False, accounts_team_filter=False):
+def filtering_total_vendor_details(page_no=None, page_length=None, company=None, refno=None, status=None, usr=None, vendor_name=None, purchase_head_filter=False, accounts_team_filter=False, register_by=None):
     try:
         
         if usr is None:
@@ -232,6 +232,11 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
                 if company_list:  
                     conditions.append("vo.company_name IN %(company_list)s")
                     values["company_list"] = company_list
+
+        # filtering out by register by field
+        if register_by:
+            conditions.append("vo.registered_by = %(register_by)s")
+            values["register_by"] = register_by
 
         if company:
             conditions.append("vo.company_name = %(company)s")
@@ -384,7 +389,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
 
 
 @frappe.whitelist(allow_guest=True)
-def approved_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
+def approved_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None, register_by=None):
     try:
 
         if not usr:
@@ -401,7 +406,8 @@ def approved_vendor_details(page_no=None, page_length=None, company=None, refno=
             refno=refno,
             status=status,
             usr=usr,
-            vendor_name=vendor_name
+            vendor_name=vendor_name,
+            register_by=register_by
         )
 
         if result.get("status") != "success":
@@ -460,7 +466,7 @@ def approved_vendor_details(page_no=None, page_length=None, company=None, refno=
 
 
 @frappe.whitelist(allow_guest=False)
-def rejected_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
+def rejected_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None, register_by=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -476,7 +482,8 @@ def rejected_vendor_details(page_no=None, page_length=None, company=None, refno=
             refno=refno,
             status=status,
             usr=usr,
-            vendor_name=vendor_name
+            vendor_name=vendor_name,
+            register_by=register_by
         )
 
         if result.get("status") != "success":
@@ -504,7 +511,7 @@ def rejected_vendor_details(page_no=None, page_length=None, company=None, refno=
 
 
 @frappe.whitelist(allow_guest=False)
-def pending_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
+def pending_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None, register_by=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -527,7 +534,8 @@ def pending_vendor_details(page_no=None, page_length=None, company=None, refno=N
             usr=usr,
             vendor_name=vendor_name,
             purchase_head_filter=purchase_head_filter,
-            accounts_team_filter=accounts_team_filter
+            accounts_team_filter=accounts_team_filter,
+            register_by=register_by
         )
 
         if result.get("status") != "success":
@@ -555,7 +563,7 @@ def pending_vendor_details(page_no=None, page_length=None, company=None, refno=N
 
 
 @frappe.whitelist(allow_guest=False)
-def expired_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
+def expired_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None, register_by=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -571,7 +579,8 @@ def expired_vendor_details(page_no=None, page_length=None, company=None, refno=N
             refno=refno,
             status=status,
             usr=usr,
-            vendor_name=vendor_name
+            vendor_name=vendor_name,
+            register_by=register_by
         )
 
         if result.get("status") != "success":
@@ -636,7 +645,7 @@ def expired_vendor_details(page_no=None, page_length=None, company=None, refno=N
 #         }
 
 @frappe.whitelist(allow_guest=False)
-def sap_error_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
+def sap_error_vendor_details(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None, register_by=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -650,7 +659,8 @@ def sap_error_vendor_details(page_no=None, page_length=None, company=None, refno
             refno=refno,
             status=status,
             usr=usr,
-            vendor_name=vendor_name
+            vendor_name=vendor_name,
+            register_by=register_by
         )
         if result.get("status") != "success":
             return result

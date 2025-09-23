@@ -111,6 +111,7 @@ def get_dispatch_data(data):
                                 "destination_plant": vehicle_doc.get('destination_plant'),
                                 "lr_number": vehicle_doc.get('lr_number'),
                                 "lr_date": vehicle_doc.get('lr_date'),
+                                "vehicle_type": vehicle_doc.get('vehicle_type'),
                                 "attachment": vehicle_doc.get('attachment')
                             }
                             vehicle_details.append(vehicle_info)

@@ -35,7 +35,7 @@ def clean_html_content(html_content):
     return clean_text
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_notifications(page=1, page_size=20, read_status=None, search=None):
     """
     Fetch all notifications for the current user with pagination (HTML content stripped)
