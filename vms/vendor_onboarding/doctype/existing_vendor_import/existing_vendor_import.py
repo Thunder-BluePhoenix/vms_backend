@@ -668,42 +668,44 @@ class ExistingVendorImport(Document):
 		return vendor_master
 
 	def handle_company_vendor_code(self, vendor_ref_no, mapped_row, vendor_code, company_code, state, gst_no):
-		"""Enhanced handling of Company Vendor Code with proper duplicate logic"""
-		
+		"""Enhanced handling of Company Vendor Code with proper duplicate logic + Vendor Master sync"""
+
 		result = {
 			"company_code_action": None,
 			"warnings": []
 		}
-		
+
 		# Find company master
 		company_master = frappe.db.exists("Company Master", {"company_code": company_code})
 		if not company_master:
 			result["warnings"].append(f"Company with code {company_code} not found. Please create company master first.")
 			return result
-		
+
 		company_doc = frappe.get_doc("Company Master", company_master)
-		
+
 		# Check if Company Vendor Code exists for this vendor + company combination
 		existing_cvc = frappe.db.exists("Company Vendor Code", {
 			"vendor_ref_no": vendor_ref_no,
 			"company_name": company_doc.name
 		})
-		
+
 		if existing_cvc:
 			# Update existing Company Vendor Code
 			cvc_doc = frappe.get_doc("Company Vendor Code", existing_cvc)
-			
+
 			# Check if this vendor code + state + GST combination already exists
 			duplicate_found = False
-			
+
 			for vc_row in cvc_doc.vendor_code:
 				if (str(vc_row.vendor_code).strip() == vendor_code and 
 					str(vc_row.state).strip() == state and 
 					str(vc_row.gst_no).strip() == gst_no):
 					duplicate_found = True
-					result["warnings"].append(f"Vendor code {vendor_code} for state {state} with GST {gst_no} already exists")
+					result["warnings"].append(
+						f"Vendor code {vendor_code} for state {state} with GST {gst_no} already exists"
+					)
 					break
-			
+
 			# If no duplicate, add new vendor code row
 			if not duplicate_found:
 				cvc_doc.append("vendor_code", {
@@ -712,13 +714,13 @@ class ExistingVendorImport(Document):
 					"gst_no": gst_no
 				})
 				result["company_code_action"] = "updated"
-			
+
 		else:
 			# Create new Company Vendor Code
 			cvc_doc = frappe.new_doc("Company Vendor Code")
 			cvc_doc.vendor_ref_no = vendor_ref_no
 			cvc_doc.company_name = company_doc.name
-			
+
 			# Add vendor code row
 			cvc_doc.append("vendor_code", {
 				"vendor_code": vendor_code,
@@ -726,8 +728,27 @@ class ExistingVendorImport(Document):
 				"gst_no": gst_no
 			})
 			result["company_code_action"] = "created"
+
 		cvc_doc.imported = 1
 		cvc_doc.save(ignore_permissions=True)
+
+		# 🔹 Update Vendor Master with Company Vendor Code reference
+		vm_doc = frappe.get_doc("Vendor Master", vendor_ref_no)
+		mc_row_found = False
+		for mc_row in vm_doc.multiple_company_data:
+			if mc_row.company_name == company_doc.name:
+				mc_row.company_vendor_code = cvc_doc.name
+				mc_row_found = True
+				break
+
+		if not mc_row_found:
+			vm_doc.append("multiple_company_data", {
+				"company_name": company_doc.name,
+				"company_vendor_code": cvc_doc.name
+			})
+
+		vm_doc.save(ignore_permissions=True)
+
 		return result
 
 	def create_vendor_company_details(self, vendor_ref_no, mapped_row):
