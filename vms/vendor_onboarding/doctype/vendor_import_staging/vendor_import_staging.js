@@ -564,8 +564,9 @@ function view_related_vendor(frm) {
         args: {
             doctype: 'Vendor Master',
             filters: {
-                vendor_code: frm.doc.vendor_code,
-                company_code: frm.doc.c_code
+                // vendor_code: frm.doc.vendor_code,
+                // company_code: frm.doc.c_code
+                office_email_primary:frm.doc.primary_email
             },
             fields: ['name', 'vendor_name']
         },
