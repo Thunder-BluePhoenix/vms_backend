@@ -2426,3 +2426,927 @@ def get_system_health():
             "error": str(e),
             "timestamp": now_datetime()
         }
+
+
+# ADD THESE HEALTH CHECK AND RETRY METHODS TO vendor_import_staging.py
+
+@frappe.whitelist()
+def comprehensive_health_check():
+    """
+    Perform comprehensive system health check including data integrity
+    """
+    try:
+        health_data = {
+            "overall_health": "Healthy",
+            "components": {},
+            "data_integrity": {},
+            "master_data_validation": {},
+            "recommendations": []
+        }
+        
+        health_score = 100
+        
+        # 1. Database Health Check
+        try:
+            frappe.db.sql("SELECT 1")
+            health_data["components"]["Database"] = {
+                "status": "Healthy",
+                "details": "Connection successful"
+            }
+        except Exception as e:
+            health_data["components"]["Database"] = {
+                "status": "Critical",
+                "details": f"Connection failed: {str(e)}"
+            }
+            health_score -= 40
+        
+        # 2. Background Job Queue Health
+        try:
+            from frappe.utils.background_jobs import get_redis_conn
+            redis_conn = get_redis_conn()
+            redis_conn.ping()
+            
+            # Check queue length
+            queue_length = redis_conn.llen('rq:queue:default')
+            if queue_length > 100:
+                health_data["components"]["Job Queue"] = {
+                    "status": "Warning", 
+                    "details": f"High queue length: {queue_length} jobs"
+                }
+                health_score -= 10
+            else:
+                health_data["components"]["Job Queue"] = {
+                    "status": "Healthy",
+                    "details": f"Queue length: {queue_length} jobs"
+                }
+        except Exception as e:
+            health_data["components"]["Job Queue"] = {
+                "status": "Critical",
+                "details": f"Redis connection failed: {str(e)}"
+            }
+            health_score -= 30
+        
+        # 3. Check for stuck processing records
+        stuck_count = frappe.db.count("Vendor Import Staging", {
+            "import_status": "Processing",
+            "modified": ["<", add_to_date(now_datetime(), hours=-2)]
+        })
+        
+        if stuck_count > 0:
+            health_data["components"]["Processing Records"] = {
+                "status": "Warning",
+                "details": f"{stuck_count} stuck processing records"
+            }
+            health_score -= 15
+            health_data["recommendations"].append(f"Reset {stuck_count} stuck processing records")
+        else:
+            health_data["components"]["Processing Records"] = {
+                "status": "Healthy",
+                "details": "No stuck records"
+            }
+        
+        # 4. Data Integrity Checks
+        integrity_results = check_data_integrity()
+        if integrity_results.get("missing_company_masters"):
+            missing_count = sum(integrity_results["missing_company_masters"].values())
+            health_data["data_integrity"]["Company Master Links"] = {
+                "passed": False,
+                "message": f"{missing_count} records reference missing Company Masters"
+            }
+            health_score -= 20
+            health_data["recommendations"].append("Create missing Company Master records")
+        else:
+            health_data["data_integrity"]["Company Master Links"] = {
+                "passed": True,
+                "message": "All Company Master references are valid"
+            }
+        
+        # 5. Validation Status Check
+        invalid_count = frappe.db.count("Vendor Import Staging", {
+            "validation_status": "Invalid"
+        })
+        
+        if invalid_count > 0:
+            health_data["data_integrity"]["Validation Status"] = {
+                "passed": False,
+                "message": f"{invalid_count} records have validation errors"
+            }
+            health_score -= 10
+            health_data["recommendations"].append("Fix validation errors in staging records")
+        else:
+            health_data["data_integrity"]["Validation Status"] = {
+                "passed": True,
+                "message": "All staging records pass validation"
+            }
+        
+        # 6. Master Data Validation
+        validation_results = validate_master_data_completeness()
+        health_data["master_data_validation"] = validation_results.get("doctype_stats", {})
+        
+        # Determine overall health
+        if health_score >= 90:
+            health_data["overall_health"] = "Healthy"
+        elif health_score >= 70:
+            health_data["overall_health"] = "Warning"
+        else:
+            health_data["overall_health"] = "Critical"
+        
+        health_data["health_score"] = health_score
+        
+        return health_data
+        
+    except Exception as e:
+        frappe.log_error(f"Error in comprehensive health check: {str(e)}", "Health Check Error")
+        return {
+            "overall_health": "Error",
+            "components": {"System": {"status": "Critical", "details": str(e)}},
+            "data_integrity": {},
+            "master_data_validation": {},
+            "recommendations": ["System health check failed - contact administrator"]
+        }
+
+
+@frappe.whitelist()
+def check_data_integrity():
+    """
+    Check data integrity focusing on link field validation
+    """
+    try:
+        integrity_data = {
+            "missing_company_masters": {},
+            "invalid_links": {},
+            "completeness": {}
+        }
+        
+        # 1. Check for missing Company Masters
+        staging_records = frappe.get_all("Vendor Import Staging",
+            filters={"import_status": "Pending"},
+            fields=["name", "c_code", "vendor_name"]
+        )
+        
+        company_codes = set()
+        for record in staging_records:
+            if record.c_code:
+                company_codes.add(record.c_code)
+        
+        # Check which company codes exist
+        existing_companies = set()
+        if company_codes:
+            existing_company_codes = frappe.get_all("Company Master",
+                filters={"company_code": ["in", list(company_codes)]},
+                fields=["company_code"]
+            )
+            existing_companies = {comp.company_code for comp in existing_company_codes}
+        
+        # Find missing company masters
+        missing_companies = company_codes - existing_companies
+        if missing_companies:
+            for company_code in missing_companies:
+                count = sum(1 for record in staging_records if record.c_code == company_code)
+                integrity_data["missing_company_masters"][company_code] = count
+        
+        # 2. Check data completeness
+        required_fields = ["vendor_name", "c_code", "vendor_code"]
+        optional_fields = ["gstn_no", "pan_no", "primary_email"]
+        
+        total_records = len(staging_records)
+        
+        for field in required_fields + optional_fields:
+            filled_count = frappe.db.count("Vendor Import Staging", {
+                field: ["!=", ""],
+                field: ["is", "set"]
+            })
+            
+            integrity_data["completeness"][field] = {
+                "filled": filled_count,
+                "total": total_records,
+                "percentage": round((filled_count / total_records * 100), 2) if total_records > 0 else 0
+            }
+        
+        # 3. Check for invalid vendor master references (if any exist)
+        completed_staging = frappe.get_all("Vendor Import Staging",
+            filters={"import_status": "Completed"},
+            fields=["name", "vendor_name"]
+        )
+        
+        invalid_vendor_count = 0
+        for record in completed_staging:
+            if record.vendor_name:
+                exists = frappe.db.exists("Vendor Master", {"vendor_name": record.vendor_name})
+                if not exists:
+                    invalid_vendor_count += 1
+        
+        if invalid_vendor_count > 0:
+            integrity_data["invalid_links"]["Vendor Master"] = invalid_vendor_count
+        
+        return integrity_data
+        
+    except Exception as e:
+        frappe.log_error(f"Error checking data integrity: {str(e)}", "Data Integrity Check Error")
+        return {
+            "missing_company_masters": {},
+            "invalid_links": {},
+            "completeness": {},
+            "error": str(e)
+        }
+
+
+@frappe.whitelist()
+def validate_master_data_completeness():
+    """
+    Validate completeness of master data references
+    """
+    try:
+        validation_data = {
+            "summary": {},
+            "missing_masters": {},
+            "doctype_stats": {}
+        }
+        
+        # Get all staging records
+        staging_records = frappe.get_all("Vendor Import Staging",
+            fields=["name", "c_code", "vendor_type", "purchase_organization", "account_group"]
+        )
+        
+        # 1. Company Master validation
+        company_codes = {record.c_code for record in staging_records if record.c_code}
+        existing_companies = set()
+        if company_codes:
+            existing_company_docs = frappe.get_all("Company Master",
+                filters={"company_code": ["in", list(company_codes)]},
+                fields=["company_code"]
+            )
+            existing_companies = {comp.company_code for comp in existing_company_docs}
+        
+        missing_companies = company_codes - existing_companies
+        if missing_companies:
+            validation_data["missing_masters"]["Company Master"] = [
+                {"value": code, "count": sum(1 for r in staging_records if r.c_code == code)}
+                for code in missing_companies
+            ]
+        
+        # 2. Calculate statistics for each doctype
+        doctypes_to_check = {
+            "Company Master": "c_code",
+            "Vendor Type": "vendor_type"
+        }
+        
+        for doctype, field in doctypes_to_check.items():
+            values = {getattr(record, field) for record in staging_records if getattr(record, field)}
+            total_values = len(values)
+            
+            if total_values > 0:
+                # Check existing records
+                if doctype == "Company Master":
+                    existing_docs = frappe.get_all(doctype,
+                        filters={"company_code": ["in", list(values)]},
+                        fields=["company_code"]
+                    )
+                    existing_values = {doc.company_code for doc in existing_docs}
+                else:
+                    existing_docs = frappe.get_all(doctype,
+                        filters={"name": ["in", list(values)]},
+                        fields=["name"]
+                    )
+                    existing_values = {doc.name for doc in existing_docs}
+                
+                valid_count = len(existing_values)
+                invalid_count = total_values - valid_count
+                
+                validation_data["doctype_stats"][doctype] = {
+                    "total_count": total_values,
+                    "valid_count": valid_count,
+                    "invalid_count": invalid_count,
+                    "valid_percentage": round((valid_count / total_values * 100), 2)
+                }
+        
+        # Summary statistics
+        total_staging = len(staging_records)
+        pending_count = frappe.db.count("Vendor Import Staging", {"import_status": "Pending"})
+        failed_count = frappe.db.count("Vendor Import Staging", {"import_status": "Failed"})
+        completed_count = frappe.db.count("Vendor Import Staging", {"import_status": "Completed"})
+        
+        validation_data["summary"] = {
+            "total_records": total_staging,
+            "pending_records": pending_count,
+            "failed_records": failed_count,
+            "completed_records": completed_count,
+            "missing_masters_count": len(validation_data.get("missing_masters", {}))
+        }
+        
+        return validation_data
+        
+    except Exception as e:
+        frappe.log_error(f"Error validating master data: {str(e)}", "Master Data Validation Error")
+        return {
+            "summary": {},
+            "missing_masters": {},
+            "doctype_stats": {},
+            "error": str(e)
+        }
+
+
+@frappe.whitelist()
+def retry_failed_records_with_options(record_names, options):
+    """
+    Retry failed records with specific options
+    """
+    try:
+        if isinstance(record_names, str):
+            record_names = json.loads(record_names)
+        
+        if isinstance(options, str):
+            options = json.loads(options)
+        
+        # Validate permissions
+        if not frappe.has_permission("Vendor Import Staging", "write"):
+            frappe.throw(_("Insufficient permissions to retry failed records"))
+        
+        # Apply options before retrying
+        if options.get("fix_master_data"):
+            # Auto-create missing master data
+            auto_fix_result = auto_fix_all_master_data()
+            if auto_fix_result.get("status") != "success":
+                frappe.log_error(f"Auto-fix master data failed: {auto_fix_result.get('error')}", "Auto-Fix Error")
+        
+        # Reset failed records to pending with options
+        valid_records = []
+        for record_name in record_names:
+            try:
+                staging_doc = frappe.get_doc("Vendor Import Staging", record_name)
+                
+                # Reset status
+                staging_doc.db_set("import_status", "Pending", update_modified=False)
+                staging_doc.db_set("error_log", "", update_modified=False)
+                staging_doc.db_set("failed_records", 0, update_modified=False)
+                staging_doc.db_set("processing_progress", 0, update_modified=False)
+                
+                # Update validation status if skip validation is enabled
+                if options.get("skip_validation"):
+                    staging_doc.db_set("validation_status", "Valid", update_modified=False)
+                
+                valid_records.append(record_name)
+                
+            except Exception as e:
+                frappe.log_error(f"Error resetting record {record_name}: {str(e)}", "Record Reset Error")
+        
+        frappe.db.commit()
+        
+        if not valid_records:
+            return {
+                "status": "error",
+                "error": "No records could be reset for retry"
+            }
+        
+        # Process the retry with custom batch size
+        batch_size = options.get("batch_size", 25)
+        result = process_bulk_staging_to_vendor_master(valid_records, batch_size)
+        
+        return {
+            "status": "success",
+            "message": f"Retry initiated for {len(valid_records)} records",
+            "total_records": len(valid_records),
+            "batch_details": result
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in retry with options: {str(e)}", "Retry Failed Records Error")
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+@frappe.whitelist()
+def create_company_master(company_code, company_name, company_short_form=None):
+    """
+    Create a new Company Master record
+    """
+    try:
+        # Check if already exists
+        if frappe.db.exists("Company Master", {"company_code": company_code}):
+            return {
+                "status": "error",
+                "error": f"Company Master with code {company_code} already exists"
+            }
+        
+        # Create new Company Master
+        company_doc = frappe.new_doc("Company Master")
+        company_doc.company_code = company_code
+        company_doc.company_name = company_name
+        if company_short_form:
+            company_doc.company_short_form = company_short_form
+        
+        company_doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        return {
+            "status": "success",
+            "message": f"Company Master {company_code} created successfully",
+            "company_name": company_doc.name
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error creating Company Master: {str(e)}", "Company Master Creation Error")
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+@frappe.whitelist()
+def auto_create_master_data(doctype, value):
+    """
+    Auto-create master data for a specific doctype and value
+    """
+    try:
+        if doctype == "Company Master":
+            return create_company_master(value, value)
+        
+        # Add other doctype creation logic here as needed
+        elif doctype == "Vendor Type":
+            # Create vendor type if it doesn't exist
+            if not frappe.db.exists("Vendor Type", value):
+                vendor_type_doc = frappe.new_doc("Vendor Type")
+                vendor_type_doc.vendor_type = value
+                vendor_type_doc.save(ignore_permissions=True)
+                frappe.db.commit()
+                
+                return {
+                    "status": "success",
+                    "message": f"Vendor Type {value} created successfully"
+                }
+            else:
+                return {
+                    "status": "error",
+                    "error": f"Vendor Type {value} already exists"
+                }
+        
+        else:
+            return {
+                "status": "error",
+                "error": f"Auto-creation not supported for {doctype}"
+            }
+            
+    except Exception as e:
+        frappe.log_error(f"Error auto-creating {doctype}: {str(e)}", "Auto Create Master Data Error")
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+@frappe.whitelist()
+def auto_fix_all_master_data():
+    """
+    Automatically create all missing master data
+    """
+    try:
+        validation_data = validate_master_data_completeness()
+        created_count = 0
+        errors = []
+        
+        # Create missing Company Masters
+        if "Company Master" in validation_data.get("missing_masters", {}):
+            for missing_item in validation_data["missing_masters"]["Company Master"]:
+                company_code = missing_item["value"]
+                try:
+                    result = create_company_master(company_code, company_code)
+                    if result["status"] == "success":
+                        created_count += 1
+                    else:
+                        errors.append(f"Company Master {company_code}: {result['error']}")
+                except Exception as e:
+                    errors.append(f"Company Master {company_code}: {str(e)}")
+        
+        # Create other missing master data types as needed
+        # Add more doctype creation logic here
+        
+        if errors:
+            frappe.log_error(f"Auto-fix errors: {'; '.join(errors)}", "Auto Fix Master Data Errors")
+        
+        return {
+            "status": "success",
+            "message": f"Auto-fix completed",
+            "created_count": created_count,
+            "errors": errors
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in auto-fix all master data: {str(e)}", "Auto Fix All Error")
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+@frappe.whitelist()
+def export_master_data_validation_report():
+    """
+    Export master data validation report as Excel file
+    """
+    try:
+        import pandas as pd
+        from frappe.utils.file_manager import save_file
+        import io
+        
+        validation_data = validate_master_data_completeness()
+        integrity_data = check_data_integrity()
+        
+        # Create Excel writer
+        output = io.BytesIO()
+        
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            
+            # Summary sheet
+            summary_data = []
+            if validation_data.get("summary"):
+                for key, value in validation_data["summary"].items():
+                    summary_data.append({
+                        "Metric": key.replace("_", " ").title(),
+                        "Value": value
+                    })
+            
+            if summary_data:
+                summary_df = pd.DataFrame(summary_data)
+                summary_df.to_excel(writer, sheet_name='Summary', index=False)
+            
+            # Missing masters sheet
+            if validation_data.get("missing_masters"):
+                missing_data = []
+                for doctype, items in validation_data["missing_masters"].items():
+                    for item in items:
+                        missing_data.append({
+                            "DocType": doctype,
+                            "Missing Value": item["value"],
+                            "Referenced By Records": item["count"]
+                        })
+                
+                if missing_data:
+                    missing_df = pd.DataFrame(missing_data)
+                    missing_df.to_excel(writer, sheet_name='Missing Masters', index=False)
+            
+            # Data completeness sheet
+            if integrity_data.get("completeness"):
+                completeness_data = []
+                for field, stats in integrity_data["completeness"].items():
+                    completeness_data.append({
+                        "Field": field,
+                        "Filled Records": stats["filled"],
+                        "Total Records": stats["total"],
+                        "Completeness %": stats["percentage"]
+                    })
+                
+                if completeness_data:
+                    completeness_df = pd.DataFrame(completeness_data)
+                    completeness_df.to_excel(writer, sheet_name='Data Completeness', index=False)
+            
+            # DocType statistics sheet
+            if validation_data.get("doctype_stats"):
+                doctype_data = []
+                for doctype, stats in validation_data["doctype_stats"].items():
+                    doctype_data.append({
+                        "DocType": doctype,
+                        "Total References": stats["total_count"],
+                        "Valid References": stats["valid_count"],
+                        "Invalid References": stats["invalid_count"],
+                        "Valid Percentage": stats["valid_percentage"]
+                    })
+                
+                if doctype_data:
+                    doctype_df = pd.DataFrame(doctype_data)
+                    doctype_df.to_excel(writer, sheet_name='DocType Statistics', index=False)
+            
+            # Failed records analysis
+            failed_records = frappe.get_all("Vendor Import Staging",
+                filters={"import_status": "Failed"},
+                fields=["name", "vendor_name", "error_log", "c_code", "modified"]
+            )
+            
+            if failed_records:
+                failed_data = []
+                for record in failed_records:
+                    failed_data.append({
+                        "Record Name": record.name,
+                        "Vendor Name": record.vendor_name or "N/A",
+                        "Company Code": record.c_code or "N/A", 
+                        "Error": record.error_log[:500] if record.error_log else "No error details",
+                        "Last Modified": record.modified
+                    })
+                
+                failed_df = pd.DataFrame(failed_data)
+                failed_df.to_excel(writer, sheet_name='Failed Records', index=False)
+        
+        # Save the file
+        output.seek(0)
+        file_name = f"master_data_validation_report_{now_datetime().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        file_doc = save_file(
+            file_name,
+            output.getvalue(),
+            "Vendor Import Staging",
+            None,
+            decode=False,
+            is_private=0
+        )
+        
+        return {
+            "status": "success",
+            "message": "Report exported successfully",
+            "file_url": file_doc.file_url,
+            "file_name": file_name
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error exporting validation report: {str(e)}", "Export Report Error")
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+@frappe.whitelist()
+def get_system_health():
+    """
+    Get overall system health for staging processing (Enhanced version)
+    """
+    try:
+        # Check database connection
+        db_healthy = True
+        try:
+            frappe.db.sql("SELECT 1")
+        except:
+            db_healthy = False
+        
+        # Check background job queue
+        queue_healthy = True
+        queue_length = 0
+        try:
+            from frappe.utils.background_jobs import get_redis_conn
+            redis_conn = get_redis_conn()
+            redis_conn.ping()
+            queue_length = redis_conn.llen('rq:queue:default')
+        except:
+            queue_healthy = False
+        
+        # Check for stuck records
+        stuck_count = frappe.db.count("Vendor Import Staging", {
+            "import_status": "Processing",
+            "modified": ["<", add_to_date(now_datetime(), hours=-2)]
+        })
+        
+        # Check validation status distribution
+        status_counts = {}
+        for status in ["Pending", "Queued", "Processing", "Completed", "Failed"]:
+            status_counts[status] = frappe.db.count("Vendor Import Staging", {"import_status": status})
+        
+        # Calculate overall health score
+        health_score = 100
+        issues = []
+        
+        if not db_healthy:
+            health_score -= 50
+            issues.append("Database connection failed")
+        
+        if not queue_healthy:
+            health_score -= 20
+            issues.append("Background job queue unavailable")
+        
+        if queue_length > 100:
+            health_score -= 15
+            issues.append(f"High queue length: {queue_length} jobs")
+        
+        if stuck_count > 0:
+            health_score -= 15
+            issues.append(f"{stuck_count} stuck processing records")
+        
+        if status_counts.get("Failed", 0) > 50:
+            health_score -= 10
+            issues.append(f"{status_counts['Failed']} failed records need attention")
+        
+        # Determine health status
+        if health_score >= 90:
+            health_status = "Healthy"
+        elif health_score >= 70:
+            health_status = "Warning"
+        else:
+            health_status = "Critical"
+        
+        return {
+            "health_status": health_status,
+            "health_score": health_score,
+            "database_healthy": db_healthy,
+            "queue_healthy": queue_healthy,
+            "queue_length": queue_length,
+            "stuck_records": stuck_count,
+            "status_distribution": status_counts,
+            "issues": issues,
+            "recommendations": generate_health_recommendations(status_counts, stuck_count, queue_length),
+            "timestamp": now_datetime()
+        }
+        
+    except Exception as e:
+        return {
+            "health_status": "Error",
+            "health_score": 0,
+            "error": str(e),
+            "timestamp": now_datetime()
+        }
+
+
+def generate_health_recommendations(status_counts, stuck_count, queue_length):
+    """
+    Generate health recommendations based on system status
+    """
+    recommendations = []
+    
+    if status_counts.get("Failed", 0) > 0:
+        recommendations.append(f"Review and retry {status_counts['Failed']} failed records")
+    
+    if stuck_count > 0:
+        recommendations.append(f"Reset {stuck_count} stuck processing records")
+    
+    if queue_length > 100:
+        recommendations.append("Consider adding more background job workers")
+    
+    if status_counts.get("Pending", 0) > 1000:
+        recommendations.append("Large number of pending records - consider batch processing")
+    
+    if not recommendations:
+        recommendations.append("System is healthy - no immediate actions required")
+    
+    return recommendations
+
+
+@frappe.whitelist()
+def get_detailed_error_analysis():
+    """
+    Get detailed analysis of failed records and their error patterns
+    """
+    try:
+        # Get all failed records with error details
+        failed_records = frappe.get_all("Vendor Import Staging",
+            filters={"import_status": "Failed", "error_log": ["!=", ""]},
+            fields=["name", "vendor_name", "error_log", "c_code", "modified"]
+        )
+        
+        # Categorize errors
+        error_categories = {}
+        error_patterns = {}
+        
+        for record in failed_records:
+            error_log = record.error_log or ""
+            
+            # Categorize error
+            category = categorize_error(error_log)
+            if category not in error_categories:
+                error_categories[category] = []
+            error_categories[category].append(record)
+            
+            # Extract error pattern (first 100 characters)
+            pattern = error_log[:100] if error_log else "No error details"
+            error_patterns[pattern] = error_patterns.get(pattern, 0) + 1
+        
+        # Get top error patterns
+        top_patterns = sorted(error_patterns.items(), key=lambda x: x[1], reverse=True)[:10]
+        
+        # Generate recommendations
+        recommendations = []
+        for category, records in error_categories.items():
+            count = len(records)
+            if category == "Missing Company Master":
+                recommendations.append(f"Create missing Company Master records ({count} affected)")
+            elif category == "Validation Error":
+                recommendations.append(f"Fix validation issues in {count} records")
+            elif category == "Permission Error":
+                recommendations.append(f"Review user permissions ({count} affected)")
+        
+        return {
+            "total_failed": len(failed_records),
+            "error_categories": {k: len(v) for k, v in error_categories.items()},
+            "top_error_patterns": top_patterns,
+            "recommendations": recommendations,
+            "detailed_categories": {
+                category: [{
+                    "name": r.name,
+                    "vendor_name": r.vendor_name,
+                    "company_code": r.c_code,
+                    "error_summary": (r.error_log[:200] + "...") if len(r.error_log or "") > 200 else r.error_log
+                } for r in records[:5]]  # Limit to 5 records per category
+                for category, records in error_categories.items()
+            }
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in detailed error analysis: {str(e)}", "Error Analysis Error")
+        return {
+            "total_failed": 0,
+            "error_categories": {},
+            "top_error_patterns": [],
+            "recommendations": ["Error analysis failed - contact administrator"],
+            "detailed_categories": {}
+        }
+
+
+def categorize_error(error_log):
+    """
+    Categorize error messages for analysis
+    """
+    if not error_log:
+        return "Unknown Error"
+    
+    error_lower = error_log.lower()
+    
+    if "company master" in error_lower and "not found" in error_lower:
+        return "Missing Company Master"
+    elif "vendor name" in error_lower and "required" in error_lower:
+        return "Missing Required Field"
+    elif "validation" in error_lower or "invalid" in error_lower:
+        return "Validation Error"
+    elif "permission" in error_lower or "access" in error_lower:
+        return "Permission Error"
+    elif "duplicate" in error_lower or "already exists" in error_lower:
+        return "Duplicate Data"
+    elif "timeout" in error_lower or "connection" in error_lower:
+        return "System/Network Issue"
+    elif "link" in error_lower and ("does not exist" in error_lower or "not found" in error_lower):
+        return "Invalid Link Reference"
+    else:
+        return "Other Error"
+
+
+@frappe.whitelist()
+def bulk_fix_validation_errors():
+	"""
+	Attempt to bulk fix common validation errors
+	"""
+	try:
+		invalid_records = frappe.get_all("Vendor Import Staging",
+			filters={"validation_status": "Invalid"},
+			fields=["name", "vendor_name", "c_code", "vendor_code", "gstn_no", "pan_no"]
+		)
+		
+		fixed_count = 0
+		still_invalid = []
+		
+		for record in invalid_records:
+			doc = frappe.get_doc("Vendor Import Staging", record.name)
+			validation_errors = []
+			
+			# Check and fix common issues
+			if not doc.vendor_name or not doc.vendor_name.strip():
+				if doc.c_code:
+					# Try to generate vendor name from company code
+					doc.vendor_name = f"Vendor_{doc.c_code}_{doc.name[-4:]}"
+				else:
+					validation_errors.append("Vendor name is required")
+			
+			# Fix GST format if possible
+			if doc.gstn_no and len(str(doc.gstn_no).strip()) != 15:
+				# Remove spaces and special characters
+				cleaned_gst = ''.join(c for c in str(doc.gstn_no) if c.isalnum())
+				if len(cleaned_gst) == 15:
+					doc.gstn_no = cleaned_gst
+				else:
+					validation_errors.append("Invalid GST format")
+			
+			# Fix PAN format if possible
+			if doc.pan_no:
+				cleaned_pan = str(doc.pan_no).strip().upper()
+				import re
+				if re.match(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$', cleaned_pan):
+					doc.pan_no = cleaned_pan
+				else:
+					validation_errors.append("Invalid PAN format")
+			
+			# Update validation status
+			if not validation_errors:
+				doc.validation_status = "Valid"
+				doc.error_log = ""
+				fixed_count += 1
+			else:
+				doc.validation_status = "Invalid"
+				doc.error_log = "; ".join(validation_errors)
+				still_invalid.append({
+					"name": doc.name,
+					"errors": validation_errors
+				})
+			
+			doc.save(ignore_permissions=True)
+		
+		frappe.db.commit()
+		
+		return {
+			"status": "success",
+			"message": f"Fixed {fixed_count} records out of {len(invalid_records)} invalid records",
+			"fixed_count": fixed_count,
+			"still_invalid_count": len(still_invalid),
+			"still_invalid": still_invalid[:10]  # Return first 10 for reference
+		}
+		
+	except Exception as e:
+		frappe.log_error(f"Error in bulk fix validation: {str(e)}", "Bulk Fix Validation Error")
+		return {
+			"status": "error",
+			"error": str(e)
+		}
