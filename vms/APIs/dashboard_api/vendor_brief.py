@@ -324,13 +324,20 @@
 #             'error': str(e)
 #         }
 
-import frappe
-from frappe import _
-import math
+# import frappe
+# from frappe import _
+# import math
 
 import frappe
 from frappe import _
 import math
+from frappe.utils import cstr, cint
+
+
+
+
+
+
 
 @frappe.whitelist(allow_guest = True)
 def get_vendors_with_pagination(
@@ -883,26 +890,46 @@ def calculate_company_wise_analytics(filter_company=None):
                 vendors_with_code = vendor_code_result[0]['vendors_with_code'] if vendor_code_result else 0
                 
                 # Get imported vs VMS registered counts for this company
+                # Get imported vs VMS registered counts for this company
                 registration_breakdown_query = """
-                SELECT 
-                    vm.via_data_import,
-                    COUNT(DISTINCT vm.name) as count
-                FROM `tabVendor Master` vm
-                INNER JOIN `tabMultiple Company Data` mcd ON vm.name = mcd.parent
-                WHERE mcd.company_name = %(company_name)s
-                GROUP BY vm.via_data_import
+                    SELECT 
+                        vm.via_data_import,
+                        vm.created_from_registration,
+                        COUNT(DISTINCT vm.name) as count
+                    FROM `tabVendor Master` vm
+                    INNER JOIN `tabMultiple Company Data` mcd ON vm.name = mcd.parent
+                    WHERE mcd.company_name = %(company_name)s
+                    GROUP BY vm.via_data_import, vm.created_from_registration
                 """
-                
-                registration_results = frappe.db.sql(registration_breakdown_query, 
-                                                   {'company_name': company_name}, as_dict=True)
-                
+
+                registration_results = frappe.db.sql(
+                    registration_breakdown_query, 
+                    {'company_name': company_name}, 
+                    as_dict=True
+                )
+
                 imported_count = 0
                 vms_registered_count = 0
+                both_imported_and_vms_registered = 0
+
                 for result in registration_results:
-                    if result['via_data_import'] == 1:
-                        imported_count = result['count']
-                    else:
-                        vms_registered_count = result['count']
+                    via_data_import = cint(result.get('via_data_import') or 0)
+                    created_from_registration = cint(result.get('created_from_registration') or 0)
+                    count = cint(result.get('count') or 0)
+
+                    # Case 1: via_data_import only
+                    if via_data_import and not created_from_registration:
+                        imported_count += count
+
+                    # Case 2: created_from_registration only
+                    elif created_from_registration and not via_data_import:
+                        vms_registered_count += count
+
+                    # Case 3: both checked
+                    elif via_data_import and created_from_registration:
+                        both_imported_and_vms_registered += count
+                       
+
                 
                 # Get approval team breakdown for this company
                 approval_breakdown_query = """
@@ -997,7 +1024,8 @@ def calculate_company_wise_analytics(filter_company=None):
                 'vendors_with_company_code': vendors_with_code,
                 'registration_breakdown': {
                     'imported_vendors': imported_count,
-                    'vms_registered': vms_registered_count
+                    'vms_registered': vms_registered_count,
+                    'both_registered_and_import': both_imported_and_vms_registered
                 },
                 'approval_breakdown': {
                     'approved_by_accounts_team': approved_by_accounts,
