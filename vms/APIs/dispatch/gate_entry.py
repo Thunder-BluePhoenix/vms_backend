@@ -260,3 +260,12 @@ def get_gate_entry_data(doc):
             data[field_name] = value
     
     return data
+
+
+@frappe.whitelist(allow_guest=False)
+def get_inward_location():
+    locations = frappe.get_all(
+        "Inward Location",
+        fields=["name","inward_location"]
+    )
+    return locations
