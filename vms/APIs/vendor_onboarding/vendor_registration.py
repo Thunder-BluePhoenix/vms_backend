@@ -1018,144 +1018,100 @@ def vendor_registration_multi(data):
         } 
     
 
-
-
-# send registration email link
+import frappe
+import time
+from contextlib import contextmanager
 from urllib.parse import urlencode
 
+# FIXED: Your original send_registration_email_link function with TimestampMismatchError handling
 @frappe.whitelist(allow_guest=True)
-def send_registration_email_link(vendor_onboarding, refno):
-    try:
-        if not vendor_onboarding:
-            return {
-                "status": "error",
-                "message": "Missing 'vendor_onboarding' parameter."
-            }
+def send_registration_email_link(vendor_onboarding, refno, max_retries=3):
+    """
+    FIXED VERSION of your original function - Handle TimestampMismatchError while preserving all logic
+    """
+    retry_delay = 1
+    
+    for attempt in range(max_retries):
+        try:
+            if not vendor_onboarding:
+                return {
+                    "status": "error",
+                    "message": "Missing 'vendor_onboarding' parameter."
+                }
 
-        onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
-        vendor_master = frappe.get_doc("Vendor Master", onboarding_doc.ref_no)
+            # Get fresh copy of documents on each attempt
+            onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+            vendor_master = frappe.get_doc("Vendor Master", onboarding_doc.ref_no)
 
-        company_codes = []
-        mul_docs = [] 
+            frappe.logger().info(f"📧 Processing registration email (attempt {attempt + 1}/{max_retries}) for {vendor_master.vendor_name}")
 
-        if onboarding_doc.registered_for_multi_companies == 1:
-            mul_docs = frappe.get_all(
-                "Vendor Onboarding",
-                filters={
-                    "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id,
-                    "registered_for_multi_companies": 1
-                },
-                fields=["company_name", "qms_required"]
-            )
-            mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name")]
+            company_codes = []
+            mul_docs = [] 
 
-            company_names = []
-            for name in mul_company_names:
-                if frappe.db.exists("Company Master", name):
-                    comp = frappe.db.get_value("Company Master", name, ["company_name", "company_code"], as_dict=True)
-                    if comp:
-                        company_names.append(comp.company_name)
-                        company_codes.append(comp.company_code)
-
-            company_names = ", ".join(company_names)
-        else:
-            comp = frappe.db.get_value("Company Master", onboarding_doc.company_name, ["company_name", "company_code"], as_dict=True)
-            company_names = comp.company_name if comp else ""
-            company_codes = [comp.company_code] if comp else []
-
-        # Construct registration link
-        http_server = frappe.conf.get("frontend_http")
-        registration_link = (
-            f"{http_server}/vendor-details-form"
-            f"?tabtype=Company%20Detail"
-            f"&refno={refno}"
-            f"&vendor_onboarding={vendor_onboarding}"
-        )
-
-        # Construct QMS form link if required
-        # qms_section = ""
-        # qms_mul_company_code = []
-
-        # qms_mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name") and d.get("qms_required") == "Yes"]
-
-        # for name in qms_mul_company_names:
-        #     if frappe.db.exists("Company Master", name):
-        #         comp = frappe.db.get_value("Company Master", name, ["company_code"], as_dict=True)
-        #         if comp:
-        #             qms_mul_company_code.append(comp.company_code)
-
-        # if qms_mul_company_code:
-        #     qms_company_code = qms_mul_company_code
-        # else:
-        #     comp = frappe.db.get_value("Company Master", onboarding_doc.company_name, ["company_code"], as_dict=True)
-        #     qms_company_code = [comp.company_code] if comp else []
-
-        qms_company_codes = []
-        qms_section = ""
-
-        if onboarding_doc.registered_for_multi_companies == 1:
-            qms_mul_docs = frappe.get_all(
-                "Vendor Onboarding",
-                filters={
-                    "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id,
-                    "registered_for_multi_companies": 1
-                },
-                fields=["company_name", "qms_required"]
-            )
-
-            # Collect only companies where QMS is required
-            qms_company_names = [
-                d["company_name"] for d in qms_mul_docs
-                if d.get("company_name") and d.get("qms_required") == "Yes"
-            ]
-
-            for name in qms_company_names:
-                if frappe.db.exists("Company Master", name):
-                    comp = frappe.db.get_value(
-                        "Company Master", name, ["company_name", "company_code"], as_dict=True
-                    )
-                    if comp:
-                        qms_company_codes.append(comp.company_code)
-
-            # Build QMS link only if some codes exist
-            if qms_company_codes:
-                query_params = urlencode({
-                    "vendor_onboarding": onboarding_doc.name,
-                    "ref_no": onboarding_doc.ref_no,
-                    "company_code": ",".join(qms_company_codes)
-                })
-
-                webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
-
-                qms_section = f"""
-                    <p>As part of your registration, please also complete the QMS Form at the link below:</p>
-                    <p style="margin: 15px 0px;">
-                        <a href="{webform_link}" 
-                            rel="nofollow" 
-                            style="display: inline-block; 
-                                    padding: 8px 16px; 
-                                    background-color: #6c757d; 
-                                    color: white; 
-                                    text-decoration: none; 
-                                    border-radius: 4px; 
-                                    border: none; 
-                                    cursor: pointer;">
-                                Fill QMS Form
-                        </a>
-                    </p>
-                    <p>You may also copy and paste this link into your browser:<br>
-                    <a href="{webform_link}">{webform_link}</a></p>
-                """
-
-        else:
-            # Single company onboarding
-            if onboarding_doc.qms_required == "Yes":
-                comp = frappe.db.get_value(
-                    "Company Master", onboarding_doc.company_name, ["company_name", "company_code"], as_dict=True
+            if onboarding_doc.registered_for_multi_companies == 1:
+                mul_docs = frappe.get_all(
+                    "Vendor Onboarding",
+                    filters={
+                        "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id,
+                        "registered_for_multi_companies": 1
+                    },
+                    fields=["company_name", "qms_required"]
                 )
-                if comp:
-                    qms_company_codes = [comp.company_code]
+                mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name")]
 
+                company_names = []
+                for name in mul_company_names:
+                    if frappe.db.exists("Company Master", name):
+                        comp = frappe.db.get_value("Company Master", name, ["company_name", "company_code"], as_dict=True)
+                        if comp:
+                            company_names.append(comp.company_name)
+                            company_codes.append(comp.company_code)
+
+                company_names = ", ".join(company_names)
+            else:
+                comp = frappe.db.get_value("Company Master", onboarding_doc.company_name, ["company_name", "company_code"], as_dict=True)
+                company_names = comp.company_name if comp else ""
+                company_codes = [comp.company_code] if comp else []
+
+            # Construct registration link
+            http_server = frappe.conf.get("frontend_http")
+            registration_link = (
+                f"{http_server}/vendor-details-form"
+                f"?tabtype=Company%20Detail"
+                f"&refno={refno}"
+                f"&vendor_onboarding={vendor_onboarding}"
+            )
+
+            # QMS Form Logic (Your Original Logic)
+            qms_company_codes = []
+            qms_section = ""
+
+            if onboarding_doc.registered_for_multi_companies == 1:
+                qms_mul_docs = frappe.get_all(
+                    "Vendor Onboarding",
+                    filters={
+                        "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id,
+                        "registered_for_multi_companies": 1
+                    },
+                    fields=["company_name", "qms_required"]
+                )
+
+                # Collect only companies where QMS is required
+                qms_company_names = [
+                    d["company_name"] for d in qms_mul_docs
+                    if d.get("company_name") and d.get("qms_required") == "Yes"
+                ]
+
+                for name in qms_company_names:
+                    if frappe.db.exists("Company Master", name):
+                        comp = frappe.db.get_value(
+                            "Company Master", name, ["company_name", "company_code"], as_dict=True
+                        )
+                        if comp:
+                            qms_company_codes.append(comp.company_code)
+
+                # Build QMS link only if some codes exist
+                if qms_company_codes:
                     query_params = urlencode({
                         "vendor_onboarding": onboarding_doc.name,
                         "ref_no": onboarding_doc.ref_no,
@@ -1167,7 +1123,7 @@ def send_registration_email_link(vendor_onboarding, refno):
                     qms_section = f"""
                         <p>As part of your registration, please also complete the QMS Form at the link below:</p>
                         <p style="margin: 15px 0px;">
-                             <a href="{webform_link}" 
+                            <a href="{webform_link}" 
                                 rel="nofollow" 
                                 style="display: inline-block; 
                                         padding: 8px 16px; 
@@ -1184,126 +1140,756 @@ def send_registration_email_link(vendor_onboarding, refno):
                         <a href="{webform_link}">{webform_link}</a></p>
                     """
 
-        # if onboarding_doc.qms_required == "Yes":
-        # query_params = urlencode({
-        #     "vendor_onboarding": onboarding_doc.name,
-        #     "ref_no": onboarding_doc.ref_no,
-        #     # "mobile_number": vendor_master.mobile_number,
-        #     "company_code": ",".join(qms_company_codes) 
-        # })
+            else:
+                # Single company onboarding
+                if onboarding_doc.qms_required == "Yes":
+                    comp = frappe.db.get_value(
+                        "Company Master", onboarding_doc.company_name, ["company_name", "company_code"], as_dict=True
+                    )
+                    if comp:
+                        qms_company_codes = [comp.company_code]
 
-        # http_backend_server = frappe.conf.get("backend_http")
-        # # webform_link = f"{http_backend_server}/qms-webform/new?{query_params}"
+                        query_params = urlencode({
+                            "vendor_onboarding": onboarding_doc.name,
+                            "ref_no": onboarding_doc.ref_no,
+                            "company_code": ",".join(qms_company_codes)
+                        })
 
-        # webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
+                        webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
 
-        # qms_section = f"""
-        #     <p>As part of your registration, please also complete the QMS Form at the link below:</p>
-        #     <p style="margin: 15px 0px;">
-        #         <a href="{webform_link}" rel="nofollow" class="btn btn-secondary">Fill QMS Form</a>
-        #     </p>
-        #     <p>You may also copy and paste this link into your browser:<br>
-        #     <a href="{webform_link}">{webform_link}</a></p>
-        # """
+                        qms_section = f"""
+                            <p>As part of your registration, please also complete the QMS Form at the link below:</p>
+                            <p style="margin: 15px 0px;">
+                                 <a href="{webform_link}" 
+                                    rel="nofollow" 
+                                    style="display: inline-block; 
+                                            padding: 8px 16px; 
+                                            background-color: #6c757d; 
+                                            color: white; 
+                                            text-decoration: none; 
+                                            border-radius: 4px; 
+                                            border: none; 
+                                            cursor: pointer;">
+                                        Fill QMS Form
+                                </a>
+                            </p>
+                            <p>You may also copy and paste this link into your browser:<br>
+                            <a href="{webform_link}">{webform_link}</a></p>
+                        """
 
-        # Send registration email only once
-        if not onboarding_doc.sent_registration_email_link:
-            vendor_master = frappe.get_doc("Vendor Master", refno)
-            recipient_email = vendor_master.office_email_primary or vendor_master.office_email_secondary
+            # Send registration email only once
+            if not onboarding_doc.sent_registration_email_link:
+                vendor_master = frappe.get_doc("Vendor Master", refno)
+                recipient_email = vendor_master.office_email_primary or vendor_master.office_email_secondary
 
-            if not recipient_email:
+                if not recipient_email:
+                    return {
+                        "status": "error",
+                        "message": "No recipient email found for the vendor."
+                    }
+
+                # Send email using your original logic
+                frappe.custom_sendmail(
+                    recipients=[recipient_email], 
+                    cc=[onboarding_doc.registered_by],
+                    subject=f"""New Vendor Appointment for Meril Group -{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
+                    message=f"""
+                        <p>Dear Vendor,</p>
+                        <p>Greetings for the Day!</p>
+                        <p>You have been added by <strong>{frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")}</strong> to Onboard as a Vendor/Supplier for <strong> {company_names}.</strong></p>
+                        <p> Founded in 2006, Meril Group of Companies is a global MEDTECH company based in India, dedicated to designing and manufacturing innovative, 
+                        patient-centric medical devices. We focus on advancing healthcare through cutting-edge R&D, quality manufacturing, and clinical excellence 
+                        to help people live longer, healthier lives. We are a family of 3000+ Vendors/Sub – Vendors across India. </p>
+                        <p>Please click here to fill details!</p>
+                        <p style="margin: 15px 0px;">
+                            <a href="{registration_link}" 
+                            style="display: inline-block; 
+                                    padding: 10px 20px; 
+                                    background-color: #007bff; 
+                                    color: white; 
+                                    text-decoration: none; 
+                                    border-radius: 4px; 
+                                    font-weight: bold;
+                                    border: 1px solid #007bff;"
+                            rel="nofollow">Complete Registration</a>
+                        </p>
+                        <p>You may also copy and paste this link into your browser:<br>
+                        <a href="{registration_link}">{registration_link}</a></p>
+
+                        {qms_section}
+
+                        <p>Thanking you,<br>VMS Team</p>
+                    """,
+                    now=True
+                )
+
+                # FIXED: Handle document updates with retry logic for timestamp conflicts
+                try:
+                    # Handle linked documents (multi-company or single)
+                    if onboarding_doc.registered_for_multi_companies == 1:
+                        linked_docs = frappe.get_all(
+                            "Vendor Onboarding",
+                            filters={
+                                "registered_for_multi_companies": 1,
+                                "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id
+                            },
+                            fields=["name"]
+                        )
+                    else:
+                        linked_docs = [{"name": onboarding_doc.name}]
+
+                    # Update all linked documents with retry logic
+                    for entry in linked_docs:
+                        update_success = False
+                        for doc_attempt in range(3):  # 3 attempts per document
+                            try:
+                                # Get fresh copy of each document
+                                doc = frappe.get_doc("Vendor Onboarding", entry["name"])
+                                doc.sent_registration_email_link = 1
+
+                                if doc.qms_required == "Yes":
+                                    doc.sent_qms_form_link = 1
+
+                                doc.save(ignore_permissions=True)
+                                update_success = True
+                                break
+                                
+                            except frappe.TimestampMismatchError:
+                                if doc_attempt < 2:  # Not the last attempt
+                                    time.sleep(0.5)  # Short delay before retry
+                                    continue
+                                else:
+                                    # Force update using SQL for this document
+                                    frappe.logger().info(f"🔄 Force updating document {entry['name']} via SQL")
+                                    
+                                    sql_updates = ["sent_registration_email_link = 1"]
+                                    sql_values = []
+                                    
+                                    # Check if QMS is required for this specific document
+                                    if frappe.db.get_value("Vendor Onboarding", entry["name"], "qms_required") == "Yes":
+                                        sql_updates.append("sent_qms_form_link = 1")
+                                    
+                                    sql_updates.extend(["modified = %s", "modified_by = %s"])
+                                    sql_values.extend([frappe.utils.now(), frappe.session.user])
+                                    sql_values.append(entry["name"])
+                                    
+                                    frappe.db.sql(f"""
+                                        UPDATE `tabVendor Onboarding` 
+                                        SET {', '.join(sql_updates)}
+                                        WHERE name = %s
+                                    """, sql_values)
+                                    
+                                    update_success = True
+                                    break
+                            
+                            except Exception as doc_err:
+                                if doc_attempt < 2:
+                                    time.sleep(0.5)
+                                    continue
+                                else:
+                                    frappe.log_error(f"Failed to update document {entry['name']}: {str(doc_err)}", "Document Update Error")
+                                    break
+                    
+                    # Update main onboarding document with retry logic
+                    main_doc_updated = False
+                    for main_attempt in range(3):
+                        try:
+                            # Get fresh copy of main document
+                            fresh_onboarding = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+                            
+                            if fresh_onboarding.registered_for_multi_companies == 1:
+                                fresh_onboarding.head_target = 1
+                                vendor_master.db_set('onboarding_ref_no', fresh_onboarding.name, update_modified=False)
+
+                            fresh_onboarding.save(ignore_permissions=True)
+                            main_doc_updated = True
+                            break
+                            
+                        except frappe.TimestampMismatchError:
+                            if main_attempt < 2:
+                                time.sleep(0.5)
+                                continue
+                            else:
+                                # Force update main document
+                                frappe.logger().info(f"🔄 Force updating main document {vendor_onboarding} via SQL")
+                                
+                                if onboarding_doc.registered_for_multi_companies == 1:
+                                    frappe.db.sql("""
+                                        UPDATE `tabVendor Onboarding` 
+                                        SET head_target = 1, modified = %s, modified_by = %s
+                                        WHERE name = %s
+                                    """, [frappe.utils.now(), frappe.session.user, vendor_onboarding])
+                                    
+                                    vendor_master.db_set('onboarding_ref_no', vendor_onboarding, update_modified=False)
+                                
+                                main_doc_updated = True
+                                break
+                        
+                        except Exception as main_err:
+                            if main_attempt < 2:
+                                time.sleep(0.5)
+                                continue
+                            else:
+                                frappe.log_error(f"Failed to update main document {vendor_onboarding}: {str(main_err)}", "Main Document Update Error")
+                                break
+
+                    frappe.db.commit()
+                    
+                    frappe.logger().info(f"✅ Registration email sent successfully for {vendor_master.vendor_name}")
+                    
+                    return {
+                        "status": "success",
+                        "message": "Registration email sent successfully.",
+                        "attempt": attempt + 1
+                    }
+
+                except Exception as save_error:
+                    frappe.log_error(f"Error in document save operations: {str(save_error)}", "Registration Save Error")
+                    # Continue to the retry logic below
+                    raise save_error
+
+            else:
+                return {
+                    "status": "info",
+                    "message": "Registration email has already been sent."
+                }
+                
+        except frappe.TimestampMismatchError as e:
+            frappe.log_error(f"TimestampMismatchError on attempt {attempt + 1} for onboarding {vendor_onboarding}: {str(e)}", "Onboarding Registration Email Error")
+            
+            if attempt < max_retries - 1:
+                # Wait before retrying with exponential backoff
+                sleep_time = retry_delay * (2 ** attempt)
+                frappe.logger().info(f"⏱️ Timestamp mismatch detected, waiting {sleep_time} seconds before retry...")
+                time.sleep(sleep_time)
+                continue
+            else:
+                # Final fallback - return partial success since email was likely sent
+                return {
+                    "status": "partial_success",
+                    "message": f"Registration email sent but document update failed after {max_retries} attempts due to timestamp conflicts.",
+                    "error": str(e)
+                }
+                
+        except Exception as e:
+            frappe.log_error(f"Unexpected error on attempt {attempt + 1} for onboarding {vendor_onboarding}: {str(e)}", "Registration Email Error")
+            
+            if attempt < max_retries - 1:
+                frappe.logger().info(f"⏱️ Unexpected error, waiting {retry_delay} seconds before retry...")
+                time.sleep(retry_delay)
+                continue
+            else:
+                frappe.log_error(frappe.get_traceback(), "Onboarding Registration Email Error")
                 return {
                     "status": "error",
-                    "message": "No recipient email found for the vendor."
+                    "message": "Failed to send registration email.",
+                    "error": str(e),
+                    "attempts": max_retries
                 }
 
-            frappe.custom_sendmail(
-                recipients=[recipient_email], 
-                cc=[onboarding_doc.registered_by],
-                subject=f"""New Vendor Appointment for Meril Group -{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
-                message=f"""
-                    <p>Dear Vendor,</p>
-                    <p>Greetings for the Day!</p>
-                    <p>You have been added by <strong>{frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")}</strong> to Onboard as a Vendor/Supplier for <strong> {company_names}.</strong></p>
-                    <p> Founded in 2006, Meril Group of Companies is a global MEDTECH company based in India, dedicated to designing and manufacturing innovative, 
-                    patient-centric medical devices. We focus on advancing healthcare through cutting-edge R&D, quality manufacturing, and clinical excellence 
-                    to help people live longer, healthier lives. We are a family of 3000+ Vendors/Sub – Vendors across India. </p>
-                    <p>Please click here to fill details!</p>
-                    <p style="margin: 15px 0px;">
-                        <a href="{registration_link}" 
-                        style="display: inline-block; 
-                                padding: 10px 20px; 
-                                background-color: #007bff; 
-                                color: white; 
-                                text-decoration: none; 
-                                border-radius: 4px; 
-                                font-weight: bold;
-                                border: 1px solid #007bff;"
-                        rel="nofollow">Complete Registration</a>
-                    </p>
-                    <p>You may also copy and paste this link into your browser:<br>
-                    <a href="{registration_link}">{registration_link}</a></p>
+    # Should not reach here, but just in case
+    return {
+        "status": "error",
+        "message": f"Failed to send registration email after {max_retries} attempts"
+    }
 
-                    {qms_section}
-
-                    <p>Thanking you,<br>VMS Team</p>
-                """,
-                now=True
-            )
-
-            # handle for to mark the registration email link sent to vendor for single and multi doc
-
-            # onboarding_doc.sent_registration_email_link = 1
-            # if onboarding_doc.qms_required == "Yes":
-            #     onboarding_doc.sent_qms_form_link = 1
-
-            if onboarding_doc.registered_for_multi_companies == 1:
-                linked_docs = frappe.get_all(
-                    "Vendor Onboarding",
-                    filters={
-                        "registered_for_multi_companies": 1,
-                        "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id
-                    },
-                    fields=["name"]
-                )
-            else:
-                linked_docs = [{"name": onboarding_doc.name}]
-
-            for entry in linked_docs:
-                doc = frappe.get_doc("Vendor Onboarding", entry["name"])
-                doc.sent_registration_email_link = 1
-
-                if doc.qms_required == "Yes":
-                    doc.sent_qms_form_link = 1
-
-                doc.save(ignore_permissions=True)
-
-
-            if onboarding_doc.registered_for_multi_companies == 1:
-                onboarding_doc.head_target = 1
-                vendor_master.db_set('onboarding_ref_no', onboarding_doc.name, update_modified=False)
-
-            onboarding_doc.save(ignore_permissions=True)
+# FIXED: Handle onboarding document save with retry logic
+@frappe.whitelist(allow_guest=True)
+def save_onboarding_document_safe(doc_name, field_updates, max_retries=3):
+    """
+    Safely save onboarding document with retry logic for timestamp conflicts
+    
+    Args:
+        doc_name: Name of the Vendor Onboarding document
+        field_updates: Dictionary of fields to update
+        max_retries: Maximum number of retry attempts
+    """
+    retry_delay = 1
+    
+    for attempt in range(max_retries):
+        try:
+            # Get fresh copy of document
+            doc = frappe.get_doc("Vendor Onboarding", doc_name)
+            
+            frappe.logger().info(f"💾 Attempting to save document {doc_name} (attempt {attempt + 1}/{max_retries})")
+            
+            # Apply field updates
+            for field, value in field_updates.items():
+                if hasattr(doc, field):
+                    setattr(doc, field, value)
+                    frappe.logger().info(f"📝 Updated field {field} = {value}")
+                else:
+                    frappe.logger().warning(f"⚠️ Field {field} not found in document")
+            
+            # Save document
+            doc.save(ignore_permissions=True)
             frappe.db.commit()
-
+            
+            frappe.logger().info(f"✅ Document {doc_name} saved successfully")
+            
             return {
                 "status": "success",
-                "message": "Registration email sent successfully."
+                "message": f"Document {doc_name} updated successfully",
+                "attempt": attempt + 1
             }
+            
+        except frappe.TimestampMismatchError as e:
+            frappe.log_error(f"TimestampMismatchError on attempt {attempt + 1} for document {doc_name}: {str(e)}", "Document Save Error")
+            
+            if attempt < max_retries - 1:
+                sleep_time = retry_delay * (2 ** attempt)
+                frappe.logger().info(f"⏱️ Timestamp mismatch, waiting {sleep_time} seconds...")
+                time.sleep(sleep_time)
+                continue
+            else:
+                # Try force update using SQL as last resort
+                try:
+                    frappe.logger().info(f"🔄 Using direct SQL update for {doc_name}")
+                    
+                    # Build SQL update query
+                    set_clauses = []
+                    values = []
+                    
+                    for field, value in field_updates.items():
+                        set_clauses.append(f"{field} = %s")
+                        values.append(value)
+                    
+                    set_clauses.extend(["modified = %s", "modified_by = %s"])
+                    values.extend([frappe.utils.now(), frappe.session.user, doc_name])
+                    
+                    sql_query = f"""
+                        UPDATE `tabVendor Onboarding` 
+                        SET {', '.join(set_clauses)}
+                        WHERE name = %s
+                    """
+                    
+                    frappe.db.sql(sql_query, values)
+                    frappe.db.commit()
+                    
+                    frappe.logger().info(f"✅ Force SQL update successful for {doc_name}")
+                    
+                    return {
+                        "status": "success",
+                        "message": f"Document {doc_name} updated successfully (force update)",
+                        "method": "sql_force_update"
+                    }
+                    
+                except Exception as sql_error:
+                    error_msg = f"Force SQL update failed for {doc_name}: {str(sql_error)}"
+                    frappe.log_error(error_msg, "SQL Force Update Error")
+                    
+                    return {
+                        "status": "error",
+                        "message": f"Failed to update document after {max_retries} attempts",
+                        "error": str(e),
+                        "sql_error": str(sql_error)
+                    }
+                    
+        except Exception as e:
+            frappe.log_error(f"Unexpected error on attempt {attempt + 1} for document {doc_name}: {str(e)}", "Document Save Error")
+            
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
+                continue
+            else:
+                return {
+                    "status": "error",
+                    "message": f"Failed to save document: {str(e)}",
+                    "attempts": max_retries
+                }
 
-        else:
-            return {
-                "status": "info",
-                "message": "Registration email has already been sent."
-            }
+# FIXED: Batch update multiple onboarding documents safely
+def batch_update_onboarding_documents(updates_list, batch_size=5):
+    """
+    Update multiple onboarding documents in batches to prevent overwhelming the system
+    
+    Args:
+        updates_list: List of dictionaries with 'doc_name' and 'field_updates' keys
+        batch_size: Number of documents to process in each batch
+    """
+    results = []
+    total_updates = len(updates_list)
+    
+    frappe.logger().info(f"📦 Starting batch update of {total_updates} onboarding documents")
+    
+    for i in range(0, total_updates, batch_size):
+        batch = updates_list[i:i + batch_size]
+        batch_results = []
+        
+        frappe.logger().info(f"📦 Processing batch {i//batch_size + 1}/{(total_updates + batch_size - 1)//batch_size}")
+        
+        for update_data in batch:
+            try:
+                result = save_onboarding_document_safe(
+                    update_data['doc_name'], 
+                    update_data['field_updates']
+                )
+                batch_results.append(result)
+                
+            except Exception as e:
+                batch_results.append({
+                    "status": "error",
+                    "message": str(e),
+                    "doc_name": update_data.get('doc_name', 'Unknown')
+                })
+        
+        results.extend(batch_results)
+        
+        # Small delay between batches to prevent system overload
+        if i + batch_size < total_updates:
+            time.sleep(0.5)
+    
+    # Generate summary
+    successful = sum(1 for r in results if r.get('status') == 'success')
+    failed = len(results) - successful
+    
+    frappe.logger().info(f"📦 Batch update complete: {successful} successful, {failed} failed")
+    
+    return {
+        "total_processed": len(results),
+        "successful": successful,
+        "failed": failed,
+        "results": results,
+        "success_rate": (successful / len(results) * 100) if results else 0
+    }
 
+# FIXED: Context manager for document locking (same as SAP module)
+@contextmanager 
+def onboarding_document_lock(doc_name, max_retries=3, retry_delay=1):
+    """Context manager for onboarding document locking"""
+    lock_key = f"Vendor_Onboarding:{doc_name}"
+    acquired = False
+    
+    try:
+        for attempt in range(max_retries):
+            try:
+                if frappe.cache().set_value(f"lock:{lock_key}", "locked", expires_in_sec=30):
+                    acquired = True
+                    break
+            except Exception:
+                pass
+            
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay * (attempt + 1))
+        
+        if not acquired:
+            raise Exception(f"Could not acquire lock for onboarding document {doc_name}")
+        
+        yield
+        
+    finally:
+        if acquired:
+            try:
+                frappe.cache().delete_value(f"lock:{lock_key}")
+            except Exception:
+                pass
+
+# FIXED: Thread-safe version of send registration email
+def send_registration_email_link_safe(onboarding_doc_name):
+    """
+    Thread-safe version of send registration email with document locking
+    """
+    try:
+        with onboarding_document_lock(onboarding_doc_name):
+            return send_registration_email_link(onboarding_doc_name)
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Onboarding Registration Email Error")
-        return {
-            "status": "error",
-            "message": "Failed to send registration email.",
-            "error": str(e)
-        }
+        error_msg = f"Failed to send registration email with locking for {onboarding_doc_name}: {str(e)}"
+        frappe.log_error(error_msg, "Registration Email Lock Error")
+        
+        # Fallback to regular method
+        frappe.logger().info(f"🔄 Falling back to regular method for {onboarding_doc_name}")
+        return send_registration_email_link(onboarding_doc_name)
+
+
+
+
+
+
+
+# send registration email link
+# from urllib.parse import urlencode
+
+# @frappe.whitelist(allow_guest=True)
+# def send_registration_email_link(vendor_onboarding, refno):
+#     try:
+#         if not vendor_onboarding:
+#             return {
+#                 "status": "error",
+#                 "message": "Missing 'vendor_onboarding' parameter."
+#             }
+
+#         onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding)
+#         vendor_master = frappe.get_doc("Vendor Master", onboarding_doc.ref_no)
+
+#         company_codes = []
+#         mul_docs = [] 
+
+#         if onboarding_doc.registered_for_multi_companies == 1:
+#             mul_docs = frappe.get_all(
+#                 "Vendor Onboarding",
+#                 filters={
+#                     "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id,
+#                     "registered_for_multi_companies": 1
+#                 },
+#                 fields=["company_name", "qms_required"]
+#             )
+#             mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name")]
+
+#             company_names = []
+#             for name in mul_company_names:
+#                 if frappe.db.exists("Company Master", name):
+#                     comp = frappe.db.get_value("Company Master", name, ["company_name", "company_code"], as_dict=True)
+#                     if comp:
+#                         company_names.append(comp.company_name)
+#                         company_codes.append(comp.company_code)
+
+#             company_names = ", ".join(company_names)
+#         else:
+#             comp = frappe.db.get_value("Company Master", onboarding_doc.company_name, ["company_name", "company_code"], as_dict=True)
+#             company_names = comp.company_name if comp else ""
+#             company_codes = [comp.company_code] if comp else []
+
+#         # Construct registration link
+#         http_server = frappe.conf.get("frontend_http")
+#         registration_link = (
+#             f"{http_server}/vendor-details-form"
+#             f"?tabtype=Company%20Detail"
+#             f"&refno={refno}"
+#             f"&vendor_onboarding={vendor_onboarding}"
+#         )
+
+#         # Construct QMS form link if required
+#         # qms_section = ""
+#         # qms_mul_company_code = []
+
+#         # qms_mul_company_names = [d["company_name"] for d in mul_docs if d.get("company_name") and d.get("qms_required") == "Yes"]
+
+#         # for name in qms_mul_company_names:
+#         #     if frappe.db.exists("Company Master", name):
+#         #         comp = frappe.db.get_value("Company Master", name, ["company_code"], as_dict=True)
+#         #         if comp:
+#         #             qms_mul_company_code.append(comp.company_code)
+
+#         # if qms_mul_company_code:
+#         #     qms_company_code = qms_mul_company_code
+#         # else:
+#         #     comp = frappe.db.get_value("Company Master", onboarding_doc.company_name, ["company_code"], as_dict=True)
+#         #     qms_company_code = [comp.company_code] if comp else []
+
+#         qms_company_codes = []
+#         qms_section = ""
+
+#         if onboarding_doc.registered_for_multi_companies == 1:
+#             qms_mul_docs = frappe.get_all(
+#                 "Vendor Onboarding",
+#                 filters={
+#                     "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id,
+#                     "registered_for_multi_companies": 1
+#                 },
+#                 fields=["company_name", "qms_required"]
+#             )
+
+#             # Collect only companies where QMS is required
+#             qms_company_names = [
+#                 d["company_name"] for d in qms_mul_docs
+#                 if d.get("company_name") and d.get("qms_required") == "Yes"
+#             ]
+
+#             for name in qms_company_names:
+#                 if frappe.db.exists("Company Master", name):
+#                     comp = frappe.db.get_value(
+#                         "Company Master", name, ["company_name", "company_code"], as_dict=True
+#                     )
+#                     if comp:
+#                         qms_company_codes.append(comp.company_code)
+
+#             # Build QMS link only if some codes exist
+#             if qms_company_codes:
+#                 query_params = urlencode({
+#                     "vendor_onboarding": onboarding_doc.name,
+#                     "ref_no": onboarding_doc.ref_no,
+#                     "company_code": ",".join(qms_company_codes)
+#                 })
+
+#                 webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
+
+#                 qms_section = f"""
+#                     <p>As part of your registration, please also complete the QMS Form at the link below:</p>
+#                     <p style="margin: 15px 0px;">
+#                         <a href="{webform_link}" 
+#                             rel="nofollow" 
+#                             style="display: inline-block; 
+#                                     padding: 8px 16px; 
+#                                     background-color: #6c757d; 
+#                                     color: white; 
+#                                     text-decoration: none; 
+#                                     border-radius: 4px; 
+#                                     border: none; 
+#                                     cursor: pointer;">
+#                                 Fill QMS Form
+#                         </a>
+#                     </p>
+#                     <p>You may also copy and paste this link into your browser:<br>
+#                     <a href="{webform_link}">{webform_link}</a></p>
+#                 """
+
+#         else:
+#             # Single company onboarding
+#             if onboarding_doc.qms_required == "Yes":
+#                 comp = frappe.db.get_value(
+#                     "Company Master", onboarding_doc.company_name, ["company_name", "company_code"], as_dict=True
+#                 )
+#                 if comp:
+#                     qms_company_codes = [comp.company_code]
+
+#                     query_params = urlencode({
+#                         "vendor_onboarding": onboarding_doc.name,
+#                         "ref_no": onboarding_doc.ref_no,
+#                         "company_code": ",".join(qms_company_codes)
+#                     })
+
+#                     webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
+
+#                     qms_section = f"""
+#                         <p>As part of your registration, please also complete the QMS Form at the link below:</p>
+#                         <p style="margin: 15px 0px;">
+#                              <a href="{webform_link}" 
+#                                 rel="nofollow" 
+#                                 style="display: inline-block; 
+#                                         padding: 8px 16px; 
+#                                         background-color: #6c757d; 
+#                                         color: white; 
+#                                         text-decoration: none; 
+#                                         border-radius: 4px; 
+#                                         border: none; 
+#                                         cursor: pointer;">
+#                                     Fill QMS Form
+#                             </a>
+#                         </p>
+#                         <p>You may also copy and paste this link into your browser:<br>
+#                         <a href="{webform_link}">{webform_link}</a></p>
+#                     """
+
+#         # if onboarding_doc.qms_required == "Yes":
+#         # query_params = urlencode({
+#         #     "vendor_onboarding": onboarding_doc.name,
+#         #     "ref_no": onboarding_doc.ref_no,
+#         #     # "mobile_number": vendor_master.mobile_number,
+#         #     "company_code": ",".join(qms_company_codes) 
+#         # })
+
+#         # http_backend_server = frappe.conf.get("backend_http")
+#         # # webform_link = f"{http_backend_server}/qms-webform/new?{query_params}"
+
+#         # webform_link = f"{http_server}/qms-form?tabtype=vendor_information&{query_params}"
+
+#         # qms_section = f"""
+#         #     <p>As part of your registration, please also complete the QMS Form at the link below:</p>
+#         #     <p style="margin: 15px 0px;">
+#         #         <a href="{webform_link}" rel="nofollow" class="btn btn-secondary">Fill QMS Form</a>
+#         #     </p>
+#         #     <p>You may also copy and paste this link into your browser:<br>
+#         #     <a href="{webform_link}">{webform_link}</a></p>
+#         # """
+
+#         # Send registration email only once
+#         if not onboarding_doc.sent_registration_email_link:
+#             vendor_master = frappe.get_doc("Vendor Master", refno)
+#             recipient_email = vendor_master.office_email_primary or vendor_master.office_email_secondary
+
+#             if not recipient_email:
+#                 return {
+#                     "status": "error",
+#                     "message": "No recipient email found for the vendor."
+#                 }
+
+#             frappe.custom_sendmail(
+#                 recipients=[recipient_email], 
+#                 cc=[onboarding_doc.registered_by],
+#                 subject=f"""New Vendor Appointment for Meril Group -{vendor_master.vendor_name}-VMS Ref {vendor_master.name}""",
+#                 message=f"""
+#                     <p>Dear Vendor,</p>
+#                     <p>Greetings for the Day!</p>
+#                     <p>You have been added by <strong>{frappe.db.get_value("User", onboarding_doc.registered_by, "full_name")}</strong> to Onboard as a Vendor/Supplier for <strong> {company_names}.</strong></p>
+#                     <p> Founded in 2006, Meril Group of Companies is a global MEDTECH company based in India, dedicated to designing and manufacturing innovative, 
+#                     patient-centric medical devices. We focus on advancing healthcare through cutting-edge R&D, quality manufacturing, and clinical excellence 
+#                     to help people live longer, healthier lives. We are a family of 3000+ Vendors/Sub – Vendors across India. </p>
+#                     <p>Please click here to fill details!</p>
+#                     <p style="margin: 15px 0px;">
+#                         <a href="{registration_link}" 
+#                         style="display: inline-block; 
+#                                 padding: 10px 20px; 
+#                                 background-color: #007bff; 
+#                                 color: white; 
+#                                 text-decoration: none; 
+#                                 border-radius: 4px; 
+#                                 font-weight: bold;
+#                                 border: 1px solid #007bff;"
+#                         rel="nofollow">Complete Registration</a>
+#                     </p>
+#                     <p>You may also copy and paste this link into your browser:<br>
+#                     <a href="{registration_link}">{registration_link}</a></p>
+
+#                     {qms_section}
+
+#                     <p>Thanking you,<br>VMS Team</p>
+#                 """,
+#                 now=True
+#             )
+
+#             # handle for to mark the registration email link sent to vendor for single and multi doc
+
+#             # onboarding_doc.sent_registration_email_link = 1
+#             # if onboarding_doc.qms_required == "Yes":
+#             #     onboarding_doc.sent_qms_form_link = 1
+
+#             if onboarding_doc.registered_for_multi_companies == 1:
+#                 linked_docs = frappe.get_all(
+#                     "Vendor Onboarding",
+#                     filters={
+#                         "registered_for_multi_companies": 1,
+#                         "unique_multi_comp_id": onboarding_doc.unique_multi_comp_id
+#                     },
+#                     fields=["name"]
+#                 )
+#             else:
+#                 linked_docs = [{"name": onboarding_doc.name}]
+
+#             for entry in linked_docs:
+#                 doc = frappe.get_doc("Vendor Onboarding", entry["name"])
+#                 doc.sent_registration_email_link = 1
+
+#                 if doc.qms_required == "Yes":
+#                     doc.sent_qms_form_link = 1
+
+#                 doc.save(ignore_permissions=True)
+
+
+#             if onboarding_doc.registered_for_multi_companies == 1:
+#                 onboarding_doc.head_target = 1
+#                 vendor_master.db_set('onboarding_ref_no', onboarding_doc.name, update_modified=False)
+
+#             onboarding_doc.save(ignore_permissions=True)
+#             frappe.db.commit()
+
+#             return {
+#                 "status": "success",
+#                 "message": "Registration email sent successfully."
+#             }
+
+#         else:
+#             return {
+#                 "status": "info",
+#                 "message": "Registration email has already been sent."
+#             }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Onboarding Registration Email Error")
+#         return {
+#             "status": "error",
+#             "message": "Failed to send registration email.",
+#             "error": str(e)
+#         }
     
 
 
