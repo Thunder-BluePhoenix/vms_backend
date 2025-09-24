@@ -838,95 +838,139 @@ def create_vendor_master_from_staging(staging_doc):
 
 
 def create_company_details_from_staging(vendor_ref_no, mapped_row):
-	"""
-	Create or update Vendor Onboarding Company Details (not Company Details)
-	"""
-    
-	try:
-		result = {"action": "none"}
-		
-		# Check if company details already exist for this vendor
-		# existing_details = frappe.db.exists("Vendor Onboarding Company Details", {
-		#     "ref_no": vendor_ref_no
-		# })
-		
-		# if existing_details:
-		#     # Update existing
-		#     details_doc = frappe.get_doc("Vendor Onboarding Company Details", existing_details)
-		#     result["action"] = "updated"
-		# else:
-			# Create new
-		details_doc = frappe.new_doc("Vendor Onboarding Company Details")
-		details_doc.ref_no = vendor_ref_no
-		result["action"] = "created"
-		
-		# Map staging fields to company details fields
-		if mapped_row.get('vendor_name'):
-			details_doc.company_name = mapped_row.get('c_code')
-			details_doc.vendor_name = mapped_row.get('vendor_name')
-		
-		if mapped_row.get('gst'):
-			details_doc.gst = mapped_row.get('gst')
-		
-		if mapped_row.get('company_pan_number'):
-			details_doc.company_pan_number = mapped_row.get('company_pan_number')
-		
-		# Address fields
-		if mapped_row.get('address_line_1'):
-			details_doc.address_line_1 = mapped_row.get('address_line_1')
-		
-		if mapped_row.get('address_line_2'):
-			details_doc.address_line_2 = mapped_row.get('address_line_2')
-		
-		if mapped_row.get('city'):
-			details_doc.city = mapped_row.get('city')
-		
-		if mapped_row.get('state'):
-			details_doc.state = mapped_row.get('state')
-		
-		if mapped_row.get('country'):
-			details_doc.country = mapped_row.get('country')
-		else:
-			details_doc.country = "India"  # Default
-		
-		if mapped_row.get('pincode'):
-			details_doc.pincode = mapped_row.get('pincode')
-		
-		# Contact fields
-		if mapped_row.get('telephone_number'):
-			details_doc.telephone_number = mapped_row.get('telephone_number')
-		
-		if mapped_row.get('office_email_primary'):
-			details_doc.office_email_primary = mapped_row.get('office_email_primary')
-		
-		if mapped_row.get('office_email_secondary'):
-			details_doc.office_email_secondary = mapped_row.get('office_email_secondary')
-		
-		# Business fields
-		if mapped_row.get('nature_of_business'):
-			details_doc.nature_of_business = mapped_row.get('nature_of_business')
-		
-		if mapped_row.get('type_of_business'):
-			details_doc.type_of_business = mapped_row.get('type_of_business')
-		
-		if mapped_row.get('corporate_identification_number'):
-			details_doc.corporate_identification_number = mapped_row.get('corporate_identification_number')
-		
-		if mapped_row.get('established_year'):
-			details_doc.established_year = mapped_row.get('established_year')
-		
-		# Save the document
-		details_doc.save(ignore_permissions=True)
-		
-		return result
-		
-	except Exception as e:
-		error_message = f"Error creating company details: {str(e)}"
-		frappe.log_error(error_message, "Company Details Creation Error")
-		return {
-			"action": "error",
-			"error": error_message
-		}
+    """
+    Create or update Vendor Onboarding Company Details (not Company Details)
+    """
+
+    try:
+        result = {"action": "none"}
+        
+        # Check if company details already exist for this vendor
+        # existing_details = frappe.db.exists("Vendor Onboarding Company Details", {
+        #     "ref_no": vendor_ref_no
+        # })
+        
+        # if existing_details:
+        #     # Update existing
+        #     details_doc = frappe.get_doc("Vendor Onboarding Company Details", existing_details)
+        #     result["action"] = "updated"
+        # else:
+            # Create new
+        details_doc = frappe.new_doc("Vendor Onboarding Company Details")
+        details_doc.ref_no = vendor_ref_no
+        result["action"] = "created"
+        
+        # Map staging fields to company details fields
+        if mapped_row.get('vendor_name'):
+            details_doc.company_name = mapped_row.get('c_code')
+            details_doc.vendor_name = mapped_row.get('vendor_name')
+        
+        if mapped_row.get('gst'):
+            details_doc.gst = mapped_row.get('gst')
+        
+        if mapped_row.get('company_pan_number'):
+            details_doc.company_pan_number = mapped_row.get('company_pan_number')
+        
+        # Address fields
+        if mapped_row.get('address_line_1'):
+            details_doc.address_line_1 = mapped_row.get('address_line_1')
+        
+        if mapped_row.get('address_line_2'):
+            details_doc.address_line_2 = mapped_row.get('address_line_2')
+
+        mapped_country = mapped_row.get('country') or "India"
+        if mapped_country == "India":
+        
+            if mapped_row.get('city'):
+                details_doc.city = mapped_row.get('city')
+            
+            if mapped_row.get('state'):
+                details_doc.state = mapped_row.get('state')
+            
+            if mapped_row.get('country'):
+                details_doc.country = mapped_row.get('country')
+            
+            if mapped_row.get('pincode'):
+                details_doc.pincode = mapped_row.get('pincode')
+                    
+        else:
+            if mapped_row.get('city'):
+                details_doc.international_city = mapped_row.get('city')
+            
+            if mapped_row.get('state'):
+                details_doc.international_state = mapped_row.get('state')
+            
+            if mapped_row.get('country'):
+                details_doc.international_country = mapped_row.get('country')
+        
+            if mapped_row.get('pincode'):
+                details_doc.international_zipcode = mapped_row.get('pincode')
+        
+        # Contact fields
+        if mapped_row.get('telephone_number'):
+            details_doc.telephone_number = mapped_row.get('telephone_number')
+        
+        if mapped_row.get('office_email_primary'):
+            details_doc.office_email_primary = mapped_row.get('office_email_primary')
+        
+        if mapped_row.get('office_email_secondary'):
+            details_doc.office_email_secondary = mapped_row.get('office_email_secondary')
+        
+        # Business fields
+        if mapped_row.get('nature_of_business'):
+            details_doc.nature_of_business = mapped_row.get('nature_of_business')
+        
+        if mapped_row.get('type_of_business'):
+            details_doc.type_of_business = mapped_row.get('type_of_business')
+        
+        if mapped_row.get('corporate_identification_number'):
+            details_doc.corporate_identification_number = mapped_row.get('corporate_identification_number')
+        
+        if mapped_row.get('established_year'):
+            details_doc.established_year = mapped_row.get('established_year')
+        
+        # Save the document
+        details_doc.save(ignore_permissions=True)
+        result["company_details_doc"] = details_doc.name
+        
+
+        # Check if row already exists for this Vendor Master
+        exists = frappe.db.sql("""
+            SELECT name 
+            FROM `tabImported Vendor Company`
+            WHERE parent = %(parent)s
+            AND parenttype = 'Vendor Master'
+            AND parentfield = 'vendor_company_details'
+            AND vendor_company_details = %(vendor_company_details)s
+        """, {
+            "parent": vendor_ref_no,
+            "vendor_company_details": details_doc.name
+        }, as_dict=True)
+
+        # Insert only if not exists
+        if not exists:
+            frappe.db.sql("""
+                INSERT INTO `tabImported Vendor Company`
+                (name, parent, parenttype, parentfield, vendor_company_details, idx)
+                VALUES (%(name)s, %(parent)s, 'Vendor Master', 'vendor_company_details', %(vendor_company_details)s, 0)
+            """, {
+                "name": frappe.generate_hash("", 10),  # random row id
+                "parent": vendor_ref_no,
+                "vendor_company_details": details_doc.name
+            })
+            frappe.db.commit()
+
+
+        
+        return result
+        
+    except Exception as e:
+        error_message = f"Error creating company details: {str(e)}"
+        frappe.log_error(error_message, "Company Details Creation Error")
+        return {
+            "action": "error",
+            "error": error_message
+        }
 
 
 def handle_company_vendor_code_from_staging(vendor_ref_no, mapped_row):
@@ -1323,131 +1367,132 @@ def update_vendor_master_fields_from_staging(vendor_master, mapped_row):
 
 
 def create_payment_details_from_staging(mapped_row, vendor_master_name):
-	"""Create payment details using Vendor Bank Details doctype"""
+    """Create payment details using Vendor Bank Details doctype"""
 
-	result = {
-		'action': 'none',
-		'warnings': [],
-		'payment_doc_name': None
-	}
+    result = {
+        'action': 'none',
+        'warnings': [],
+        'payment_doc_name': None
+    }
 
-	try:
-		# Check if any payment-related fields are present
-		payment_fields = [
-			'bank_name', 'ifsc_code', 'account_number', 'name_of_account_holder', 
-			'type_of_account', 'bank_key', 'beneficiary_name', 'beneficiary_swift_code', 
-			'beneficiary_iban_no'
-		]
-		
-		has_payment_data = any(mapped_row.get(field) for field in payment_fields)
-		
-		if not has_payment_data:
-			result['warnings'].append(f"No payment data found for vendor {mapped_row.get('vendor_name')}")
-			return result
-		
-		vendor_name = mapped_row.get('vendor_name', '').strip()
-		if not vendor_name:
-			result['warnings'].append("Vendor name is required for payment details")
-			return result
-		
-		# Check if payment details already exist
-		# existing_payment = frappe.db.exists("Vendor Bank Details", {
-		#     "ref_no": vendor_master_name
-		# })
-		
-		# if existing_payment:
-		#     payment_doc = frappe.get_doc("Vendor Bank Details", existing_payment)
-		#     result['action'] = 'updated'
-		# else:
-		payment_doc = frappe.new_doc("Vendor Bank Details")
-		payment_doc.ref_no = vendor_master_name
-		result['action'] = 'created'
-		
-		# Map basic payment fields
-		if mapped_row.get('bank_name'):
-			payment_doc.bank_name = mapped_row.get('bank_name')
-		if mapped_row.get('bank_key'):
-			payment_doc.bank_key = mapped_row.get('bank_key')
-		if mapped_row.get('ifsc_code'):
-			payment_doc.ifsc_code = mapped_row.get('ifsc_code')
-		if mapped_row.get('account_number'):
-			payment_doc.account_number = mapped_row.get('account_number')
-		if mapped_row.get('name_of_account_holder'):
-			payment_doc.name_of_account_holder = mapped_row.get('name_of_account_holder')
-		if mapped_row.get('type_of_account'):
-			payment_doc.type_of_account = mapped_row.get('type_of_account')
-		if mapped_row.get('enterprise_registration_no'):
-			payment_doc.enterprise_registration_no = mapped_row.get('enterprise_registration_no')
-		if mapped_row.get('gst_vendor_type'):
-			payment_doc.gst_vendor_type = mapped_row.get('gst_vendor_type')
-		
-		# Handle banker details child table
-		banker_data = {
-			'bank_name': mapped_row.get('bank_name'),
-			'ifsc_code': mapped_row.get('ifsc_code'),
-			'account_number': mapped_row.get('account_number'),
-			'name_of_account_holder': mapped_row.get('name_of_account_holder'),
-			'type_of_account': mapped_row.get('type_of_account')
-		}
-		
-		if any(banker_data.values()):
-			# Clear existing banker details and add new ones
-			payment_doc.banker_details = []
-			payment_doc.append("banker_details", banker_data)
-		
-		# Handle international bank details child table  
-		intl_bank_data = {
-			'beneficiary_name': mapped_row.get('beneficiary_name'),
-			'beneficiary_swift_code': mapped_row.get('beneficiary_swift_code'),
-			'beneficiary_iban_no': mapped_row.get('beneficiary_iban_no'),
-			'beneficiary_aba_no': mapped_row.get('beneficiary_aba_no'),
-			'beneficiary_bank_address': mapped_row.get('beneficiary_bank_address'),
-			'beneficiary_bank_name': mapped_row.get('beneficiary_bank_name'),
-			'beneficiary_account_no': mapped_row.get('beneficiary_account_no'),
-			'beneficiary_ach_no': mapped_row.get('beneficiary_ach_no'),
-			'beneficiary_routing_no': mapped_row.get('beneficiary_routing_no'),
-			'beneficiary_currency': mapped_row.get('beneficiary_currency')
-		}
-		
-		if any(intl_bank_data.values()):
-			# Clear existing international bank details and add new ones
-			payment_doc.international_bank_details = []
-			payment_doc.append("international_bank_details", intl_bank_data)
-		
-		# Handle intermediate bank details child table
-		intermediate_bank_data = {
-			'intermediate_name': mapped_row.get('intermediate_name'),
-			'intermediate_bank_name': mapped_row.get('intermediate_bank_name'),
-			'intermediate_swift_code': mapped_row.get('intermediate_swift_code'),
-			'intermediate_iban_no': mapped_row.get('intermediate_iban_no'),
-			'intermediate_aba_no': mapped_row.get('intermediate_aba_no'),
-			'intermediate_bank_address': mapped_row.get('intermediate_bank_address'),
-			'intermediate_account_no': mapped_row.get('intermediate_account_no'),
-			'intermediate_ach_no': mapped_row.get('intermediate_ach_no'),
-			'intermediate_routing_no': mapped_row.get('intermediate_routing_no'),
-			'intermediate_currency': mapped_row.get('intermediate_currency')
-		}
-		
-		if any(intermediate_bank_data.values()):
-			# Clear existing intermediate bank details and add new ones
-			payment_doc.intermediate_bank_details = []
-			payment_doc.append("intermediate_bank_details", intermediate_bank_data)
-		
-		payment_doc.imported = 1
-		payment_doc.save(ignore_permissions=True)
+    try:
+        # Check if any payment-related fields are present
+        payment_fields = [
+            'bank_name', 'ifsc_code', 'account_number', 'name_of_account_holder', 
+            'type_of_account', 'bank_key', 'beneficiary_name', 'beneficiary_swift_code', 
+            'beneficiary_iban_no'
+        ]
+        
+        has_payment_data = any(mapped_row.get(field) for field in payment_fields)
+        
+        if not has_payment_data:
+            result['warnings'].append(f"No payment data found for vendor {mapped_row.get('vendor_name')}")
+            return result
+        
+        vendor_name = mapped_row.get('vendor_name', '').strip()
+        if not vendor_name:
+            result['warnings'].append("Vendor name is required for payment details")
+            return result
+        
+        # Check if payment details already exist
+        # existing_payment = frappe.db.exists("Vendor Bank Details", {
+        #     "ref_no": vendor_master_name
+        # })
+        
+        # if existing_payment:
+        #     payment_doc = frappe.get_doc("Vendor Bank Details", existing_payment)
+        #     result['action'] = 'updated'
+        # else:
+        payment_doc = frappe.new_doc("Vendor Bank Details")
+        payment_doc.ref_no = vendor_master_name
+        result['action'] = 'created'
+        
+        # Map basic payment fields
+        if mapped_row.get('bank_name'):
+            payment_doc.bank_name = mapped_row.get('bank_name')
+        if mapped_row.get('bank_key'):
+            payment_doc.bank_key = mapped_row.get('bank_key')
+        if mapped_row.get('ifsc_code'):
+            payment_doc.ifsc_code = mapped_row.get('ifsc_code')
+        if mapped_row.get('account_number'):
+            payment_doc.account_number = mapped_row.get('account_number')
+        if mapped_row.get('name_of_account_holder'):
+            payment_doc.name_of_account_holder = mapped_row.get('name_of_account_holder')
+        if mapped_row.get('type_of_account'):
+            payment_doc.type_of_account = mapped_row.get('type_of_account')
+        if mapped_row.get('enterprise_registration_no'):
+            payment_doc.enterprise_registration_no = mapped_row.get('enterprise_registration_no')
+        if mapped_row.get('gst_vendor_type'):
+            payment_doc.gst_vendor_type = mapped_row.get('gst_vendor_type')
+        
+        # Handle banker details child table
+        banker_data = {
+            'bank_name': mapped_row.get('bank_name'),
+            'ifsc_code': mapped_row.get('ifsc_code'),
+            'account_number': mapped_row.get('account_number'),
+            'name_of_account_holder': mapped_row.get('name_of_account_holder'),
+            'type_of_account': mapped_row.get('type_of_account')
+        }
+        
+        if any(banker_data.values()):
+            # Clear existing banker details and add new ones
+            payment_doc.banker_details = []
+            payment_doc.append("banker_details", banker_data)
+        
+        # Handle international bank details child table  
+        intl_bank_data = {
+            'beneficiary_name': mapped_row.get('beneficiary_name'),
+            'beneficiary_swift_code': mapped_row.get('beneficiary_swift_code'),
+            'beneficiary_iban_no': mapped_row.get('beneficiary_iban_no'),
+            'beneficiary_aba_no': mapped_row.get('beneficiary_aba_no'),
+            'beneficiary_bank_address': mapped_row.get('beneficiary_bank_address'),
+            'beneficiary_bank_name': mapped_row.get('beneficiary_bank_name'),
+            'beneficiary_account_no': mapped_row.get('beneficiary_account_no'),
+            'beneficiary_ach_no': mapped_row.get('beneficiary_ach_no'),
+            'beneficiary_routing_no': mapped_row.get('beneficiary_routing_no'),
+            'beneficiary_currency': mapped_row.get('beneficiary_currency')
+        }
+        
+        if any(intl_bank_data.values()):
+            # Clear existing international bank details and add new ones
+            payment_doc.international_bank_details = []
+            payment_doc.append("international_bank_details", intl_bank_data)
+        
+        # Handle intermediate bank details child table
+        intermediate_bank_data = {
+            'intermediate_name': mapped_row.get('intermediate_name'),
+            'intermediate_bank_name': mapped_row.get('intermediate_bank_name'),
+            'intermediate_swift_code': mapped_row.get('intermediate_swift_code'),
+            'intermediate_iban_no': mapped_row.get('intermediate_iban_no'),
+            'intermediate_aba_no': mapped_row.get('intermediate_aba_no'),
+            'intermediate_bank_address': mapped_row.get('intermediate_bank_address'),
+            'intermediate_account_no': mapped_row.get('intermediate_account_no'),
+            'intermediate_ach_no': mapped_row.get('intermediate_ach_no'),
+            'intermediate_routing_no': mapped_row.get('intermediate_routing_no'),
+            'intermediate_currency': mapped_row.get('intermediate_currency')
+        }
+        
+        if any(intermediate_bank_data.values()):
+            # Clear existing intermediate bank details and add new ones
+            payment_doc.intermediate_bank_details = []
+            payment_doc.append("intermediate_bank_details", intermediate_bank_data)
+        
+        payment_doc.imported = 1
+        payment_doc.save(ignore_permissions=True)
         
 
-		vm_doc = frappe.get_doc("Vendor Master", vendor_master_name)
-		vm_doc.bank_details = payment_doc.name
-		vm_doc.save()
-		
-		result['payment_doc_name'] = payment_doc.name
-		
-	except Exception as e:
-		result['warnings'].append(f"Error creating payment details: {str(e)}")
-		frappe.log_error(f"Payment details creation error: {str(e)}", "Payment Details Error")
+        vm_doc = frappe.get_doc("Vendor Master", vendor_master_name)
+        # vm_doc.bank_details = payment_doc.name
+        vm_doc.db_set('bank_details', payment_doc.name, update_modified=False)
+        # vm_doc.save()
+        
+        result['payment_doc_name'] = payment_doc.name
+        
+    except Exception as e:
+        result['warnings'].append(f"Error creating payment details: {str(e)}")
+        frappe.log_error(f"Payment details creation error: {str(e)}", "Payment Details Error")
 
-	return result
+    return result
 
 
 # Add the main processing methods that call these functions
