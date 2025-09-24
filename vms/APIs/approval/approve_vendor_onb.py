@@ -46,7 +46,7 @@ def get_next_approver(stage, doc, next_stage=None):
 
     if next_role:
 
-        company = doc.get("company")
+        company = doc.get("company_name")
         
         
         

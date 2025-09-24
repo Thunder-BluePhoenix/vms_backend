@@ -12,14 +12,27 @@ def get_approval_employee(role_short, company_list, filters={}, fields=["*"], do
     
     return get_standard_approval_employee(role_short, company_list, filters, fields)
 
-
 def get_vendor_onboarding_approval_employee(role_short, company_list, doc, filters={}, fields=["*"], stage=None):
 
     registered_by_accounts_team = doc.get("register_by_account_team", 0)
     
-    if stage and stage.get("team_wise", 0):
+  
+    team_wise = stage.get("team_wise", 0) if stage else 0
+    company_wise = stage.get("company_wise", 0) if stage else 0
+    
+    if team_wise and company_wise:
+        
+        return get_team_and_company_wise_approval_employee(role_short, company_list, doc, filters, fields)
+    
+    elif team_wise:
+        
         return get_team_wise_approval_employee_for_vendor_onboarding(role_short, doc, filters, fields)
     
+    elif company_wise:
+        
+        return get_standard_approval_employee(role_short, company_list, filters, fields)
+    
+    # No approval matrix checkboxes checked - use existing logic
     if registered_by_accounts_team:
         return get_standard_approval_employee(role_short, company_list, filters, fields)
     else:
@@ -196,11 +209,9 @@ def get_approval_employee_no_company(role_short, filters={}, fields=["*"],employ
 
 
 def get_team_and_company_wise_approval_employee(role_short, company_list, doc, filters={}, fields=["*"]):
-    """
-    Get approval employee from the same team as registered_by user AND from specified companies
-    """
+   
     try:
-        # Get the team of the registered_by user
+       
         reference_user = doc.get("registered_by")
         
         if not reference_user:
@@ -223,7 +234,7 @@ def get_team_and_company_wise_approval_employee(role_short, company_list, doc, f
             frappe.log_error(f"No team assigned to employee of user: {reference_user}")
             return None
         
-        # Convert company_list to list if it's a string
+       
         if isinstance(company_list, str):
             company_list = [company_list]
 
