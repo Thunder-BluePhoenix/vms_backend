@@ -56,7 +56,7 @@ def get_team_wise_approval_employee_for_vendor_onboarding(role_short, doc, filte
     Get approval employee from the same team as the registered_by user (Vendor Onboarding only)
     """
     try:
-        # Get the team of the registered_by user
+    
         reference_user = doc.get("registered_by")
         
         if not reference_user:
@@ -193,6 +193,86 @@ def get_approval_employee_no_company(role_short, filters={}, fields=["*"],employ
     )
     
     return employee_list[0] if employee_list else None
+
+
+def get_team_and_company_wise_approval_employee(role_short, company_list, doc, filters={}, fields=["*"]):
+    """
+    Get approval employee from the same team as registered_by user AND from specified companies
+    """
+    try:
+        # Get the team of the registered_by user
+        reference_user = doc.get("registered_by")
+        
+        if not reference_user:
+            frappe.log_error("No registered_by user found for team and company-wise approval")
+            return None
+            
+        reference_employee = frappe.get_all(
+            "Employee",
+            filters={"user_id": reference_user, "status": "Active"},
+            fields=["team", "name"],
+            limit=1
+        )
+        
+        if not reference_employee:
+            frappe.log_error(f"No active employee found for user: {reference_user}")
+            return None
+            
+        team = reference_employee[0].get("team")
+        if not team:
+            frappe.log_error(f"No team assigned to employee of user: {reference_user}")
+            return None
+        
+        # Convert company_list to list if it's a string
+        if isinstance(company_list, str):
+            company_list = [company_list]
+
+        
+        employees_with_companies = frappe.get_all(
+            "Multiple Company Name",  
+            filters={"company_name": ("in", company_list)},  
+            fields=["parent"],
+            distinct=True
+        )
+        
+        if not employees_with_companies:
+            return None
+        
+        employee_names = [emp.parent for emp in employees_with_companies]
+        
+        
+        users_with_role = frappe.get_all(
+            "Has Role",
+            filters={"role": role_short},
+            fields=["parent"]
+        )
+        
+        if not users_with_role:
+            return None
+        
+        user_ids_with_role = [user.parent for user in users_with_role]
+        
+        
+        final_filters = {
+            **filters,
+            "name": ("in", employee_names),      
+            "user_id": ("in", user_ids_with_role),  
+            "team": team,                        
+            "status": "Active"
+        }
+        
+        employee_list = frappe.get_all(
+            "Employee", 
+            filters=final_filters, 
+            fields=fields, 
+            limit=1
+        )
+        
+        return employee_list[0] if employee_list else None
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_team_and_company_wise_approval_employee: {str(e)}")
+        return None
 
 def get_approval_employee_by_state_for_rdm(
     state, role_short, company_list, filters={}, fields=["*"]
