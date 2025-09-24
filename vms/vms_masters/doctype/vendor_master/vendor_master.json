@@ -52,17 +52,19 @@
   "vendor_annual_assessment_form_records_section",
   "form_records",
   "more_info_tab",
-  "bank_details",
-  "document_details",
-  "manufacturing_details",
   "column_break_xmpu",
   "remarks_ok",
   "via_data_import",
   "is_blocked",
-  "remarks",
+  "validity_label",
   "column_break_pfge",
   "validity",
-  "validity_label"
+  "remarks",
+  "column_break_patf",
+  "bank_details",
+  "document_details",
+  "manufacturing_details",
+  "vendor_company_details"
  ],
  "fields": [
   {
@@ -374,12 +376,22 @@
    "fieldname": "is_blocked",
    "fieldtype": "Check",
    "label": "Blocked Via Import"
+  },
+  {
+   "fieldname": "vendor_company_details",
+   "fieldtype": "Table",
+   "label": "Vendor Company Details Import",
+   "options": "Imported Vendor Company"
+  },
+  {
+   "fieldname": "column_break_patf",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 11:09:53.494209",
+ "modified": "2025-09-24 23:18:12.663350",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
