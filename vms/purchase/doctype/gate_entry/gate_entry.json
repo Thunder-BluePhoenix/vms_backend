@@ -68,8 +68,9 @@
   },
   {
    "fieldname": "inward_location",
-   "fieldtype": "Data",
-   "label": "Inward Location"
+   "fieldtype": "Link",
+   "label": "Inward Location",
+   "options": "Inward Location"
   },
   {
    "fieldname": "scan_barcode",
@@ -287,7 +288,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 12:19:35.419908",
+ "modified": "2025-09-24 15:25:29.230060",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Gate Entry",
