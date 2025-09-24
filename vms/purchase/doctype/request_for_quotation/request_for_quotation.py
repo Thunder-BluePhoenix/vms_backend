@@ -277,6 +277,7 @@ def send_quotation_email(doc):
                 <p>Kindly get in touch with our Procurement Team to complete the onboarding process before submitting your quotation.</p>
 
                 <p><a href="{link}" target="_blank">Click here to submit your quotation</a></p>
+                <p> Please Note - This link will expire on <strong>{doc.rfq_cutoff_date_logistic}</strong></p>
 
                 <p>Thank you.<br>
                 Best regards,<br>
