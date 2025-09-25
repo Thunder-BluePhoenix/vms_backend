@@ -28,25 +28,21 @@
   {
    "fieldname": "vc_country",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "VC Country"
   },
   {
    "fieldname": "vc_city",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "VC City"
   },
   {
    "fieldname": "vc_state",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "VC State"
   },
   {
    "fieldname": "vc_pincode",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "VC Pincode"
   }
  ],
@@ -54,7 +50,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-25 13:43:12.296008",
+ "modified": "2025-09-25 13:55:41.844526",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Imported Vendor Company",

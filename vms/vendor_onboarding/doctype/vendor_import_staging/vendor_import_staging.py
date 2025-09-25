@@ -957,16 +957,32 @@ def create_company_details_from_staging(vendor_ref_no, mapped_row):
 
         # Insert only if not exists
         if not exists:
+            # Get the current max idx for this parent
+            max_idx = frappe.db.sql("""
+                SELECT MAX(idx) FROM `tabImported Vendor Company`
+                WHERE parent = %s
+            """, (vendor_ref_no,))[0][0] or 0
+
+            next_idx = max_idx + 1
+
             frappe.db.sql("""
                 INSERT INTO `tabImported Vendor Company`
-                (name, parent, parenttype, parentfield, vendor_company_details, idx)
-                VALUES (%(name)s, %(parent)s, 'Vendor Master', 'vendor_company_details', %(vendor_company_details)s, 0)
+                (name, parent, parenttype, parentfield, vendor_company_details,
+                vc_country, vc_city, vc_state, vc_pincode, idx)
+                VALUES (%(name)s, %(parent)s, 'Vendor Master', 'vendor_company_details',
+                %(vendor_company_details)s, %(vc_country)s, %(vc_city)s, %(vc_state)s, %(vc_pincode)s, %(idx)s)
             """, {
-                "name": frappe.generate_hash("", 10),  # random row id
+                "name": frappe.generate_hash("", 10),  # unique row id
                 "parent": vendor_ref_no,
-                "vendor_company_details": details_doc.name
+                "vendor_company_details": details_doc.name,
+                "vc_country": details_doc.vc_country,
+                "vc_city": details_doc.vc_city,
+                "vc_state": details_doc.vc_state,
+                "vc_pincode": details_doc.vc_pin,
+                "idx": next_idx
             })
             frappe.db.commit()
+
 
 
         
