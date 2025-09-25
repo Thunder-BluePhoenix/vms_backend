@@ -968,9 +968,11 @@ def create_company_details_from_staging(vendor_ref_no, mapped_row):
             frappe.db.sql("""
                 INSERT INTO `tabImported Vendor Company`
                 (name, parent, parenttype, parentfield, vendor_company_details,
-                vc_country, vc_city, vc_state, vc_pincode, idx)
+                vc_country, vc_city, vc_state, vc_pincode,
+                meril_company_name, vendor_gst, vendor_pan, idx)
                 VALUES (%(name)s, %(parent)s, 'Vendor Master', 'vendor_company_details',
-                %(vendor_company_details)s, %(vc_country)s, %(vc_city)s, %(vc_state)s, %(vc_pincode)s, %(idx)s)
+                %(vendor_company_details)s, %(vc_country)s, %(vc_city)s, %(vc_state)s, %(vc_pincode)s,
+                %(meril_company_name)s, %(vendor_gst)s, %(vendor_pan)s, %(idx)s)
             """, {
                 "name": frappe.generate_hash("", 10),  # unique row id
                 "parent": vendor_ref_no,
@@ -979,9 +981,13 @@ def create_company_details_from_staging(vendor_ref_no, mapped_row):
                 "vc_city": details_doc.vc_city,
                 "vc_state": details_doc.vc_state,
                 "vc_pincode": details_doc.vc_pin,
+                "meril_company_name": details_doc.company_name,
+                "vendor_gst": details_doc.gst,
+                "vendor_pan": details_doc.company_pan_number,
                 "idx": next_idx
             })
             frappe.db.commit()
+
 
 
 
