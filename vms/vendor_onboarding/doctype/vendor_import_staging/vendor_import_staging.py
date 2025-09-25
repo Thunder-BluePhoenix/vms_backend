@@ -883,28 +883,36 @@ def create_company_details_from_staging(vendor_ref_no, mapped_row):
         
             if mapped_row.get('city'):
                 details_doc.city = mapped_row.get('city')
+                details_doc.vc_city = mapped_row.get('city')
             
             if mapped_row.get('state'):
                 details_doc.state = mapped_row.get('state')
+                details_doc.vc_state = mapped_row.get('state')
             
             if mapped_row.get('country'):
                 details_doc.country = mapped_row.get('country')
+                details_doc.vc_country = mapped_row.get('country')
             
             if mapped_row.get('pincode'):
                 details_doc.pincode = mapped_row.get('pincode')
+                details_doc.vc_pin = mapped_row.get('pincode')
                     
         else:
             if mapped_row.get('city'):
                 details_doc.international_city = mapped_row.get('city')
+                details_doc.vc_city = mapped_row.get('city')
             
             if mapped_row.get('state'):
                 details_doc.international_state = mapped_row.get('state')
+                details_doc.vc_state = mapped_row.get('state')
             
             if mapped_row.get('country'):
                 details_doc.international_country = mapped_row.get('country')
+                details_doc.vc_country = mapped_row.get('country')
         
             if mapped_row.get('pincode'):
                 details_doc.international_zipcode = mapped_row.get('pincode')
+                details_doc.vc_pin = mapped_row.get('pincode')
         
         # Contact fields
         if mapped_row.get('telephone_number'):
