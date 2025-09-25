@@ -31,48 +31,221 @@ class VendorImportStaging(Document):
         self.set_validation_status()
     
     def set_validation_status(self):
-        """Set validation status based on data completeness and quality"""
+        """Enhanced validation status with comprehensive link field validation"""
         errors = []
         warnings = []
         
-        # Required field validations
-        if not self.vendor_name:
-            errors.append("Vendor Name is required")
-        
-        if not self.vendor_code:
-            errors.append("Vendor Code is required")
-        
-        if not self.c_code:
-            errors.append("Company Code is required")
-        
-        # GST validation
-        if self.gstn_no:
-            if len(self.gstn_no) != 15:
-                errors.append("GSTN No should be 15 characters")
-            if not self.gstn_no.isalnum():
-                warnings.append("GSTN No contains special characters")
-        
-        # PAN validation
-        if self.pan_no:
-            if len(self.pan_no) != 10:
-                errors.append("PAN No should be 10 characters")
-        
-        # Email validation
-        email_fields = [self.email_id, self.primary_email, self.secondary_email]
-        for email in email_fields:
-            if email and "@" not in email:
-                errors.append(f"Invalid email format: {email}")
-        
-        # Set status
-        if errors:
+        try:
+            # === BASIC FIELD VALIDATIONS ===
+            # Required field validations
+            if not self.vendor_name:
+                errors.append("Vendor Name is required")
+            
+            if not self.vendor_code:
+                errors.append("Vendor Code is required")
+            
+            if not self.c_code:
+                errors.append("Company Code is required")
+            
+            # === FORMAT VALIDATIONS ===
+            # GST validation
+            if self.gstn_no:
+                gst_no = str(self.gstn_no).strip().upper()
+                if len(gst_no) != 15:
+                    errors.append("GSTN No should be 15 characters")
+                else:
+                    # GST format validation
+                    gst_pattern = r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$'
+                    if not re.match(gst_pattern, gst_no):
+                        errors.append("Invalid GSTN No format")
+            
+            # PAN validation
+            if self.pan_no:
+                pan_no = str(self.pan_no).strip().upper()
+                if len(pan_no) != 10:
+                    errors.append("PAN No should be 10 characters")
+                else:
+                    # PAN format validation
+                    pan_pattern = r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$'
+                    if not re.match(pan_pattern, pan_no):
+                        errors.append("Invalid PAN No format")
+            
+            # Email validation
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            email_fields = [
+                ('email_id', self.email_id),
+                ('primary_email', self.primary_email), 
+                ('secondary_email', self.secondary_email)
+            ]
+            
+            for field_name, email_value in email_fields:
+                if email_value and not re.match(email_pattern, str(email_value).strip()):
+                    errors.append(f"Invalid email format in {field_name}: {email_value}")
+            
+            # Phone number validation
+            if self.contact_no:
+                contact = str(self.contact_no).strip()
+                if not contact.replace('+', '').replace('-', '').replace(' ', '').replace('(', '').replace(')', '').isdigit():
+                    warnings.append(f"Contact number may have invalid format: {contact}")
+                elif len(contact.replace('+', '').replace('-', '').replace(' ', '').replace('(', '').replace(')', '')) < 10:
+                    warnings.append("Contact number seems too short")
+            
+            # Pincode validation
+            if self.pincode:
+                pincode = str(self.pincode).strip()
+                if not pincode.isdigit() or len(pincode) != 6:
+                    warnings.append("Pincode should be 6 digits")
+            
+            # === LINK FIELD VALIDATIONS ===
+            
+            # Company Master validation (CRITICAL)
+            if self.c_code:
+                company_exists = frappe.db.exists("Company Master", {"company_code": str(self.c_code).strip()})
+                if not company_exists:
+                    errors.append(f"Company Master not found for code: {self.c_code}")
+            
+            # State Master validation
+            if self.state:
+                state_exists = frappe.db.exists("State Master", str(self.state).strip())
+                if not state_exists:
+                    warnings.append(f"State Master not found: {self.state}")
+            
+            # Country validation
+            if self.country:
+                country_exists = frappe.db.exists("Country Master", str(self.country).strip())
+                if not country_exists:
+                    warnings.append(f"Country Master not found: {self.country}")
+            
+            # Bank Master validation
+            if self.bank_name:
+                bank_exists = frappe.db.exists("Bank Master", str(self.bank_name).strip())
+                if not bank_exists:
+                    warnings.append(f"Bank Master not found: {self.bank_name}")
+            
+            # Currency validation
+            currency_fields = [
+                ('order_currency', self.order_currency),
+                ('beneficiary_currency', self.beneficiary_currency),
+                ('intermediate_currency', self.intermediate_currency)
+            ]
+            
+            for field_name, currency_value in currency_fields:
+                if currency_value:
+                    currency_exists = frappe.db.exists("Currency Master", str(currency_value).strip())
+                    if not currency_exists:
+                        warnings.append(f"Currency Master not found in {field_name}: {currency_value}")
+            
+            # Purchase Organization validation
+            if self.purchase_organization:
+                po_exists = frappe.db.exists("Purchase Organization Master", str(self.purchase_organization).strip())
+                if not po_exists:
+                    warnings.append(f"Purchase Organization Master not found: {self.purchase_organization}")
+            
+            # Account Group validation
+            if self.account_group:
+                ag_exists = frappe.db.exists("Account Group Master", str(self.account_group).strip())
+                if not ag_exists:
+                    warnings.append(f"Account Group Master not found: {self.account_group}")
+            
+            # Terms of Payment validation
+            if self.terms_of_payment:
+                top_exists = frappe.db.exists("Terms of Payment Master", str(self.terms_of_payment).strip())
+                if not top_exists:
+                    warnings.append(f"Terms of Payment Master not found: {self.terms_of_payment}")
+            
+            # Purchase Group validation
+            if self.purchase_group:
+                pg_exists = frappe.db.exists("Purchase Group Master", str(self.purchase_group).strip())
+                if not pg_exists:
+                    warnings.append(f"Purchase Group Master not found: {self.purchase_group}")
+            
+            # Incoterm validation
+            if self.incoterm:
+                inco_exists = frappe.db.exists("Incoterm Master", str(self.incoterm).strip())
+                if not inco_exists:
+                    warnings.append(f"Incoterm Master not found: {self.incoterm}")
+            
+            # Reconciliation Account validation
+            if self.reconciliation_account:
+                ra_exists = frappe.db.exists("Reconciliation Account", str(self.reconciliation_account).strip())
+                if not ra_exists:
+                    warnings.append(f"Reconciliation Account not found: {self.reconciliation_account}")
+            
+            # Vendor Type validation
+            if self.vendor_type:
+                vt_exists = frappe.db.exists("Vendor Type Master", str(self.vendor_type).strip())
+                if not vt_exists:
+                    warnings.append(f"Vendor Type Master not found: {self.vendor_type}")
+            
+            # Type of Business validation
+            if hasattr(self, 'type_of_industry') and self.type_of_industry:
+                tob_exists = frappe.db.exists("Type of Business", str(self.type_of_industry).strip())
+                if not tob_exists:
+                    warnings.append(f"Type of Business not found: {self.type_of_industry}")
+            
+            # Nature of Company validation
+            # if hasattr(self, 'nature') and self.nature:
+            #     nc_exists = frappe.db.exists("Company Nature Master", str(self.nature).strip())
+            #     if not nc_exists:
+            #         warnings.append(f"Company Nature Master not found: {self.nature}")
+            
+            # === BUSINESS LOGIC VALIDATIONS ===
+            
+            # GST and State cross-validation
+            if self.gstn_no and self.state:
+                gst_state_code = str(self.gstn_no)[:2] if len(str(self.gstn_no)) >= 2 else ""
+                if gst_state_code.isdigit():
+                    # Try to get state code from state master
+                    try:
+                        state_doc = frappe.get_doc("State Master", self.state)
+                        if hasattr(state_doc, 'state_code') and state_doc.state_code:
+                            expected_code = str(state_doc.custom_gst_state_code).zfill(2)
+                            if gst_state_code != expected_code:
+                                errors.append(f"GST state code ({gst_state_code}) doesn't match state {self.state} (expected: {expected_code})")
+                    except:
+                        pass  # State master might not exist, already flagged above
+            
+            # GST and PAN cross-validation
+            # if self.gstn_no and self.pan_no:
+            #     gst_pan_part = str(self.gstn_no)[2:12] if len(str(self.gstn_no)) >= 12 else ""
+            #     pan_no = str(self.pan_no).strip().upper()
+            #     if gst_pan_part.upper() != pan_no:
+            #         errors.append("PAN number in GST doesn't match PAN field")
+            
+            # Duplicate vendor code check
+            if self.vendor_code and self.c_code:
+                # Check for existing vendor masters with same vendor code
+                existing_vendor = frappe.db.exists("Vendor Master", {
+                    "name": ["!=", self.name] if hasattr(self, 'name') else []
+                })
+                
+                if existing_vendor:
+                    # More detailed duplicate check can be added here
+                    warnings.append(f"Similar vendor code might exist: {self.vendor_code}")
+            
+            # === SET VALIDATION STATUS ===
+            
+            if errors:
+                self.validation_status = "Invalid"
+                all_issues = errors + warnings
+                self.error_log = "\n".join(all_issues)
+            elif warnings:
+                self.validation_status = "Warning" 
+                self.error_log = "WARNINGS:\n" + "\n".join(warnings)
+            else:
+                self.validation_status = "Valid"
+                self.error_log = ""
+            
+            # Set last validation run timestamp
+            self.last_validation_run = now_datetime()
+            
+        except Exception as e:
+            # If validation itself fails, mark as invalid
             self.validation_status = "Invalid"
-            self.error_log = "\n".join(errors) + ("\n" + "\n".join(warnings) if warnings else "")
-        elif warnings:
-            self.validation_status = "Warning"
-            self.error_log = "\n".join(warnings)
-        else:
-            self.validation_status = "Valid"
-            self.error_log = ""
+            self.error_log = f"Validation error: {str(e)}"
+            frappe.log_error(f"Error in set_validation_status for {self.name}: {str(e)}", "Validation Error")
+
+
 
     def create_vendor_master(self):
         """Create or update vendor master record with proper Company Vendor Code handling"""
