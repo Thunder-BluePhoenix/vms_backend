@@ -6,7 +6,12 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "vendor_company_details"
+  "vendor_company_details",
+  "column_break_npek",
+  "vc_country",
+  "vc_city",
+  "vc_state",
+  "vc_pincode"
  ],
  "fields": [
   {
@@ -15,13 +20,41 @@
    "in_list_view": 1,
    "label": "Vendor Company Details",
    "options": "Vendor Onboarding Company Details"
+  },
+  {
+   "fieldname": "column_break_npek",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vc_country",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "VC Country"
+  },
+  {
+   "fieldname": "vc_city",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "VC City"
+  },
+  {
+   "fieldname": "vc_state",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "VC State"
+  },
+  {
+   "fieldname": "vc_pincode",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "VC Pincode"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-24 23:09:36.889663",
+ "modified": "2025-09-25 13:43:12.296008",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Imported Vendor Company",
