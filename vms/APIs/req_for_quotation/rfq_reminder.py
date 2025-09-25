@@ -76,21 +76,47 @@ def block_quotation_link():
 
     req_quotations = frappe.get_all(
         "Request For Quotation",
-        fields=["name", "rfq_cutoff_date_logistic"]
+        fields=["name", "rfq_cutoff_date_logistic", "raised_by", "quotation_rfq_deadline_pass"]
     )
-    for rfq_data in req_quotations:
-        deadline = rfq_data.rfq_cutoff_date_logistic 
 
+    updated_rfqs = []
 
-        if deadline and deadline < current_time:
+    for rfq in req_quotations:
+        if rfq.quotation_rfq_deadline_pass:
+            continue
+
+        if rfq.rfq_cutoff_date_logistic and rfq.rfq_cutoff_date_logistic < current_time:
             frappe.db.set_value(
                 "Request For Quotation",
-                rfq_data.name,
+                rfq.name,
                 "quotation_rfq_deadline_pass",
                 1
             )
 
-        return {
-            "status": "Success",
-            "message": f"RFQ Cutoff Date or Quotation Deadline has passed. Now Quotation won't be create for {rfq_data.name}."
-        }
+            subject = f"RFQ Deadline Passed: {rfq.name}"
+
+            message = f"""
+                <p>Dear Purchase Team,</p>
+
+                <p>The Request for Quotation <strong>{rfq.name}</strong> has passed its submission deadline 
+                (<strong>{rfq.rfq_cutoff_date_logistic.strftime('%d %B %Y, %I:%M %p')}</strong>).</p>
+
+                <p>Please review the received quotations and take the necessary actions. 
+                The system has automatically marked this RFQ as expired.</p>
+
+                <p>Regards,<br>VMS Team</p>
+            """
+
+            frappe.custom_sendmail(
+                recipients=rfq.raised_by,
+                subject=subject,
+                message=message,
+                now=True
+            )
+
+            updated_rfqs.append(rfq.name)
+
+    return {
+        "status": "Success",
+        "message": f"Processed {len(updated_rfqs)} expired RFQs: {', '.join(updated_rfqs)}"
+    }

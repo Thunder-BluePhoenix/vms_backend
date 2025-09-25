@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class ValuationClassMaster(Document):
+class DistributionChannel(Document):
 	pass

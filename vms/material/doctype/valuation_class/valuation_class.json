@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{valuation_class_code} - {company}",
+ "creation": "2025-07-04 12:17:32.595572",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "valuation_class_code",
+  "valuation_class_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "valuation_class_code",
+   "fieldtype": "Data",
+   "label": "Valuation Class Code"
+  },
+  {
+   "fieldname": "valuation_class_name",
+   "fieldtype": "Data",
+   "label": "Valuation Class Name"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-08-22 14:36:56.053076",
+ "modified_by": "Administrator",
+ "module": "Material",
+ "name": "Valuation Class",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "valuation_class_code",
+ "track_changes": 1
+}

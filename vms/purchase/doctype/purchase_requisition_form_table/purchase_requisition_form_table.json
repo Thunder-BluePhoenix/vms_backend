@@ -426,7 +426,7 @@
    "fieldname": "valuation_area_head",
    "fieldtype": "Link",
    "label": "Valuation Class",
-   "options": "Valuation Class Master"
+   "options": "Valuation Class"
   },
   {
    "fieldname": "fixed_value_head",
@@ -518,7 +518,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:37:52.275523",
+ "modified": "2025-09-25 15:34:45.580759",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form Table",
