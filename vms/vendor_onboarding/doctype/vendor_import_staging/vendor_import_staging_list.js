@@ -63,7 +63,7 @@ frappe.listview_settings['Vendor Import Staging'] = {
                     doctype: 'Vendor Import Staging',
                     filters: {
                         import_status: 'Pending',
-                        validation_status: ['!=', 'Invalid']
+                        validation_status: 'Valid'
                     },
                     fields: ['name', 'vendor_name', 'import_status', 'validation_status'],
                     limit_page_length: 0
@@ -128,6 +128,19 @@ frappe.listview_settings['Vendor Import Staging'] = {
         listview.page.add_inner_button(__('Master Data Validation'), function() {
             show_master_data_validation();
         }, __('System Health'));
+
+
+
+        add_comprehensive_integrity_buttons(listview);
+        
+        // Add document creation analysis
+        // add_document_analysis_buttons(listview);
+        
+        // // Add missing masters management
+        // add_missing_masters_buttons(listview);
+        
+        // // Enhanced processing buttons
+        // add_enhanced_processing_buttons(listview);
     }
 };
 
@@ -1150,4 +1163,716 @@ function get_job_status_color(status) {
         'cancelled': 'secondary'
     };
     return status_colors[status.toLowerCase()] || 'secondary';
+}
+
+
+
+
+
+function add_comprehensive_integrity_buttons(listview) {
+    // 🔹 Comprehensive Data Integrity Check
+    listview.page.add_inner_button(__('Comprehensive Integrity Check'), function() {
+        run_comprehensive_integrity_check(listview);
+    }, __('Data Integrity'));
+
+    // 🔹 Document Creation Analysis
+    listview.page.add_inner_button(__('Document Creation Analysis'), function() {
+        show_document_creation_analysis(listview);
+    }, __('Data Integrity'));
+
+    // 🔹 Missing Masters Breakdown
+    listview.page.add_inner_button(__('Missing Masters Report'), function() {
+        show_missing_masters_breakdown(listview);
+    }, __('Data Integrity'));
+}
+
+function run_comprehensive_integrity_check(listview) {
+    const integrity_dialog = new frappe.ui.Dialog({
+        title: __('Comprehensive Data Integrity Check'),
+        size: 'extra-large',
+        fields: [
+            {
+                fieldname: 'integrity_status',
+                fieldtype: 'HTML',
+                options: generate_loading_html('Running comprehensive analysis of all documents and child tables...')
+            }
+        ]
+    });
+    
+    integrity_dialog.show();
+    
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_stage_inspect.comprehensive_data_integrity_check',
+        freeze: true,
+        freeze_message: __('Analyzing complete document ecosystem...'),
+        callback: function(r) {
+            if (r.message) {
+                const integrity_html = generate_comprehensive_integrity_html(r.message);
+                integrity_dialog.fields_dict.integrity_status.$wrapper.html(integrity_html);
+                
+                // Add action buttons based on results
+                add_comprehensive_action_buttons(integrity_dialog, r.message, listview);
+            }
+        },
+        error: function(r) {
+            integrity_dialog.fields_dict.integrity_status.$wrapper.html(
+                `<div class="alert alert-danger">
+                    <h5>Analysis Failed</h5>
+                    <p>Error: ${r.message || 'Unknown error occurred during comprehensive analysis'}</p>
+                </div>`
+            );
+        }
+    });
+}
+
+function generate_comprehensive_integrity_html(integrity_data) {
+    const status = integrity_data.overall_status;
+    const status_color = get_comprehensive_status_color(status);
+    
+    let html = `
+        <div class="comprehensive-integrity-results">
+            <!-- System Health Overview -->
+            <div class="card border-${status_color} mb-4">
+                <div class="card-header bg-${status_color} text-white">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="mb-0">
+                                <i class="fa fa-shield-alt"></i>
+                                Complete System Integrity: <span class="badge badge-light text-${status_color}">${status}</span>
+                            </h4>
+                            <small>Analyzed ${integrity_data.total_records} staging records and their complete document creation paths</small>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <div class="integrity-score-display">
+                                <div class="score-circle bg-white text-${status_color}">
+                                    ${Math.round(((integrity_data.validation_summary.valid_records / integrity_data.total_records) * 100) || 0)}%
+                                </div>
+                                <small class="text-white">System Health</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="metric-card bg-primary">
+                                <div class="metric-number">${integrity_data.total_records}</div>
+                                <div class="metric-label">Total Records</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card bg-success">
+                                <div class="metric-number">${integrity_data.validation_summary.valid_records}</div>
+                                <div class="metric-label">Ready for Processing</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card bg-warning">
+                                <div class="metric-number">${integrity_data.validation_summary.warning_records}</div>
+                                <div class="metric-label">Have Warnings</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card bg-danger">
+                                <div class="metric-number">${integrity_data.validation_summary.invalid_records}</div>
+                                <div class="metric-label">Have Critical Errors</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Document Creation Impact Analysis -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fa fa-file-alt"></i> Document Creation Impact</h6>
+                        </div>
+                        <div class="card-body">
+                            ${generate_document_impact_html(integrity_data.document_integrity_analysis)}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0"><i class="fa fa-table"></i> Child Table Issues</h6>
+                        </div>
+                        <div class="card-body">
+                            ${generate_child_table_issues_html(integrity_data.child_table_issues)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Missing Masters Analysis -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fa fa-exclamation-triangle"></i> Missing Master Data Analysis</h6>
+                </div>
+                <div class="card-body">
+                    ${generate_missing_masters_analysis_html(integrity_data.missing_masters_analysis)}
+                </div>
+            </div>
+            
+            <!-- System Recommendations -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="fa fa-lightbulb"></i> System Recommendations</h6>
+                </div>
+                <div class="card-body">
+                    ${generate_system_recommendations_html(integrity_data.recommendations)}
+                </div>
+            </div>
+        </div>
+        
+        <style>
+            .comprehensive-integrity-results .metric-card {
+                padding: 20px;
+                border-radius: 10px;
+                color: white;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+            
+            .metric-number {
+                font-size: 2.5rem;
+                font-weight: bold;
+                line-height: 1;
+            }
+            
+            .metric-label {
+                font-size: 0.9rem;
+                margin-top: 8px;
+            }
+            
+            .score-circle {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin: 0 auto;
+            }
+            
+            .integrity-score-display {
+                text-align: center;
+            }
+            
+            .document-impact-chart {
+                margin: 10px 0;
+                padding: 8px;
+                border-left: 4px solid #007bff;
+                background: #f8f9fa;
+                border-radius: 4px;
+            }
+            
+            .missing-masters-item {
+                margin: 8px 0;
+                padding: 10px;
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                background: #f8f9fa;
+            }
+            
+            .priority-high { border-left: 4px solid #dc3545; }
+            .priority-medium { border-left: 4px solid #ffc107; }
+            .priority-low { border-left: 4px solid #28a745; }
+        </style>
+    `;
+    
+    return html;
+}
+
+function generate_document_impact_html(document_analysis) {
+    if (!document_analysis || Object.keys(document_analysis).length === 0) {
+        return '<div class="alert alert-success">✅ No document integrity issues detected</div>';
+    }
+    
+    let html = '<div class="document-impact-analysis">';
+    
+    Object.keys(document_analysis).forEach(doctype => {
+        const issue_count = document_analysis[doctype];
+        const severity = issue_count > 10 ? 'danger' : issue_count > 5 ? 'warning' : 'info';
+        
+        html += `
+            <div class="document-impact-chart">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong>${doctype}</strong>
+                    <span class="badge badge-${severity}">${issue_count} issues</span>
+                </div>
+                <div class="progress mt-2" style="height: 8px;">
+                    <div class="progress-bar bg-${severity}" style="width: ${Math.min(100, (issue_count / 20) * 100)}%"></div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    return html;
+}
+
+function generate_child_table_issues_html(child_table_issues) {
+    if (!child_table_issues || Object.keys(child_table_issues).length === 0) {
+        return '<div class="alert alert-success">✅ No child table issues detected</div>';
+    }
+    
+    let html = '<ul class="list-group">';
+    
+    Object.keys(child_table_issues).forEach(table_name => {
+        const issue_count = child_table_issues[table_name];
+        html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                ${table_name}
+                <span class="badge badge-warning badge-pill">${issue_count}</span>
+            </li>
+        `;
+    });
+    
+    html += '</ul>';
+    return html;
+}
+
+function generate_missing_masters_analysis_html(missing_masters) {
+    if (!missing_masters || Object.keys(missing_masters).length === 0) {
+        return '<div class="alert alert-success">✅ No missing master data detected</div>';
+    }
+    
+    let html = '<div class="missing-masters-analysis">';
+    
+    Object.keys(missing_masters).forEach(doctype => {
+        const items = missing_masters[doctype];
+        const total_items = Object.keys(items).length;
+        const total_references = Object.values(items).reduce((sum, count) => sum + count, 0);
+        
+        // Determine priority
+        let priority_class = 'priority-low';
+        let priority_text = 'Low';
+        if (total_references >= 50) {
+            priority_class = 'priority-high';
+            priority_text = 'High';
+        } else if (total_references >= 10) {
+            priority_class = 'priority-medium';
+            priority_text = 'Medium';
+        }
+        
+        html += `
+            <div class="missing-masters-item ${priority_class}">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h6 class="mb-1">${doctype}</h6>
+                        <small class="text-muted">${total_items} missing items</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <span class="badge badge-${priority_text === 'High' ? 'danger' : priority_text === 'Medium' ? 'warning' : 'success'}">
+                            ${priority_text} Priority
+                        </span>
+                    </div>
+                    <div class="col-md-3 text-right">
+                        <strong>${total_references} records affected</strong>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        Missing: ${Object.keys(items).slice(0, 3).join(', ')}${total_items > 3 ? ` and ${total_items - 3} more` : ''}
+                    </small>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    return html;
+}
+
+function generate_system_recommendations_html(recommendations) {
+    if (!recommendations || recommendations.length === 0) {
+        return '<div class="alert alert-info">No specific recommendations at this time.</div>';
+    }
+    
+    let html = '<ul class="recommendations-list">';
+    
+    recommendations.forEach(rec => {
+        let rec_class = 'list-group-item-info';
+        if (rec.includes('🔴') || rec.includes('CRITICAL')) rec_class = 'list-group-item-danger';
+        else if (rec.includes('⚠️') || rec.includes('WARNING')) rec_class = 'list-group-item-warning';
+        else if (rec.includes('✅')) rec_class = 'list-group-item-success';
+        
+        html += `<li class="list-group-item ${rec_class}">${rec}</li>`;
+    });
+    
+    html += '</ul>';
+    return html;
+}
+
+function show_document_creation_analysis(listview) {
+    const analysis_dialog = new frappe.ui.Dialog({
+        title: __('Document Creation Impact Analysis'),
+        size: 'large',
+        fields: [
+            {
+                fieldname: 'analysis_content',
+                fieldtype: 'HTML',
+                options: generate_loading_html('Analyzing document creation patterns...')
+            }
+        ]
+    });
+    
+    analysis_dialog.show();
+    
+    // Simulate comprehensive document analysis
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_stage_inspect.comprehensive_data_integrity_check',
+        callback: function(r) {
+            if (r.message) {
+                const analysis_html = generate_document_creation_analysis_html(r.message);
+                analysis_dialog.fields_dict.analysis_content.$wrapper.html(analysis_html);
+            }
+        }
+    });
+}
+
+function generate_document_creation_analysis_html(integrity_data) {
+    // Calculate estimated document creation impact
+    const total_records = integrity_data.total_records;
+    const valid_records = integrity_data.validation_summary.valid_records;
+    
+    // Estimate documents per record (based on typical creation pattern)
+    const estimated_docs_per_record = {
+        "Vendor Master": 1,
+        "Company Vendor Code": 1,
+        "Vendor Onboarding Company Details": 1,
+        "Vendor Bank Details": 0.8,  // Not all records have bank details
+        "Multiple Company Data (child)": 1,
+        "Vendor Code Child (child)": 1,
+        "Banker Details (child)": 0.8,
+        "International Bank Details (child)": 0.3
+    };
+    
+    let html = `
+        <div class="document-creation-analysis">
+            <div class="alert alert-info">
+                <h5><i class="fa fa-info-circle"></i> Document Creation Impact Analysis</h5>
+                <p>Based on ${total_records} staging records, here's the estimated document creation impact:</p>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h2 class="text-success">${valid_records}</h2>
+                            <p class="card-text">Records Ready for Processing</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h2 class="text-primary">${Object.values(estimated_docs_per_record).reduce((sum, factor) => sum + (valid_records * factor), 0).toFixed(0)}</h2>
+                            <p class="card-text">Estimated Total Documents</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h6>Document Creation Breakdown:</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Document Type</th>
+                            <th>Category</th>
+                            <th>Estimated Count</th>
+                            <th>Creation Factor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+    
+    Object.keys(estimated_docs_per_record).forEach(doctype => {
+        const factor = estimated_docs_per_record[doctype];
+        const estimated_count = Math.round(valid_records * factor);
+        const category = doctype.includes('child') ? 'Child Table' : 'Main Document';
+        
+        html += `
+            <tr>
+                <td><strong>${doctype}</strong></td>
+                <td><span class="badge badge-${category === 'Main Document' ? 'primary' : 'secondary'}">${category}</span></td>
+                <td>${estimated_count}</td>
+                <td>${(factor * 100).toFixed(0)}%</td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="alert alert-warning mt-3">
+                <h6><i class="fa fa-exclamation-triangle"></i> Important Notes:</h6>
+                <ul class="mb-0">
+                    <li>Document counts are estimates based on data completeness patterns</li>
+                    <li>Actual creation depends on data availability in each staging record</li>
+                    <li>Child table records are created within parent documents</li>
+                    <li>Failed validations will block entire document creation chains</li>
+                </ul>
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+function show_missing_masters_breakdown(listview) {
+    const masters_dialog = new frappe.ui.Dialog({
+        title: __('Missing Masters Breakdown & Action Plan'),
+        size: 'extra-large',
+        fields: [
+            {
+                fieldname: 'masters_content',
+                fieldtype: 'HTML',
+                options: generate_loading_html('Analyzing missing master data across all document types...')
+            }
+        ]
+    });
+    
+    masters_dialog.show();
+    
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_stage_inspect.get_missing_masters_breakdown',
+        callback: function(r) {
+            if (r.message) {
+                const masters_html = generate_missing_masters_breakdown_html(r.message);
+                masters_dialog.fields_dict.masters_content.$wrapper.html(masters_html);
+                
+                // Add action buttons for creating missing masters
+                add_missing_masters_action_buttons(masters_dialog, r.message);
+            }
+        }
+    });
+}
+
+function generate_missing_masters_breakdown_html(breakdown_data) {
+    let html = `
+        <div class="missing-masters-breakdown">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="summary-card bg-warning">
+                        <h3>${breakdown_data.summary.total_doctypes_affected}</h3>
+                        <p>DocTypes Affected</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="summary-card bg-danger">
+                        <h3>${breakdown_data.summary.total_missing_records}</h3>
+                        <p>Missing Master Records</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h5>Priority Action Plan</h5>
+            <div class="priority-actions mb-4">
+    `;
+    
+    if (breakdown_data.priority_actions && breakdown_data.priority_actions.length > 0) {
+        breakdown_data.priority_actions.forEach(action => {
+            const priority_color = action.priority === 'High' ? 'danger' : action.priority === 'Medium' ? 'warning' : 'success';
+            
+            html += `
+                <div class="card border-${priority_color} mb-3">
+                    <div class="card-header bg-${priority_color} text-white">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-0">${action.doctype}</h6>
+                                <small>${action.impact}</small>
+                            </div>
+                            <div class="col-md-4 text-right">
+                                <span class="badge badge-light">${action.priority} Priority</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Action:</strong> ${action.action}</p>
+                        <div class="missing-items-preview">
+                            <strong>Sample Missing Items:</strong>
+                            <ul class="mb-0">
+                                ${action.missing_items.map(item => `<li><code>${item}</code></li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        html += '<div class="alert alert-success">✅ No missing masters detected!</div>';
+    }
+    
+    html += `
+            </div>
+            
+            <h5>Detailed Breakdown</h5>
+            <div class="detailed-breakdown">
+    `;
+    
+    if (breakdown_data.detailed_breakdown) {
+        Object.keys(breakdown_data.detailed_breakdown).forEach(doctype => {
+            const details = breakdown_data.detailed_breakdown[doctype];
+            const priority_color = details.priority === 'High' ? 'danger' : details.priority === 'Medium' ? 'warning' : 'success';
+            
+            html += `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6 class="mb-0">${doctype}</h6>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <span class="badge badge-${priority_color}">${details.priority}</span>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <strong>${details.total_missing}</strong><br>
+                                <small>Missing Items</small>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <strong>${details.total_references}</strong><br>
+                                <small>References</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="missing-items-details">
+                            <h6>Missing Items:</h6>
+                            <div class="row">
+                                ${Object.keys(details.missing_items).map(item => `
+                                    <div class="col-md-6">
+                                        <span class="badge badge-secondary">${item}</span>
+                                        <small class="text-muted">(${details.missing_items[item]} refs)</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    html += `
+            </div>
+        </div>
+        
+        <style>
+            .summary-card {
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                color: white;
+                margin-bottom: 15px;
+            }
+            
+            .summary-card h3 {
+                font-size: 2.5rem;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            
+            .missing-items-preview ul,
+            .missing-items-details .row {
+                max-height: 200px;
+                overflow-y: auto;
+            }
+            
+            .missing-items-details .col-md-6 {
+                margin-bottom: 8px;
+            }
+        </style>
+    `;
+    
+    return html;
+}
+
+// Helper functions
+
+function show_error_dialog(title, error_message) {
+    const error_dialog = new frappe.ui.Dialog({
+        title: title,
+        fields: [
+            {
+                fieldname: 'error_content',
+                fieldtype: 'HTML',
+                options: `
+                    <div class="alert alert-danger">
+                        <h5><i class="fa fa-exclamation-triangle"></i> ${title}</h5>
+                        <p>${error_message}</p>
+                        <hr>
+                        <small class="text-muted">If this error persists, please contact your system administrator.</small>
+                    </div>
+                `
+            }
+        ]
+    });
+    error_dialog.show();
+}
+
+
+function get_comprehensive_status_color(status) {
+    const colors = {
+        'Excellent': 'success',
+        'Good': 'success',
+        'Healthy': 'success',
+        'Warning': 'warning',
+        'Critical': 'danger',
+        'Error': 'danger',
+        'Invalid': 'danger',
+        'Valid': 'success'
+    };
+    return colors[status] || 'secondary';
+}
+
+function generate_loading_html(message) {
+    return `
+        <div class="text-center p-4">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p class="text-muted">${message}</p>
+            <div class="progress mt-3" style="height: 8px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+            </div>
+        </div>
+    `;
+}
+function add_comprehensive_action_buttons(dialog, integrity_data, listview) {
+    // Add buttons based on integrity results
+    if (integrity_data.validation_summary.valid_records > 0) {
+        dialog.$wrapper.find('.modal-footer').prepend(`
+            <button class="btn btn-success btn-process-valid">
+                Process ${integrity_data.validation_summary.valid_records} Valid Records
+            </button>
+        `);
+        
+        dialog.$wrapper.find('.btn-process-valid').click(function() {
+            dialog.hide();
+            initiate_bulk_processing_from_integrity_check(integrity_data, listview);
+        });
+    }
+    
+    if (Object.keys(integrity_data.missing_masters_analysis || {}).length > 0) {
+        dialog.$wrapper.find('.modal-footer').prepend(`
+            <button class="btn btn-warning btn-create-masters">
+                Create Missing Masters
+            </button>
+        `);
+        
+        dialog.$wrapper.find('.btn-create-masters').click(function() {
+            dialog.hide();
+            show_missing_masters_breakdown(listview);
+        });
+    }
 }
