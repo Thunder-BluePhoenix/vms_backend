@@ -1,0 +1,215 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-09-25 12:00:44.219976",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "material_code",
+  "material_code_name",
+  "column_break_hrhh",
+  "material_type",
+  "material_group",
+  "inactive",
+  "description_section",
+  "material_description",
+  "column_break_xbnp",
+  "base_uom",
+  "material_image",
+  "section_break_zlbb",
+  "company",
+  "plant",
+  "mrp_type",
+  "valuation_class",
+  "price_control",
+  "column_break_lqwd",
+  "valuation_type",
+  "purchase_group",
+  "price_unit",
+  "currency",
+  "profit_center",
+  "more_information_section",
+  "created_by",
+  "column_break_dcfi",
+  "default_material_manufacturer"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "plant",
+   "fieldtype": "Link",
+   "label": "Plant",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "material_type",
+   "fieldtype": "Link",
+   "label": "Material Type",
+   "options": "Material Type Master"
+  },
+  {
+   "fieldname": "material_code_name",
+   "fieldtype": "Data",
+   "label": "Material Code Name"
+  },
+  {
+   "fieldname": "material_code",
+   "fieldtype": "Data",
+   "label": "Material Code"
+  },
+  {
+   "fieldname": "material_description",
+   "fieldtype": "Small Text",
+   "label": "Material Description"
+  },
+  {
+   "fieldname": "base_uom",
+   "fieldtype": "Link",
+   "label": "Base UOM",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "material_group",
+   "fieldtype": "Link",
+   "label": "Material Group",
+   "options": "Material Group Master"
+  },
+  {
+   "fieldname": "mrp_type",
+   "fieldtype": "Link",
+   "label": "MRP Type",
+   "options": "MRP Type Master"
+  },
+  {
+   "fieldname": "column_break_lqwd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valuation_class",
+   "fieldtype": "Link",
+   "label": "Valuation Class",
+   "options": "Valuation Class"
+  },
+  {
+   "fieldname": "price_control",
+   "fieldtype": "Link",
+   "label": "Price Control",
+   "options": "Price Control Master"
+  },
+  {
+   "fieldname": "created_by",
+   "fieldtype": "Data",
+   "label": "Created by"
+  },
+  {
+   "fieldname": "valuation_type",
+   "fieldtype": "Data",
+   "label": "Valuation Type"
+  },
+  {
+   "fieldname": "purchase_group",
+   "fieldtype": "Link",
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "price_unit",
+   "fieldtype": "Data",
+   "label": "Price Unit"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "profit_center",
+   "fieldtype": "Link",
+   "label": "Profit Center",
+   "options": "Profit Center"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "MAT-ITEM-.YYYY.-"
+  },
+  {
+   "fieldname": "material_image",
+   "fieldtype": "Attach",
+   "label": "Material Image"
+  },
+  {
+   "fieldname": "column_break_hrhh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "inactive",
+   "fieldtype": "Check",
+   "label": "Inactive"
+  },
+  {
+   "fieldname": "section_break_zlbb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description_section",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_xbnp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "more_information_section",
+   "fieldtype": "Section Break",
+   "label": "More Information"
+  },
+  {
+   "fieldname": "column_break_dcfi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "default_material_manufacturer",
+   "fieldtype": "Data",
+   "label": "Default Material Manufacturer"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-25 15:34:46.078105",
+ "modified_by": "Administrator",
+ "module": "Material",
+ "name": "Material Code",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

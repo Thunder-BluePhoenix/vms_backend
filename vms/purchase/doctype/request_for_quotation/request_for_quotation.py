@@ -233,11 +233,18 @@ def send_quotation_email(doc):
             )
             link = f"{site_url}/quatation-form?token={token}"
 
+            if isinstance(doc.rfq_cutoff_date_logistic, str):
+                cutoff_dt = datetime.strptime(doc.rfq_cutoff_date_logistic, "%Y-%m-%d %H:%M:%S")
+            else:
+                cutoff_dt = doc.rfq_cutoff_date_logistic
+
+            cutoff_date = cutoff_dt.strftime("%d %B %Y, %I:%M %p")
+
             subject = "Request for Quotation - Action Required"
             message = f"""
                 <p>Dear {row.vendor_name}</p>
                 <p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
-                <p>Please log in to the portal and create your quotation using the secure link below. This link will expire on <strong>{doc.rfq_cutoff_date_logistic}</strong>.</p>
+                <p>Please log in to the portal and create your quotation using the secure link below. This link will expire on <strong>{cutoff_date}</strong>.</p>
                 <a href="{link}" target="_blank">Click here to fill quotation</a>
                 <p>Thank you,<br>VMS Team</p>
             """
@@ -277,7 +284,7 @@ def send_quotation_email(doc):
                 <p>Kindly get in touch with our Procurement Team to complete the onboarding process before submitting your quotation.</p>
 
                 <p><a href="{link}" target="_blank">Click here to submit your quotation</a></p>
-                <p> Please Note - This link will expire on <strong>{doc.rfq_cutoff_date_logistic}</strong></p>
+                <p> Please Note - This link will expire on <strong>{cutoff_date}</strong></p>
 
                 <p>Thank you.<br>
                 Best regards,<br>

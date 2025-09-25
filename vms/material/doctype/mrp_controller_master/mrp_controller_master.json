@@ -1,16 +1,20 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{valuation_class_code} - {company}",
- "creation": "2025-07-04 12:17:32.595572",
+ "creation": "2025-09-25 11:55:03.266054",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "mrp_controller",
   "company",
-  "valuation_class_code",
-  "valuation_class_name"
+  "description"
  ],
  "fields": [
+  {
+   "fieldname": "mrp_controller",
+   "fieldtype": "Data",
+   "label": "MRP Controller"
+  },
   {
    "fieldname": "company",
    "fieldtype": "Link",
@@ -18,24 +22,18 @@
    "options": "Company Master"
   },
   {
-   "fieldname": "valuation_class_code",
-   "fieldtype": "Data",
-   "label": "Valuation Class Code"
-  },
-  {
-   "fieldname": "valuation_class_name",
-   "fieldtype": "Data",
-   "label": "Valuation Class Name"
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:36:56.053076",
+ "modified": "2025-09-25 11:56:00.210419",
  "modified_by": "Administrator",
  "module": "Material",
- "name": "Valuation Class Master",
- "naming_rule": "Expression",
+ "name": "MRP Controller Master",
  "owner": "Administrator",
  "permissions": [
   {
@@ -52,10 +50,7 @@
   }
  ],
  "row_format": "Dynamic",
- "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
- "title_field": "valuation_class_code",
- "track_changes": 1
+ "states": []
 }

@@ -8,7 +8,8 @@
  "field_order": [
   "valuation_class",
   "division",
-  "profit_center"
+  "profit_center",
+  "company"
  ],
  "fields": [
   {
@@ -16,7 +17,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Valuation Class",
-   "options": "Valuation Class Master"
+   "options": "Valuation Class"
   },
   {
    "fieldname": "division",
@@ -31,13 +32,19 @@
    "in_list_view": 1,
    "label": "Profit Center",
    "options": "Profit Center"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:36:54.734349",
+ "modified": "2025-09-25 15:34:46.269101",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Valuation and Profit",

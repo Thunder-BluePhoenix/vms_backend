@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestValuationClassMaster(FrappeTestCase):
+class TestDistributionChannel(FrappeTestCase):
 	pass

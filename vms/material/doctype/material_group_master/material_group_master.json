@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:material_group_name",
+ "creation": "2025-06-13 12:40:29.901463",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "material_group_details_section",
+  "material_group_name",
+  "material_group_long_description",
+  "column_break_nkjc",
+  "material_group_description",
+  "material_group_company"
+ ],
+ "fields": [
+  {
+   "fieldname": "material_group_details_section",
+   "fieldtype": "Section Break",
+   "label": "Material Group Details"
+  },
+  {
+   "fieldname": "material_group_name",
+   "fieldtype": "Data",
+   "label": "Material Group Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "material_group_long_description",
+   "fieldtype": "Data",
+   "label": "Material Group Long Description"
+  },
+  {
+   "fieldname": "column_break_nkjc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "material_group_description",
+   "fieldtype": "Data",
+   "label": "Material Group Description"
+  },
+  {
+   "fieldname": "material_group_company",
+   "fieldtype": "Link",
+   "label": "Material Group Company",
+   "options": "Company Master"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-25 10:42:39.808623",
+ "modified_by": "Administrator",
+ "module": "Material",
+ "name": "Material Group Master",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
