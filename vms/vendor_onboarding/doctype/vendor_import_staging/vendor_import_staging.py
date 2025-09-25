@@ -862,7 +862,7 @@ def create_company_details_from_staging(vendor_ref_no, mapped_row):
         
         # Map staging fields to company details fields
         if mapped_row.get('vendor_name'):
-            details_doc.company_name = mapped_row.get('c_code')
+            details_doc.company_name = mapped_row.get('company_name')
             details_doc.vendor_name = mapped_row.get('vendor_name')
         
         if mapped_row.get('gst'):
