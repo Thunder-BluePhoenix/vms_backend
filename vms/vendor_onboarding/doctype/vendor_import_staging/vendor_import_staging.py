@@ -83,18 +83,14 @@ class VendorImportStaging(Document):
                     errors.append(f"Invalid email format in {field_name}: {email_value}")
             
             # Phone number validation
-            if self.contact_no:
-                contact = str(self.contact_no).strip()
-                if not contact.replace('+', '').replace('-', '').replace(' ', '').replace('(', '').replace(')', '').isdigit():
-                    warnings.append(f"Contact number may have invalid format: {contact}")
-                elif len(contact.replace('+', '').replace('-', '').replace(' ', '').replace('(', '').replace(')', '')) < 10:
-                    warnings.append("Contact number seems too short")
+            # if self.contact_no:
+            #     contact = str(self.contact_no).strip()
+            #     if not contact.replace('+', '').replace('-', '').replace(' ', '').replace('(', '').replace(')', '').isdigit():
+            #         warnings.append(f"Contact number may have invalid format: {contact}")
+            #     elif len(contact.replace('+', '').replace('-', '').replace(' ', '').replace('(', '').replace(')', '')) < 10:
+            #         warnings.append("Contact number seems too short")
             
-            # Pincode validation
-            if self.pincode:
-                pincode = str(self.pincode).strip()
-                if not pincode.isdigit() or len(pincode) != 6:
-                    warnings.append("Pincode should be 6 digits")
+            
             
             # === LINK FIELD VALIDATIONS ===
             
@@ -103,24 +99,41 @@ class VendorImportStaging(Document):
                 company_exists = frappe.db.exists("Company Master", {"company_code": str(self.c_code).strip()})
                 if not company_exists:
                     errors.append(f"Company Master not found for code: {self.c_code}")
+
+
+            if self.country == "India":
             
-            # State Master validation
-            if self.state:
-                state_exists = frappe.db.exists("State Master", str(self.state).strip())
-                if not state_exists:
-                    warnings.append(f"State Master not found: {self.state}")
-            
-            # Country validation
-            if self.country:
-                country_exists = frappe.db.exists("Country Master", str(self.country).strip())
-                if not country_exists:
-                    warnings.append(f"Country Master not found: {self.country}")
+                # State Master validation
+                if self.city:
+                    city_exists = frappe.db.exists("City Master", str(self.city).strip())
+                    if not city_exists:
+                        warnings.append(f"City Master not found: {self.city}")
+
+                # State Master validation
+                if self.state:
+                    state_exists = frappe.db.exists("State Master", str(self.state).strip())
+                    if not state_exists:
+                        warnings.append(f"State Master not found: {self.state}")
+                
+                # Country validation
+                if self.country:
+                    country_exists = frappe.db.exists("Country Master", str(self.country).strip())
+                    if not country_exists:
+                        warnings.append(f"Country Master not found: {self.country}")
+
+                # Pincode validation
+                if self.pincode:
+                    pincode = str(self.pincode).strip()
+                    if not pincode.isdigit() or len(pincode) != 6:
+                        warnings.append("Pincode should be 6 digits")
             
             # Bank Master validation
             if self.bank_name:
                 bank_exists = frappe.db.exists("Bank Master", str(self.bank_name).strip())
                 if not bank_exists:
                     warnings.append(f"Bank Master not found: {self.bank_name}")
+            
+            
             
             # Currency validation
             currency_fields = [
