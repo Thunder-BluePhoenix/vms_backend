@@ -30,7 +30,7 @@ frappe.listview_settings['Vendor Import Staging'] = {
             // Filter processable records
             const processable_records = selected_docs.filter(doc => 
                 doc.import_status === "Pending" && 
-                doc.validation_status !== "Invalid"
+                doc.validation_status === "Valid"
             );
 
             if (!processable_records.length) {
@@ -131,7 +131,7 @@ frappe.listview_settings['Vendor Import Staging'] = {
 
 
 
-        add_comprehensive_integrity_buttons(listview);
+        // add_comprehensive_integrity_buttons(listview);
         
         // Add document creation analysis
         // add_document_analysis_buttons(listview);

@@ -227,14 +227,42 @@ class VendorImportStaging(Document):
             
             # Duplicate vendor code check
             if self.vendor_code and self.c_code:
-                # Check for existing vendor masters with same vendor code
-                existing_vendor = frappe.db.exists("Vendor Master", {
-                    "name": ["!=", self.name] if hasattr(self, 'name') else []
-                })
+                # Check for existing vendor codes in Vendor Code child table only
+                existing_query = """
+                SELECT 
+                    vc.parent as company_vendor_code_id,
+                    vc.vendor_code,
+                    cvc.company_name,
+                    cvc.vendor_ref_no
+                FROM `tabVendor Code` vc
+                INNER JOIN `tabCompany Vendor Code` cvc ON cvc.name = vc.parent
+                WHERE vc.vendor_code = %(vendor_code)s 
+                LIMIT 1
+                """
                 
-                if existing_vendor:
-                    # More detailed duplicate check can be added here
-                    warnings.append(f"Similar vendor code might exist: {self.vendor_code}")
+                existing = frappe.db.sql(
+                    existing_query,
+                    {
+                        'vendor_code': self.vendor_code
+                    },
+                    as_dict=True
+                )
+                
+                if existing:
+                    warnings.append(f"Vendor code: {self.vendor_code} exist for Company {existing[0].company_name} for Vendor ({existing[0].vendor_ref_no})")
+                    # frappe.throw(
+                    #     f"Vendor Code '{self.vendor_code}' "
+                    #     f"already exists in Company '{existing[0].company_name}' "
+                    #     f"for Vendor ({existing[0].vendor_ref_no})",
+                    #     title="Duplicate Vendor Code"
+                    # )
+                # existing_vendor = frappe.db.exists("Vendor Master", {
+                #     "name": ["!=", self.name] if hasattr(self, 'name') else []
+                # })
+                
+                # if existing_vendor:
+                #     # More detailed duplicate check can be added here
+                #     warnings.append(f"Similar vendor code might exist: {self.vendor_code}")
             
             # === SET VALIDATION STATUS ===
             
