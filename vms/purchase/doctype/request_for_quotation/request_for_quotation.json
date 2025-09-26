@@ -299,6 +299,7 @@
   {
    "fieldname": "materialitem_details_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Material Details"
   },
   {
@@ -371,6 +372,7 @@
   {
    "fieldname": "payment_terms_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Payment Terms"
   },
   {
@@ -392,6 +394,7 @@
   {
    "fieldname": "services_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Services"
   },
   {
@@ -660,7 +663,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-29 15:16:38.118103",
+ "modified": "2025-09-26 10:49:57.412866",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
