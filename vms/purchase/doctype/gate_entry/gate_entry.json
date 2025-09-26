@@ -33,10 +33,6 @@
   "transport",
   "airway_bill",
   "column_break_vzsc",
-  "vehicle_type",
-  "vehicle_no",
-  "driver_name",
-  "driver_mobile_no",
   "section_break_npxo",
   "gate_entry_details",
   "vehicle_details_section",
@@ -68,8 +64,9 @@
   },
   {
    "fieldname": "inward_location",
-   "fieldtype": "Data",
-   "label": "Inward Location"
+   "fieldtype": "Link",
+   "label": "Inward Location",
+   "options": "Inward Location"
   },
   {
    "fieldname": "scan_barcode",
@@ -192,26 +189,6 @@
    "label": "LR/Airway Bill"
   },
   {
-   "fieldname": "vehicle_type",
-   "fieldtype": "Data",
-   "label": "Vehicle Type"
-  },
-  {
-   "fieldname": "vehicle_no",
-   "fieldtype": "Data",
-   "label": "Vehicle No"
-  },
-  {
-   "fieldname": "driver_name",
-   "fieldtype": "Data",
-   "label": "Driver Name"
-  },
-  {
-   "fieldname": "driver_mobile_no",
-   "fieldtype": "Data",
-   "label": "Driver Mobile No"
-  },
-  {
    "fieldname": "section_break_vlid",
    "fieldtype": "Section Break"
   },
@@ -287,7 +264,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 12:19:35.419908",
+ "modified": "2025-09-25 16:41:41.494084",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Gate Entry",

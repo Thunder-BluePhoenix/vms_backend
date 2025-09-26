@@ -1,0 +1,397 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-24 10:17:52.813777",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "requestor_detail_section",
+  "requestor_name",
+  "reporting_head_name",
+  "request_type",
+  "material",
+  "party",
+  "tentative_closer_date",
+  "column_break_ikqj",
+  "email_id",
+  "reporting_head_email_id",
+  "division",
+  "material_description",
+  "quantity",
+  "reporting_head_approval_section",
+  "approval_status",
+  "column_break_mrnd",
+  "remark",
+  "logistic_details_section",
+  "logistic_approval_status",
+  "invoice_no",
+  "amount_in_fc",
+  "port_of_loading",
+  "currency",
+  "amount_in_inr",
+  "column_break_tfac",
+  "logistic_remark",
+  "invoice_date",
+  "port_of_discharge",
+  "port_code",
+  "exrate",
+  "accounts_details_section",
+  "accountsapproval_status",
+  "bank",
+  "column_break_aabs",
+  "accounts_remark",
+  "gr_waiver_no",
+  "dispatch_form_section",
+  "sb_no",
+  "awb_no",
+  "shipping_amount_in_fc",
+  "shipping_exrate",
+  "column_break_lszc",
+  "sb_date",
+  "awb_date",
+  "dispatch_currency",
+  "shipping_amount_in_inr",
+  "account_approval_section",
+  "account_approval_status",
+  "column_break_ddzs",
+  "account_approval_remark",
+  "closure_form_section",
+  "boe_no",
+  "column_break_qbkg",
+  "boe_date",
+  "account_closer_detail_section",
+  "account_closer_approval_status",
+  "status",
+  "column_break_bnbf",
+  "account_closer_remark"
+ ],
+ "fields": [
+  {
+   "fieldname": "requestor_detail_section",
+   "fieldtype": "Section Break",
+   "label": "Requestor Detail "
+  },
+  {
+   "fieldname": "requestor_name",
+   "fieldtype": "Data",
+   "label": "Requestor Name"
+  },
+  {
+   "fieldname": "reporting_head_name",
+   "fieldtype": "Data",
+   "label": "Reporting Head Name"
+  },
+  {
+   "fieldname": "column_break_ikqj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "label": "Email Id"
+  },
+  {
+   "fieldname": "reporting_head_email_id",
+   "fieldtype": "Data",
+   "label": "Reporting Head Email Id"
+  },
+  {
+   "fieldname": "request_type",
+   "fieldtype": "Select",
+   "label": "Request Type",
+   "options": "\nTesting & Returnable\nTesting & Non-Returnable\nRepair/Coating & Returnable\nExport Promotion\nDemo/Exhibition & Return\nMaterial Return"
+  },
+  {
+   "fieldname": "division",
+   "fieldtype": "Link",
+   "label": "Division",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "material",
+   "fieldtype": "Data",
+   "label": "Material"
+  },
+  {
+   "fieldname": "material_description",
+   "fieldtype": "Data",
+   "label": "Material Description"
+  },
+  {
+   "fieldname": "party",
+   "fieldtype": "Data",
+   "label": "Party"
+  },
+  {
+   "fieldname": "tentative_closer_date",
+   "fieldtype": "Date",
+   "label": "Tentative Closer Date"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Int",
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "reporting_head_approval_section",
+   "fieldtype": "Section Break",
+   "label": "Reporting Head Approval"
+  },
+  {
+   "fieldname": "approval_status",
+   "fieldtype": "Select",
+   "label": "Approval Status",
+   "options": "\nApproved\nRejected\nPending"
+  },
+  {
+   "fieldname": "column_break_mrnd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "Remark"
+  },
+  {
+   "fieldname": "logistic_details_section",
+   "fieldtype": "Section Break",
+   "label": "Logistic Details"
+  },
+  {
+   "fieldname": "logistic_approval_status",
+   "fieldtype": "Select",
+   "label": "Approval Status",
+   "options": "\nApproved\nRejected\nPending"
+  },
+  {
+   "fieldname": "invoice_no",
+   "fieldtype": "Data",
+   "label": "Invoice No"
+  },
+  {
+   "fieldname": "amount_in_fc",
+   "fieldtype": "Data",
+   "label": "Amount In FC"
+  },
+  {
+   "fieldname": "port_of_loading",
+   "fieldtype": "Link",
+   "label": "Port Of Loading",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "amount_in_inr",
+   "fieldtype": "Date",
+   "label": "Amount In INR"
+  },
+  {
+   "fieldname": "column_break_tfac",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "logistic_remark",
+   "fieldtype": "Data",
+   "label": "Remark"
+  },
+  {
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Invoice Date"
+  },
+  {
+   "fieldname": "port_of_discharge",
+   "fieldtype": "Link",
+   "label": "Port Of Discharge",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "port_code",
+   "fieldtype": "Link",
+   "label": "Port Code",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "exrate",
+   "fieldtype": "Data",
+   "label": "EX.Rate"
+  },
+  {
+   "fieldname": "accounts_details_section",
+   "fieldtype": "Section Break",
+   "label": "Accounts Details"
+  },
+  {
+   "fieldname": "accountsapproval_status",
+   "fieldtype": "Select",
+   "label": "Approval Status",
+   "options": "\nApproved\nRejected\nPending"
+  },
+  {
+   "fieldname": "column_break_aabs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "accounts_remark",
+   "fieldtype": "Data",
+   "label": "Accounts Remark"
+  },
+  {
+   "fieldname": "bank",
+   "fieldtype": "Link",
+   "label": "Bank",
+   "options": "Bank Master"
+  },
+  {
+   "fieldname": "gr_waiver_no",
+   "fieldtype": "Data",
+   "label": "GR Waiver No"
+  },
+  {
+   "fieldname": "dispatch_form_section",
+   "fieldtype": "Section Break",
+   "label": "Dispatch Form"
+  },
+  {
+   "fieldname": "sb_no",
+   "fieldtype": "Data",
+   "label": "SB No"
+  },
+  {
+   "fieldname": "column_break_lszc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sb_date",
+   "fieldtype": "Data",
+   "label": "SB Date"
+  },
+  {
+   "fieldname": "awb_no",
+   "fieldtype": "Data",
+   "label": "AWB No"
+  },
+  {
+   "fieldname": "shipping_amount_in_fc",
+   "fieldtype": "Data",
+   "label": "Shipping Amount In FC"
+  },
+  {
+   "fieldname": "shipping_exrate",
+   "fieldtype": "Data",
+   "label": "Shipping EX.Rate"
+  },
+  {
+   "fieldname": "awb_date",
+   "fieldtype": "Data",
+   "label": "AWB Date"
+  },
+  {
+   "fieldname": "dispatch_currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "shipping_amount_in_inr",
+   "fieldtype": "Data",
+   "label": "Shipping Amount In INR"
+  },
+  {
+   "fieldname": "account_approval_section",
+   "fieldtype": "Section Break",
+   "label": "Account Approval"
+  },
+  {
+   "fieldname": "account_approval_status",
+   "fieldtype": "Select",
+   "label": "Approval Status",
+   "options": "\nApproved\nRejected\nPending"
+  },
+  {
+   "fieldname": "column_break_ddzs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "account_approval_remark",
+   "fieldtype": "Data",
+   "label": "Remark"
+  },
+  {
+   "fieldname": "closure_form_section",
+   "fieldtype": "Section Break",
+   "label": "Closure Form"
+  },
+  {
+   "fieldname": "boe_no",
+   "fieldtype": "Data",
+   "label": "BOE No"
+  },
+  {
+   "fieldname": "column_break_qbkg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "boe_date",
+   "fieldtype": "Date",
+   "label": "BOE Date"
+  },
+  {
+   "fieldname": "account_closer_detail_section",
+   "fieldtype": "Section Break",
+   "label": "Account Closer Detail"
+  },
+  {
+   "fieldname": "account_closer_approval_status",
+   "fieldtype": "Select",
+   "label": "Approval Status",
+   "options": "\nApproved\nRejected\nPending"
+  },
+  {
+   "fieldname": "column_break_bnbf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "account_closer_remark",
+   "fieldtype": "Data",
+   "label": "Remark"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nApproved\nRejected\nPending"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-24 12:56:06.493344",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "GR Waiver",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

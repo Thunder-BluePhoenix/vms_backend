@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-24 23:07:53.176963",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "vendor_company_details",
+  "column_break_qfpt",
+  "meril_company_name",
+  "section_break_czua",
+  "vendor_gst",
+  "vendor_pan",
+  "column_break_npek",
+  "vc_country",
+  "vc_city",
+  "vc_state",
+  "vc_pincode"
+ ],
+ "fields": [
+  {
+   "fieldname": "vendor_company_details",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vendor Company Details",
+   "options": "Vendor Onboarding Company Details"
+  },
+  {
+   "fieldname": "column_break_npek",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vc_country",
+   "fieldtype": "Data",
+   "label": "VC Country"
+  },
+  {
+   "fieldname": "vc_city",
+   "fieldtype": "Data",
+   "label": "VC City"
+  },
+  {
+   "fieldname": "vc_state",
+   "fieldtype": "Data",
+   "label": "VC State"
+  },
+  {
+   "fieldname": "vc_pincode",
+   "fieldtype": "Data",
+   "label": "VC Pincode"
+  },
+  {
+   "fieldname": "column_break_qfpt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "meril_company_name",
+   "fieldtype": "Link",
+   "label": "Meril Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "section_break_czua",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "vendor_gst",
+   "fieldtype": "Data",
+   "label": "Vendor GST (Imprted)"
+  },
+  {
+   "fieldname": "vendor_pan",
+   "fieldtype": "Data",
+   "label": "Vendor PAN (Imprted)"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-25 14:16:54.312904",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Imported Vendor Company",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

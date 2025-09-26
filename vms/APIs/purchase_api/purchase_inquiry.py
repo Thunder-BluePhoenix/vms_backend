@@ -873,29 +873,85 @@ def get_purchase_type():
 
 
 @frappe.whitelist(allow_guest=True)
-def submit_purchase_inquiry(purchase_inquiry_id):
+def submit_purchase_inquiry(data):
     try:
+        if isinstance(data, str):
+            data = json.loads(data)
+        
+        purchase_inquiry_id = data.get("purchase_inquiry_id") or data.get("name")
+        
         if not purchase_inquiry_id:
             return {
                 "status": "error",
-                "message": "'purchase_inquiry_id' is required."
+                "message": "'purchase_inquiry_id' or 'name' is required in the data."
             }
 
+        # Get the document
         doc = frappe.get_doc("Cart Details", purchase_inquiry_id)
+        
+        # Update top-level fields
+        top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type"]
+        
+        for field in top_fields:
+            if field in data:
+                doc.set(field, data[field])
+        
+        # Handle modification_info child table updates
+        for row in doc.modification_info:
+            if row.fields_to_modify and not row.modified1:
+                row.modified_datetime = frappe.utils.now_datetime()
+                row.modified1 = 1
+        doc.asked_to_modify = 0
+        
+        
+        if "cart_product" in data and isinstance(data["cart_product"], list):
+            for row in data["cart_product"]:
+                if not row:
+                    continue
+                
+                child_row = None
+                if "name" in row:
+                    child_row = next((r for r in doc.cart_product if r.name == row["name"]), None)
+                
+                if child_row:
+                    # Update existing child row
+                    for key in [
+                        "assest_code", "product_name", "product_price", "uom",
+                        "lead_time", "product_quantity", "user_specifications"
+                    ]:
+                        if key in row:
+                            child_row.set(key, row[key])
+                else:
+                    # Add new child row
+                    doc.append("cart_product", {
+                        "assest_code": row.get("assest_code"),
+                        "product_name": row.get("product_name"),
+                        "product_price": row.get("product_price"),
+                        "uom": row.get("uom"),
+                        "lead_time": row.get("lead_time"),
+                        "product_quantity": row.get("product_quantity"),
+                        "user_specifications": row.get("user_specifications")
+                    })
+        
+        # Save the document with updates first
+        doc.save(ignore_permissions=True)
+        
+        # Now submit the document
         doc.is_submited = 1
         doc.save(ignore_permissions=True)
         frappe.db.commit()
         
-        return {    
+        return {
             "status": "success",
-            "message": f"Cart Details '{purchase_inquiry_id}' submitted successfully."
+            "message": f"Cart Details '{purchase_inquiry_id}' updated and submitted successfully.",
+            "name": doc.name
         }
-
+        
     except Exception as e:
         frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(), "Submit Cart Details API Error")
         return {
             "status": "error",
-            "message": "Failed to submit Cart Details.",
+            "message": "Failed to update and submit Cart Details.",
             "error": str(e)
         }

@@ -9,7 +9,9 @@
   "company",
   "terms_of_payment_code",
   "terms_of_payment_name",
-  "description"
+  "description",
+  "section_break_dthm",
+  "inactive"
  ],
  "fields": [
   {
@@ -33,12 +35,22 @@
    "fieldname": "description",
    "fieldtype": "Long Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "section_break_dthm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "inactive",
+   "fieldtype": "Check",
+   "label": "Inactive"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:38.947325",
+ "modified": "2025-09-20 14:05:59.801745",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Terms of Payment Master",

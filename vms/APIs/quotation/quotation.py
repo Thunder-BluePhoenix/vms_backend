@@ -761,24 +761,29 @@ def update_final_negotiated_rate(data):
         frappe.db.commit()
 
         prev_values = [
-            quotation.mode_of_shipment or "",
-            quotation.vendor_name or "",
             quotation.total_freight or "",
-            quotation.exchange_rate or "",
-            quotation.total_freightinr or "",
-            quotation.remarks or "",
-            quotation.destination_charge or "",
-            quotation.remarks or "",
             quotation.ratekg or "",
-            quotation.fuel_surcharge or "",
-            quotation.pickuporigin or "",
-            quotation.airlinevessel_name or "",
-            quotation.transit_days or "",
             quotation.chargeable_weight or "",
+            quotation.total_freight or "",
+            quotation.fuel_surcharge or "",
             quotation.sc or "",
             quotation.xray or "",
+            quotation.pickuporigin or "",
+            quotation.xray or "",
+            quotation.total_freightinr or "",
             quotation.total_landing_price or "",
+            quotation.remarks or "",
+            quotation.airlinevessel_name or "",
+            quotation.destination_charge or "",
+            quotation.transit_days or "",
             quotation.total_freight or "",
+            quotation.remarks or "",
+            quotation.total_landing_price or "",
+            quotation.cfs_charge or "",
+
+            quotation.mode_of_shipment or "",
+            quotation.vendor_name or "",
+            quotation.exchange_rate or ""
         ]
 
         final_negotiated_values = [
@@ -802,6 +807,7 @@ def update_final_negotiated_rate(data):
             quotation.final_freight_total,
             quotation.final_remarks,
             quotation.final_tat,
+            quotation.final_cfs_charge
         ]
 
         table_html = """
@@ -817,7 +823,7 @@ def update_final_negotiated_rate(data):
         field_labels = [
             "FFN", "Rate/KG", "Chargeable Weight", "Freight FCR", "FSC", "SC", "XCR",
             "Pickup", "X-Ray", "Sum Freight INR", "GST Amount", "Total", "Others",
-            "Airline", "Landing Price", "DC", "Transit Days", "Freight Total", "Remarks", "TAT"
+            "Airline", "Landing Price", "DC", "Transit Days", "Freight Total", "Remarks", "TAT", "CFS Charge"
         ]
 
         for label, prev, updated in zip(field_labels, prev_values, final_negotiated_values):

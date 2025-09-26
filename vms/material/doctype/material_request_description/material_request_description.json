@@ -1,0 +1,184 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-25 11:14:12.337254",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company_name",
+  "material_type",
+  "column_break_ccey",
+  "material_category",
+  "required_by",
+  "section_break_qgad",
+  "material_name_description",
+  "material_group",
+  "column_break_fsju",
+  "material_specifications",
+  "material_image",
+  "measurement_section",
+  "quantity",
+  "unit_of_measure",
+  "column_break_ljul",
+  "rate",
+  "amount",
+  "manufacturer_section",
+  "manufacturer",
+  "more_information_section",
+  "plant",
+  "material_code_revised",
+  "is_revised_code_new",
+  "column_break_icjv",
+  "comment_by_user"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "material_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Material Type",
+   "options": "Material Type Master"
+  },
+  {
+   "fieldname": "column_break_ccey",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "material_category",
+   "fieldtype": "Link",
+   "label": "Material Category",
+   "options": "Material Category Master"
+  },
+  {
+   "fieldname": "required_by",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Required By"
+  },
+  {
+   "fieldname": "section_break_qgad",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "material_name_description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Material Name Description"
+  },
+  {
+   "fieldname": "material_group",
+   "fieldtype": "Link",
+   "label": "Material Group",
+   "options": "Material Group Master"
+  },
+  {
+   "fieldname": "column_break_fsju",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "material_specifications",
+   "fieldtype": "Small Text",
+   "label": "Material Specifications"
+  },
+  {
+   "fieldname": "material_image",
+   "fieldtype": "Attach",
+   "label": "Material Image"
+  },
+  {
+   "fieldname": "measurement_section",
+   "fieldtype": "Section Break",
+   "label": "Measurement"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "unit_of_measure",
+   "fieldtype": "Link",
+   "label": "Unit of Measure",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "column_break_ljul",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Data",
+   "label": "Rate"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Data",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "manufacturer_section",
+   "fieldtype": "Section Break",
+   "label": "Manufacturer"
+  },
+  {
+   "fieldname": "manufacturer",
+   "fieldtype": "Data",
+   "label": "Manufacturer"
+  },
+  {
+   "fieldname": "more_information_section",
+   "fieldtype": "Section Break",
+   "label": "More Information"
+  },
+  {
+   "fieldname": "plant",
+   "fieldtype": "Link",
+   "label": "Plant",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "material_code_revised",
+   "fieldtype": "Data",
+   "label": "Material Code Revised"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_revised_code_new",
+   "fieldtype": "Check",
+   "label": "Is Revised Code New"
+  },
+  {
+   "fieldname": "column_break_icjv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "comment_by_user",
+   "fieldtype": "Small Text",
+   "label": "Comment By User"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-26 16:45:07.404312",
+ "modified_by": "Administrator",
+ "module": "Material",
+ "name": "Material Request Description",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

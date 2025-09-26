@@ -176,17 +176,17 @@ class VendorOnboarding(Document):
         """
         try:
             # Set up expiration handling
-            self.setup_expiration_handling()
-            
+            # self.setup_expiration_handling()
+            send_asa_form_link_job(self.name)
             # Send ASA form link in background
-            frappe.enqueue(
-                method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.send_asa_form_link_job",
-                queue='default',
-                timeout=300,
-                now=False,
-                job_name=f'send_asa_form_link_{self.name}',
-                doc_name=self.name
-            )
+            # frappe.enqueue(
+            #     method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.send_asa_form_link_job",
+            #     queue='default',
+            #     timeout=300,
+            #     now=False,
+            #     job_name=f'send_asa_form_link_{self.name}',
+            #     doc_name=self.name
+            # )
             
         except Exception as e:
             frappe.log_error(f"After insert error in VendorOnboarding {self.name}: {str(e)}")
@@ -287,7 +287,7 @@ class VendorOnboarding(Document):
         try:
             # Enqueue all heavy tasks
             frappe.enqueue(
-                method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.run_post_update_tasks",
+                method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.run_post_update_tasks_smart_granular",
                 queue='default',
                 timeout=600,
                 now=False,
@@ -366,6 +366,89 @@ def run_post_update_tasks(doc_name, user=None, is_new=False):
     except Exception as e:
         frappe.log_error(f"Error in post-update tasks for {doc_name}: {str(e)}")
         frappe.logger().error(f"Post-update tasks failed for {doc_name}: {str(e)}")
+
+
+
+
+def run_post_update_tasks_smart_granular(doc_name, user=None, is_new=False):
+    """
+    Smart sleep durations based on conflict risk and operation type
+    """
+    
+    # Define sleep durations based on operation risk
+    SLEEP_DURATIONS = {
+        'validation': 0.3,           # Low risk - just reading/validating
+        'company_update': 2.5,       # HIGH RISK - modifies related Vendor Master
+        'tracking_update': 1.2,      # Medium risk - updates child tables
+        'email_notifications': 0.5,  # Low risk - external operations
+        'sync_maintain': 1.8,        # High risk - syncs multiple records
+        'sap_update': 1.5,          # Medium risk - external API + doc update
+        'submission_handling': 1.0,  # Medium risk - document state changes
+        'doc_change_emails': 0.3    # Low risk - external operations
+    }
+    
+    try:
+        if user:
+            frappe.set_user(user)
+            
+        doc = frappe.get_doc("Vendor Onboarding", doc_name)
+        doc._skip_on_update = True
+        
+        task_results = {}
+        
+        # 1. Validate mandatory fields
+        # print(f"Starting validation after {SLEEP_DURATIONS['validation']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['validation'])
+        task_results['validation'] = run_field_validation(doc)
+        
+        # 2. Update company data (HIGHEST CONFLICT RISK)
+        # print(f"Starting company_update after {SLEEP_DURATIONS['company_update']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['company_update'])
+        task_results['company_update'] = run_company_update(doc)
+        
+        # 3. Update tracking tables
+        # print(f"Starting tracking_update after {SLEEP_DURATIONS['tracking_update']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['tracking_update']) 
+        task_results['tracking_update'] = run_tracking_update(doc)
+        
+        # 4. Send emails if needed
+        # print(f"Starting email_notifications after {SLEEP_DURATIONS['email_notifications']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['email_notifications'])
+        task_results['email_notifications'] = run_email_notifications(doc)
+        
+        # 5. Sync and maintain records
+        # print(f"Starting sync_maintain after {SLEEP_DURATIONS['sync_maintain']}s sleep...")
+        # time.sleep(SLEEP_DURATIONS['sync_maintain'])
+        # task_results['sync_maintain'] = run_sync_maintain(doc)
+        
+        # 6. SAP integration
+        if should_trigger_sap_update(doc):
+            # print(f"Starting sap_update after {SLEEP_DURATIONS['sap_update']}s sleep...")
+            time.sleep(SLEEP_DURATIONS['sap_update'])
+            task_results['sap_update'] = run_sap_integration(doc)
+        
+        # 7. Document submission handling
+        if doc.onboarding_form_status == "Approved":
+            # print(f"Starting submission_handling after {SLEEP_DURATIONS['submission_handling']}s sleep...")
+            time.sleep(SLEEP_DURATIONS['submission_handling'])
+            task_results['submission_handling'] = run_submission_handling(doc)
+        
+        # 8. Send document change emails
+        # print(f"Starting doc_change_emails after {SLEEP_DURATIONS['doc_change_emails']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['doc_change_emails'])
+        task_results['doc_change_emails'] = run_doc_change_emails(doc)
+
+        time.sleep(SLEEP_DURATIONS['sync_maintain'])
+        task_results['sync_maintain'] = run_sync_maintain(doc)
+        
+        return task_results
+        
+    except Exception as e:
+        frappe.log_error(f"Error in post-update tasks for {doc_name}: {str(e)}")
+
+
+
+
 
 
 # Individual task functions that maintain all existing functionality
@@ -3415,3 +3498,134 @@ def test_status_update_logic(test_doc):
             
     except Exception as e:
         return {"success": False, "message": str(e)}
+
+
+
+
+
+@frappe.whitelist()
+def handle_expirations():
+    """Expire all overdue onboarding docs"""
+    exp_doc = frappe.get_single("Vendor Onboarding Settings")
+    exp_t_sec = float(exp_doc.vendor_onboarding_form_validity) if exp_doc else 604800
+    expiry_time = frappe.utils.add_to_date(frappe.utils.now_datetime(), seconds=-exp_t_sec)
+
+    onboarding_docs = frappe.get_all(
+        "Vendor Onboarding",
+        filters={
+            "form_fully_submitted_by_vendor": 0,
+            "expired": 0,
+            "creation": ["<", expiry_time]
+        },
+        fields=["name"]
+    )
+
+    for d in onboarding_docs:
+        try:
+            doc = frappe.get_doc("Vendor Onboarding", d.name)
+            doc.db_set('expired', 1, update_modified=False)
+            doc.db_set('onboarding_form_status', "Expired", update_modified=False)
+        except Exception as e:
+            frappe.log_error(f"Error expiring Vendor Onboarding {d.name}: {str(e)}")
+
+
+
+def check_and_resend_asa_forms():
+    """Cron job to check latest expired ASA forms per vendor and resend links"""
+    try:
+        settings = frappe.get_single("Assessment Form Settings")
+        asa_period = int(settings.asa_form_period or 0)  # in seconds
+        if not asa_period:
+            return
+
+        expiry_time = frappe.utils.add_to_date(frappe.utils.now_datetime(), seconds=-asa_period)
+
+        # Get distinct vendors who have ASA forms
+        vendor_list = frappe.get_all(
+            "Annual Supplier Assessment Questionnaire",
+            filters={"docstatus": ["<", 2]},  # exclude cancelled/deleted
+            distinct=True,
+            pluck="vendor_ref_no"
+        )
+
+        for vendor_ref_no in vendor_list:
+            # Get latest ASA doc for this vendor
+            latest_asa = frappe.db.sql("""
+                SELECT name, vendor_ref_no, creation
+                FROM `tabAnnual Supplier Assessment Questionnaire`
+                WHERE vendor_ref_no = %(vendor_ref_no)s AND docstatus < 2
+                ORDER BY creation DESC
+                LIMIT 1
+            """, {"vendor_ref_no": vendor_ref_no}, as_dict=True)
+
+            if latest_asa and latest_asa[0].creation < expiry_time:
+                try:
+                    # Expire the old ASA form
+                    frappe.db.set_value(
+                        "Annual Supplier Assessment Questionnaire",
+                        latest_asa[0].name,
+                        "status", "Expired"
+                    )
+
+                    # Send ASA link again
+                    send_asa_form_link_again(vendor_ref_no)
+
+                    # Create new ASA doc
+                    # create_new_asa_for_vendor(vendor_ref_no)
+
+                    frappe.logger().info(
+                        f"ASA form re-sent for vendor {vendor_ref_no}, old form {latest_asa[0].name} expired"
+                    )
+                except Exception as e:
+                    frappe.log_error(f"Failed ASA resend for {vendor_ref_no}: {str(e)}")
+
+    except Exception as e:
+        frappe.log_error(f"Error in check_and_resend_asa_forms: {str(e)}")
+
+
+
+
+def send_asa_form_link_again(vendor_ref_no):
+    try:
+        if not vendor_ref_no:
+            return
+
+        vendor_master = frappe.get_doc("Vendor Master", vendor_ref_no)
+
+        # Only send if ASA is required
+        if not vendor_master.asa_required:
+            return
+
+        http_server = frappe.conf.get("backend_http")
+        subject = "Fill ASA Form Link"
+        link = f"{http_server}/annual-supplier-assessment-questionnaire/new?vendor_ref_no={vendor_master.name}"
+
+        message = f"""
+            Hello {vendor_master.vendor_name},<br><br>
+            Kindly fill the ASA Form for your Vendor Onboarding.<br>
+            Click the link below:<br>
+            <a href="{link}">{link}</a><br><br>
+            Thank You.<br><br>
+            Regards,<br>
+            Team VMS
+        """
+
+        # Collect recipients safely
+        recipients = []
+        if vendor_master.office_email_primary:
+            recipients.append(vendor_master.office_email_primary)
+        if vendor_master.office_email_secondary:
+            recipients.append(vendor_master.office_email_secondary)
+
+        if recipients:
+            frappe.custom_sendmail(
+                recipients=recipients,
+                subject=subject,
+                message=message
+            )
+            frappe.logger().info(f"ASA form link sent to {vendor_master.name} ({', '.join(recipients)})")
+        else:
+            frappe.logger().warning(f"No recipient email found for vendor {vendor_master.name}")
+
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "Error in send_asa_form_link_again")

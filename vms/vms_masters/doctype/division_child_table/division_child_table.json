@@ -22,14 +22,14 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Valuation Class",
-   "options": "Valuation Class Master"
+   "options": "Valuation Class"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:38:35.473169",
+ "modified": "2025-09-25 15:34:44.980894",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Division Child Table",

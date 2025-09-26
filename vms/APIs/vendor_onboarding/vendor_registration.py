@@ -1271,20 +1271,24 @@ def send_registration_email_link(vendor_onboarding, refno):
 
             for entry in linked_docs:
                 doc = frappe.get_doc("Vendor Onboarding", entry["name"])
-                doc.sent_registration_email_link = 1
+                # doc.sent_registration_email_link = 1
+                doc.db_set('sent_registration_email_link', doc.name, update_modified=False)
 
                 if doc.qms_required == "Yes":
-                    doc.sent_qms_form_link = 1
+                    # doc.sent_qms_form_link = 1
+                    doc.db_set('sent_qms_form_link', doc.name, update_modified=False)
 
                 doc.save(ignore_permissions=True)
 
 
             if onboarding_doc.registered_for_multi_companies == 1:
-                onboarding_doc.head_target = 1
+                onboarding_doc.db_set('head_target', onboarding_doc.name, update_modified=False)
+                # onboarding_doc.head_target = 1
+                
                 vendor_master.db_set('onboarding_ref_no', onboarding_doc.name, update_modified=False)
 
-            onboarding_doc.save(ignore_permissions=True)
-            frappe.db.commit()
+            # onboarding_doc.save(ignore_permissions=True)
+            # frappe.db.commit()
 
             return {
                 "status": "success",

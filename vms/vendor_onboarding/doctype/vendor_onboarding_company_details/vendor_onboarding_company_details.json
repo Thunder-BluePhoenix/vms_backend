@@ -71,7 +71,14 @@
   "address_proofattachment",
   "tab_2_tab",
   "registered_for_multi_companies",
-  "unique_multi_comp_id"
+  "unique_multi_comp_id",
+  "via_data_import",
+  "section_break_rpkq",
+  "vc_country",
+  "vc_state",
+  "column_break_vvps",
+  "vc_pin",
+  "vc_city"
  ],
  "fields": [
   {
@@ -425,12 +432,46 @@
    "fieldname": "inter_manufacture_city",
    "fieldtype": "Data",
    "label": "City"
+  },
+  {
+   "fieldname": "section_break_rpkq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "vc_country",
+   "fieldtype": "Data",
+   "label": "VC Country"
+  },
+  {
+   "fieldname": "vc_state",
+   "fieldtype": "Data",
+   "label": "VC State"
+  },
+  {
+   "fieldname": "column_break_vvps",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vc_pin",
+   "fieldtype": "Data",
+   "label": "VC Pin"
+  },
+  {
+   "fieldname": "vc_city",
+   "fieldtype": "Data",
+   "label": "VC City"
+  },
+  {
+   "default": "0",
+   "fieldname": "via_data_import",
+   "fieldtype": "Check",
+   "label": "Via Data Import"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 10:56:57.122277",
+ "modified": "2025-09-26 22:39:51.881591",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",

@@ -8,7 +8,9 @@
  "field_order": [
   "currency_code",
   "currency_name",
-  "country"
+  "country",
+  "section_break_jivb",
+  "inactive"
  ],
  "fields": [
   {
@@ -29,12 +31,22 @@
    "fieldtype": "Link",
    "label": "Country",
    "options": "Country Master"
+  },
+  {
+   "fieldname": "section_break_jivb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "inactive",
+   "fieldtype": "Check",
+   "label": "Inactive"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:39.214238",
+ "modified": "2025-09-20 14:08:10.338269",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Currency Master",

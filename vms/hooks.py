@@ -236,6 +236,10 @@ scheduler_events = {
         "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.cleanup_user_status_cache"  # New
     ],
     "cron": {
+        "0 0 * * *": [
+            "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.handle_expirations",
+            "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.check_and_resend_asa_forms"
+        ],
         "*/10 * * * *": [
             "vms.APIs.req_for_quotation.rfq_reminder.block_quotation_link",
             "vms.APIs.sap.send_sap_error_email.uncheck_sap_error_email"  
@@ -252,6 +256,9 @@ scheduler_events = {
         "0 */2 * * *": [  # Every 2 hours - cleanup stuck SAP status
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.cleanup_stuck_sap_status"
         ],
+        "*/5 * * * *": [
+            "vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.monitor_background_jobs"
+        ]
     }    
 	# "hourly": [
 	# 	"vms.tasks.hourly"

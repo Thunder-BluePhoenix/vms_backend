@@ -11,11 +11,13 @@
   "material_type",
   "material_category_type",
   "description",
+  "multiple_company",
   "column_break_cypw",
   "company",
   "storage_location",
   "plant_code",
-  "valuation_and_profit"
+  "valuation_and_profit",
+  "storage_location_table"
  ],
  "fields": [
   {
@@ -34,7 +36,7 @@
   },
   {
    "fieldname": "description",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Description"
   },
   {
@@ -72,12 +74,24 @@
    "fieldtype": "Table",
    "label": "Valuation & Profit",
    "options": "Valuation and Profit"
+  },
+  {
+   "fieldname": "multiple_company",
+   "fieldtype": "Table",
+   "label": "Multiple Company",
+   "options": "Multiple Company Name"
+  },
+  {
+   "fieldname": "storage_location_table",
+   "fieldtype": "Table",
+   "label": "Storage Location Table",
+   "options": "Multiple Storage Location"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:36:54.300478",
+ "modified": "2025-09-25 14:14:16.832870",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Type Master",

@@ -10,7 +10,7 @@ def get_reconcilation_list(data):
         
         company = data.get("company")
         # Fetch all currency records
-        rc_account = frappe.get_all("Reconciliation Account", filters={"company": company}, fields=["name", "reconcil_account", "reconcil_account_code", "reconcil_description"])
+        rc_account = frappe.get_all("Reconciliation Account", filters={"company": company, "inactive": 0}, fields=["name", "reconcil_account", "reconcil_account_code", "reconcil_description"])
 
         if not rc_account:
             return {

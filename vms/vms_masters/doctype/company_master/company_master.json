@@ -20,7 +20,9 @@
   "street_1",
   "street_2",
   "city",
-  "pincode"
+  "pincode",
+  "section_break_vaek",
+  "inactive"
  ],
  "fields": [
   {
@@ -98,12 +100,22 @@
    "fieldname": "pincode",
    "fieldtype": "Data",
    "label": "Pincode"
+  },
+  {
+   "fieldname": "section_break_vaek",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "inactive",
+   "fieldtype": "Check",
+   "label": "Inactive"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:31.627969",
+ "modified": "2025-09-20 14:03:31.731483",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Company Master",
