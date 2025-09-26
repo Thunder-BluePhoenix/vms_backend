@@ -52,6 +52,10 @@
   "vendor_annual_assessment_form_records_section",
   "form_records",
   "more_info_tab",
+  "column_break_patf",
+  "bank_details",
+  "document_details",
+  "manufacturing_details",
   "column_break_xmpu",
   "remarks_ok",
   "via_data_import",
@@ -60,10 +64,7 @@
   "column_break_pfge",
   "validity",
   "remarks",
-  "column_break_patf",
-  "bank_details",
-  "document_details",
-  "manufacturing_details",
+  "section_break_meqv",
   "vendor_company_details"
  ],
  "fields": [
@@ -386,12 +387,16 @@
   {
    "fieldname": "column_break_patf",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_meqv",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-24 23:18:12.663350",
+ "modified": "2025-09-26 22:46:17.284758",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
