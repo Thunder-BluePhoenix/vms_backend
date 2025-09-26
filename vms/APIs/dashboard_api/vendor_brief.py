@@ -528,6 +528,15 @@ def get_vendors_with_pagination(
                 WHERE vm.name = %(vendor_name)s
                 LIMIT 1
             """, {'vendor_name': vendor['name']}, as_dict=True)
+
+
+            vendor['vendor_company_details'] = frappe.db.sql("""
+                SELECT ivc.*, cm.name as meril_company_name
+                FROM `tabImported Vendor Company` ivc
+                LEFT JOIN `tabCompany Master` cm ON ivc.meril_company_name = cm.name
+                WHERE ivc.parent = %(vendor_name)s
+            """, {'vendor_name': vendor['name']}, as_dict=True)
+
             
             if bank_details:
                 bank_doc = bank_details[0]

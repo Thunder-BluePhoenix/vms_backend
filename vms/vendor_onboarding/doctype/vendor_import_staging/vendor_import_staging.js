@@ -26,6 +26,15 @@ frappe.ui.form.on('Vendor Import Staging', {
         if (frm.doc.import_status === 'Completed') {
             setup_related_documents_section(frm);
         }
+
+
+        // add_comprehensive_form_buttons(frm);
+        
+        // // Add document creation preview
+        // add_document_creation_preview(frm);
+        
+        // // Add real-time comprehensive validation
+        // setup_comprehensive_validation_indicators(frm);
     },
     
     import_status: function(frm) {
@@ -1065,3 +1074,647 @@ function monitor_processing_progress(frm) {
         });
     }, 10000); // Check every 10 seconds
 }
+
+
+
+
+function add_comprehensive_form_buttons(frm) {
+    if (!frm.doc.__islocal) {
+        // 🔹 Comprehensive Record Check
+        frm.add_custom_button(__('Comprehensive Validation'), function() {
+            run_comprehensive_record_check(frm);
+        }, __('Data Quality'));
+        
+        // 🔹 Document Creation Preview
+        frm.add_custom_button(__('Document Creation Preview'), function() {
+            show_document_creation_preview(frm);
+        }, __('Data Quality'));
+        
+        // 🔹 Complete Integrity Report
+        frm.add_custom_button(__('Complete Integrity Report'), function() {
+            generate_complete_integrity_report(frm);
+        }, __('Data Quality'));
+    }
+}
+
+function run_comprehensive_record_check(frm) {
+    const check_dialog = new frappe.ui.Dialog({
+        title: __('Comprehensive Record Validation'),
+        size: 'extra-large',
+        fields: [
+            {
+                fieldname: 'validation_results',
+                fieldtype: 'HTML',
+                options: generate_loading_html('Running comprehensive validation of all document creation paths...')
+            }
+        ]
+    });
+    
+    check_dialog.show();
+    
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_stage_inspect.single_record_comprehensive_check',
+        args: {
+            docname: frm.doc.name
+        },
+        callback: function(r) {
+            if (r.message) {
+                const results_html = generate_comprehensive_record_results_html(r.message);
+                check_dialog.fields_dict.validation_results.$wrapper.html(results_html);
+                
+                // Add processing button if record is ready
+                if (r.message.processing_readiness && r.message.processing_readiness.ready) {
+                    check_dialog.$wrapper.find('.modal-footer').prepend(`
+                        <button class="btn btn-success btn-process-record">
+                            Process to Vendor Master
+                        </button>
+                    `);
+                    
+                    check_dialog.$wrapper.find('.btn-process-record').click(function() {
+                        check_dialog.hide();
+                        process_single_record_comprehensive(frm);
+                    });
+                }
+            }
+        }
+    });
+}
+
+function generate_comprehensive_record_results_html(results) {
+    const validation = results.validation_results;
+    const readiness = results.processing_readiness;
+    const preview = results.document_creation_preview;
+    
+    let html = `
+        <div class="comprehensive-record-results">
+            <!-- Overall Status -->
+            <div class="alert alert-${validation.overall_status === 'Valid' ? 'success' : 'danger'}">
+                <h5>
+                    <i class="fa fa-${validation.overall_status === 'Valid' ? 'check-circle' : 'times-circle'}"></i>
+                    Record Status: ${validation.overall_status}
+                </h5>
+                <p><strong>Vendor:</strong> ${results.vendor_name} | <strong>Company:</strong> ${results.company_code}</p>
+            </div>
+            
+            <!-- Processing Readiness -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card border-${readiness.ready ? 'success' : 'danger'}">
+                        <div class="card-body text-center">
+                            <h3 class="text-${readiness.ready ? 'success' : 'danger'}">
+                                ${readiness.ready ? '✅' : '❌'}
+                            </h3>
+                            <p>${readiness.ready ? 'Ready for Processing' : 'Not Ready'}</p>
+                            <small>Confidence: ${readiness.confidence_level}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h3 class="text-info">${preview.estimated_records}</h3>
+                            <p>Estimated Documents</p>
+                            <small>${preview.main_documents.length} main + ${preview.child_tables.length} child tables</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Document Creation Preview -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6><i class="fa fa-file-alt"></i> Document Creation Preview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Main Documents</h6>
+                            <ul class="list-group">
+    `;
+    
+    preview.main_documents.forEach(doc => {
+        html += `
+            <li class="list-group-item">
+                <strong>${doc.doctype}</strong>
+                <br><small class="text-muted">
+                    ${Object.keys(doc.key_fields).map(field => 
+                        `${field}: ${doc.key_fields[field] || 'Not set'}`
+                    ).join(', ')}
+                </small>
+            </li>
+        `;
+    });
+    
+    html += `
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Child Tables</h6>
+                            <ul class="list-group">
+    `;
+    
+    preview.child_tables.forEach(child => {
+        html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>${child.child_table}</strong>
+                    <br><small class="text-muted">in ${child.parent_doctype}</small>
+                </div>
+                <span class="badge badge-primary badge-pill">${child.records_count}</span>
+            </li>
+        `;
+    });
+    
+    html += `
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Validation Details -->
+            ${generate_validation_details_html(validation)}
+        </div>
+    `;
+    
+    return html;
+}
+
+function generate_validation_details_html(validation) {
+    let html = '<div class="validation-details">';
+    
+    // Critical errors
+    if (validation.critical_errors && validation.critical_errors.length > 0) {
+        html += `
+            <div class="card border-danger mb-3">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">Critical Errors (${validation.critical_errors.length})</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        ${validation.critical_errors.map(error => `<li class="text-danger">${error}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Missing masters
+    if (validation.missing_masters && Object.keys(validation.missing_masters).length > 0) {
+        html += `
+            <div class="card border-warning mb-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">Missing Master Data</h6>
+                </div>
+                <div class="card-body">
+                    ${Object.keys(validation.missing_masters).map(doctype => {
+                        const items = Array.from(validation.missing_masters[doctype]);
+                        return `<p><strong>${doctype}:</strong> ${items.join(', ')}</p>`;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Recommendations
+    if (validation.recommendations && validation.recommendations.length > 0) {
+        html += `
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">Recommendations</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        ${validation.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+// Export comprehensive results
+function generate_complete_integrity_report(frm) {
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_stage_inspect.single_record_comprehensive_check',
+        args: {
+            docname: frm.doc.name
+        },
+        callback: function(r) {
+            if (r.message) {
+                // Create downloadable report
+                const report_data = {
+                    record: frm.doc.name,
+                    vendor_name: frm.doc.vendor_name,
+                    validation_results: r.message.validation_results,
+                    processing_readiness: r.message.processing_readiness,
+                    document_preview: r.message.document_creation_preview,
+                    generated_at: new Date().toISOString()
+                };
+                
+                // Download as JSON
+                download_json_report(report_data, `integrity_report_${frm.doc.name}.json`);
+                
+                frappe.msgprint({
+                    title: 'Report Generated',
+                    message: 'Complete integrity report has been downloaded.',
+                    indicator: 'green'
+                });
+            }
+        }
+    });
+}
+
+function download_json_report(data, filename) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+console.log('📊 Comprehensive Data Integrity UI System loaded successfully!');
+
+
+
+// Helper functions
+
+function show_error_dialog(title, error_message) {
+    const error_dialog = new frappe.ui.Dialog({
+        title: title,
+        fields: [
+            {
+                fieldname: 'error_content',
+                fieldtype: 'HTML',
+                options: `
+                    <div class="alert alert-danger">
+                        <h5><i class="fa fa-exclamation-triangle"></i> ${title}</h5>
+                        <p>${error_message}</p>
+                        <hr>
+                        <small class="text-muted">If this error persists, please contact your system administrator.</small>
+                    </div>
+                `
+            }
+        ]
+    });
+    error_dialog.show();
+}
+
+
+function get_comprehensive_status_color(status) {
+    const colors = {
+        'Excellent': 'success',
+        'Good': 'success',
+        'Healthy': 'success',
+        'Warning': 'warning',
+        'Critical': 'danger',
+        'Error': 'danger',
+        'Invalid': 'danger',
+        'Valid': 'success'
+    };
+    return colors[status] || 'secondary';
+}
+
+function generate_loading_html(message) {
+    return `
+        <div class="text-center p-4">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p class="text-muted">${message}</p>
+            <div class="progress mt-3" style="height: 8px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+            </div>
+        </div>
+    `;
+}
+
+
+
+// ###########################3Yet to be Added below#############################################
+
+
+function add_document_analysis_buttons(listview) {
+    // 🔹 Document Creation Analysis
+    listview.page.add_inner_button(__('Document Creation Analysis'), function() {
+        show_document_creation_analysis(listview);
+    }, __('Document Analysis'));
+
+    // 🔹 Estimated Documents Report
+    listview.page.add_inner_button(__('Estimated Documents'), function() {
+        show_estimated_documents_report(listview);
+    }, __('Document Analysis'));
+}
+
+function add_missing_masters_buttons(listview) {
+    // 🔹 Missing Masters Report
+    listview.page.add_inner_button(__('Missing Masters Report'), function() {
+        show_missing_masters_breakdown(listview);
+    }, __('Missing Masters'));
+
+    // 🔹 Create Missing Masters
+    listview.page.add_inner_button(__('Create Missing Masters'), function() {
+        initiate_missing_masters_creation(listview);
+    }, __('Missing Masters'));
+
+    // 🔹 Master Data Health Check
+    listview.page.add_inner_button(__('Master Data Health'), function() {
+        run_master_data_health_check(listview);
+    }, __('Missing Masters'));
+}
+
+function add_enhanced_processing_buttons(listview) {
+    // 🔹 Smart Batch Processing
+    listview.page.add_inner_button(__('Smart Batch Process'), function() {
+        initiate_smart_batch_processing(listview);
+    }, __('Enhanced Processing'));
+
+    // 🔹 Process Valid Records Only
+    listview.page.add_inner_button(__('Process Valid Only'), function() {
+        process_only_valid_records(listview);
+    }, __('Enhanced Processing'));
+
+    // 🔹 Batch Validation
+    listview.page.add_inner_button(__('Batch Validation'), function() {
+        run_batch_validation(listview);
+    }, __('Enhanced Processing'));
+}
+
+function show_document_creation_analysis(listview) {
+    const analysis_dialog = new frappe.ui.Dialog({
+        title: __('Document Creation Impact Analysis'),
+        size: 'large',
+        fields: [
+            {
+                fieldname: 'analysis_content',
+                fieldtype: 'HTML',
+                options: generate_loading_html('Analyzing document creation patterns across all staging records...')
+            }
+        ]
+    });
+    
+    analysis_dialog.show();
+    
+    frappe.call({
+        method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.get_document_creation_analysis',
+        callback: function(r) {
+            if (r.message) {
+                const analysis_html = generate_document_analysis_html(r.message);
+                analysis_dialog.fields_dict.analysis_content.$wrapper.html(analysis_html);
+            } else {
+                analysis_dialog.fields_dict.analysis_content.$wrapper.html(
+                    '<div class="alert alert-info">No analysis data available at this time.</div>'
+                );
+            }
+        },
+        error: function(r) {
+            show_error_dialog('Analysis Failed', r.message || 'Failed to generate document creation analysis');
+            analysis_dialog.hide();
+        }
+    });
+}
+
+function generate_document_analysis_html(analysis_data) {
+    return `
+        <div class="document-analysis-results">
+            <div class="alert alert-info">
+                <h5><i class="fa fa-chart-bar"></i> Document Creation Analysis</h5>
+                <p>Analysis of document creation impact across staging records</p>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h3>${analysis_data.total_staging_records || 0}</h3>
+                            <p>Staging Records</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h3>${analysis_data.estimated_documents || 0}</h3>
+                            <p>Estimated Documents</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h3>${analysis_data.validation_required || 0}</h3>
+                            <p>Need Validation</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-secondary">
+                <h6>Document Types to be Created:</h6>
+                <ul class="mb-0">
+                    <li><strong>Vendor Master:</strong> 1 per valid record</li>
+                    <li><strong>Company Vendor Code:</strong> 1 per valid record</li>
+                    <li><strong>Vendor Onboarding Company Details:</strong> 1 per valid record</li>
+                    <li><strong>Vendor Bank Details:</strong> 1 per record with bank information</li>
+                    <li><strong>Child Tables:</strong> Multiple company data, vendor types, banking details</li>
+                </ul>
+            </div>
+        </div>
+    `;
+}
+
+function show_estimated_documents_report(listview) {
+    frappe.msgprint({
+        title: __('Estimated Documents Report'),
+        message: `
+            <div class="estimated-documents-info">
+                <h6>Document Creation Estimates</h6>
+                <p>Based on current staging records, the system will create:</p>
+                <ul>
+                    <li><strong>Main Documents:</strong> ~4 per staging record</li>
+                    <li><strong>Child Table Entries:</strong> ~6 per staging record</li>
+                    <li><strong>Total Estimated:</strong> ~10 database records per staging record</li>
+                </ul>
+                <div class="alert alert-info mt-3">
+                    <small><i class="fa fa-info-circle"></i> Actual counts depend on data completeness and validation results.</small>
+                </div>
+            </div>
+        `,
+        indicator: 'blue'
+    });
+}
+
+function initiate_missing_masters_creation(listview) {
+    frappe.msgprint({
+        title: __('Create Missing Masters'),
+        message: `
+            <div class="missing-masters-creation">
+                <p>This feature will help you create missing master data records.</p>
+                <div class="alert alert-warning">
+                    <strong>Note:</strong> This is a placeholder for the missing masters creation workflow.
+                    You can implement specific master creation dialogs here.
+                </div>
+            </div>
+        `,
+        indicator: 'orange'
+    });
+}
+
+function run_master_data_health_check(listview) {
+    const health_dialog = new frappe.ui.Dialog({
+        title: __('Master Data Health Check'),
+        size: 'large',
+        fields: [
+            {
+                fieldname: 'health_content',
+                fieldtype: 'HTML',
+                options: generate_loading_html('Checking master data health across all linked doctypes...')
+            }
+        ]
+    });
+    
+    health_dialog.show();
+    
+    // Simulate health check - replace with actual API call
+    setTimeout(() => {
+        health_dialog.fields_dict.health_content.$wrapper.html(`
+            <div class="master-data-health">
+                <div class="alert alert-success">
+                    <h5><i class="fa fa-check-circle"></i> Master Data Health Check</h5>
+                    <p>Checking connectivity and availability of all master data...</p>
+                </div>
+                
+                <div class="health-checklist">
+                    <h6>Master Data Status:</h6>
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Company Master</span>
+                            <span class="badge badge-success">Available</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>State Master</span>
+                            <span class="badge badge-success">Available</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Currency Master</span>
+                            <span class="badge badge-success">Available</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Bank Master</span>
+                            <span class="badge badge-warning">Some Missing</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        `);
+    }, 2000);
+}
+
+function initiate_smart_batch_processing(listview) {
+    frappe.msgprint({
+        title: __('Smart Batch Processing'),
+        message: `
+            <div class="smart-batch-info">
+                <h6>Smart Batch Processing Features:</h6>
+                <ul>
+                    <li>Automatic validation before processing</li>
+                    <li>Error handling and recovery</li>
+                    <li>Progress tracking and reporting</li>
+                    <li>Rollback capability for failed batches</li>
+                </ul>
+                <div class="alert alert-info mt-3">
+                    <small>This will be implemented with your existing batch processing logic.</small>
+                </div>
+            </div>
+        `,
+        indicator: 'blue'
+    });
+}
+
+function process_only_valid_records(listview) {
+    frappe.confirm(
+        __('This will process only records with "Valid" validation status. Continue?'),
+        function() {
+            frappe.call({
+                method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_valid_records_only',
+                freeze: true,
+                freeze_message: __('Processing valid records...'),
+                callback: function(r) {
+                    if (r.message) {
+                        frappe.msgprint({
+                            title: __('Processing Results'),
+                            message: `Processed ${r.message.processed_count || 0} valid records successfully.`,
+                            indicator: 'green'
+                        });
+                        listview.refresh();
+                    }
+                }
+            });
+        }
+    );
+}
+
+// function run_batch_validation(listview) {
+//     const batch_dialog = new frappe.ui.Dialog({
+//         title: __('Batch Validation'),
+//         fields: [
+//             {
+//                 fieldname: 'batch_size',
+//                 fieldtype: 'Int',
+//                 label: 'Batch Size',
+//                 default: 100,
+//                 description: 'Number of records to validate in one batch'
+//             },
+//             {
+//                 fieldname: 'validation_type',
+//                 fieldtype: 'Select',
+//                 label: 'Validation Type',
+//                 options: '\nBasic\nComprehensive\nLink Fields Only',
+//                 default: 'Basic'
+//             }
+//         ],
+//         primary_action_label: __('Start Validation'),
+//         primary_action: function() {
+//             const values = batch_dialog.get_values();
+            
+//             frappe.call({
+//                 method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.run_batch_validation',
+//                 args: {
+//                     batch_size: values.batch_size,
+//                     validation_type: values.validation_type
+//                 },
+//                 freeze: true,
+//                 freeze_message: __('Running batch validation...'),
+//                 callback: function(r) {
+//                     batch_dialog.hide();
+//                     if (r.message) {
+//                         frappe.msgprint({
+//                             title: __('Batch Validation Complete'),
+//                             message: `
+//                                 <div>
+//                                     <p><strong>Validation Results:</strong></p>
+//                                     <ul>
+//                                         <li>Processed: ${r.message.processed || 0} records</li>
+//                                         <li>Valid: ${r.message.valid || 0} records</li>
+//                                         <li>Invalid: ${r.message.invalid || 0} records</li>
+//                                     </ul>
+//                                 </div>
+//                             `,
+//                             indicator: 'green'
+//                         });
+//                         listview.refresh();
+//                     }
+//                 }
+//             });
+//         }
+//     });
+    
+//     batch_dialog.show();
+// }
