@@ -1,6 +1,6 @@
 import frappe
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_full_data_of_import_vendors(refno=None, via_data_import=None, company=None):
     try:
         if not refno and not company:

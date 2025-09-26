@@ -134,7 +134,7 @@ def filter_valuation_class_master(company):
             }
 
         valuation_class = frappe.get_all(
-            "Valuation Class Master",
+            "Valuation Class",
             filters={"company": company},
             fields=["name", "valuation_class_code", "valuation_class_name"]
         )
@@ -301,7 +301,7 @@ def filter_masters(company):
         )
 
         valuation_class = frappe.get_all(
-            "Valuation Class Master",
+            "Valuation Class",
             filters={"company": company},
             fields=["name", "valuation_class_code", "valuation_class_name"]
         )
