@@ -287,7 +287,7 @@ class VendorOnboarding(Document):
         try:
             # Enqueue all heavy tasks
             frappe.enqueue(
-                method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.run_post_update_tasks",
+                method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.run_post_update_tasks_smart_granular",
                 queue='default',
                 timeout=600,
                 now=False,
@@ -366,6 +366,89 @@ def run_post_update_tasks(doc_name, user=None, is_new=False):
     except Exception as e:
         frappe.log_error(f"Error in post-update tasks for {doc_name}: {str(e)}")
         frappe.logger().error(f"Post-update tasks failed for {doc_name}: {str(e)}")
+
+
+
+
+def run_post_update_tasks_smart_granular(doc_name, user=None, is_new=False):
+    """
+    Smart sleep durations based on conflict risk and operation type
+    """
+    
+    # Define sleep durations based on operation risk
+    SLEEP_DURATIONS = {
+        'validation': 0.3,           # Low risk - just reading/validating
+        'company_update': 2.5,       # HIGH RISK - modifies related Vendor Master
+        'tracking_update': 1.2,      # Medium risk - updates child tables
+        'email_notifications': 0.5,  # Low risk - external operations
+        'sync_maintain': 1.8,        # High risk - syncs multiple records
+        'sap_update': 1.5,          # Medium risk - external API + doc update
+        'submission_handling': 1.0,  # Medium risk - document state changes
+        'doc_change_emails': 0.3    # Low risk - external operations
+    }
+    
+    try:
+        if user:
+            frappe.set_user(user)
+            
+        doc = frappe.get_doc("Vendor Onboarding", doc_name)
+        doc._skip_on_update = True
+        
+        task_results = {}
+        
+        # 1. Validate mandatory fields
+        # print(f"Starting validation after {SLEEP_DURATIONS['validation']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['validation'])
+        task_results['validation'] = run_field_validation(doc)
+        
+        # 2. Update company data (HIGHEST CONFLICT RISK)
+        # print(f"Starting company_update after {SLEEP_DURATIONS['company_update']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['company_update'])
+        task_results['company_update'] = run_company_update(doc)
+        
+        # 3. Update tracking tables
+        # print(f"Starting tracking_update after {SLEEP_DURATIONS['tracking_update']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['tracking_update']) 
+        task_results['tracking_update'] = run_tracking_update(doc)
+        
+        # 4. Send emails if needed
+        # print(f"Starting email_notifications after {SLEEP_DURATIONS['email_notifications']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['email_notifications'])
+        task_results['email_notifications'] = run_email_notifications(doc)
+        
+        # 5. Sync and maintain records
+        # print(f"Starting sync_maintain after {SLEEP_DURATIONS['sync_maintain']}s sleep...")
+        # time.sleep(SLEEP_DURATIONS['sync_maintain'])
+        # task_results['sync_maintain'] = run_sync_maintain(doc)
+        
+        # 6. SAP integration
+        if should_trigger_sap_update(doc):
+            # print(f"Starting sap_update after {SLEEP_DURATIONS['sap_update']}s sleep...")
+            time.sleep(SLEEP_DURATIONS['sap_update'])
+            task_results['sap_update'] = run_sap_integration(doc)
+        
+        # 7. Document submission handling
+        if doc.onboarding_form_status == "Approved":
+            # print(f"Starting submission_handling after {SLEEP_DURATIONS['submission_handling']}s sleep...")
+            time.sleep(SLEEP_DURATIONS['submission_handling'])
+            task_results['submission_handling'] = run_submission_handling(doc)
+        
+        # 8. Send document change emails
+        # print(f"Starting doc_change_emails after {SLEEP_DURATIONS['doc_change_emails']}s sleep...")
+        time.sleep(SLEEP_DURATIONS['doc_change_emails'])
+        task_results['doc_change_emails'] = run_doc_change_emails(doc)
+
+        time.sleep(SLEEP_DURATIONS['sync_maintain'])
+        task_results['sync_maintain'] = run_sync_maintain(doc)
+        
+        return task_results
+        
+    except Exception as e:
+        frappe.log_error(f"Error in post-update tasks for {doc_name}: {str(e)}")
+
+
+
+
 
 
 # Individual task functions that maintain all existing functionality
