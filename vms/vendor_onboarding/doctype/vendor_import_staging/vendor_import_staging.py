@@ -1140,6 +1140,7 @@ def create_company_details_from_staging(vendor_ref_no, mapped_row):
             details_doc.established_year = mapped_row.get('established_year')
         
         # Save the document
+        details_doc.via_data_import = 1
         details_doc.save(ignore_permissions=True)
         result["company_details_doc"] = details_doc.name
         
@@ -1709,7 +1710,7 @@ def create_payment_details_from_staging(mapped_row, vendor_master_name):
             payment_doc.intermediate_bank_details = []
             payment_doc.append("intermediate_bank_details", intermediate_bank_data)
         
-        payment_doc.imported = 1
+        payment_doc.created_from_import = 1
         payment_doc.save(ignore_permissions=True)
         
 

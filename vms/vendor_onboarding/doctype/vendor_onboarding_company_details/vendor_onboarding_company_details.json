@@ -72,6 +72,7 @@
   "tab_2_tab",
   "registered_for_multi_companies",
   "unique_multi_comp_id",
+  "via_data_import",
   "section_break_rpkq",
   "vc_country",
   "vc_state",
@@ -459,12 +460,18 @@
    "fieldname": "vc_city",
    "fieldtype": "Data",
    "label": "VC City"
+  },
+  {
+   "default": "0",
+   "fieldname": "via_data_import",
+   "fieldtype": "Check",
+   "label": "Via Data Import"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 13:36:16.769850",
+ "modified": "2025-09-26 22:39:51.881591",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding Company Details",
