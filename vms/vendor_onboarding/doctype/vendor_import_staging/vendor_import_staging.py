@@ -1324,6 +1324,8 @@ def update_vendor_master_multiple_company_data(vendor_ref_no, company_name, comp
                         mc_row.incoterm = mapped_row.get('incoterm')
                     if mapped_row.get('reconciliation_account'):
                         mc_row.reconciliation_account = mapped_row.get('reconciliation_account')
+
+                    mc_row.via_import = 1
                     
                     mc_row_found = True
                     break
@@ -1339,7 +1341,8 @@ def update_vendor_master_multiple_company_data(vendor_ref_no, company_name, comp
                 "purchase_group": mapped_row.get('purchase_group'),
                 "order_currency": mapped_row.get('order_currency'),
                 "incoterm": mapped_row.get('incoterm'),
-                "reconciliation_account": mapped_row.get('reconciliation_account')
+                "reconciliation_account": mapped_row.get('reconciliation_account'),
+                "via_import": 1
             })
 
         vm_doc.save(ignore_permissions=True)
