@@ -22,6 +22,9 @@ def get_dispatch_data(data):
             
             for field in fields_to_remove:
                 dispatch_data.pop(field, None)  
+
+            if "items" in dispatch_data:
+                dispatch_data["gate_entry_details"] = dispatch_data.pop("items")
             
             vendor_code = doc.get('vendor_code')  
             
@@ -121,7 +124,9 @@ def get_dispatch_data(data):
                             vehicle_details.append({"error": str(vehicle_error)})
             
            
-            dispatch_data["vehicle_details"] = vehicle_details
+            dispatch_data["vehicle_details_item"] = vehicle_details
+
+           
             
             return {
                 "name": name,
