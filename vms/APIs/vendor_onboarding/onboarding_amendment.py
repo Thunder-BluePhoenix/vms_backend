@@ -62,6 +62,13 @@ def create_vendor_onboarding_amendment(data):
         vendor_onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding_name)
 
         prev_rej_reason = vendor_onboarding_doc.reason_for_rejection or None
+
+        existing_approvals = {
+            "purchase_t_approval": vendor_onboarding_doc.purchase_t_approval,
+            "purchase_h_approval": vendor_onboarding_doc.purchase_h_approval,
+            "accounts_t_approval": vendor_onboarding_doc.accounts_t_approval,
+            "accounts_head_approval": vendor_onboarding_doc.accounts_head_approval
+        }
         
         # Check permissions
         if not vendor_onboarding_doc.has_permission("write"):
@@ -116,7 +123,7 @@ def create_vendor_onboarding_amendment(data):
         # Commit the transaction
         frappe.db.commit()
 
-        email_result = send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by)
+        email_result = send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by, existing_approvals)
         
         # Get amended by user details for response
         amended_by_details = frappe.get_value("User", amended_by, 
@@ -174,19 +181,15 @@ def create_vendor_onboarding_amendment(data):
 
 
 @frappe.whitelist(allow_guest=True)
-def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
+def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by, existing_approvals=None):
     """
-    Send amendment notification email to vendor
-    Similar to send_registration_email_link but for amendments
+    Send amendment notification email based on user designation:
+    - Purchase Team -> Vendor only
+    - Purchase Head -> Purchase Team
+    - Accounts Team -> Purchase Head (and CC: Purchase Team)
+    - Accounts Head -> Accounts Team
     
-    Args:
-        vendor_onboarding_name: Name of the vendor onboarding document
-        remarks: Amendment remarks
-        amended_by: User who made the amendment
-        custom_message: Additional custom message to include (optional)
-        
-    Returns:
-        dict: Email sending result
+    
     """
     try:
         # Get the vendor onboarding document
@@ -196,9 +199,9 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
         vendor_master = frappe.get_doc("Vendor Master", onboarding_doc.ref_no)
         
         # Get recipient email
-        recipient_email = vendor_master.office_email_primary or vendor_master.office_email_secondary
+        vendor_email = vendor_master.office_email_primary or vendor_master.office_email_secondary
         
-        if not recipient_email:
+        if not vendor_email:
             return {
                 "status": "error",
                 "message": "No recipient email found for the vendor."
@@ -206,6 +209,128 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
         
         # Get amended by user details
         amended_by_name = frappe.get_value("User", amended_by, "full_name") or amended_by
+        
+      
+        employee = frappe.get_value("Employee", {"user_id": amended_by}, "designation")
+        
+        
+        if not employee:
+            return {
+                "status": "error",
+                "message": f"Employee record not found for user {amended_by_name}."
+            }
+        
+        def get_user_role_from_designation(designation):
+         
+            if not designation:
+                return None
+                
+            designation_lower = designation.lower()
+            
+          
+            if any(term in designation_lower for term in ["purchase team"]):
+                return "purchase_team"
+            elif any(term in designation_lower for term in ["purchase head"]):
+                return "purchase_head"
+            elif any(term in designation_lower for term in ["accounts team"]):
+                return "accounts_team"
+            elif any(term in designation_lower for term in ["accounts head"]):
+                return "accounts_head"
+            else:
+                return None
+        
+        user_role = get_user_role_from_designation(employee)
+        
+        
+        if not user_role:
+            return {
+                "status": "error",
+                "message": f"User {amended_by_name} with designation '{employee}' is not authorized to send amendment notifications."
+            }
+        
+        # Helper function to get user email
+        def get_user_email(user):
+            if user and frappe.db.exists("User", user):
+                return frappe.get_value("User", user, "email")
+            return None
+        
+        # Use existing_approvals if provided, otherwise get from document
+        if existing_approvals:
+            purchase_team_user = existing_approvals.get("purchase_t_approval")
+            purchase_head_user = existing_approvals.get("purchase_h_approval")
+            accounts_team_user = existing_approvals.get("accounts_t_approval")
+            accounts_head_user = existing_approvals.get("accounts_head_approval")
+            
+        else:
+            # Fallback to document values (for direct function calls)
+            purchase_team_user = onboarding_doc.get("purchase_t_approval")
+            purchase_head_user = onboarding_doc.get("purchase_h_approval")
+            accounts_team_user = onboarding_doc.get("accounts_t_approval")
+            accounts_head_user = onboarding_doc.get("accounts_head_approval")
+           
+        
+        # Get recipients based on user role and existing approval hierarchy
+        recipients = []
+        cc_list = []
+        
+        if user_role == "purchase_team":
+            # Purchase Team -> Vendor only
+            recipients = [vendor_email]
+            
+        elif user_role == "purchase_head":
+            # Purchase Head -> Purchase Team
+            
+            if not purchase_team_user:
+                return {
+                    "status": "error", 
+                    "message": "Purchase Team approval not found. Cannot determine Purchase Team member."
+                }
+            
+            purchase_team_email = get_user_email(purchase_team_user)
+            if not purchase_team_email:
+                return {
+                    "status": "error",
+                    "message": "Purchase Team email not found."
+                }
+            recipients = [purchase_team_email]
+            
+        elif user_role == "accounts_team":
+            # Accounts Team -> Purchase Head (and CC: Purchase Team)
+            if not purchase_head_user:
+                return {
+                    "status": "error",
+                    "message": "Purchase Head approval not found. Cannot determine Purchase Head member."
+                }
+            
+            purchase_head_email = get_user_email(purchase_head_user)
+            if not purchase_head_email:
+                return {
+                    "status": "error",
+                    "message": "Purchase Head email not found."
+                }
+            recipients = [purchase_head_email]
+            
+            # Add Purchase Team to CC
+            if purchase_team_user:
+                purchase_team_email = get_user_email(purchase_team_user)
+                if purchase_team_email:
+                    cc_list.append(purchase_team_email)
+                    
+        elif user_role == "accounts_head":
+            # Accounts Head -> Accounts Team
+            if not accounts_team_user:
+                return {
+                    "status": "error",
+                    "message": "Accounts Team approval not found. Cannot determine Accounts Team member."
+                }
+            
+            accounts_team_email = get_user_email(accounts_team_user)
+            if not accounts_team_email:
+                return {
+                    "status": "error",
+                    "message": "Accounts Team email not found."
+                }
+            recipients = [accounts_team_email]
         
         # Get company names for multi-company registration
         company_names = []
@@ -233,19 +358,20 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
         from urllib.parse import urlencode
 
         query_params = urlencode({
-            "tabtype": "Company Detail",   # space will be encoded as %20
+            "tabtype": "Company Detail",
             "refno": onboarding_doc.ref_no,
             "vendor_onboarding": onboarding_doc.name,
             "action": "amendment_review"
         })
 
         amendment_review_link = f"{http_server}/vendor-details-form?{query_params}"
-
         
-        # Create QMS section if QMS is required
+        # Create QMS section if QMS is required (only for vendor recipients)
         qms_section = ""
-        if onboarding_doc.qms_required == "Yes":
-            # Get company codes for QMS form
+        is_vendor_recipient = vendor_email in recipients
+        
+        if is_vendor_recipient and onboarding_doc.qms_required == "Yes":
+           
             qms_company_code = []
             
             if onboarding_doc.registered_for_multi_companies == 1:
@@ -286,43 +412,48 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
                 <a href="{qms_link}">{qms_link}</a></p>
             """
         
-        # Add custom message if provided
-        custom_section = ""
-        # if custom_message:
-        #     custom_section = f"""
-        #         <div style="background-color: #e8f4fd; padding: 15px; border: 1px solid #bee5eb; border-radius: 5px; margin: 20px 0;">
-        #             <h4 style="color: #0c5460; margin-top: 0;">Additional Information:</h4>
-        #             <p style="margin: 0;">{custom_message}</p>
-        #         </div>
-        #     """
+      
+        if is_vendor_recipient:
+            greeting = f"Dear {vendor_master.vendor_name},"
+            message_context = f"Your vendor onboarding registration with <strong>{company_names_str}</strong> has been amended by <strong>{amended_by_name}</strong>."
+            action_text = "Please click here to review your registration details:"
+            rejection_status_text = "The rejection status has been cleared and you can now proceed with updating your information if needed."
+            note_text = "Please ensure all your information is up to date and complete. If you have any questions or need assistance, please contact our VMS team."
+        else:
+            greeting = "Dear Team,"
+            message_context = f"Vendor onboarding registration for <strong>{vendor_master.vendor_name}</strong> with <strong>{company_names_str}</strong> has been amended by <strong>{amended_by_name}</strong>."
+            action_text = "Please click here to review the vendor registration details:"
+            rejection_status_text = "The rejection status has been cleared and the vendor can now proceed with updating their information if needed."
+            note_text = "Please review the vendor information and take appropriate action as needed. Contact the VMS team if you have any questions."
         
         # Send amendment notification email
         frappe.custom_sendmail(
-            recipients=[recipient_email],
-            cc=[onboarding_doc.registered_by, amended_by] if amended_by != onboarding_doc.registered_by else [onboarding_doc.registered_by],
+            recipients=recipients,
+            cc=cc_list if cc_list else None,
             subject=f"Vendor Onboarding Amendment - {vendor_master.vendor_name} - VMS Ref {vendor_master.name}",
             message=f"""
-                <p>Dear {vendor_master.vendor_name},</p>
+                <p>{greeting}</p>
                 <p>Greetings for the Day!</p>
                 
-                <p>Your vendor onboarding registration with <strong>{company_names_str}</strong> has been amended by <strong>{amended_by_name}</strong>.</p>
+                <p>{message_context}</p>
                 
                 <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0;">
                     <h4 style="color: #007bff; margin-top: 0;">Amendment Details:</h4>
+                    <p><strong>Vendor Name:</strong> {vendor_master.vendor_name}</p>
                     <p><strong>Amendment Reason:</strong> {remarks}</p>
-                    <p><strong>Amended By:</strong> {amended_by_name}</p>
+                    <p><strong>Amended By:</strong> {amended_by_name} ({employee})</p>
                     <p><strong>Amendment Date:</strong> {frappe.utils.format_datetime(frappe.utils.now())}</p>
                     <p><strong>Vendor Onboarding ID:</strong> {onboarding_doc.name}</p>
                     <p><strong>Vendor Reference:</strong> {vendor_master.name}</p>
                 </div>
                 
-                <p>The rejection status has been cleared and you can now proceed with updating your information if needed.</p>
+                <p>{rejection_status_text}</p>
                 
                 <p>Founded in 2006, Meril Life Sciences Pvt. Ltd. is a global medtech company based in India, dedicated to designing and manufacturing innovative, 
                 patient-centric medical devices. We focus on advancing healthcare through cutting-edge R&D, quality manufacturing, and clinical excellence 
                 to help people live longer, healthier lives. We are a family of 3000+ Vendors/Sub – Vendors across India.</p>
                 
-                <p>Please click here to review your registration details:</p>
+                <p>{action_text}</p>
                 <p style="margin: 15px 0px;">
                     <a href="{amendment_review_link}" rel="nofollow" class="btn btn-primary" style="
                         background-color: #007bff;
@@ -339,10 +470,8 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
 
                 {qms_section}
 
-                {custom_section}
-
                 <div style="background-color: #fff3cd; padding: 10px; border: 1px solid #ffeaa7; border-radius: 5px; margin: 20px 0;">
-                    <p style="margin: 0;"><strong>Note:</strong> Please ensure all your information is up to date and complete. If you have any questions or need assistance, please contact our VMS team.</p>
+                    <p style="margin: 0;"><strong>Note:</strong> {note_text}</p>
                 </div>
 
                 <p>Thanking you,<br><strong>VMS Team</strong><br>Meril Life Sciences Pvt. Ltd.</p>
@@ -352,9 +481,11 @@ def send_amendment_email_to_vendor(vendor_onboarding_name, remarks, amended_by):
         
         return {
             "status": "success",
-            "message": "Amendment notification email sent successfully to vendor.",
-            "recipient": recipient_email,
-            "cc": [onboarding_doc.registered_by, amended_by] if amended_by != onboarding_doc.registered_by else [onboarding_doc.registered_by]
+            "message": "Amendment notification email sent successfully.",
+            "recipients": recipients,
+            "cc": cc_list,
+            "user_role": user_role,
+            "user_designation": employee
         }
         
     except Exception as e:
