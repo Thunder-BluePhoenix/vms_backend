@@ -23,8 +23,22 @@ def get_dispatch_data(data):
             for field in fields_to_remove:
                 dispatch_data.pop(field, None)  
 
-            if "items" in dispatch_data:
-                dispatch_data["gate_entry_details"] = dispatch_data.pop("items")
+            # if "items" in dispatch_data:
+            #     dispatch_data["gate_entry_details"] = dispatch_data.pop("items")
+
+            field_mappings = {
+                    "items": "gate_entry_details",
+                    "e_way_bill_no" : "eway_bill_no",
+                    "e_way_bill_date" : "eway_bill_date",
+                    "invoice_number" : "challan_no",
+                    "invoice_date" : "challan_date",
+                    "courier_name" : "transport",
+                    "invoice_amount" : "invoice_value"
+
+            }
+            for old_field, new_field in field_mappings.items():
+                if old_field in dispatch_data:
+                    dispatch_data[new_field] = dispatch_data.pop(old_field)
             
             vendor_code = doc.get('vendor_code')  
             
@@ -70,27 +84,27 @@ def get_dispatch_data(data):
                         print(f"Error getting company details: {str(addr_error)}")
                     
                     
-                    dispatch_data["company_name"] = company_name
-                    dispatch_data["vendor_name"] = vendor_name
-                    dispatch_data["supplier_gst"] = supplier_gst
+                    dispatch_data["name_of_company"] = company_name
+                    dispatch_data["name_of_vendor"] = vendor_name
+                    dispatch_data["vendor_gst"] = supplier_gst
                     dispatch_data["vendor_address"] = vendor_address
                     
                 except frappe.DoesNotExistError:
-                    dispatch_data["company_name"] = None
-                    dispatch_data["vendor_name"] = None
-                    dispatch_data["supplier_gst"] = None
+                    dispatch_data["name_of_company"] = None
+                    dispatch_data["name_of_vendor"] = None
+                    dispatch_data["vendor_gst"] = None
                     dispatch_data["vendor_address"] = None
                     dispatch_data["vendor_error"] = "Vendor not found"
                 except Exception as vendor_error:
-                    dispatch_data["company_name"] = None
-                    dispatch_data["vendor_name"] = None
-                    dispatch_data["supplier_gst"] = None
+                    dispatch_data["name_of_company"] = None
+                    dispatch_data["name_of_vendor"] = None
+                    dispatch_data["vendor_gst"] = None
                     dispatch_data["vendor_address"] = None
                     dispatch_data["vendor_error"] = str(vendor_error)
             else:
-                dispatch_data["company_name"] = None
-                dispatch_data["vendor_name"] = None
-                dispatch_data["supplier_gst"] = None
+                dispatch_data["name_of_company"] = None
+                dispatch_data["name_of_vendor"] = None
+                dispatch_data["vendor_gst"] = None
                 dispatch_data["vendor_address"] = None
             
           
@@ -98,6 +112,9 @@ def get_dispatch_data(data):
             if hasattr(doc, 'vehicle_details_item') and doc.vehicle_details_item:  
                 for vehicle_row in doc.vehicle_details_item:
                     vehicle_link = vehicle_row.get('vehicle_details') 
+                    driver_name = vehicle_row.get('driver_name')
+                    driver_info = {"driver_name": driver_name} if driver_name else {}
+
                     
                     if vehicle_link:
                         try:
@@ -118,6 +135,7 @@ def get_dispatch_data(data):
                                 "attachment": vehicle_doc.get('attachment')
                             }
                             vehicle_details.append(vehicle_info)
+                            vehicle_details.append(driver_info)
                         except frappe.DoesNotExistError:
                             vehicle_details.append({"error": f"Vehicle {vehicle_link} not found"})
                         except Exception as vehicle_error:
