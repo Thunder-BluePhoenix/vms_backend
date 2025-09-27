@@ -33,7 +33,9 @@ def get_dispatch_data(data):
                     "invoice_number" : "challan_no",
                     "invoice_date" : "challan_date",
                     "courier_name" : "transport",
-                    "invoice_amount" : "invoice_value"
+                    "invoice_amount" : "invoice_value",
+                    "owner" : "created_by",
+                    "creation" : "created_date"
 
             }
             for old_field, new_field in field_mappings.items():
