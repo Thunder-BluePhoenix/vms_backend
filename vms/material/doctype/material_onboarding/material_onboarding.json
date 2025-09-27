@@ -86,7 +86,12 @@
    "fieldname": "column_break_mefu",
    "fieldtype": "Column Break"
   },
-  
+  {
+   "fieldname": "valuation_class",
+   "fieldtype": "Link",
+   "label": "Valuation Class",
+   "options": "Valuation Class"
+  },
   {
    "fieldname": "hsn_code",
    "fieldtype": "Data",
@@ -165,8 +170,18 @@
    "fieldtype": "Data",
    "label": "Material Code"
   },
-
-  
+  {
+   "fieldname": "requestor_ref_no",
+   "fieldtype": "Link",
+   "label": "Requestor Ref No.",
+   "options": "Requestor Master"
+  },
+  {
+   "fieldname": "profit_center",
+   "fieldtype": "Link",
+   "label": "Profit Center",
+   "options": "Profit Center"
+  },
   {
    "fieldname": "price_control",
    "fieldtype": "Link",
@@ -213,7 +228,12 @@
    "fieldtype": "Data",
    "label": "Total Shell Life"
   },
-
+  {
+   "fieldname": "expiration_date",
+   "fieldtype": "Link",
+   "label": "Period Indicator for Shell Life Expiration Date",
+   "options": "Expiration Date Master"
+  },
   {
    "fieldname": "column_break_nchb",
    "fieldtype": "Column Break"

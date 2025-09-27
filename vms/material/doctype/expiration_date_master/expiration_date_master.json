@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "field:expiration_date_code",
+ "creation": "2025-06-19 01:47:03.934075",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "details_section",
+  "expiration_date_code",
+  "expiration_date_name",
+  "column_break_rdiw",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "expiration_date_code",
+   "fieldtype": "Data",
+   "label": "Expiration Date Code",
+   "unique": 1
+  },
+  {
+   "fieldname": "expiration_date_name",
+   "fieldtype": "Data",
+   "label": "Expiration Date Name"
+  },
+  {
+   "fieldname": "column_break_rdiw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-27 15:00:23.694214",
+ "modified_by": "Administrator",
+ "module": "material",
+ "name": "Expiration Date Master",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
