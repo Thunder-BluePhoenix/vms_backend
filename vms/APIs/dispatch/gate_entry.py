@@ -264,7 +264,7 @@ def get_gate_entry_data(doc):
                         vehicle_info = {
                             "name": vehicle_doc.name,
                             "vehicle_no": vehicle_doc.get('vehicle_no'),
-                            "driver_name": vehicle_doc.get('driver_name'),
+                            "driver_name": driver_name or vehicle_doc.get('driver_name'),
                             "driver_phone": vehicle_doc.get('driver_phone'),
                             "driver_license": vehicle_doc.get('driver_license'),
                             "loading_state": vehicle_doc.get('loading_state'),
@@ -277,7 +277,7 @@ def get_gate_entry_data(doc):
                             "attachment": vehicle_doc.get('attachment')
                         }
                         vehicle_details.append(vehicle_info)
-                        vehicle_details.append(driver_info)
+                       
                     except frappe.DoesNotExistError:
                         vehicle_details.append({"error": f"Vehicle {vehicle_link} not found"})
                     except Exception as vehicle_error:
