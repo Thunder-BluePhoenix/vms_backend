@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "vehicle_details",
-  "alternate_driver_name"
+  "driver_name"
  ],
  "fields": [
   {
@@ -19,9 +19,9 @@
    "options": "Vehicle Details"
   },
   {
-   "fieldname": "alternate_driver_name",
+   "fieldname": "driver_name",
    "fieldtype": "Data",
-   "label": "Alternate Driver Name"
+   "label": "Driver Name"
   }
  ],
  "grid_page_length": 50,
