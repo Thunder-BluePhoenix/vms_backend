@@ -222,10 +222,7 @@ def send_cr_completion_email(vend_onb_doc):
         
         <p>The requested changes have been reviewed and implemented. Please proceed with the next steps in the vendor onboarding process.</p>
         
-        <p>You can view the full details by clicking the link below:<br>
-        <a href="{frappe.utils.get_url()}/app/vendor-onboarding/{vend_onb_doc.name}">
-            View Vendor Onboarding
-        </a></p>
+        
         
         <p>Best regards,<br>
         Vendor Management System</p>
