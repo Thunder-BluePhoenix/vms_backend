@@ -47,6 +47,7 @@ def create_new_gate_entry(data):
     
 
     set_gate_entry_data_without_files(doc, data)
+    doc.is_submitted = 1
     doc.insert()  
     
    
