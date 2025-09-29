@@ -55,19 +55,18 @@
    "label": "Request Date"
   },
   {
-   "fetch_from": "requested_by.sub_department_name",
    "fieldname": "sub_department",
    "fieldtype": "Data",
    "label": "Sub - Department"
   },
   {
-   "fetch_from": "requested_by.reporting_head",
+   "fetch_from": "requested_by.reports_to",
    "fieldname": "immediate_reporting_head",
    "fieldtype": "Data",
    "label": "Immediate Reporting Head"
   },
   {
-   "fetch_from": "requested_by.contact_number",
+   "fetch_from": "requested_by.cell_number",
    "fieldname": "contact_information_phone",
    "fieldtype": "Data",
    "label": "Contact Information - Phone"
@@ -83,7 +82,7 @@
    "options": "Employee"
   },
   {
-   "fetch_from": "requested_by.email",
+   "fetch_from": "requested_by.company_email",
    "fieldname": "contact_information_email",
    "fieldtype": "Data",
    "label": "Contact Information - Email"
@@ -101,19 +100,18 @@
    "options": "Material Master"
   },
   {
-   "fetch_from": "requested_by.company",
    "fieldname": "requestor_company",
    "fieldtype": "Data",
    "label": "Company"
   },
   {
-   "fetch_from": "requested_by.department_name",
+   "fetch_from": "requested_by.department",
    "fieldname": "requestor_department",
    "fieldtype": "Data",
    "label": "Department"
   },
   {
-   "fetch_from": "requested_by.hod",
+   "fetch_from": "requested_by.head_of_department",
    "fieldname": "requestor_hod",
    "fieldtype": "Data",
    "label": "HOD"
@@ -182,9 +180,9 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-13 10:40:28.007447",
+ "modified": "2025-09-29 15:45:23.225629",
  "modified_by": "Administrator",
- "module": "material",
+ "module": "Material",
  "name": "Requestor Master",
  "naming_rule": "Expression",
  "owner": "Administrator",
@@ -202,6 +200,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
