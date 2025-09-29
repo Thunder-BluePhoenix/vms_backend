@@ -62,6 +62,7 @@
   "change_request_by_at",
   "mail_sent_for_cr",
   "made_changes_by_pt",
+  "change_requested_by",
   "column_break_eife",
   "cr_description",
   "section_break_yitx",
@@ -792,12 +793,18 @@
    "fieldname": "cr_description",
    "fieldtype": "Small Text",
    "label": "CR Description"
+  },
+  {
+   "fieldname": "change_requested_by",
+   "fieldtype": "Link",
+   "label": "Change Requested By",
+   "options": "User"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 16:32:10.463048",
+ "modified": "2025-09-29 23:21:41.225182",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
