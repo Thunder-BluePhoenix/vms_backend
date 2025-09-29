@@ -58,6 +58,12 @@
   "rejected_by",
   "rejected_by_designation",
   "reason_for_rejection",
+  "section_break_ireg",
+  "change_request_by_at",
+  "mail_sent_for_cr",
+  "made_changes_by_pt",
+  "column_break_eife",
+  "cr_description",
   "section_break_yitx",
   "amendment_details",
   "tables_section",
@@ -754,12 +760,44 @@
    "fieldname": "approvals_mail_sent_time",
    "fieldtype": "Datetime",
    "label": "Approvals Mail Sent Time"
+  },
+  {
+   "default": "0",
+   "fieldname": "change_request_by_at",
+   "fieldtype": "Check",
+   "label": "Change Request by AT"
+  },
+  {
+   "fieldname": "section_break_ireg",
+   "fieldtype": "Section Break",
+   "label": "CR By Accounts Team"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_for_cr",
+   "fieldtype": "Check",
+   "label": "Mail Sent For CR"
+  },
+  {
+   "default": "0",
+   "fieldname": "made_changes_by_pt",
+   "fieldtype": "Check",
+   "label": "Made Changes by PT"
+  },
+  {
+   "fieldname": "column_break_eife",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cr_description",
+   "fieldtype": "Small Text",
+   "label": "CR Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-09 15:41:13.858205",
+ "modified": "2025-09-29 16:32:10.463048",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
