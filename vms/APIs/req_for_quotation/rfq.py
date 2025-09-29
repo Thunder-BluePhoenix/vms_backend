@@ -275,7 +275,7 @@ from frappe.utils import cstr, cint
 # 		frappe.throw("Could not fetch RFQ details.")
 
 
-# Another function for to get full rfq data which handle the vendor list seperately onboarded and non-onboarded
+# Another function to get full rfq data which handle the vendor list seperately for onboarded and non-onboarded vendor list
 
 @frappe.whitelist(allow_guest=False)
 def get_full_rfq_data(unique_id):
@@ -394,9 +394,58 @@ def get_full_rfq_data(unique_id):
 					"file_name": ""
 				})
 
-		# Total RFQs Sent and Quotations Received
+		# Total RFQs Sent count
 		total_rfq_sent = len(doc.vendor_details) + len(doc.non_onboarded_vendor_details)
+            
+		# Total Quotation received from each RFQ (from prev RFQs Also) acc to cutoff date
+		# Quotation Received grouped by RFQ cutoff date
+		quotation_received_by_cutoff = []
 
+		current_rfq = doc
+		visited_rfqs = set()
+
+		while current_rfq and current_rfq.name not in visited_rfqs:
+			visited_rfqs.add(current_rfq.name)
+			cutoff_date = current_rfq.get("rfq_cutoff_date_logistic") or current_rfq.get("quotation_deadline")
+
+			vendor_data = []
+			for row in current_rfq.vendor_details:
+				try:
+					parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
+				except Exception:
+					parsed_json = []
+
+				if parsed_json:
+					vendor_data.append({
+						"refno": row.ref_no,
+						"vendor_name": row.vendor_name,
+						"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
+						"office_email_primary": row.office_email_primary,
+						"mobile_number": row.mobile_number,
+						"service_provider_type": row.service_provider_type,
+						"country": row.country,
+						"bid_won": row.bid_won,
+						"bid_loss": row.bid_loss,
+						"quotations": parsed_json
+					})
+
+			if vendor_data:
+				quotation_received_by_cutoff.append({
+					"rfq_name":current_rfq.name,
+					"cutoff_date": cutoff_date,
+					"data": vendor_data
+				})
+
+			# Go to previous RFQ if exists
+			if current_rfq.prev_rfq:
+				try:
+					current_rfq = frappe.get_doc("Request For Quotation", current_rfq.prev_rfq)
+				except Exception:
+					break
+			else:
+				break
+
+		# Approved quotation ID
 		final_approve_quotation = None
 
 		for row in doc.vendor_details:
@@ -506,6 +555,7 @@ def get_full_rfq_data(unique_id):
 
 			# Counts
 			"total_rfq_sent": total_rfq_sent,
+			"quotation_received_by_cutoff": quotation_received_by_cutoff
 		}
 
 		return data
@@ -751,7 +801,7 @@ def send_revised_rfq(data):
 
     # Get old RFQ and mark it as revised
     old_rfq = frappe.get_doc("Request For Quotation", data.get("name"))
-    frappe.db.set_value("Request For Quotation", old_rfq.name, "revised_rfq", 1)
+    frappe.set_value("Request For Quotation", old_rfq.name, {"revised_rfq": 1, "status": "Revised RFQ"})
 
     # Create new RFQ document
     rfq = frappe.new_doc("Request For Quotation")
