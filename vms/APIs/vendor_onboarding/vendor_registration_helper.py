@@ -466,7 +466,7 @@ def populate_company_details(source_onboarding_name, target_onboarding_name, new
                             #     "qms_required": row.qms_required
                             # })
         
-        target_onboarding.save(ignore_permissions=True)
+        # target_onboarding.save(ignore_permissions=True)
         return "Success"
         
     except Exception as e:
