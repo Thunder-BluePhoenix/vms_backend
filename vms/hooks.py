@@ -36,7 +36,7 @@ app_include_js = [
     # "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js",
     # "assets/vms/js/chat_integratioonn.js",
     # "assets/vms/js/chat_realtimee.js" 
-    "assets/vms/js/nav_chatf7.js",
+    "assets/vms/js/nav_chatf9.js",
 
     # "assets/vms/js/nav_chat27.js",
 

@@ -861,7 +861,7 @@ function init_enhanced_chat_functionality() {
     console.log("⚙️ Initializing enhanced chat functionality...");
     
     // Set user status to online
-    update_user_chat_status('online');
+    // update_user_chat_status('online');
     
     // Load chat rooms initially
     load_enhanced_chat_rooms_stable();
@@ -2322,9 +2322,9 @@ function check_for_new_messages_enhanced() {
                 update_notification_dot_enhanced(data.total_unread > 0);
                 
                 // Update user status if changed
-                if (data.online_status !== frappe.boot.user.custom_chat_status) {
-                    update_user_chat_status(data.online_status);
-                }
+                // if (data.online_status !== frappe.boot.user.custom_chat_status) {
+                //     update_user_chat_status(data.online_status);
+                // }
             }
         },
         error: function(err) {
