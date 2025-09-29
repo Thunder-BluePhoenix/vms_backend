@@ -168,7 +168,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
                 "code": 404
             }
 
-        allowed_roles = {"Purchase Team", "Accounts Team", "Accounts Head", "Purchase Head", "QA Team", "QA Head"}
+        allowed_roles = {"Purchase Team", "Accounts Team", "Accounts Head", "Purchase Head", "QA Team", "QA Head", "Treasury"}
         user_roles = frappe.get_roles(usr)
 
         if not any(role in allowed_roles for role in user_roles):
@@ -196,6 +196,9 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
 
             conditions.append("vo.company_name IN %(company_list)s")
             values["company_list"] = company_list
+
+        elif "Treasury" in user_roles:
+            pass
 
         else:
             try:
