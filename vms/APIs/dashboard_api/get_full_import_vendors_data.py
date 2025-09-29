@@ -127,6 +127,15 @@ def get_full_data_of_import_vendors(refno=None, via_data_import=None, company=No
                     "name": "",
                     "file_name": ""
                 }
+            
+            if payment_doc.country:
+                payment_details["address"] = {
+                    "country": payment_doc.country
+                }
+            else:
+                payment_details["address"] = {
+                    "country": ""
+                }
 
             # international bank details and intermediate bank details
             international_bank_details = []
@@ -311,49 +320,49 @@ def get_full_data_of_import_vendors(refno=None, via_data_import=None, company=No
                 }
 
         # Child Table: GST Table with attachment
-        gst_table = []
-        company_gst_table = []
+        # gst_table = []
+        # company_gst_table = []
 
-        for row in legal_doc.gst_table:
-            gst_row = row.as_dict()
+        # for row in legal_doc.gst_table:
+        #     gst_row = row.as_dict()
 
-            gst_row["state_details"] = (
-                frappe.db.get_value("State Master", row.gst_state, ["name", "state_code", "state_name"], as_dict=True)
-                if row.gst_state and frappe.db.exists("State Master", row.gst_state) else {}
-            )
+        #     gst_row["state_details"] = (
+        #         frappe.db.get_value("State Master", row.gst_state, ["name", "state_code", "state_name"], as_dict=True)
+        #         if row.gst_state and frappe.db.exists("State Master", row.gst_state) else {}
+        #     )
 
-            if row.gst_document:
-                try:
-                    if frappe.db.exists("File", {"file_url": row.gst_document}):
-                        file_doc = frappe.get_doc("File", {"file_url": row.gst_document})
-                        gst_row["gst_document"] = {
-                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                            "name": file_doc.name,
-                            "file_name": file_doc.file_name
-                        }
-                    else:
-                        gst_row["gst_document"] = {
-                            "url": "",
-                            "name": "",
-                            "file_name": ""
-                        }
-                except Exception as e:
-                    frappe.log_error(f"Error fetching GST document for GSTIN '{row.gstin}': {str(e)}")
-                    gst_row["gst_document"] = {
-                        "url": "",
-                        "name": "",
-                        "file_name": ""
-                    }
-            else:
-                gst_row["gst_document"] = {
-                    "url": "",
-                    "name": "",
-                    "file_name": ""
-                }
+        #     if row.gst_document:
+        #         try:
+        #             if frappe.db.exists("File", {"file_url": row.gst_document}):
+        #                 file_doc = frappe.get_doc("File", {"file_url": row.gst_document})
+        #                 gst_row["gst_document"] = {
+        #                     "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+        #                     "name": file_doc.name,
+        #                     "file_name": file_doc.file_name
+        #                 }
+        #             else:
+        #                 gst_row["gst_document"] = {
+        #                     "url": "",
+        #                     "name": "",
+        #                     "file_name": ""
+        #                 }
+        #         except Exception as e:
+        #             frappe.log_error(f"Error fetching GST document for GSTIN '{row.gstin}': {str(e)}")
+        #             gst_row["gst_document"] = {
+        #                 "url": "",
+        #                 "name": "",
+        #                 "file_name": ""
+        #             }
+        #     else:
+        #         gst_row["gst_document"] = {
+        #             "url": "",
+        #             "name": "",
+        #             "file_name": ""
+        #         }
 
-            gst_table.append(gst_row)
+        #     gst_table.append(gst_row)
 
-        document_details["gst_table"] = gst_table
+        # document_details["gst_table"] = gst_table
 
         # ---------------------------------------------- Manufacturing Details -------------------------------------------
         
@@ -474,6 +483,50 @@ def get_full_data_of_import_vendors(refno=None, via_data_import=None, company=No
                         company_name_description = frappe.get_value( "Company Master", doc.company_name, "description")
 
                     company_details["company_name_description"] = company_name_description
+
+                    # ----------------------- comapny gst table ------------------------
+
+                    company_gst_table = []
+                    for row in doc.comp_gst_table:
+                        gst_row = row.as_dict()
+
+                        gst_row["state_details"] = (
+                            frappe.db.get_value("State Master", row.gst_state, ["name", "state_code", "state_name"], as_dict=True)
+                            if row.gst_state and frappe.db.exists("State Master", row.gst_state) else {}
+                        )
+
+                        if row.gst_document:
+                            try:
+                                if frappe.db.exists("File", {"file_url": row.gst_document}):
+                                    file_doc = frappe.get_doc("File", {"file_url": row.gst_document})
+                                    gst_row["gst_document"] = {
+                                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                                        "name": file_doc.name,
+                                        "file_name": file_doc.file_name
+                                    }
+                                else:
+                                    gst_row["gst_document"] = {
+                                        "url": "",
+                                        "name": "",
+                                        "file_name": ""
+                                    }
+                            except Exception as e:
+                                frappe.log_error(f"Error fetching GST document for GSTIN '{row.gstin}': {str(e)}")
+                                gst_row["gst_document"] = {
+                                    "url": "",
+                                    "name": "",
+                                    "file_name": ""
+                                }
+                        else:
+                            gst_row["gst_document"] = {
+                                "url": "",
+                                "name": "",
+                                "file_name": ""
+                            }
+
+                        company_gst_table.append(gst_row)
+
+                    company_details["company_gst_table"] = company_gst_table
 
                     # --- Company Address Tab ---
 
