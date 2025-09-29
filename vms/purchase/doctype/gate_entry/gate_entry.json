@@ -16,6 +16,7 @@
   "gate_entry_no",
   "gate_entry_date",
   "posting_time",
+  "is_submitted",
   "column_break_efws",
   "vendor",
   "name_of_vendor",
@@ -259,12 +260,18 @@
    "fieldtype": "Table",
    "label": "Vehicle Details Item",
    "options": "Vehicle Details Item"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_submitted",
+   "fieldtype": "Check",
+   "label": "Is Submitted"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 16:41:41.494084",
+ "modified": "2025-09-29 16:59:18.792404",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Gate Entry",
