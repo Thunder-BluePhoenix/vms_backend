@@ -1,0 +1,50 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-30 15:33:21.801525",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "quotation_fill_reminder_time",
+  "vendor_filled_quotations_count"
+ ],
+ "fields": [
+  {
+   "description": "Schedule a reminder email to be sent to the vendor to complete the quotation form",
+   "fieldname": "quotation_fill_reminder_time",
+   "fieldtype": "Duration",
+   "label": "Quotation Fill Reminder Time"
+  },
+  {
+   "description": "Send an email to the vendor indicating how many Quotations they have filled",
+   "fieldname": "vendor_filled_quotations_count",
+   "fieldtype": "Duration",
+   "label": "Vendors Quotation Count Reminder Mail"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-09-30 15:59:41.518309",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "RFQ Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
