@@ -633,8 +633,9 @@
   },
   {
    "fieldname": "prev_rfq",
-   "fieldtype": "Data",
-   "label": "Prev RFQ"
+   "fieldtype": "Link",
+   "label": "Prev RFQ",
+   "options": "Request For Quotation"
   },
   {
    "default": "0",
@@ -663,7 +664,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-26 10:49:57.412866",
+ "modified": "2025-09-30 14:27:41.280838",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Request For Quotation",
