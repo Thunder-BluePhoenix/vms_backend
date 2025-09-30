@@ -361,7 +361,7 @@ def send_quotation_email(doc):
                 link = f"{site_url}/quatation-form?token={token}"
 
                 if isinstance(doc.rfq_cutoff_date_logistic, str):
-                    cutoff_dt = datetime.strptime(doc.rfq_cutoff_date_logistic, "%Y-%m-%d %H:%M:%S")
+                    cutoff_dt = datetime.strptime(doc.rfq_cutoff_date_logistic, "%Y-%m-%d %H:%M")
                 else:
                     cutoff_dt = doc.rfq_cutoff_date_logistic
 
