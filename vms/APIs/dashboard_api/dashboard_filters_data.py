@@ -124,7 +124,7 @@ from frappe.utils import today, get_first_day, get_last_day
 
 #         onboarding_docs = frappe.db.sql(f"""
 #             SELECT
-#                 vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, vo.modified,
+#                 vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.modified,
 #                 vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
 #                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
 #                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
@@ -287,7 +287,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
         # Updated query with JOINs to get full names
         onboarding_docs = frappe.db.sql(f"""
             SELECT
-                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, vo.modified,
+                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.modified,
                 vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
@@ -813,7 +813,7 @@ def total_vendor_details(page_no=None, page_length=None, company=None, refno=Non
 
         onboarding_docs = frappe.db.sql(f"""
             SELECT
-                vo.name, vo.ref_no, vo.company_name, vo.company, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, 
+                vo.name, vo.ref_no, vo.company_name, vo.company, vo.vendor_name, vo.onboarding_form_status, 
                 vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
                 vo.form_fully_submitted_by_vendor, vo.register_by_account_team, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,
@@ -1241,7 +1241,7 @@ def filtering_total_vendor_details_by_accounts(page_no=None, page_length=None, c
 
         onboarding_docs = frappe.db.sql(f"""
             SELECT
-                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, vo.modified,
+                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.modified,
                 vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,

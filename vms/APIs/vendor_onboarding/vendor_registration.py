@@ -35,7 +35,7 @@ def create_vendor_master(data):
             "purchase_team_second", "purchase_head_approval", "purchase_head_second_approval",
             "qa_team_approval", "qa_head_approval", "accounts_team_approval",
             "accounts_team_second_approval", "status", "onboarding_form_status",
-            "onboarding_ref_no", "rejection_comment"
+            "onboarding_ref_no"
         ]:
             if field in data:
                 doc.set(field, data[field])
