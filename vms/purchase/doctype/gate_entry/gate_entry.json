@@ -233,8 +233,10 @@
   },
   {
    "fieldname": "handover_to_person",
-   "fieldtype": "Data",
-   "label": "Handover to Person"
+   "fieldtype": "Link",
+   "label": "Handover to Person",
+   "link_filters": "[[\"Employee\",\"designation\",\"=\",\"Handover Person\"]]",
+   "options": "Employee"
   },
   {
    "fieldname": "handover_remark",
@@ -271,7 +273,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 16:59:18.792404",
+ "modified": "2025-09-30 10:29:02.466974",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Gate Entry",
