@@ -9,6 +9,7 @@ from datetime import datetime
 from frappe import _
 from datetime import datetime, timedelta
 from vms.utils.custom_send_mail import custom_sendmail
+import pytz
 
 
 class RequestForQuotation(Document):
@@ -314,6 +315,29 @@ def send_quotation_email(doc):
                 continue
             frappe.flags[f"mail_sent_{row.name}"] = True
 
+            # Format the cut off date time acc to indian std
+            dt_str = doc.rfq_cutoff_date_logistic
+
+            if isinstance(dt_str, str):
+                dt_str = dt_str.replace("T", " ")
+
+                try:
+                    dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+            else:
+                dt = doc.rfq_cutoff_date_logistic
+
+            utc = pytz.timezone("UTC")
+            ist = pytz.timezone("Asia/Kolkata")
+
+            if dt.tzinfo is None:
+                dt = utc.localize(dt)  
+            dt_ist = dt.astimezone(ist)
+
+            # Format as dd-mm-yyyy hh:mm AM/PM
+            cutoff_date = dt_ist.strftime("%d-%m-%Y, %I:%M %p")
+
             # set the quotation id if vendor previously fill the quotation or not
             quotation_id = None 
             
@@ -358,20 +382,14 @@ def send_quotation_email(doc):
                     prev_quotation_id=quotation_id
                 )
                 
-                link = f"{site_url}/quatation-form?token={token}"
-
-                if isinstance(doc.rfq_cutoff_date_logistic, str):
-                    cutoff_dt = datetime.strptime(doc.rfq_cutoff_date_logistic, "%Y-%m-%d %H:%M")
-                else:
-                    cutoff_dt = doc.rfq_cutoff_date_logistic
-
-                cutoff_date = cutoff_dt.strftime("%d %B %Y, %I:%M %p")
+                link = f"{site_url}/quotation-form?token={token}"
 
                 subject = "The Request for Quotation has been Revised - Action Required"
                 message = f"""
                     <p>Dear {row.vendor_name}</p>
                     <p>The RFQ has been Revised.</p>
                     <p>Please review your previously submitted quotation. The Prev Quotation id is<strong>{quotation_id}</strong>.</p>
+                    <p>This link will expire on <strong>{cutoff_date}</strong></p>
                     <a href="{link}" target="_blank">Click here to update the quotation</a>
                     <p>Thank you,<br>VMS Team</p>
                 """
@@ -395,14 +413,7 @@ def send_quotation_email(doc):
                     # cutoff_date=doc.rfq_cutoff_date_logistic
                 )
 
-                link = f"{site_url}/quatation-form?token={token}"
-
-                if isinstance(doc.rfq_cutoff_date_logistic, str):
-                    cutoff_dt = datetime.strptime(doc.rfq_cutoff_date_logistic, "%Y-%m-%d %H:%M:%S")
-                else:
-                    cutoff_dt = doc.rfq_cutoff_date_logistic
-
-                cutoff_date = cutoff_dt.strftime("%d %B %Y, %I:%M %p")
+                link = f"{site_url}/quotation-form?token={token}"
 
                 subject = "Request for Quotation - Action Required"
                 message = f"""
