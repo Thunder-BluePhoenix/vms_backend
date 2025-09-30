@@ -467,20 +467,96 @@ def send_thank_you_email_to_vendor(quotation):
         raise e
 
 
+# Return the Prev Quotation data based on prev Quotation ID
 
 @frappe.whitelist(allow_guest=True)
 def get_quotation_details(quotation_name):
     try:
+        if not quotation_name:
+            frappe.local.response["http_status_code"] = 400
+            return {
+                "status": "error",
+                "message": "Quotation ID is required."
+            }
+
         quotation = frappe.get_doc("Quotation", quotation_name)
-        quotation_dict = quotation.as_dict()
-        
-        return quotation_dict
-        
+
+        quotation_data = {
+            "quotation_name": quotation.name,
+            "rfq_number": quotation.rfq_number,
+            "ref_no": quotation.ref_no,
+            "vendor_name": quotation.vendor_name,
+            "vendor_code": quotation.vendor_code,
+            "rfq_type": quotation.rfq_type,
+            "office_email_primary": quotation.office_email_primary,
+            "vendor_contact": quotation.vendor_contact,
+
+            "logistic_type": quotation.logistic_type,
+            "company_name_logistic": quotation.company_name_logistic,
+            "mode_of_shipment": quotation.mode_of_shipment,
+            "sr_no": quotation.sr_no,
+            "airlinevessel_name": quotation.airlinevessel_name,
+            "chargeable_weight": quotation.chargeable_weight,
+            "rfq_cutoff_date": quotation.rfq_cutoff_date,
+            "ratekg": quotation.ratekg,
+            "fuel_surcharge": quotation.fuel_surcharge,
+            "surcharge": quotation.surcharge,
+            "sc": quotation.sc,
+            "xray": quotation.xray,
+            "pickuporigin": quotation.pickuporigin,
+            "transit_days": quotation.transit_days,
+            "total_freight": quotation.total_freight,
+            "from_currency": quotation.from_currency,
+            "exchange_rate": quotation.exchange_rate,
+            "total_freightinr": quotation.total_freightinr,
+            "destination_charge": quotation.destination_charge,
+            "shipping_line_charge": quotation.shipping_line_charge,
+            "cfs_charge": quotation.cfs_charge,
+            "total_landing_price": quotation.total_landing_price,
+            "remarks": quotation.remarks,
+
+            "destination_port": quotation.destination_port,
+            "port_code": quotation.port_code,
+            "port_of_loading": quotation.port_of_loading,
+            "inco_terms": quotation.inco_terms,
+            "shipper_name": quotation.shipper_name,
+            "package_type": quotation.package_type,
+            "no_of_pkg_units": quotation.no_of_pkg_units,
+            "product_category_logistic": quotation.product_category_logistic,
+            "vol_weight": quotation.vol_weight,
+            "actual_weight": quotation.actual_weight,
+            "invoice_date": quotation.invoice_date,
+            "invoice_no": quotation.invoice_no,
+            "invoice_value": quotation.invoice_value,
+            "expected_date_of_arrival": quotation.expected_date_of_arrival,
+            "consignee_name": quotation.consignee_name,
+            "shipment_date": quotation.shipment_date,
+            "shipment_type": quotation.shipment_type,
+            "quantity": quotation.quantity,
+            "ship_to_address": quotation.ship_to_address,
+        }
+
+        return {
+            "status": "success",
+            "data": quotation_data
+        }
+
     except frappe.DoesNotExistError:
-        frappe.throw(f"Quotation '{quotation_name}' not found")
+        frappe.local.response["http_status_code"] = 404
+        return {
+            "status": "error",
+            "message": f"Quotation '{quotation_name}' not found"
+        }
+
     except Exception as e:
-        frappe.log_error(f"Error in get_quotation_details: {str(e)}")
-        frappe.throw(f"An error occurred while fetching Quotation details: {str(e)}")
+        frappe.local.response["http_status_code"] = 500
+        frappe.log_error(frappe.get_traceback(), "Error in get_quotation_details")
+        return {
+            "status": "error",
+            "message": "An unexpected error occurred while fetching Quotation details."
+        }
+
+
 
 @frappe.whitelist(allow_guest=True)
 def get_quotations_by_rfq(rfq_number, page_no=1, page_length=5, vendor_name=None):

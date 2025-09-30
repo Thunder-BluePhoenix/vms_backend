@@ -5,40 +5,31 @@ import base64
 
 
 #vms.APIs.dispatch.get_gate_entry.gate_entry_get
-@frappe.whitelist(allow_guest=False)
-def gate_entry_get(name=None, start=0, page_length=20):
+@frappe.whitelist()
+def gate_entry_get(name=None, filters=None, fields=None, limit=20, offset=0, order_by=None, search_term=None, company=None, status=None, get_all=False):
+
     try:
+        if not frappe.has_permission("Gate Entry", "read"):
+            frappe.response.http_status_code = 403
+            return {"message": "Failed", "error": "You don't have permission to view Gate Entry"}
+
+        # If name is provided, return single document details
         if name:
-            if not frappe.db.exists("Gate Entry", name):
-                return {"error": True, "message": f"Gate Entry '{name}' does not exist"}
-            
             doc = frappe.get_doc("Gate Entry", name)
-            return {
-                "name": name,
-                "data": get_gate_entry_data(doc)
-            }
+            return get_gate_entry_data(doc)
         else:
-            data = frappe.get_list(
-                "Gate Entry",
-                fields=["*"],
-                start=start,
-                page_length=page_length,
-                order_by="modified desc"
-            )
+            return get_gate_entry_list(filters, fields, limit, offset, order_by, search_term,company, status, get_all)
             
-            total_count = frappe.db.count("Gate Entry")
-            
-            return {
-                "data": data,
-                "pagination": {
-                    "start": start,
-                    "page_length": page_length,
-                    "total_count": total_count
-                }
-            }
-            
+    except frappe.PermissionError:
+        frappe.response.http_status_code = 403
+        return {"message": "Failed", "error": "Permission denied"}
+    
     except Exception as e:
-        return {"error": True, "message": str(e)}
+        frappe.response.http_status_code = 500
+        frappe.log_error(frappe.get_traceback(), "Gate Entry Get Error")
+        return {"message": "Failed", "error": str(e)}
+
+
 
 
 
@@ -106,3 +97,135 @@ def get_gate_entry_data(doc):
         data["vehicle_details_item"] = vehicle_details
     
     return data
+
+
+@frappe.whitelist()
+def get_gate_entry_list(
+    filters=None,
+    fields=None,
+    limit=20,
+    offset=0,
+    order_by=None,
+    search_term=None,
+    company=None,
+    status=None,
+    get_all=False  
+):
+    try:
+       
+        if not frappe.has_permission("Gate Entry", "read"):
+            frappe.response.http_status_code = 403
+            return {"message": "Failed", "error": "You don't have permission to view Gate Entry"}
+
+        # Parse filters if they're passed as JSON string
+        if isinstance(filters, str):
+            filters = json.loads(filters) if filters else {}
+        elif filters is None:
+            filters = {}
+
+        # Parse fields if they're passed as JSON string
+        if isinstance(fields, str):
+            fields = json.loads(fields) if fields else ["name","inward_location","gate_entry_date","status","vendor","name_of_vendor","handover_to_person"]
+        elif fields is None:
+            fields = ["name","inward_location","gate_entry_date","status","vendor","name_of_vendor","handover_to_person"]
+
+        # Convert parameters to proper types
+        limit = int(limit) if limit else 20
+        offset = int(offset) if offset else 0
+        
+        # Convert get_all to boolean
+        if isinstance(get_all, str):
+            get_all = get_all.lower() in ['true', '1', 'yes']
+        
+        # Set default order_by if not provided
+        if not order_by:
+            order_by = "modified desc"
+
+        # Build search filters
+        search_filters = filters.copy()
+        
+        # Add company filter if provided
+        if company:
+            search_filters["name_of_company"] = company
+        
+        # Add status filter if provided
+        if status:
+            search_filters["status"] = status
+        
+        or_filters = None
+        if search_term:
+            or_filters = [
+                ["name", "like", f"%{search_term}%"],
+                ["gate_entry_no", "like", f"%{search_term}%"],
+                ["vendor", "like", f"%{search_term}%"],
+                ["name_of_vendor", "like", f"%{search_term}%"],
+                ["name_of_company", "like", f"%{search_term}%"],
+                ["handover_to_person", "like", f"%{search_term}%"]
+            ]
+
+        # Prepare parameters for get_list
+        list_params = {
+            "doctype": "Gate Entry",
+            "filters": search_filters,
+            "fields": fields,
+            "order_by": order_by,
+            "ignore_permissions": False
+        }
+        
+        # Add OR filters if search term exists
+        if or_filters:
+            list_params["or_filters"] = or_filters
+        
+        # Add pagination only if not getting all records
+        if not get_all:
+            list_params["limit"] = limit
+            list_params["start"] = offset
+
+        # Get list of documents
+        documents = frappe.get_list(**list_params)
+
+        # Get total count for pagination
+        if or_filters:
+            total_count = len(frappe.get_all(
+                "Gate Entry",
+                filters=search_filters,
+                or_filters=or_filters,
+                fields=["name"]
+            ))
+        else:
+            total_count = frappe.db.count("Gate Entry", search_filters)
+
+        # Build response
+        response = {
+            "message": "Success",
+            "data": documents
+        }
+        
+        # Add pagination only if not getting all records
+        if not get_all:
+            response["pagination"] = {
+                "total_count": total_count,
+                "limit": limit,
+                "offset": offset,
+                "has_next": (offset + limit) < total_count,
+                "has_previous": offset > 0
+            }
+        else:
+            response["total_count"] = total_count
+
+        return response
+
+    except json.JSONDecodeError:
+        frappe.response.http_status_code = 400
+        return {"message": "Failed", "error": "Invalid JSON in filters or fields"}
+    
+    except frappe.PermissionError:
+        frappe.response.http_status_code = 403
+        return {"message": "Failed", "error": "Permission denied"}
+    
+    except Exception as e:
+        frappe.response.http_status_code = 500
+        frappe.log_error(frappe.get_traceback(), "Gate Entry List Error")
+        return {"message": "Failed", "error": str(e)}
+
+

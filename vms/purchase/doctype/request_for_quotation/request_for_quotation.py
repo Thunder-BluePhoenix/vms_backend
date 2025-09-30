@@ -9,6 +9,7 @@ from datetime import datetime
 from frappe import _
 from datetime import datetime, timedelta
 from vms.utils.custom_send_mail import custom_sendmail
+import pytz
 
 
 class RequestForQuotation(Document):
@@ -214,6 +215,95 @@ def get_version_data(docname):
 
 # ----------------------------------------------------------------------------------------------------------------------
 
+# def send_quotation_email(doc):
+#     site_url = frappe.get_site_config().get('frontend_http', 'https://saksham-v.merillife.com/')
+
+#     # For onboarded vendors
+#     for row in doc.vendor_details:
+#         if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
+            
+#             if getattr(frappe.flags, f"mail_sent_{row.name}", False):
+#                 continue
+#             frappe.flags[f"mail_sent_{row.name}"] = True
+
+#             token = generate_secure_token(
+#                 ref_no=row.ref_no,
+#                 email=row.office_email_primary,
+#                 rfq_name=doc.name
+#                 # cutoff_date=doc.rfq_cutoff_date_logistic
+#             )
+#             link = f"{site_url}/quatation-form?token={token}"
+
+#             if isinstance(doc.rfq_cutoff_date_logistic, str):
+#                 cutoff_dt = datetime.strptime(doc.rfq_cutoff_date_logistic, "%Y-%m-%d %H:%M:%S")
+#             else:
+#                 cutoff_dt = doc.rfq_cutoff_date_logistic
+
+#             cutoff_date = cutoff_dt.strftime("%d %B %Y, %I:%M %p")
+
+#             subject = "Request for Quotation - Action Required"
+#             message = f"""
+#                 <p>Dear {row.vendor_name}</p>
+#                 <p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
+#                 <p>Please log in to the portal and create your quotation using the secure link below. This link will expire on <strong>{cutoff_date}</strong>.</p>
+#                 <a href="{link}" target="_blank">Click here to fill quotation</a>
+#                 <p>Thank you,<br>VMS Team</p>
+#             """
+
+#             row.mail_sent = 1
+#             frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
+
+#             frappe.custom_sendmail(
+#                 recipients=row.office_email_primary,
+# 				cc= doc.raised_by,
+#                 subject=subject,
+#                 message=message,
+#                 now=True
+#             )
+
+#     # For non-onboarded vendors
+#     for row in doc.non_onboarded_vendor_details:
+#         if row.office_email_primary and not row.mail_sent and doc.form_fully_submitted:
+
+#             if getattr(frappe.flags, f"mail_sent_{row.name}", False):
+#                 continue
+#             frappe.flags[f"mail_sent_{row.name}"] = True
+
+#             token = generate_secure_token(
+#                 email=row.office_email_primary,
+#                 rfq_name=doc.name
+#                 # cutoff_date=doc.rfq_cutoff_date_logistic
+#             )
+#             link = f"{site_url}/quatation-form?token={token}"
+
+#             subject = "Request for Quotation - Action Required"
+#             message = f"""
+#                 <p>Dear {row.vendor_name},</p>
+
+#                 <p>You have been invited to submit a quotation for the requested items in our RFQ document.</p>
+
+#                 <p>Kindly get in touch with our Procurement Team to complete the onboarding process before submitting your quotation.</p>
+
+#                 <p><a href="{link}" target="_blank">Click here to submit your quotation</a></p>
+#                 <p> Please Note - This link will expire on <strong>{cutoff_date}</strong></p>
+
+#                 <p>Thank you.<br>
+#                 Best regards,<br>
+#                 VMS Team</p>
+#             """
+
+#             row.mail_sent = 1
+#             frappe.db.set_value("Non Onboarded Vendor Details", row.name, "mail_sent", 1)
+
+#             frappe.custom_sendmail(
+#                 recipients=row.office_email_primary,
+# 				cc= doc.raised_by,
+#                 subject=subject,
+#                 message=message,
+#                 now=True
+#             )
+
+
 def send_quotation_email(doc):
     site_url = frappe.get_site_config().get('frontend_http', 'https://saksham-v.merillife.com/')
 
@@ -225,40 +315,125 @@ def send_quotation_email(doc):
                 continue
             frappe.flags[f"mail_sent_{row.name}"] = True
 
-            token = generate_secure_token(
-                ref_no=row.ref_no,
-                email=row.office_email_primary,
-                rfq_name=doc.name
-                # cutoff_date=doc.rfq_cutoff_date_logistic
-            )
-            link = f"{site_url}/quatation-form?token={token}"
+            # Format the cut off date time acc to indian std
+            dt_str = doc.rfq_cutoff_date_logistic
 
-            if isinstance(doc.rfq_cutoff_date_logistic, str):
-                cutoff_dt = datetime.strptime(doc.rfq_cutoff_date_logistic, "%Y-%m-%d %H:%M:%S")
+            if isinstance(dt_str, str):
+                dt_str = dt_str.replace("T", " ")
+
+                try:
+                    dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
             else:
-                cutoff_dt = doc.rfq_cutoff_date_logistic
+                dt = doc.rfq_cutoff_date_logistic
 
-            cutoff_date = cutoff_dt.strftime("%d %B %Y, %I:%M %p")
+            utc = pytz.timezone("UTC")
+            ist = pytz.timezone("Asia/Kolkata")
 
-            subject = "Request for Quotation - Action Required"
-            message = f"""
-                <p>Dear {row.vendor_name}</p>
-                <p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
-                <p>Please log in to the portal and create your quotation using the secure link below. This link will expire on <strong>{cutoff_date}</strong>.</p>
-                <a href="{link}" target="_blank">Click here to fill quotation</a>
-                <p>Thank you,<br>VMS Team</p>
-            """
+            if dt.tzinfo is None:
+                dt = utc.localize(dt)  
+            dt_ist = dt.astimezone(ist)
 
-            row.mail_sent = 1
-            frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
+            # Format as dd-mm-yyyy hh:mm AM/PM
+            cutoff_date = dt_ist.strftime("%d-%m-%Y, %I:%M %p")
 
-            frappe.custom_sendmail(
-                recipients=row.office_email_primary,
-				cc= doc.raised_by,
-                subject=subject,
-                message=message,
-                now=True
-            )
+            # set the quotation id if vendor previously fill the quotation or not
+            quotation_id = None 
+            
+            if doc.prev_rfq:
+                current_rfq = doc
+                visited_rfqs = set()
+
+                while current_rfq and current_rfq.name not in visited_rfqs:
+                    visited_rfqs.add(current_rfq.name)
+
+                    for prev_rfq_row in current_rfq.vendor_details:
+                        if prev_rfq_row.ref_no == row.ref_no and prev_rfq_row.office_email_primary == row.office_email_primary:
+                            try:
+                                parsed_json = frappe.parse_json(prev_rfq_row.json_field) if prev_rfq_row.json_field else []
+                            except Exception:
+                                parsed_json = []
+
+                            if parsed_json and isinstance(parsed_json, list):
+                                # Sort by creation date to get the most recent one
+                                most_recent = max(parsed_json, key=lambda x: x.get('creation', ''))
+                                quotation_id = most_recent.get('quotation')
+                                break  # Found the quotation, exit the loop
+                    
+                    # If we found a quotation_id, break the outer while loop
+                    if quotation_id:
+                        break
+                    
+                    # Go to previous RFQ if exists and no quotation found yet
+                    if current_rfq.prev_rfq:
+                        try:
+                            current_rfq = frappe.get_doc("Request For Quotation", current_rfq.prev_rfq)
+                        except Exception:
+                            break
+                    else:
+                        break
+
+            if quotation_id:
+                token = generate_secure_token(
+                    ref_no=row.ref_no,
+                    email=row.office_email_primary,
+                    rfq_name=doc.name,
+                    prev_quotation_id=quotation_id
+                )
+                
+                link = f"{site_url}/quotation-form?token={token}"
+
+                subject = "The Request for Quotation has been Revised - Action Required"
+                message = f"""
+                    <p>Dear {row.vendor_name}</p>
+                    <p>The RFQ has been Revised.</p>
+                    <p>Please review your previously submitted quotation. The Prev Quotation id is<strong>{quotation_id}</strong>.</p>
+                    <p>This link will expire on <strong>{cutoff_date}</strong></p>
+                    <a href="{link}" target="_blank">Click here to update the quotation</a>
+                    <p>Thank you,<br>VMS Team</p>
+                """
+
+                row.mail_sent = 1
+                frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
+
+                frappe.custom_sendmail(
+                    recipients=row.office_email_primary,
+                    cc= doc.raised_by,
+                    subject=subject,
+                    message=message,
+                    now=True
+                )
+
+            else:
+                token = generate_secure_token(
+                    ref_no=row.ref_no,
+                    email=row.office_email_primary,
+                    rfq_name=doc.name
+                    # cutoff_date=doc.rfq_cutoff_date_logistic
+                )
+
+                link = f"{site_url}/quotation-form?token={token}"
+
+                subject = "Request for Quotation - Action Required"
+                message = f"""
+                    <p>Dear {row.vendor_name}</p>
+                    <p>You have been selected to submit a quotation for the requested items in our RFQ document.</p>
+                    <p>Please log in to the portal and create your quotation using the secure link below. This link will expire on <strong>{cutoff_date}</strong>.</p>
+                    <a href="{link}" target="_blank">Click here to fill quotation</a>
+                    <p>Thank you,<br>VMS Team</p>
+                """
+
+                row.mail_sent = 1
+                frappe.db.set_value("Vendor Details", row.name, "mail_sent", 1)
+
+                frappe.custom_sendmail(
+                    recipients=row.office_email_primary,
+                    cc= doc.raised_by,
+                    subject=subject,
+                    message=message,
+                    now=True
+                )
 
     # For non-onboarded vendors
     for row in doc.non_onboarded_vendor_details:
@@ -305,11 +480,12 @@ def send_quotation_email(doc):
 
 SECRET_KEY = str(frappe.conf.get("secret_key", ""))
 
-def generate_secure_token(ref_no=None, email=None, rfq_name=None):
+def generate_secure_token(ref_no=None, email=None, rfq_name=None, prev_quotation_id=None):
     payload = {
         "ref_no": ref_no,
         "email": email,
-        "rfq": rfq_name
+        "rfq": rfq_name,
+        "prev_quotation_id": prev_quotation_id
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
@@ -324,11 +500,13 @@ def process_token(token):
         ref_no = decoded.get("ref_no")
         email = decoded.get("email")
         rfq = decoded.get("rfq")
+        prev_quotation_id = decoded.get("prev_quotation_id")
 
         vendor_details = {}
         if ref_no:
             vendor_master = frappe.get_doc("Vendor Master", ref_no)
             vendor_details = {
+                "ref_no": vendor_master.name,
                 "vendor_name": vendor_master.vendor_name,
                 "office_email_primary": vendor_master.office_email_primary,
                 "mobile_number": vendor_master.mobile_number,
@@ -409,6 +587,7 @@ def process_token(token):
                     "ref_no": ref_no,
                     "email": email,
                     "rfq": rfq,
+                    "prev_quotation_id": prev_quotation_id,
                     "vendor_details": vendor_details
                 }
 
@@ -463,6 +642,7 @@ def process_token(token):
                     "ref_no": ref_no,
                     "email": email,
                     "rfq": rfq,
+                    "prev_quotation_id": prev_quotation_id,
                     "vendor_details": vendor_details
                 }
 
@@ -537,6 +717,7 @@ def process_token(token):
                     "ref_no": ref_no,
                     "email": email,
                     "rfq": rfq,
+                    "prev_quotation_id": prev_quotation_id,
                     "vendor_details": vendor_details
                 }
 

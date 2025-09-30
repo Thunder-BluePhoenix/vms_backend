@@ -319,7 +319,7 @@ def handover_gate_entry():
        
         
         if handover_remarks:
-            doc.handover_remarks = handover_remarks
+            doc.handover_remark = handover_remarks
 
 
         doc.status = "HandedOver"
