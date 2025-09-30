@@ -1,24 +1,45 @@
 import frappe
 import json
 
-# Vednor Type, Vendor Title, Country, Company, Currency, Incoterm Masters
-# sap client code is added for extend vendor to filter the company
 
+# Team wise employee user list
 @frappe.whitelist(allow_guest=True)
-def vendor_registration_dropdown_masters(sap_client_code=None):
+def team_wise_user_list():
     try:
         usr = frappe.session.user
         employee_list = frappe.get_all("Employee", filters={"user_id": usr}, limit_page_length=1)
+        
         if employee_list:
             employee = frappe.get_doc("Employee", employee_list[0].name)
             team = employee.team
         else:
             team = None
 
-        user_list = []
+        user_list = {}
         if team:
             user_list = frappe.get_all("Employee", filters={"team": team, "designation": "Purchase Team"}, fields=["user_id", "full_name"])
 
+        return {
+            "status": "success",
+            "message": "Dropdown masters fetched successfully.",
+            "users_list" : user_list
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Dropdown Master Fetch Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch dropdown values.",
+            "error": str(e)
+        }
+    
+
+# Vednor Type, Vendor Title, Country, Company, Currency, Incoterm Masters
+# sap client code is added for extend vendor to filter the company
+
+@frappe.whitelist(allow_guest=True)
+def vendor_registration_dropdown_masters(sap_client_code=None):
+    try:
         vendor_type = frappe.db.sql("SELECT name  FROM `tabVendor Type Master`", as_dict=True)
         vendor_title = frappe.db.sql("SELECT name FROM `tabVendor Title`", as_dict=True)
         country_master = frappe.db.sql("SELECT name, country_name, mobile_code FROM `tabCountry Master` WHERE inactive = 0", as_dict=True)
@@ -51,8 +72,7 @@ def vendor_registration_dropdown_masters(sap_client_code=None):
                 "company_master": company_master,
                 "currency_master": currency_master,
                 "incoterm_master": incoterm_master,
-                "reconciliation_account": reconciliation_account,
-                "users_list": user_list
+                "reconciliation_account": reconciliation_account
             }
         }
 
