@@ -237,20 +237,24 @@ class VendorImportStaging(Document):
                 FROM `tabVendor Code` vc
                 INNER JOIN `tabCompany Vendor Code` cvc ON cvc.name = vc.parent
                 WHERE vc.vendor_code = %(vendor_code)s 
+                AND cvc.company_name = %(company_name)s
                 LIMIT 1
                 """
                 
                 existing = frappe.db.sql(
                     existing_query,
                     {
-                        'vendor_code': self.vendor_code
+                        'vendor_code': self.vendor_code,
+                        'company_name': self.c_code
                     },
                     as_dict=True
                 )
                 
                 if existing:
-                    warnings.append(f"Vendor code: {self.vendor_code} exist for Company {existing[0].company_name} for Vendor ({existing[0].vendor_ref_no})")
-                   
+                    warnings.append(
+                        f"Vendor code: {self.vendor_code} already exists for Company {existing[0].company_name} "
+                        f"for Vendor ({existing[0].vendor_ref_no})"
+                    )
             
             # === SET VALIDATION STATUS ===
             
@@ -260,7 +264,8 @@ class VendorImportStaging(Document):
                 self.error_log = "\n".join(all_issues)
             elif warnings:
                 self.validation_status = "Warning" 
-                self.error_log = "WARNINGS:\n" + "\n".join(warnings)
+                all_issues = errors + warnings
+                self.error_log = "WARNINGS:\n" + "\n".join(all_issues)
             else:
                 self.validation_status = "Valid"
                 self.error_log = ""
@@ -1583,6 +1588,10 @@ def set_vendor_master_fields_from_staging(vendor_master, mapped_row):
     vendor_master.office_email_secondary = mapped_row.get('office_email_secondary')
     vendor_master.mobile_number = mapped_row.get('mobile_number')
     vendor_master.country = mapped_row.get('country') or "India"
+    vendor_master.payee_in_document = 1
+    vendor_master.gr_based_inv_ver = 1
+    vendor_master.service_based_inv_ver = 1
+    vendor_master.check_double_invoice = 1
     
     # Handle vendor types (child table)
     vendor_type = mapped_row.get('vendor_type')
@@ -1602,6 +1611,11 @@ def update_vendor_master_fields_from_staging(vendor_master, mapped_row):
         vendor_master.mobile_number = mapped_row.get('mobile_number')
     if mapped_row.get('country'):
         vendor_master.country = mapped_row.get('country')
+
+    vendor_master.payee_in_document = 1
+    vendor_master.gr_based_inv_ver = 1
+    vendor_master.service_based_inv_ver = 1
+    vendor_master.check_double_invoice = 1
     
     # Handle vendor types (avoid duplicates)
     vendor_type = mapped_row.get('vendor_type')
