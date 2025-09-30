@@ -36,7 +36,7 @@ app_include_js = [
     # "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js",
     # "assets/vms/js/chat_integratioonn.js",
     # "assets/vms/js/chat_realtimee.js" 
-    "assets/vms/js/nav_chatf7.js",
+    "assets/vms/js/nav_chatf9.js",
 
     # "assets/vms/js/nav_chat27.js",
 
@@ -94,7 +94,7 @@ websocket_events = {
 fixtures = [
     # {"dt": "SAP Mapper PR"},
     {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab", "Super Head", "Accounts Head", "ASA", "IT Head","Nirav","Earth Upload Railway","Earth Upload International Air","Earth Upload Domestic Air","Earth Upload Bus","Earth Upload Hotel"]]}},
-    {"dt": "Role Profile", "filters": {"name" :["in", ["Accounts Head", "Super Head", "Accounts Team", "Enquirer", "Purchase Head", "Purchase Team", "Vendor", "QA Team", "QA Head"]]}},
+    {"dt": "Role Profile", "filters": {"name" :["in", ["Accounts Head", "Super Head", "Accounts Team", "Enquirer", "Purchase Head", "Purchase Team", "Vendor", "QA Team", "QA Head","Handover Person","Store"]]}},
     {"dt": "Module Profile", "filters": {"name": ["in", ["Vendor"]]}},
     {"dt": "QMS Quality Control System"},
     {"dt": "QMS Procedure Doc Name"},

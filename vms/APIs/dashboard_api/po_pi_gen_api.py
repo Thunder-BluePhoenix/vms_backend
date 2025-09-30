@@ -13,7 +13,7 @@ import json
 def dashboard_card(usr):
     try:
         
-        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "Accounts Head", "Super Head", "QA Team", "QA Head"}
+        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "Accounts Head", "Super Head", "QA Team", "QA Head", "Treasury"}
         user_roles = frappe.get_roles(usr)
 
         if not any(role in allowed_roles for role in user_roles):
@@ -31,6 +31,8 @@ def dashboard_card(usr):
             return vendor_data_for_accounts(usr, user_roles)
         elif "Super Head" in user_roles:
             return vendor_data_for_super_head(usr, user_roles)
+        elif "Treasury" in user_roles:
+            return vendor_data_for_treasury(usr, user_roles)
         else:
             return vendor_data_for_purchase(usr, user_roles)
 
@@ -761,6 +763,65 @@ def vendor_data_for_super_head (usr, user_roles):
         }
 
     
+def vendor_data_for_treasury(usr, user_roles):
+    try:
+        # for Treasury
+
+        approved_vendor_count = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Approved",
+            }
+        )
+
+        pending_vendor_count= frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Pending",
+            }
+        )
+
+        rejected_vendor_count= frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Rejected"
+            }
+        )
+
+        sap_error_vendor_count= frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "SAP Error"
+            }
+        )
+
+        expired_vendor_count= frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Expired"
+            }
+        )
+
+        return {
+            "status": "success",
+            "message": "Vendor Onboarding dashboard counts fetched successfully.",
+            "role": user_roles,
+            # for Treasury
+            "pending_vendor_count": pending_vendor_count,
+            "approved_vendor_count": approved_vendor_count,
+            "rejected_vendor_count": rejected_vendor_count,
+            "expired_vendor_count": sap_error_vendor_count,
+            "sap_error_vendor_count": expired_vendor_count
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Dashboard Card API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch vendor onboarding dashboard data.",
+            "error": str(e),
+            "vendor_count": 0
+        }
 
 
 

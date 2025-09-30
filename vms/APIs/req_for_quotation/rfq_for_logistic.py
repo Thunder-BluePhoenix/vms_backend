@@ -239,6 +239,17 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
         frappe.throw(_("Missing required parameter: service_provider"))
 
     try:
+		# Return empty result if the service provider is All Service Provider, Premium Service Provider
+        if service_provider in ["All Service Provider", "Premium Service Provider"]:
+            return {
+                "status": "success",
+                "message": "No vendors returned for this service provider.",
+                "data": [],
+                "total_count": 0,
+                "page_no": page_no,
+                "page_length": page_length
+            }
+
         # Get all vendor linked to this company
         company_vendor_links = frappe.get_all(
             "Company Vendor Code",
@@ -268,10 +279,10 @@ def vendor_list(rfq_type=None, vendor_name=None, service_provider=None, page_no=
 
         conditions = {"name": ["in", list(set(vendor_links))]}
 
-        if service_provider == "All Service Provider":
-            conditions["service_provider_type"] = ["in", ["Premium Service Provider", "Service Provider"]]
-        if service_provider == "Premium Service Provider":
-            conditions["service_provider_type"] = ["in", ["Premium Service Provider"]]
+        # if service_provider == "All Service Provider":
+        #     conditions["service_provider_type"] = ["in", ["Premium Service Provider", "Service Provider"]]
+        # if service_provider == "Premium Service Provider":
+        #     conditions["service_provider_type"] = ["in", ["Premium Service Provider"]]
         if service_provider=="Courier Service Provider":
             conditions["service_provider_type"] = "Courier Partner"
         if service_provider == "Adhoc Service Provider":

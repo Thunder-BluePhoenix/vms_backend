@@ -1138,6 +1138,17 @@ def create_company_details_from_staging(vendor_ref_no, mapped_row):
         
         if mapped_row.get('established_year'):
             details_doc.established_year = mapped_row.get('established_year')
+
+        if mapped_row.get('gst'):
+            details_doc.append("comp_gst_table", {
+                    "pincode": mapped_row.get('pincode'),
+                    "gst_state": mapped_row.get('state'),
+                    "gst_number": mapped_row.get('gst'),
+                    "gst_ven_type": mapped_row.get('vendor_gst_classification')
+                })
+            
+
+        
         
         # Save the document
         details_doc.via_data_import = 1
@@ -1325,7 +1336,7 @@ def update_vendor_master_multiple_company_data(vendor_ref_no, company_name, comp
                     if mapped_row.get('reconciliation_account'):
                         mc_row.reconciliation_account = mapped_row.get('reconciliation_account')
 
-                    mc_row.via_import = 1
+                    mc_row.via_import = True
                     
                     mc_row_found = True
                     break
@@ -1391,7 +1402,8 @@ def create_multiple_company_data_from_staging(vendor_ref_no, mapped_row):
                 "purchase_group": mapped_row.get('purchase_group'),
                 "order_currency": mapped_row.get('order_currency'),
                 "incoterm": mapped_row.get('incoterm'),
-                "reconciliation_account": mapped_row.get('reconciliation_account')
+                "reconciliation_account": mapped_row.get('reconciliation_account'),
+                "via_import": 1
             })
             
             vm_doc.save(ignore_permissions=True)
@@ -1660,6 +1672,8 @@ def create_payment_details_from_staging(mapped_row, vendor_master_name):
             payment_doc.enterprise_registration_no = mapped_row.get('enterprise_registration_no')
         if mapped_row.get('gst_vendor_type'):
             payment_doc.gst_vendor_type = mapped_row.get('gst_vendor_type')
+        if mapped_row.get('company_pan_number'):
+            payment_doc.company_pan_number = mapped_row.get('company_pan_number')
         
         # Handle banker details child table
         banker_data = {

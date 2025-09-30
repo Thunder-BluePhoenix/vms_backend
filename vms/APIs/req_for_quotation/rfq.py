@@ -7,276 +7,6 @@ from frappe.utils.file_manager import save_file
 from frappe.utils import cstr, cint
 
 
-@frappe.whitelist(allow_guest=False)
-def get_full_rfq_data(unique_id):
-	try:
-		latest_name = frappe.db.sql("""
-			SELECT MAX(name) AS name
-			FROM `tabRequest For Quotation`
-			WHERE unique_id = %s
-		""", unique_id, as_dict=True)
-
-		if not latest_name or not latest_name[0].name:
-			frappe.throw("Could not find latest RFQ version.")
-
-		rfq_name = latest_name[0].name
-		doc = frappe.get_doc("Request For Quotation", rfq_name)
-
-		# Child Tables
-		grouped_data = {}
-
-		for row in sorted(doc.rfq_items, key=lambda x: x.idx):
-			head_id = row.head_unique_field
-			if not head_id:
-				continue
-
-			if head_id not in grouped_data:
-					grouped_data[head_id] = {
-					"row_id": row.name,
-					"head_unique_field": row.head_unique_field,
-					"purchase_requisition_number": row.purchase_requisition_number,
-					"material_code_head": row.material_code_head,
-					"delivery_date_head": row.delivery_date_head,
-					"material_name_head": row.material_name_head,
-					"quantity_head": row.quantity_head,
-					"uom_head": row.uom_head,
-					"price_head": row.price_head,
-					"rate_with_tax": row.rate_with_tax,
-					"rate_without_tax": row.rate_without_tax,
-					"moq_head": row.moq_head,
-					"lead_time_head": row.lead_time_head,
-					"tax": row.tax,
-					"remarks": row.remarks,
-					"subhead_fields": []
-				}
-			subhead_data = {
-					"subhead_unique_field": row.subhead_unique_field,
-					"material_code_subhead": row.material_code_subhead,
-					"material_name_subhead": row.material_name_subhead,
-					"quantity_subhead": row.quantity_subhead,
-					"uom_subhead": row.uom_subhead,
-					"price_subhead": row.price_subhead,
-					"delivery_date_subhead": row.delivery_date_subhead
-			}
-			grouped_data[head_id]["subhead_fields"].append(subhead_data)
-
-		# Onboarded Vendor Details Table
-		vendor_details_data = []
-		vendor_with_quotation = 0
-		for row in doc.vendor_details:
-			if row.quotation:
-				vendor_with_quotation += 1    
-
-			# Parse json_field if present
-			try:
-				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
-			except Exception:
-				parsed_json = []
-
-			if parsed_json:
-				vendor_details_data.append({
-					"refno": row.ref_no,
-					"vendor_name": row.vendor_name,
-					"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
-					"office_email_primary": row.office_email_primary,
-					"mobile_number": row.mobile_number,
-					"service_provider_type": row.service_provider_type,
-					"country": row.country,
-					"bid_won": row.bid_won,
-					"bid_loss": row.bid_loss,
-					"quotations": parsed_json   
-				})
-
-		# Non-Onboarded Vendor Details Table
-		non_onboarded_with_quotation = 0
-		for row in doc.non_onboarded_vendor_details:
-			if row.quotation:
-				non_onboarded_with_quotation += 1
-
-			try:
-				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
-			except Exception:
-				parsed_json = []
-
-			if parsed_json:
-				vendor_details_data.append({
-					"office_email_primary": row.office_email_primary,
-					"vendor_name": row.vendor_name,
-					"mobile_number": row.mobile_number,
-					"country": row.country,
-					"company_pan": row.company_pan,
-					"gst_number": row.gst_number,
-					"bid_won": row.bid_won,
-					"bid_loss": row.bid_loss,
-					"quotations": parsed_json 
-				})
-
-		all_vendors = []
-
-		for row in doc.vendor_details:
-				all_vendors.append({
-					"refno": row.ref_no,
-					"vendor_name": row.vendor_name,
-					"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
-					"office_email_primary": row.office_email_primary,
-					"mobile_number": row.mobile_number,
-					"service_provider_type": row.service_provider_type,
-					"country": row.country
-				})
-
-		for row in doc.non_onboarded_vendor_details:
-				all_vendors.append({
-					"office_email_primary": row.office_email_primary,
-					"vendor_name": row.vendor_name,
-					"mobile_number": row.mobile_number,
-					"country": row.country,
-					"company_pan": row.company_pan,
-					"gst_number": row.gst_number
-				})
-
-		# File Attachments Section
-		attachments = []
-		for row in doc.multiple_attachments:
-			file_url = row.get("attachment_name")
-			if file_url:
-				file_doc = frappe.get_doc("File", {"file_url": file_url})
-				attachments.append({
-					"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-					"name": file_doc.name,
-					"file_name": file_doc.file_name
-				})
-			else:
-				attachments.append({
-					"url": "",
-					"name": "",
-					"file_name": ""
-				})
-
-		# Total RFQs Sent and Quotations Received
-		total_rfq_sent = len(doc.vendor_details) + len(doc.non_onboarded_vendor_details)
-		total_quotation_received = vendor_with_quotation + non_onboarded_with_quotation
-
-		final_approve_quotation = None
-
-		for row in doc.vendor_details:
-			if row.quotation:
-				final_approve_quotation = frappe.get_doc("Quotation", row.quotation)
-						
-		for row in doc.non_onboarded_vendor_details:
-			if row.quotation:
-				final_approve_quotation = frappe.get_doc("Quotation", row.quotation)
-
-		data = {
-			# logistic import rfq data / logistic export rfq data
-			"name": doc.name,
-			"status": doc.status,
-			"form_fully_submitted": doc.form_fully_submitted,
-			"is_approved": doc.is_approved,
-			"revised_rfq": doc.revised_rfq,
-			"unique_id": doc.unique_id,
-			"rfq_type": doc.rfq_type,
-			"raised_by": doc.raised_by,
-			"logistic_type": doc.logistic_type,
-			"company_name_logistic": doc.company_name_logistic,
-			"rfq_cutoff_date_logistic": doc.rfq_cutoff_date_logistic,
-			"mode_of_shipment": doc.mode_of_shipment,
-			"port_of_loading": doc.port_of_loading,
-			"destination_port": doc.destination_port,
-            "export_destination_port": frappe.db.get_value("Port Master", doc.destination_port, "port_name"),
-			"ship_to_address": doc.ship_to_address,
-			"no_of_pkg_units": doc.no_of_pkg_units,
-			"vol_weight": doc.vol_weight,
-			"invoice_date": doc.invoice_date,
-			"shipment_date": doc.shipment_date,
-			"remarks": doc.remarks,
-			"expected_date_of_arrival": doc.expected_date_of_arrival,
-			"service_provider": doc.service_provider,
-			"consignee_name": doc.consignee_name,
-			"sr_no": doc.sr_no,
-			"rfq_date_logistic": doc.rfq_date_logistic,
-			"country": doc.country,
-			"port_code": doc.port_code,
-			"inco_terms": doc.inco_terms,
-			"package_type": doc.package_type,
-			"product_category": doc.product_category,
-			"actual_weight": doc.actual_weight,
-			"invoice_no": doc.invoice_no,
-			"shipment_type": doc.shipment_type,
-			"shipper_name": doc.shipper_name,
-			"invoice_value": doc.invoice_value,
-
-			# Material/service rfq common data
-			"rfq_date": doc.rfq_date,
-			"company_name": doc.company_name,
-			"purchase_organization": doc.purchase_organization,
-			"purchase_group": doc.purchase_group,
-			"currency": doc.currency,
-			"collection_number": doc.collection_number,
-			"quotation_deadline": doc.quotation_deadline,
-			"validity_start_date": doc.validity_start_date,
-			"validity_end_date": doc.validity_end_date,
-			"bidding_person": doc.bidding_person,
-			"service_code": doc.service_code,
-			"service_category": doc.service_category,
-			"material_code": doc.material_code,
-			"material_category": doc.material_category,
-			"plant_code": doc.plant_code,
-			"storage_location": doc.storage_location,
-			"short_text": doc.short_text,
-			"rfq_quantity": doc.rfq_quantity,
-			"quantity_unit": doc.quantity_unit,
-			"delivery_date": doc.delivery_date,
-			"estimated_price": doc.estimated_price,
-			"first_reminder": doc.first_reminder,
-			"second_reminder": doc.second_reminder,
-			"third_reminder": doc.third_reminder,
-
-			# Tables
-			"pr_items": list(grouped_data.values()),
-			"vendor_details": vendor_details_data,
-			"all_vendors": all_vendors,
-			"attachments": attachments,
-
-			# approved quotation details
-			"final_quotation_id": final_approve_quotation.name if final_approve_quotation else "",
-			"is_negotiated": final_approve_quotation.is_negotiated if final_approve_quotation else 0,
-			"final_mode_of_shipment": final_approve_quotation.mode_of_shipment if final_approve_quotation else "",
-			"final_ffn": final_approve_quotation.final_ffn if final_approve_quotation else "",
-			"final_freight_fcr": final_approve_quotation.final_freight_fcr if final_approve_quotation else "",
-			"final_xcr": final_approve_quotation.final_xcr if final_approve_quotation else "",
-			"final_sum_freight_inr": final_approve_quotation.final_sum_freight_inr if final_approve_quotation else "",
-			"final_others": final_approve_quotation.final_others if final_approve_quotation else "",
-			"final_dc": final_approve_quotation.final_dc if final_approve_quotation else "",
-			"final_remarks": final_approve_quotation.final_remarks if final_approve_quotation else "",
-			"final_rate_kg": final_approve_quotation.final_rate_kg if final_approve_quotation else "",
-			"final_fsc": final_approve_quotation.final_fsc if final_approve_quotation else "",
-			"final_pickup": final_approve_quotation.final_pickup if final_approve_quotation else "",
-			"final_gst_amount": final_approve_quotation.final_gst_amount if final_approve_quotation else "",
-			"final_airline": final_approve_quotation.final_airline if final_approve_quotation else "",
-			"final_transit_days": final_approve_quotation.final_transit_days if final_approve_quotation else "",
-			"final_tat": final_approve_quotation.final_tat if final_approve_quotation else "",
-			"final_chargeable_weight": final_approve_quotation.final_chargeable_weight if final_approve_quotation else "",
-			"final_sc": final_approve_quotation.final_sc if final_approve_quotation else "",
-			"final_xray": final_approve_quotation.final_xray if final_approve_quotation else "",
-			"final_total": final_approve_quotation.final_total if final_approve_quotation else "",
-			"final_landing_price": final_approve_quotation.final_landing_price if final_approve_quotation else "",
-			"final_freight_total": final_approve_quotation.final_freight_total if final_approve_quotation else "",
-			"final_cfs_charge": final_approve_quotation.final_cfs_charge if final_approve_quotation else "",
-
-			# Counts
-			"total_rfq_sent": total_rfq_sent,
-			"total_quotation_received": total_quotation_received
-		}
-
-		return data
-
-	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "get_full_rfq_data failed")
-		frappe.throw("Could not fetch RFQ details.")
-
-
-# Another function for to get full rfq data which handle the vendor list seperately onboarded and non-onboarded
-
 # @frappe.whitelist(allow_guest=False)
 # def get_full_rfq_data(unique_id):
 # 	try:
@@ -331,50 +61,78 @@ def get_full_rfq_data(unique_id):
 # 			grouped_data[head_id]["subhead_fields"].append(subhead_data)
 
 # 		# Onboarded Vendor Details Table
-            
-# 		onboarded_vendors = []
-# 		non_onboarded_vendors = []
-      
+# 		vendor_details_data = []
+# 		vendor_with_quotation = 0
 # 		for row in doc.vendor_details:
+# 			if row.quotation:
+# 				vendor_with_quotation += 1    
+
 # 			# Parse json_field if present
 # 			try:
 # 				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
 # 			except Exception:
 # 				parsed_json = []
 
-# 			# if parsed_json:
-# 			onboarded_vendors.append({
-# 				"refno": row.ref_no,
-# 				"vendor_name": row.vendor_name,
-# 				"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
-# 				"office_email_primary": row.office_email_primary,
-# 				"mobile_number": row.mobile_number,
-# 				"service_provider_type": row.service_provider_type,
-# 				"country": row.country,
-# 				"bid_won": row.bid_won,
-# 				"bid_loss": row.bid_loss,
-# 				"quotations": parsed_json   
-# 			})
+# 			if parsed_json:
+# 				vendor_details_data.append({
+# 					"refno": row.ref_no,
+# 					"vendor_name": row.vendor_name,
+# 					"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
+# 					"office_email_primary": row.office_email_primary,
+# 					"mobile_number": row.mobile_number,
+# 					"service_provider_type": row.service_provider_type,
+# 					"country": row.country,
+# 					"bid_won": row.bid_won,
+# 					"bid_loss": row.bid_loss,
+# 					"quotations": parsed_json   
+# 				})
 
 # 		# Non-Onboarded Vendor Details Table
-# 		for row in doc.non_onboarded_vendor_details:    
+# 		non_onboarded_with_quotation = 0
+# 		for row in doc.non_onboarded_vendor_details:
+# 			if row.quotation:
+# 				non_onboarded_with_quotation += 1
+
 # 			try:
 # 				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
 # 			except Exception:
 # 				parsed_json = []
 
-# 			# if parsed_json:
-# 			non_onboarded_vendors.append({
-# 				"office_email_primary": row.office_email_primary,
-# 				"vendor_name": row.vendor_name,
-# 				"mobile_number": row.mobile_number,
-# 				"country": row.country,
-# 				"company_pan": row.company_pan,
-# 				"gst_number": row.gst_number,
-# 				"bid_won": row.bid_won,
-# 				"bid_loss": row.bid_loss,
-# 				"quotations": parsed_json 
-# 			})
+# 			if parsed_json:
+# 				vendor_details_data.append({
+# 					"office_email_primary": row.office_email_primary,
+# 					"vendor_name": row.vendor_name,
+# 					"mobile_number": row.mobile_number,
+# 					"country": row.country,
+# 					"company_pan": row.company_pan,
+# 					"gst_number": row.gst_number,
+# 					"bid_won": row.bid_won,
+# 					"bid_loss": row.bid_loss,
+# 					"quotations": parsed_json 
+# 				})
+
+# 		all_vendors = []
+
+# 		for row in doc.vendor_details:
+# 				all_vendors.append({
+# 					"refno": row.ref_no,
+# 					"vendor_name": row.vendor_name,
+# 					"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
+# 					"office_email_primary": row.office_email_primary,
+# 					"mobile_number": row.mobile_number,
+# 					"service_provider_type": row.service_provider_type,
+# 					"country": row.country
+# 				})
+
+# 		for row in doc.non_onboarded_vendor_details:
+# 				all_vendors.append({
+# 					"office_email_primary": row.office_email_primary,
+# 					"vendor_name": row.vendor_name,
+# 					"mobile_number": row.mobile_number,
+# 					"country": row.country,
+# 					"company_pan": row.company_pan,
+# 					"gst_number": row.gst_number
+# 				})
 
 # 		# File Attachments Section
 # 		attachments = []
@@ -396,6 +154,7 @@ def get_full_rfq_data(unique_id):
 
 # 		# Total RFQs Sent and Quotations Received
 # 		total_rfq_sent = len(doc.vendor_details) + len(doc.non_onboarded_vendor_details)
+# 		total_quotation_received = vendor_with_quotation + non_onboarded_with_quotation
 
 # 		final_approve_quotation = None
 
@@ -474,8 +233,8 @@ def get_full_rfq_data(unique_id):
 
 # 			# Tables
 # 			"pr_items": list(grouped_data.values()),
-# 			"onboarded_vendors": onboarded_vendors,
-# 			"non_onboarded_vendors": non_onboarded_vendors,
+# 			"vendor_details": vendor_details_data,
+# 			"all_vendors": all_vendors,
 # 			"attachments": attachments,
 
 # 			# approved quotation details
@@ -506,6 +265,7 @@ def get_full_rfq_data(unique_id):
 
 # 			# Counts
 # 			"total_rfq_sent": total_rfq_sent,
+# 			"total_quotation_received": total_quotation_received
 # 		}
 
 # 		return data
@@ -513,6 +273,296 @@ def get_full_rfq_data(unique_id):
 # 	except Exception as e:
 # 		frappe.log_error(frappe.get_traceback(), "get_full_rfq_data failed")
 # 		frappe.throw("Could not fetch RFQ details.")
+
+
+# Another function to get full rfq data which handle the vendor list seperately for onboarded and non-onboarded vendor list
+
+@frappe.whitelist(allow_guest=False)
+def get_full_rfq_data(unique_id):
+	try:
+		latest_name = frappe.db.sql("""
+			SELECT MAX(name) AS name
+			FROM `tabRequest For Quotation`
+			WHERE unique_id = %s
+		""", unique_id, as_dict=True)
+
+		if not latest_name or not latest_name[0].name:
+			frappe.throw("Could not find latest RFQ version.")
+
+		rfq_name = latest_name[0].name
+		doc = frappe.get_doc("Request For Quotation", rfq_name)
+
+		# Child Tables
+		grouped_data = {}
+
+		for row in sorted(doc.rfq_items, key=lambda x: x.idx):
+			head_id = row.head_unique_field
+			if not head_id:
+				continue
+
+			if head_id not in grouped_data:
+					grouped_data[head_id] = {
+					"row_id": row.name,
+					"head_unique_field": row.head_unique_field,
+					"purchase_requisition_number": row.purchase_requisition_number,
+					"material_code_head": row.material_code_head,
+					"delivery_date_head": row.delivery_date_head,
+					"material_name_head": row.material_name_head,
+					"quantity_head": row.quantity_head,
+					"uom_head": row.uom_head,
+					"price_head": row.price_head,
+					"rate_with_tax": row.rate_with_tax,
+					"rate_without_tax": row.rate_without_tax,
+					"moq_head": row.moq_head,
+					"lead_time_head": row.lead_time_head,
+					"tax": row.tax,
+					"remarks": row.remarks,
+					"subhead_fields": []
+				}
+			subhead_data = {
+					"subhead_unique_field": row.subhead_unique_field,
+					"material_code_subhead": row.material_code_subhead,
+					"material_name_subhead": row.material_name_subhead,
+					"quantity_subhead": row.quantity_subhead,
+					"uom_subhead": row.uom_subhead,
+					"price_subhead": row.price_subhead,
+					"delivery_date_subhead": row.delivery_date_subhead
+			}
+			grouped_data[head_id]["subhead_fields"].append(subhead_data)
+
+		# Onboarded Vendor Details Table
+            
+		onboarded_vendors = []
+		non_onboarded_vendors = []
+      
+		for row in doc.vendor_details:
+			# Parse json_field if present
+			try:
+				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
+			except Exception:
+				parsed_json = []
+
+			if doc.service_provider == "Courier Service Provider" or doc.service_provider == "Adhoc Service Provider":
+				onboarded_vendors.append({
+					"refno": row.ref_no,
+					"vendor_name": row.vendor_name,
+					"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
+					"office_email_primary": row.office_email_primary,
+					"mobile_number": row.mobile_number,
+					"service_provider_type": row.service_provider_type,
+					"country": row.country,
+					"bid_won": row.bid_won,
+					"bid_loss": row.bid_loss,
+					"quotations": parsed_json   
+				})
+
+		# Non-Onboarded Vendor Details Table
+		for row in doc.non_onboarded_vendor_details:    
+			try:
+				parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
+			except Exception:
+				parsed_json = []
+
+			# if parsed_json:
+			non_onboarded_vendors.append({
+				"office_email_primary": row.office_email_primary,
+				"vendor_name": row.vendor_name,
+				"mobile_number": row.mobile_number,
+				"country": row.country,
+				"company_pan": row.company_pan,
+				"gst_number": row.gst_number,
+				"bid_won": row.bid_won,
+				"bid_loss": row.bid_loss,
+				"quotations": parsed_json 
+			})
+
+		# File Attachments Section
+		attachments = []
+		for row in doc.multiple_attachments:
+			file_url = row.get("attachment_name")
+			if file_url:
+				file_doc = frappe.get_doc("File", {"file_url": file_url})
+				attachments.append({
+					"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+					"name": file_doc.name,
+					"file_name": file_doc.file_name
+				})
+			else:
+				attachments.append({
+					"url": "",
+					"name": "",
+					"file_name": ""
+				})
+
+		# Total RFQs Sent count
+		total_rfq_sent = len(doc.vendor_details) + len(doc.non_onboarded_vendor_details)
+            
+		# Total Quotation received from each RFQ (from prev RFQs Also) acc to cutoff date
+		# Quotation Received grouped by RFQ cutoff date
+		quotation_received_by_cutoff = []
+
+		current_rfq = doc
+		visited_rfqs = set()
+
+		while current_rfq and current_rfq.name not in visited_rfqs:
+			visited_rfqs.add(current_rfq.name)
+			cutoff_date = current_rfq.get("rfq_cutoff_date_logistic") or current_rfq.get("quotation_deadline")
+
+			vendor_data = []
+			for row in current_rfq.vendor_details:
+				try:
+					parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
+				except Exception:
+					parsed_json = []
+
+				if parsed_json:
+					vendor_data.append({
+						"refno": row.ref_no,
+						"vendor_name": row.vendor_name,
+						"vendor_code": [v.strip() for v in row.vendor_code.split(",")] if row.vendor_code else [],
+						"office_email_primary": row.office_email_primary,
+						"mobile_number": row.mobile_number,
+						"service_provider_type": row.service_provider_type,
+						"country": row.country,
+						"bid_won": row.bid_won,
+						"bid_loss": row.bid_loss,
+						"quotations": parsed_json
+					})
+
+			if vendor_data:
+				quotation_received_by_cutoff.append({
+					"rfq_name":current_rfq.name,
+					"cutoff_date": cutoff_date,
+					"data": vendor_data
+				})
+
+			# Go to previous RFQ if exists
+			if current_rfq.prev_rfq:
+				try:
+					current_rfq = frappe.get_doc("Request For Quotation", current_rfq.prev_rfq)
+				except Exception:
+					break
+			else:
+				break
+
+		# Approved quotation ID
+		final_approve_quotation = None
+
+		for row in doc.vendor_details:
+			if row.quotation:
+				final_approve_quotation = frappe.get_doc("Quotation", row.quotation)
+						
+		for row in doc.non_onboarded_vendor_details:
+			if row.quotation:
+				final_approve_quotation = frappe.get_doc("Quotation", row.quotation)
+
+		data = {
+			# logistic import rfq data / logistic export rfq data
+			"name": doc.name,
+			"status": doc.status,
+			"form_fully_submitted": doc.form_fully_submitted,
+			"is_approved": doc.is_approved,
+			"revised_rfq": doc.revised_rfq,
+			"unique_id": doc.unique_id,
+			"rfq_type": doc.rfq_type,
+			"raised_by": doc.raised_by,
+			"logistic_type": doc.logistic_type,
+			"company_name_logistic": doc.company_name_logistic,
+			"rfq_cutoff_date_logistic": doc.rfq_cutoff_date_logistic,
+			"mode_of_shipment": doc.mode_of_shipment,
+			"port_of_loading": doc.port_of_loading,
+			"destination_port": doc.destination_port,
+            "export_destination_port": frappe.db.get_value("Port Master", doc.destination_port, "port_name"),
+			"ship_to_address": doc.ship_to_address,
+			"no_of_pkg_units": doc.no_of_pkg_units,
+			"vol_weight": doc.vol_weight,
+			"invoice_date": doc.invoice_date,
+			"shipment_date": doc.shipment_date,
+			"remarks": doc.remarks,
+			"expected_date_of_arrival": doc.expected_date_of_arrival,
+			"service_provider": doc.service_provider,
+			"consignee_name": doc.consignee_name,
+			"sr_no": doc.sr_no,
+			"rfq_date_logistic": doc.rfq_date_logistic,
+			"country": doc.country,
+			"port_code": doc.port_code,
+			"inco_terms": doc.inco_terms,
+			"package_type": doc.package_type,
+			"product_category": doc.product_category,
+			"actual_weight": doc.actual_weight,
+			"invoice_no": doc.invoice_no,
+			"shipment_type": doc.shipment_type,
+			"shipper_name": doc.shipper_name,
+			"invoice_value": doc.invoice_value,
+
+			# Material/service rfq common data
+			"rfq_date": doc.rfq_date,
+			"company_name": doc.company_name,
+			"purchase_organization": doc.purchase_organization,
+			"purchase_group": doc.purchase_group,
+			"currency": doc.currency,
+			"collection_number": doc.collection_number,
+			"quotation_deadline": doc.quotation_deadline,
+			"validity_start_date": doc.validity_start_date,
+			"validity_end_date": doc.validity_end_date,
+			"bidding_person": doc.bidding_person,
+			"service_code": doc.service_code,
+			"service_category": doc.service_category,
+			"material_code": doc.material_code,
+			"material_category": doc.material_category,
+			"plant_code": doc.plant_code,
+			"storage_location": doc.storage_location,
+			"short_text": doc.short_text,
+			"rfq_quantity": doc.rfq_quantity,
+			"quantity_unit": doc.quantity_unit,
+			"delivery_date": doc.delivery_date,
+			"estimated_price": doc.estimated_price,
+			"first_reminder": doc.first_reminder,
+			"second_reminder": doc.second_reminder,
+			"third_reminder": doc.third_reminder,
+
+			# Tables
+			"pr_items": list(grouped_data.values()),
+			"onboarded_vendors": onboarded_vendors,
+			"non_onboarded_vendors": non_onboarded_vendors,
+			"attachments": attachments,
+
+			# approved quotation details
+			"final_quotation_id": final_approve_quotation.name if final_approve_quotation else "",
+			"is_negotiated": final_approve_quotation.is_negotiated if final_approve_quotation else 0,
+			"final_mode_of_shipment": final_approve_quotation.mode_of_shipment if final_approve_quotation else "",
+			"final_ffn": final_approve_quotation.final_ffn if final_approve_quotation else "",
+			"final_freight_fcr": final_approve_quotation.final_freight_fcr if final_approve_quotation else "",
+			"final_xcr": final_approve_quotation.final_xcr if final_approve_quotation else "",
+			"final_sum_freight_inr": final_approve_quotation.final_sum_freight_inr if final_approve_quotation else "",
+			"final_others": final_approve_quotation.final_others if final_approve_quotation else "",
+			"final_dc": final_approve_quotation.final_dc if final_approve_quotation else "",
+			"final_remarks": final_approve_quotation.final_remarks if final_approve_quotation else "",
+			"final_rate_kg": final_approve_quotation.final_rate_kg if final_approve_quotation else "",
+			"final_fsc": final_approve_quotation.final_fsc if final_approve_quotation else "",
+			"final_pickup": final_approve_quotation.final_pickup if final_approve_quotation else "",
+			"final_gst_amount": final_approve_quotation.final_gst_amount if final_approve_quotation else "",
+			"final_airline": final_approve_quotation.final_airline if final_approve_quotation else "",
+			"final_transit_days": final_approve_quotation.final_transit_days if final_approve_quotation else "",
+			"final_tat": final_approve_quotation.final_tat if final_approve_quotation else "",
+			"final_chargeable_weight": final_approve_quotation.final_chargeable_weight if final_approve_quotation else "",
+			"final_sc": final_approve_quotation.final_sc if final_approve_quotation else "",
+			"final_xray": final_approve_quotation.final_xray if final_approve_quotation else "",
+			"final_total": final_approve_quotation.final_total if final_approve_quotation else "",
+			"final_landing_price": final_approve_quotation.final_landing_price if final_approve_quotation else "",
+			"final_freight_total": final_approve_quotation.final_freight_total if final_approve_quotation else "",
+			"final_cfs_charge": final_approve_quotation.final_cfs_charge if final_approve_quotation else "",
+
+			# Counts
+			"total_rfq_sent": total_rfq_sent,
+			"quotation_received_by_cutoff": quotation_received_by_cutoff
+		}
+
+		return data
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "get_full_rfq_data failed")
+		frappe.throw("Could not fetch RFQ details.")
 
 
 # get quotation data if vendor has fill the data
@@ -751,7 +801,7 @@ def send_revised_rfq(data):
 
     # Get old RFQ and mark it as revised
     old_rfq = frappe.get_doc("Request For Quotation", data.get("name"))
-    frappe.db.set_value("Request For Quotation", old_rfq.name, "revised_rfq", 1)
+    frappe.set_value("Request For Quotation", old_rfq.name, {"revised_rfq": 1, "status": "Revised RFQ"})
 
     # Create new RFQ document
     rfq = frappe.new_doc("Request For Quotation")

@@ -205,6 +205,7 @@ def populate_legal_documents(source_doc_name, target_doc_name, new_vendor_master
     try:
         source_doc = frappe.get_doc("Legal Documents", source_doc_name)
         target_doc = frappe.get_doc("Legal Documents", target_doc_name)
+        target_onb_doc = frappe.get_doc("Vendor Onboarding", target_doc.vendor_onboarding)
         
         # Fields to copy (excluding attachment fields for now)
         fields_to_copy = [
@@ -240,7 +241,7 @@ def populate_legal_documents(source_doc_name, target_doc_name, new_vendor_master
                 "gst_registration_date": row.gst_registration_date,
                 "gst_ven_type": row.gst_ven_type,
                 "pincode": row.pincode,
-                # "company": target_doc.company_name
+                "company": target_onb_doc.company_name
             }
             
             new_row = target_doc.append("gst_table", new_row_data)
@@ -466,7 +467,7 @@ def populate_company_details(source_onboarding_name, target_onboarding_name, new
                             #     "qms_required": row.qms_required
                             # })
         
-        target_onboarding.save(ignore_permissions=True)
+        # target_onboarding.save(ignore_permissions=True)
         return "Success"
         
     except Exception as e:

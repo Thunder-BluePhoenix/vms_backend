@@ -1,0 +1,317 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:MO-{requestor_ref_no}",
+ "creation": "2025-04-21 16:51:45.099533",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_tab",
+  "material_code_section",
+  "requestor_ref_no",
+  "material_master_ref_no",
+  "column_break_fqvm",
+  "material_code_latest",
+  "qaqc_tab",
+  "qaqc_data_section",
+  "minimum_remaining_shell_life",
+  "total_shell_life",
+  "expiration_date",
+  "column_break_nchb",
+  "inspection_require",
+  "inspection_interval",
+  "incoming_inspection_01",
+  "incoming_inspection_09",
+  "specifications_tab",
+  "characteristics_and_specifications_section",
+  "intended_usage_application",
+  "column_break_apvq",
+  "storage_requirements",
+  "hazardous_material",
+  "others_tab",
+  "procurement_and_inventory_information_section",
+  "profit_center",
+  "valuation_class",
+  "price_control",
+  "hsn_code",
+  "column_break_mefu",
+  "do_not_cost",
+  "material_information",
+  "hsn_status",
+  "approval_tab",
+  "additional_information_section",
+  "comment_by_store",
+  "column_break_zioz",
+  "special_instructionsnotes",
+  "approvals_section",
+  "requested_by_name",
+  "requested_by_place",
+  "approval_date",
+  "column_break_ungy",
+  "approved_by_name",
+  "approved_by_place",
+  "approval_stage"
+ ],
+ "fields": [
+  {
+   "fieldname": "characteristics_and_specifications_section",
+   "fieldtype": "Section Break",
+   "label": "Characteristics & Specifications"
+  },
+  {
+   "fieldname": "procurement_and_inventory_information_section",
+   "fieldtype": "Section Break",
+   "label": "Others Data"
+  },
+  {
+   "fieldname": "additional_information_section",
+   "fieldtype": "Section Break",
+   "label": "Comment & Additional Information"
+  },
+  {
+   "fieldname": "special_instructionsnotes",
+   "fieldtype": "Small Text",
+   "label": "Special Instructions/Notes"
+  },
+  {
+   "fieldname": "column_break_apvq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "storage_requirements",
+   "fieldtype": "Small Text",
+   "label": "Storage Requirements"
+  },
+  {
+   "fieldname": "column_break_mefu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valuation_class",
+   "fieldtype": "Link",
+   "label": "Valuation Class",
+   "options": "Valuation Class"
+  },
+  {
+   "fieldname": "hsn_code",
+   "fieldtype": "Data",
+   "label": "HSN Code"
+  },
+  {
+   "fieldname": "approvals_section",
+   "fieldtype": "Section Break",
+   "label": "Approvals"
+  },
+  {
+   "fieldname": "requested_by_name",
+   "fieldtype": "Data",
+   "label": "Requested By - Name"
+  },
+  {
+   "fieldname": "column_break_ungy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approved_by_name",
+   "fieldtype": "Data",
+   "label": "Approved By - Name"
+  },
+  {
+   "fieldname": "approval_date",
+   "fieldtype": "Data",
+   "label": "Approval Date"
+  },
+  {
+   "fieldname": "intended_usage_application",
+   "fieldtype": "Small Text",
+   "label": "Intended Usage / Application"
+  },
+  {
+   "fieldname": "hazardous_material",
+   "fieldtype": "Select",
+   "label": "Hazardous Material (Y/N)",
+   "options": "-Select-\nYes\nNo"
+  },
+  {
+   "fieldname": "requested_by_place",
+   "fieldtype": "Data",
+   "label": "Requested By - Place"
+  },
+  {
+   "fieldname": "approved_by_place",
+   "fieldtype": "Data",
+   "label": "Approved By - Place"
+  },
+  {
+   "fieldname": "material_code_section",
+   "fieldtype": "Section Break",
+   "label": "Material Code"
+  },
+  {
+   "fieldname": "column_break_fqvm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "hsn_status",
+   "fieldtype": "Select",
+   "label": "HSN Status",
+   "options": "Pending\nRejected\nVerified"
+  },
+  {
+   "fieldname": "material_master_ref_no",
+   "fieldtype": "Link",
+   "label": "Material Master Ref No.",
+   "options": "Material Master"
+  },
+  {
+   "fetch_from": "material_master_ref_no.material_code",
+   "fieldname": "material_code_latest",
+   "fieldtype": "Data",
+   "label": "Material Code"
+  },
+  {
+   "fieldname": "requestor_ref_no",
+   "fieldtype": "Link",
+   "label": "Requestor Ref No.",
+   "options": "Requestor Master"
+  },
+  {
+   "fieldname": "profit_center",
+   "fieldtype": "Link",
+   "label": "Profit Center",
+   "options": "Profit Center"
+  },
+  {
+   "fieldname": "price_control",
+   "fieldtype": "Link",
+   "label": "Price Control",
+   "options": "Price Control Master"
+  },
+  {
+   "fieldname": "material_information",
+   "fieldtype": "Attach",
+   "label": "Material Information"
+  },
+  {
+   "fieldname": "specifications_tab",
+   "fieldtype": "Tab Break",
+   "label": "Specifications"
+  },
+  {
+   "fieldname": "qaqc_tab",
+   "fieldtype": "Tab Break",
+   "label": "QA/QC"
+  },
+  {
+   "fieldname": "qaqc_data_section",
+   "fieldtype": "Section Break",
+   "label": "QA/QC Data"
+  },
+  {
+   "fieldname": "minimum_remaining_shell_life",
+   "fieldtype": "Data",
+   "label": "Minimum Remaining Shell Life"
+  },
+  {
+   "fieldname": "others_tab",
+   "fieldtype": "Tab Break",
+   "label": "Others"
+  },
+  {
+   "fieldname": "approval_tab",
+   "fieldtype": "Tab Break",
+   "label": "Comment & Approval"
+  },
+  {
+   "fieldname": "total_shell_life",
+   "fieldtype": "Data",
+   "label": "Total Shell Life"
+  },
+  {
+   "fieldname": "expiration_date",
+   "fieldtype": "Link",
+   "label": "Period Indicator for Shell Life Expiration Date",
+   "options": "Expiration Date Master"
+  },
+  {
+   "fieldname": "column_break_nchb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "inspection_interval",
+   "fieldtype": "Data",
+   "label": "Inspection Interval"
+  },
+  {
+   "fieldname": "do_not_cost",
+   "fieldtype": "Data",
+   "label": "Do Not Cost"
+  },
+  {
+   "fieldname": "column_break_zioz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_tab",
+   "fieldtype": "Tab Break",
+   "label": "Reference"
+  },
+  {
+   "fieldname": "comment_by_store",
+   "fieldtype": "Small Text",
+   "label": "Store Comment"
+  },
+  {
+   "default": "0",
+   "fieldname": "incoming_inspection_01",
+   "fieldtype": "Check",
+   "label": "Incoming Inspection 01"
+  },
+  {
+   "default": "0",
+   "fieldname": "incoming_inspection_09",
+   "fieldtype": "Check",
+   "label": "Incoming Inspection 09"
+  },
+  {
+   "fieldname": "inspection_require",
+   "fieldtype": "Select",
+   "label": "Inspection Type",
+   "options": "No\nYes"
+  },
+  {
+   "default": "Pending by CP",
+   "fetch_from": "requestor_ref_no.approval_status",
+   "fieldname": "approval_stage",
+   "fieldtype": "Select",
+   "label": "Approval Stage",
+   "options": "Pending by CP\nRejected by CP\nApproved by CP\nCode Generated by SAP\nSent to SAP"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-20 19:59:41.676382",
+ "modified_by": "Administrator",
+ "module": "material",
+ "name": "Material Onboarding",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

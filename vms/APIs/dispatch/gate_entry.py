@@ -3,7 +3,7 @@ from frappe import _
 import json
 import base64
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def create_gate_entry():
     try:
         data = frappe.local.form_dict.copy() if frappe.local.form_dict else {}
@@ -47,6 +47,8 @@ def create_new_gate_entry(data):
     
 
     set_gate_entry_data_without_files(doc, data)
+    doc.is_submitted = 1
+    doc.status = "Gate Received"
     doc.insert()  
     
    
@@ -62,20 +64,31 @@ def create_new_gate_entry(data):
     }
 
 def update_gate_entry(name, data):
+    if not name:
+            frappe.response.http_status_code = 400
+            return {"message": "Failed", "error": "Gate Entry name is required"}
+        
     if not frappe.db.exists("Gate Entry", name):
-        return {"error": True, "message": f"Gate Entry '{name}' does not exist"}
+        frappe.response.http_status_code = 404
+        return {"message": "Failed", "error": f"Gate Entry '{name}' not found"}
     
     doc = frappe.get_doc("Gate Entry", name)
     
     
     set_gate_entry_data(doc, data)
+
+    is_store_user = check_if_store_user()
+    if is_store_user:
+        doc.status = "Received At Store"
+
     doc.save()
     frappe.db.commit()
     
     return {
         "success": True,
         "message": "Gate Entry updated successfully",
-        "name": doc.name
+        "name": doc.name,
+        "status": doc.status,
     }
 
 def set_gate_entry_data_without_files(doc, data):
@@ -199,67 +212,6 @@ def save_base64_file(doc, field, data_url):
         print(f"Error saving base64 file: {str(e)}")
         frappe.log_error(f"Base64 file error: {str(e)}", "Gate Entry File Upload")
 
-@frappe.whitelist(allow_guest=True)
-def gate_entry_get(name=None, start=0, page_length=20):
-    try:
-        if name:
-            if not frappe.db.exists("Gate Entry", name):
-                return {"error": True, "message": f"Gate Entry '{name}' does not exist"}
-            
-            doc = frappe.get_doc("Gate Entry", name)
-            return {
-                "name": name,
-                "data": get_gate_entry_data(doc)
-            }
-        else:
-            data = frappe.get_list(
-                "Gate Entry",
-                fields=["*"],
-                start=start,
-                page_length=page_length,
-                order_by="modified desc"
-            )
-            
-            total_count = frappe.db.count("Gate Entry")
-            
-            return {
-                "data": data,
-                "pagination": {
-                    "start": start,
-                    "page_length": page_length,
-                    "total_count": total_count
-                }
-            }
-            
-    except Exception as e:
-        return {"error": True, "message": str(e)}
-
-def get_gate_entry_data(doc):
-    data = {}
-    meta = frappe.get_meta("Gate Entry")
-    
-    exclude_fieldtypes = [
-        "Section Break", "Column Break", "Tab Break", 
-        "HTML", "Heading", "Fold", "Button"
-    ]
-    
-    for field in meta.fields:
-        if field.fieldtype in exclude_fieldtypes:
-            continue
-            
-        field_name = field.fieldname
-        value = getattr(doc, field_name, None)
-        
-        if field.fieldtype == "Table" and value:
-            child_data = []
-            for child in value:
-                child_dict = child.as_dict()
-                child_data.append(child_dict)
-            data[field_name] = child_data
-        else:
-            data[field_name] = value
-    
-    return data
 
 
 @frappe.whitelist(allow_guest=False)
@@ -269,3 +221,136 @@ def get_inward_location():
         fields=["name","inward_location"]
     )
     return locations
+
+
+@frappe.whitelist(allow_guest=False)
+def get_handover_person():
+    employees = frappe.get_all(
+        "Employee",
+        filters={"designation": "Handover Person"},
+        fields=["name","designation","full_name","user_id"]
+    )
+    return employees
+
+
+def check_if_store_user():
+   
+    try:
+        current_user = frappe.session.user
+        
+        if current_user == "Administrator":
+            return False
+        
+       
+        employee = frappe.db.get_value(
+            "Employee",
+            {"user_id": current_user},
+            ["designation", "name"],
+            as_dict=True
+        )
+        
+        if employee:
+            if employee.get("designation") and "store" in str(employee.get("designation")).lower():
+                return True
+            
+    
+    
+        user_roles = frappe.get_roles(current_user)
+        if "Store" in user_roles:
+            return True
+        
+        return False
+        
+    except Exception as e:
+        frappe.log_error(
+            f"Error checking store user: {str(e)}",
+            "Check Store User Error"
+        )
+        return False
+
+
+#vms.APIs.dispatch.gate_entry.handover_gate_entry
+@frappe.whitelist()
+def handover_gate_entry():
+    try:
+        if not check_if_store_user():
+            frappe.response.http_status_code = 403
+            return {
+                "message": "Failed", 
+                "error": "Only Store users are allowed to perform handover"
+            }
+
+        if frappe.request.data:
+            try:
+                form_data = json.loads(frappe.request.data)
+            except:
+                form_data = frappe.form_dict.copy()
+        else:
+            form_data = frappe.form_dict.copy()
+
+        name = form_data.get("name")
+        handover_person = form_data.get("handover_person")
+        handover_remarks = form_data.get("handover_remarks")
+
+       
+        if not name:
+            frappe.response.http_status_code = 400
+            return {"message": "Failed", "error": "Gate Entry name is required"}
+        
+        if not handover_person:
+            frappe.response.http_status_code = 400
+            return {"message": "Failed", "error": "Handover person is required"}
+
+   
+        if not frappe.db.exists("Gate Entry", name):
+            frappe.response.http_status_code = 404
+            return {"message": "Failed", "error": f"Gate Entry '{name}' not found"}
+
+        
+        doc = frappe.get_doc("Gate Entry", name)
+
+   
+        if doc.status != "Received At Store":
+            frappe.response.http_status_code = 400
+            return {"message": "Failed", "error": f"Cannot handover. Current status is '{doc.status}'. Must be 'Received At Store'"}
+
+
+        doc.handover_to_person = handover_person
+       
+        
+        if handover_remarks:
+            doc.handover_remarks = handover_remarks
+
+
+        doc.status = "HandedOver"
+
+       
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+
+        return {
+            "message": "Success",
+            "data": {
+                "name": doc.name,
+                "status": doc.status,
+                "handover_person": handover_person,
+            }
+        }
+
+    except frappe.ValidationError as e:
+        frappe.db.rollback()
+        frappe.response.http_status_code = 400
+        frappe.log_error(frappe.get_traceback(), "Gate Entry Handover Validation Error")
+        return {"message": "Failed", "error": str(e)}
+    
+    except frappe.PermissionError:
+        frappe.db.rollback()
+        frappe.response.http_status_code = 403
+        return {"message": "Failed", "error": "Permission denied"}
+    
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.response.http_status_code = 500
+        frappe.log_error(frappe.get_traceback(), "Gate Entry Handover Error")
+        return {"message": "Failed", "error": str(e)}

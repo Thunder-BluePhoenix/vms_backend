@@ -18,9 +18,7 @@
   "mandatory_data_filled",
   "registered_by",
   "register_by_account_team",
-  "awaiting_approval_status",
   "onboarding_form_status",
-  "rejection_comment",
   "vendor_country",
   "company_details_section",
   "vendor_company_details",
@@ -58,9 +56,15 @@
   "rejected_by",
   "rejected_by_designation",
   "reason_for_rejection",
-  "section_break_yitx",
-  "amendment_details",
+  "section_break_ireg",
+  "change_request_by_at",
+  "mail_sent_for_cr",
+  "made_changes_by_pt",
+  "change_requested_by",
+  "column_break_eife",
+  "cr_description",
   "tables_section",
+  "amendment_details",
   "vendor_types",
   "number_of_employee",
   "machinery_detail",
@@ -68,10 +72,8 @@
   "reputed_partners",
   "payment_detail_tab",
   "payment_detail",
-  "documents_certificate_details_tab",
   "document_details",
   "certificate_details",
-  "manufacturing_details_tab",
   "manufacturing_details",
   "contact_details_tab",
   "contact_persons_section",
@@ -85,12 +87,10 @@
   "company",
   "purchase_organization",
   "order_currency",
-  "terms_of_payment",
   "purchase_group",
   "column_break_adix",
+  "terms_of_payment",
   "account_group",
-  "purchase_team_remarks",
-  "purchase_head_remarks",
   "enterprise",
   "reconciliation_account",
   "qa_team_remarks",
@@ -125,7 +125,7 @@
   {
    "fieldname": "vendor_details_section",
    "fieldtype": "Section Break",
-   "label": "Vendor Details"
+   "label": "Vendor ONB Details"
   },
   {
    "fieldname": "ref_no",
@@ -148,12 +148,6 @@
    "fieldname": "onboarding_form_status",
    "fieldtype": "Data",
    "label": "Onboarding Form Status"
-  },
-  {
-   "fieldname": "rejection_comment",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Rejection Comment"
   },
   {
    "fieldname": "company_details_section",
@@ -241,23 +235,13 @@
   {
    "fieldname": "payment_detail_tab",
    "fieldtype": "Tab Break",
-   "label": "Vendors Payment Detail"
+   "label": "Other Details"
   },
   {
    "fieldname": "payment_detail",
    "fieldtype": "Link",
    "label": "Payment Detail",
    "options": "Vendor Onboarding Payment Details"
-  },
-  {
-   "fieldname": "documents_certificate_details_tab",
-   "fieldtype": "Tab Break",
-   "label": "Documents & Certificate Details"
-  },
-  {
-   "fieldname": "manufacturing_details_tab",
-   "fieldtype": "Tab Break",
-   "label": "Manufacturing Details"
   },
   {
    "fieldname": "contact_details_tab",
@@ -339,16 +323,6 @@
    "fieldtype": "Link",
    "label": "Account Group",
    "options": "Account Group Master"
-  },
-  {
-   "fieldname": "purchase_team_remarks",
-   "fieldtype": "Data",
-   "label": "Purchase Team Remarks"
-  },
-  {
-   "fieldname": "purchase_head_remarks",
-   "fieldtype": "Data",
-   "label": "Purchase Head Remarks"
   },
   {
    "fieldname": "enterprise",
@@ -597,11 +571,6 @@
    "label": "Accounts Head approved"
   },
   {
-   "fieldname": "awaiting_approval_status",
-   "fieldtype": "Data",
-   "label": "Awaiting Approval Status"
-  },
-  {
    "fieldname": "column_break_prkm",
    "fieldtype": "Column Break"
   },
@@ -651,10 +620,6 @@
    "fieldname": "sap_error_mail_sent",
    "fieldtype": "Check",
    "label": "SAP Error Mail Sent"
-  },
-  {
-   "fieldname": "section_break_yitx",
-   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -754,12 +719,50 @@
    "fieldname": "approvals_mail_sent_time",
    "fieldtype": "Datetime",
    "label": "Approvals Mail Sent Time"
+  },
+  {
+   "default": "0",
+   "fieldname": "change_request_by_at",
+   "fieldtype": "Check",
+   "label": "Change Request by AT"
+  },
+  {
+   "fieldname": "section_break_ireg",
+   "fieldtype": "Section Break",
+   "label": "CR By Accounts Team"
+  },
+  {
+   "default": "0",
+   "fieldname": "mail_sent_for_cr",
+   "fieldtype": "Check",
+   "label": "Mail Sent For CR"
+  },
+  {
+   "default": "0",
+   "fieldname": "made_changes_by_pt",
+   "fieldtype": "Check",
+   "label": "Made Changes by PT"
+  },
+  {
+   "fieldname": "column_break_eife",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cr_description",
+   "fieldtype": "Small Text",
+   "label": "CR Description"
+  },
+  {
+   "fieldname": "change_requested_by",
+   "fieldtype": "Link",
+   "label": "Change Requested By",
+   "options": "User"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-09 15:41:13.858205",
+ "modified": "2025-09-30 10:48:19.642694",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

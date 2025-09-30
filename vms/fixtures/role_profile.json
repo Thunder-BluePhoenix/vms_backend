@@ -217,5 +217,35 @@
     "role": "QA Team"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-09-30 10:28:48.175374",
+  "name": "Handover Person",
+  "role_profile": "Handover Person",
+  "roles": [
+   {
+    "parent": "Handover Person",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-09-30 11:17:26.305859",
+  "name": "Store",
+  "role_profile": "Store",
+  "roles": [
+   {
+    "parent": "Store",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Employee"
+   }
+  ]
  }
 ]

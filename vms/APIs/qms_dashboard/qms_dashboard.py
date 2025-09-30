@@ -77,7 +77,7 @@ def filtering_total_qms_onboarding(page_no=None, page_length=None, usr=None,  qm
 
         onboarding_docs = frappe.db.sql(f"""
             SELECT
-                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.awaiting_approval_status, vo.modified,
+                vo.name, vo.ref_no, vo.company_name, vo.vendor_name, vo.onboarding_form_status, vo.modified,
                 vo.purchase_t_approval, vo.accounts_t_approval, vo.purchase_h_approval,
                 vo.mandatory_data_filled, vo.purchase_team_undertaking, vo.accounts_team_undertaking, vo.purchase_head_undertaking,
                 vo.form_fully_submitted_by_vendor, vo.sent_registration_email_link, vo.rejected, vo.data_sent_to_sap, vo.expired,

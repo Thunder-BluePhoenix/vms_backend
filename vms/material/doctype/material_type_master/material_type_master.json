@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:material_type_name",
+ "autoname": "format:{material_type_name}",
  "creation": "2025-07-04 12:13:04.391707",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -91,7 +91,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 14:14:16.832870",
+ "modified": "2025-09-29 15:49:33.204035",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Type Master",

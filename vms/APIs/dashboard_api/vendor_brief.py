@@ -496,22 +496,74 @@ def get_vendors_with_pagination(
             if field.fieldtype == "Table":
                 bank_child_tables[field.fieldname] = field.options
 
+                
+
         enriched_vendors = []
         for vendor in vendors:
             # Get multiple company data
-            vendor['multiple_company_data'] = frappe.db.sql("""
+            # vendor['multiple_company_data'] = frappe.db.sql("""
+            #     SELECT mcd.*, cm.company_name as company_display_name
+            #     FROM `tabMultiple Company Data` mcd
+            #     LEFT JOIN `tabCompany Master` cm ON mcd.company_name = cm.name
+            #     WHERE mcd.parent = %(vendor_name)s
+            # """, {'vendor_name': vendor['name']}, as_dict=True)
+
+            # Get multiple company data with applied company filter
+            company_data_conditions = ["mcd.parent = %(vendor_name)s"]
+            company_data_values = {'vendor_name': vendor['name']}
+
+            # Apply company_name filter
+            if company_name:
+                company_data_conditions.append("cm.company_name LIKE %(company_name_filter)s")
+                company_data_values['company_name_filter'] = f"%{company_name}%"
+
+            company_data_where = " AND ".join(company_data_conditions)
+
+            vendor['multiple_company_data'] = frappe.db.sql(f"""
                 SELECT mcd.*, cm.company_name as company_display_name
                 FROM `tabMultiple Company Data` mcd
                 LEFT JOIN `tabCompany Master` cm ON mcd.company_name = cm.name
-                WHERE mcd.parent = %(vendor_name)s
-            """, {'vendor_name': vendor['name']}, as_dict=True)
+                WHERE {company_data_where}
+            """, company_data_values, as_dict=True)
             
             # Get vendor onboarding records
-            vendor['vendor_onb_records'] = frappe.db.sql("""
-                SELECT vor.*
+            # vendor['vendor_onb_records'] = frappe.db.sql("""
+            #     SELECT vor.*
+            #     FROM `tabVendor Onboarding Records` vor
+            #     WHERE vor.parent = %(vendor_name)s
+            # """, {'vendor_name': vendor['name']}, as_dict=True)
+
+            # Get vendor onboarding records with applied filters
+            vendor_onb_conditions = ["vor.parent = %(vendor_name)s"]
+            vendor_onb_values = {'vendor_name': vendor['name']}
+
+            # Always join with Vendor Onboarding to fetch company_name
+            vendor_onb_join = """
+                LEFT JOIN `tabVendor Onboarding` vo 
+                ON vor.vendor_onboarding_no = vo.name
+            """
+
+            # Apply onboarding_form filter (check both status fields using OR)
+            if onboarding_form:
+                vendor_onb_conditions.append(
+                    "(vor.onboarding_status = %(onboarding_form_filter)s OR vor.onboarding_form_status = %(onboarding_form_filter)s)"
+                )
+                vendor_onb_values['onboarding_form_filter'] = onboarding_form
+
+            # Apply company_name filter
+            if company_name:
+                vendor_onb_conditions.append("vo.company_name LIKE %(company_name_filter)s")
+                vendor_onb_values['company_name_filter'] = f"%{company_name}%"
+
+            # Build the complete query
+            vendor_onb_where = " AND ".join(vendor_onb_conditions)
+
+            vendor['vendor_onb_records'] = frappe.db.sql(f"""
+                SELECT vor.*, vo.company_name as onboarding_company_name
                 FROM `tabVendor Onboarding Records` vor
-                WHERE vor.parent = %(vendor_name)s
-            """, {'vendor_name': vendor['name']}, as_dict=True)
+                {vendor_onb_join}
+                WHERE {vendor_onb_where}
+            """, vendor_onb_values, as_dict=True)
             
             # Get vendor types.Vendor Type Group
             vendor['vendor_types'] = frappe.db.sql("""
@@ -530,12 +582,29 @@ def get_vendors_with_pagination(
             """, {'vendor_name': vendor['name']}, as_dict=True)
 
 
-            vendor['vendor_company_details'] = frappe.db.sql("""
-                SELECT ivc.*, cm.name as meril_company_name
+            # vendor['vendor_company_details'] = frappe.db.sql("""
+            #     SELECT ivc.*, cm.name as meril_company_name
+            #     FROM `tabImported Vendor Company` ivc
+            #     LEFT JOIN `tabCompany Master` cm ON ivc.meril_company_name = cm.name
+            #     WHERE ivc.parent = %(vendor_name)s
+            # """, {'vendor_name': vendor['name']}, as_dict=True)
+            # Get vendor company details with applied company filter
+            vendor_company_conditions = ["ivc.parent = %(vendor_name)s"]
+            vendor_company_values = {'vendor_name': vendor['name']}
+
+            # Apply company_name filter
+            if company_name:
+                vendor_company_conditions.append("cm.company_name LIKE %(company_name_filter)s")
+                vendor_company_values['company_name_filter'] = f"%{company_name}%"
+
+            vendor_company_where = " AND ".join(vendor_company_conditions)
+
+            vendor['vendor_company_details'] = frappe.db.sql(f"""
+                SELECT ivc.*, cm.company_name as meril_company_name
                 FROM `tabImported Vendor Company` ivc
                 LEFT JOIN `tabCompany Master` cm ON ivc.meril_company_name = cm.name
-                WHERE ivc.parent = %(vendor_name)s
-            """, {'vendor_name': vendor['name']}, as_dict=True)
+                WHERE {vendor_company_where}
+            """, vendor_company_values, as_dict=True)
 
             
             if bank_details:
