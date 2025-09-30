@@ -274,13 +274,13 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "\nGate Received\nReceived At Store\nHandover"
+   "options": "\nGate Received\nReceived At Store\nHandedOver"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 10:54:33.336528",
+ "modified": "2025-09-30 11:49:09.570933",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Gate Entry",

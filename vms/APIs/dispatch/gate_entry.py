@@ -267,3 +267,90 @@ def check_if_store_user():
             "Check Store User Error"
         )
         return False
+
+
+#vms.APIs.dispatch.gate_entry.handover_gate_entry
+@frappe.whitelist()
+def handover_gate_entry():
+    try:
+        if not check_if_store_user():
+            frappe.response.http_status_code = 403
+            return {
+                "message": "Failed", 
+                "error": "Only Store users are allowed to perform handover"
+            }
+
+        if frappe.request.data:
+            try:
+                form_data = json.loads(frappe.request.data)
+            except:
+                form_data = frappe.form_dict.copy()
+        else:
+            form_data = frappe.form_dict.copy()
+
+        name = form_data.get("name")
+        handover_person = form_data.get("handover_person")
+        handover_remarks = form_data.get("handover_remarks")
+
+       
+        if not name:
+            frappe.response.http_status_code = 400
+            return {"message": "Failed", "error": "Gate Entry name is required"}
+        
+        if not handover_person:
+            frappe.response.http_status_code = 400
+            return {"message": "Failed", "error": "Handover person is required"}
+
+   
+        if not frappe.db.exists("Gate Entry", name):
+            frappe.response.http_status_code = 404
+            return {"message": "Failed", "error": f"Gate Entry '{name}' not found"}
+
+        
+        doc = frappe.get_doc("Gate Entry", name)
+
+   
+        if doc.status != "Received At Store":
+            frappe.response.http_status_code = 400
+            return {"message": "Failed", "error": f"Cannot handover. Current status is '{doc.status}'. Must be 'Received At Store'"}
+
+
+        doc.handover_to_person = handover_person
+       
+        
+        if handover_remarks:
+            doc.handover_remarks = handover_remarks
+
+
+        doc.status = "HandedOver"
+
+       
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+
+        return {
+            "message": "Success",
+            "data": {
+                "name": doc.name,
+                "status": doc.status,
+                "handover_person": handover_person,
+            }
+        }
+
+    except frappe.ValidationError as e:
+        frappe.db.rollback()
+        frappe.response.http_status_code = 400
+        frappe.log_error(frappe.get_traceback(), "Gate Entry Handover Validation Error")
+        return {"message": "Failed", "error": str(e)}
+    
+    except frappe.PermissionError:
+        frappe.db.rollback()
+        frappe.response.http_status_code = 403
+        return {"message": "Failed", "error": "Permission denied"}
+    
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.response.http_status_code = 500
+        frappe.log_error(frappe.get_traceback(), "Gate Entry Handover Error")
+        return {"message": "Failed", "error": str(e)}
