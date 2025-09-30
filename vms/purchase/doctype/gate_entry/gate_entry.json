@@ -17,6 +17,7 @@
   "gate_entry_date",
   "posting_time",
   "is_submitted",
+  "status",
   "column_break_efws",
   "vendor",
   "name_of_vendor",
@@ -268,12 +269,18 @@
    "fieldname": "is_submitted",
    "fieldtype": "Check",
    "label": "Is Submitted"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nGate Received\nReceived At Store\nHandover"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 10:29:02.466974",
+ "modified": "2025-09-30 10:54:33.336528",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Gate Entry",

@@ -3,7 +3,7 @@ from frappe import _
 import json
 import base64
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def create_gate_entry():
     try:
         data = frappe.local.form_dict.copy() if frappe.local.form_dict else {}
@@ -48,6 +48,7 @@ def create_new_gate_entry(data):
 
     set_gate_entry_data_without_files(doc, data)
     doc.is_submitted = 1
+    doc.status = "Gate Received"
     doc.insert()  
     
    
@@ -63,20 +64,31 @@ def create_new_gate_entry(data):
     }
 
 def update_gate_entry(name, data):
+    if not name:
+            frappe.response.http_status_code = 400
+            return {"message": "Failed", "error": "Gate Entry name is required"}
+        
     if not frappe.db.exists("Gate Entry", name):
-        return {"error": True, "message": f"Gate Entry '{name}' does not exist"}
+        frappe.response.http_status_code = 404
+        return {"message": "Failed", "error": f"Gate Entry '{name}' not found"}
     
     doc = frappe.get_doc("Gate Entry", name)
     
     
     set_gate_entry_data(doc, data)
+
+    is_store_user = check_if_store_user()
+    if is_store_user:
+        doc.status = "Received At Store"
+
     doc.save()
     frappe.db.commit()
     
     return {
         "success": True,
         "message": "Gate Entry updated successfully",
-        "name": doc.name
+        "name": doc.name,
+        "status": doc.status,
     }
 
 def set_gate_entry_data_without_files(doc, data):
@@ -319,3 +331,38 @@ def get_handover_person():
     )
     return employees
 
+
+def check_if_store_user():
+   
+    try:
+        current_user = frappe.session.user
+        
+        if current_user == "Administrator":
+            return False
+        
+       
+        employee = frappe.db.get_value(
+            "Employee",
+            {"user_id": current_user},
+            ["designation", "name"],
+            as_dict=True
+        )
+        
+        if employee:
+            if employee.get("designation") and "store" in str(employee.get("designation")).lower():
+                return True
+            
+    
+    
+        user_roles = frappe.get_roles(current_user)
+        if "Store" in user_roles:
+            return True
+        
+        return False
+        
+    except Exception as e:
+        frappe.log_error(
+            f"Error checking store user: {str(e)}",
+            "Check Store User Error"
+        )
+        return False
