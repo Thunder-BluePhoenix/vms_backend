@@ -32,6 +32,7 @@
    "options": "Vendor Master"
   },
   {
+   "fetch_from": "ref_no.vendor_name",
    "fieldname": "vendor_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -44,12 +45,14 @@
    "label": "Vendor Code"
   },
   {
+   "fetch_from": "ref_no.office_email_primary",
    "fieldname": "office_email_primary",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Office Email Primary"
   },
   {
+   "fetch_from": "ref_no.mobile_number",
    "fieldname": "mobile_number",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -69,6 +72,7 @@
    "label": "Mail Sent"
   },
   {
+   "fetch_from": "ref_no.service_provider_type",
    "fieldname": "service_provider_type",
    "fieldtype": "Link",
    "label": "Service Provider Type",
@@ -123,7 +127,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:37:47.626699",
+ "modified": "2025-09-30 14:42:22.584821",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Vendor Details",
