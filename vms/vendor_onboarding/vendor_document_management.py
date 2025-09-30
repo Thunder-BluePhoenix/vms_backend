@@ -262,6 +262,11 @@ class VendorDocumentManager:
                 record.certificate_details = onboarding.certificate_details
                 record.manufacturing_details = onboarding.manufacturing_details
                 record.is_current = 1
+                record.registered_by = onboarding.registered_by
+                record.purchase_team_approval = onboarding.purchase_t_approval
+                record.purchase_head_approval = onboarding.purchase_h_approval
+                record.accounts_team_approval = onboarding.accounts_t_approval
+                # record.accounts_head_approval = onboarding.accounts_h_approval
                 record.synced_date = frappe.utils.now()
                 record.synced_by = frappe.session.user
                 break
@@ -282,6 +287,11 @@ class VendorDocumentManager:
                 "certificate_details": onboarding.certificate_details,
                 "manufacturing_details": onboarding.manufacturing_details,
                 "is_current": 1,
+                "registered_by" : onboarding.registered_by,
+                "purchase_team_approval" : onboarding.purchase_t_approval,
+                "purchase_head_approval" : onboarding.purchase_h_approval,
+                "accounts_team_approval" : onboarding.accounts_t_approval,
+                # accounts_head_approval : onboarding.accounts_h_approval
                 "synced_date": frappe.utils.now(),
                 "synced_by": frappe.session.user
             })
