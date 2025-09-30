@@ -308,3 +308,14 @@ def get_inward_location():
         fields=["name","inward_location"]
     )
     return locations
+
+
+@frappe.whitelist(allow_guest=False)
+def get_handover_person():
+    employees = frappe.get_all(
+        "Employee",
+        filters={"designation": "Handover Person"},
+        fields=["name","designation","full_name","user_id"]
+    )
+    return employees
+
