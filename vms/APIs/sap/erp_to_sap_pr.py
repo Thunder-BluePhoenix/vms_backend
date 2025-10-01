@@ -1510,7 +1510,7 @@ def send_pr_detail(csrf_token, data_list, session_cookies, doc, sap_code, name_f
 
     # **COMPREHENSIVE LOGGING - Same as vendor function**
     try:
-        sap_log = frappe.new_doc("VMS SAP Logs")
+        sap_log = frappe.new_doc("PR SAP Logs")
         sap_log.purchase_requisition_link = doc.name
         
         # Store full data since erp_to_sap_data is JSON field
@@ -1825,7 +1825,7 @@ def create_pr_sap_log(doc, request_data, response_data, transaction_status, erro
     try:
         print(f"📝 Creating VMS SAP Log for transaction status: {transaction_status}")
         
-        sap_log = frappe.new_doc("VMS SAP Logs")
+        sap_log = frappe.new_doc("PR SAP Logs")
         sap_log.purchase_requisition_link = doc.name
         
         # Store request data (payload) since erp_to_sap_data is JSON field
