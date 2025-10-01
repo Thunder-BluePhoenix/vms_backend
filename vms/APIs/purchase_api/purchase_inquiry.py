@@ -277,7 +277,7 @@ def update_cart_products():
 			"product_name": product_row.get("product_name", ""),
 			"uom": product_row.get("uom", ""),
 			"user_specifications": product_row.get("user_specifications", ""),
-			"attachment": product_row.get("attachment", ""),
+			# "attachment": product_row.get("attachment", ""),
 			"product_price": product_row.get("product_price", 0),
 			"lead_time": product_row.get("lead_time", 0),
 			"product_quantity": product_row.get("product_quantity", 0),
