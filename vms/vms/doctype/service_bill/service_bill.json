@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "rfq_number",
+  "company",
   "meril_job",
   "bill_number",
   "rfq_amount",
@@ -36,8 +37,9 @@
  "fields": [
   {
    "fieldname": "rfq_number",
-   "fieldtype": "Data",
-   "label": "RFQ Number"
+   "fieldtype": "Link",
+   "label": "RFQ Number",
+   "options": "Request For Quotation"
   },
   {
    "fieldname": "meril_job",
@@ -155,13 +157,20 @@
    "fieldname": "exim_team_remark",
    "fieldtype": "Small Text",
    "label": "EXIM Team Remark"
+  },
+  {
+   "fetch_from": "rfq_number.company_name_logistic",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-09-17 14:38:51.671953",
+ "modified": "2025-10-01 17:48:16.737358",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Service Bill",
