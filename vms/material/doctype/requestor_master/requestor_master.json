@@ -82,7 +82,7 @@
    "options": "Employee"
   },
   {
-   "fetch_from": "requested_by.company_email",
+   "fetch_from": "requested_by.user_id",
    "fieldname": "contact_information_email",
    "fieldtype": "Data",
    "label": "Contact Information - Email"
@@ -180,7 +180,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 15:45:23.225629",
+ "modified": "2025-10-01 12:20:07.552191",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Requestor Master",
