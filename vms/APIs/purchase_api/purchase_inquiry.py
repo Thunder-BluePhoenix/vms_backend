@@ -269,7 +269,7 @@ def update_cart_products():
 				"message": "No product data provided."
 			}
 
-		row_name = form_data.get("row_name")
+		row_name = form_data.get("name")
 
 		# Prepare row data
 		row_data = {
