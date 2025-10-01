@@ -5,28 +5,28 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "quotation_fill_reminder_time",
+  "quotation_fill_reminder",
   "vendor_filled_quotations_count"
  ],
  "fields": [
-  {
-   "description": "Schedule a reminder email to be sent to the vendor to complete the quotation form",
-   "fieldname": "quotation_fill_reminder_time",
-   "fieldtype": "Duration",
-   "label": "Quotation Fill Reminder Time"
-  },
   {
    "description": "Send an email to the vendor indicating how many Quotations they have filled",
    "fieldname": "vendor_filled_quotations_count",
    "fieldtype": "Duration",
    "label": "Vendors Quotation Count Reminder Mail"
+  },
+  {
+   "description": "Schedule a reminder email to be sent to the vendor to fill the quotation form",
+   "fieldname": "quotation_fill_reminder",
+   "fieldtype": "Duration",
+   "label": "Quotation Fill Reminder"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-09-30 15:59:41.518309",
+ "modified": "2025-10-01 10:46:16.322494",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "RFQ Settings",
