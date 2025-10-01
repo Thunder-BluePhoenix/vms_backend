@@ -264,9 +264,9 @@ class VendorDocumentManager:
                 record.is_current = 1
                 record.registered_by = onboarding.registered_by
                 record.purchase_team_approval = onboarding.purchase_t_approval
-                record.purchase_head_approval = onboarding.purchase_h_approval
+                record.purchase_head_approval = onboarding.purchase_h_approval 
                 record.accounts_team_approval = onboarding.accounts_t_approval
-                record.accounts_head_approval = onboarding.accounts_h_approval
+                record.accounts_head_approval = onboarding.accounts_head_approval
                 record.created_by_accounts_team = onboarding.register_by_account_team
                 record.synced_date = frappe.utils.now()
                 record.synced_by = frappe.session.user
@@ -292,7 +292,7 @@ class VendorDocumentManager:
                 "purchase_team_approval" : onboarding.purchase_t_approval,
                 "purchase_head_approval" : onboarding.purchase_h_approval,
                 "accounts_team_approval" : onboarding.accounts_t_approval,
-                "accounts_head_approval" : onboarding.accounts_h_approval,
+                "accounts_head_approval" : onboarding.accounts_head_approval,
                 "created_by_accounts_team": onboarding.register_by_account_team,
                 "synced_date": frappe.utils.now(),
                 "synced_by": frappe.session.user
