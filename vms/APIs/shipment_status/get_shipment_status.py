@@ -94,3 +94,98 @@ def get_shipment_status_list(filters=None, fields=None, limit=20, offset=0, orde
     except Exception as e:
         frappe.response.http_status_code = 500
         return {"message": "Failed", "error": str(e)}
+
+
+
+#vms.APIs.shipment_status.get_shipment_status.get_shipment_status_statistics
+@frappe.whitelist()
+def get_shipment_status_statistics(filters=None):
+    try:
+        # Check permission
+        if not frappe.has_permission("Shipment Status", "read"):
+            frappe.response.http_status_code = 403
+            return {"message": "Failed", "error": "You don't have permission to view Shipment Status statistics"}
+
+        # Parse filters if JSON string
+        if isinstance(filters, str):
+            filters = json.loads(filters) if filters else {}
+        elif filters is None:
+            filters = {}
+
+        # Get total count
+        total_count = frappe.db.count("Shipment Status", filters)
+
+        # Get company-wise count
+        company_wise_sql = """
+            SELECT 
+                company as company,
+                COUNT(*) as count
+            FROM 
+                `tabShipment Status`
+            {where_clause}
+            GROUP BY 
+                company
+            ORDER BY 
+                count DESC
+        """
+
+      
+
+        # Build WHERE clause from filters
+        where_conditions = []
+        sql_params = {}
+        
+        if filters:
+            for key, value in filters.items():
+                where_conditions.append(f"`{key}` = %({key})s")
+                sql_params[key] = value
+        
+        where_clause = ""
+        if where_conditions:
+            where_clause = "WHERE " + " AND ".join(where_conditions)
+
+        # Execute queries
+        company_wise_count = frappe.db.sql(
+            company_wise_sql.format(where_clause=where_clause),
+            sql_params,
+            as_dict=True
+        )
+
+       
+
+       
+
+        # Enhance company-wise count with company names
+        for item in company_wise_count:
+            if item.get("company"):
+                company_name = frappe.db.get_value(
+                    "Company Master",
+                    item["company"],
+                    "company_name"
+                )
+                item["company_name"] = company_name
+
+       
+       
+
+        return {
+            "message": "Success",
+            "data": {
+                "total_count": total_count,
+                "company_wise_count": company_wise_count,
+            }
+        }
+
+    except json.JSONDecodeError:
+        frappe.response.http_status_code = 400
+        return {"message": "Failed", "error": "Invalid JSON in filters"}
+    
+    except frappe.PermissionError:
+        frappe.response.http_status_code = 403
+        return {"message": "Failed", "error": "Permission denied"}
+    
+    except Exception as e:
+        frappe.response.http_status_code = 500
+        frappe.log_error(frappe.get_traceback(), "Shipment Status Statistics Error")
+        return {"message": "Failed", "error": str(e)}
+
