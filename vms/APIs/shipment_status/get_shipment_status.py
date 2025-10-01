@@ -163,7 +163,13 @@ def get_shipment_status_statistics(filters=None):
                     item["company"],
                     "company_name"
                 )
+                company_code = frappe.db.get_value(
+                    "Company Master",
+                    item["company"],
+                    "company_code",
+                )
                 item["company_name"] = company_name
+                item["company_code"] = company_code
 
        
        
