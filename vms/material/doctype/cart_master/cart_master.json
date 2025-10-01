@@ -55,6 +55,7 @@
    "label": "User Specifications"
   },
   {
+   "fetch_from": "product_name.product_price",
    "fieldname": "product_price",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -68,6 +69,7 @@
    "options": "UOM Master"
   },
   {
+   "fetch_from": "product_name.lead_time",
    "fieldname": "lead_time",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -94,7 +96,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-09 11:38:42.309055",
+ "modified": "2025-10-01 13:01:50.277549",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Master",
