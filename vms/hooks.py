@@ -240,9 +240,10 @@ scheduler_events = {
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.handle_expirations",
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.check_and_resend_asa_forms"
         ],
-        "*/10 * * * *": [
+        "*/1 * * * *": [
             "vms.APIs.req_for_quotation.rfq_reminder.block_quotation_link",
-            "vms.APIs.sap.send_sap_error_email.uncheck_sap_error_email"  
+            "vms.APIs.sap.send_sap_error_email.uncheck_sap_error_email",
+            "vms.APIs.req_for_quotation.rfq_reminder.quotation_count_reminder_mail"
         ],
         "0 2 * * *": [  # Run at 2 AM daily
             "vms.chat_vms.maintenance.cleanup_deleted_files"
