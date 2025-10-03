@@ -124,7 +124,7 @@ def block_quotation_link():
     }
 
 
-# Pending to do
+# Pending to do (Need to Modify)
 # Send a reminder email to the vendor one hour before the deadline to check how much of the quotation they have submitted
 
 # from datetime import datetime

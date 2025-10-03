@@ -16,6 +16,8 @@
   "sub_head_email",
   "purchase_requisition_form_created",
   "purchase_requisition_form",
+  "cost_center",
+  "gl_account",
   "column_break_jaqb",
   "new_transfer_email",
   "transfer_reason",
@@ -402,12 +404,24 @@
    "fieldname": "is_submited",
    "fieldtype": "Check",
    "label": "Is Submited"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
+  },
+  {
+   "fieldname": "gl_account",
+   "fieldtype": "Link",
+   "label": "GL Account",
+   "options": "GL Account"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-09 17:00:42.779282",
+ "modified": "2025-10-03 15:29:33.871255",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",

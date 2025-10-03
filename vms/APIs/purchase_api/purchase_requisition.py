@@ -415,7 +415,9 @@ def create_purchase_requisition(cart_id):
 				"purchase_requisition_type": cart_details.purchase_type,
 				"plant_head": cart_details.plant,
 				"requisitioner_name_head": cart_details.user,
-				"company_code_area_head": cart_details.company
+				"company_code_area_head": cart_details.company,
+				"cost_center_head": cart_details.cost_center,
+				"gl_account_number_head": cart_details.gl_account
 			})
 			item_number += 10
 

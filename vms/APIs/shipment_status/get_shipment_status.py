@@ -1,6 +1,7 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 # vms.APIs.shipment_status.get_shipment_status.get_shipment_status_details
@@ -191,3 +192,74 @@ def get_shipment_status_statistics(filters=None):
         frappe.response.http_status_code = 500
         frappe.log_error(frappe.get_traceback(), "Shipment Status Statistics Error")
         return {"message": "Failed", "error": str(e)}
+    
+
+# Return sr no from each rfq and based on srno returning the data
+
+@frappe.whitelist(allow_guest=True)
+def rfq_srno_list():
+    try:
+        srno_list = []
+        rfq_docs = frappe.get_all(
+            "Request For Quotation",
+            filters={
+                "quotation_rfq_deadline_pass": 0,
+                "revised_rfq": 0
+            },
+            fields=["sr_no", "unique_srno", "name"]
+        )
+
+        for rfq in rfq_docs:
+            srno_list.append({
+                "sr_no": rfq.get("sr_no"),
+                "unique_srno": rfq.get("unique_srno"),
+                "name": rfq.get("name")
+            })
+
+        return srno_list
+
+    except Exception as e:
+        frappe.response.http_status_code = 500
+        frappe.log_error(frappe.get_traceback(), "rfq_srno_list error")
+        return []
+    
+
+# based on Srno (docname) returning the rfq data
+    
+@frappe.whitelist(allow_guest=True)
+def rfq_data(name):
+    try:
+        if not name:
+            frappe.response.http_status_code = 400
+            return {
+                "status": "error",
+                "message": "The RFQ Name (ID) is required."
+            }
+
+        rfq = frappe.get_doc("Request For Quotation", name)
+
+        return {
+            "name": name,
+            "sr_no": rfq.sr_no,
+            "rfq_date_logistic": rfq.rfq_date_logistic,
+            "company_name_logistic": rfq.company_name_logistic,
+            "port_of_loading": rfq.port_of_loading,
+            "inco_terms": rfq.inco_terms,
+            "expected_date_of_arrival": rfq.expected_date_of_arrival,
+            "destination_port": rfq.destination_port,
+            "package_type": rfq.package_type,
+            "shipment_date": rfq.shipment_date,
+            "consignee_name": rfq.consignee_name,
+            "mode_of_shipment": rfq.mode_of_shipment,
+            "no_of_pkg_units": rfq.no_of_pkg_units,
+            "actual_weight": rfq.actual_weight,
+            "shipper_name": rfq.shipper_name
+        }
+
+    except Exception as e:
+        frappe.response.http_status_code = 500
+        frappe.log_error(frappe.get_traceback(), "rfq_data error")
+        return {
+            "status": "error",
+            "message": "An unexpected error occurred while fetching RFQ data."
+        }
