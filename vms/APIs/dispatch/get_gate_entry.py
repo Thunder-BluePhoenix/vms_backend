@@ -233,18 +233,18 @@ def get_gate_entry_list(
 @frappe.whitelist()
 def get_gate_entry_statistics(filters=None):
     try:
-      
+        # Check permission
         if not frappe.has_permission("Gate Entry", "read"):
             frappe.response.http_status_code = 403
             return {"message": "Failed", "error": "You don't have permission to view Gate Entry statistics"}
 
-        
+        # Parse filters if JSON string
         if isinstance(filters, str):
             filters = json.loads(filters) if filters else {}
         elif filters is None:
             filters = {}
 
-        
+        # Build WHERE clause from filters
         where_conditions = []
         sql_params = {}
         
@@ -257,21 +257,21 @@ def get_gate_entry_statistics(filters=None):
         if where_conditions:
             where_clause = "WHERE " + " AND ".join(where_conditions)
 
-       
+        # Initialize response data
         data = {}
 
-        
+        # Get total count
         total_count = frappe.db.count("Gate Entry", filters)
         data["total_count"] = total_count
 
-        
+        # Get all companies from Company Master
         all_companies = frappe.get_all(
             "Company Master",
             fields=["name", "company_code", "company_name"],
             order_by="company_code"
         )
 
-        
+        # Get company-wise counts
         company_counts_sql = f"""
             SELECT 
                 name_of_company as company,
@@ -289,24 +289,31 @@ def get_gate_entry_statistics(filters=None):
             as_dict=True
         )
         
-        
+        # Convert to dictionary for easy lookup
         company_count_dict = {item["company"]: item["count"] for item in company_counts}
 
-       
+        # Add count object for each company
         for company in all_companies:
             company_code = company.get("company_code") or company.get("name")
-            company_name = company.get("company_name") or company.get("name")
-            count = company_count_dict.get(company.get("name"), 0)
+            company_name = company.get("company_name") or ""
+            company_id = company.get("name")
+            count = company_count_dict.get(company_id, 0)
             
-           
+            # Create key from company_code
             if company_code:
-                key = f"{company_code.lower().replace(' ', '_').replace('-', '_')}_count"
+                key = f"{company_id.lower().replace(' ', '_').replace('-', '_')}_count"
             else:
                 key = f"{company_name.lower().replace(' ', '_').replace('-', '_')}_count"
             
-            data[key] = count
+            # Store as object with details
+            data[key] = {
+                "name": company_id,
+                "company_code": company_code,
+                "company_name": company_name,
+                "count": count
+            }
 
-        
+        # Get status-wise counts
         status_options = [
             "Gate Received",
             "Received At Store", 
@@ -330,14 +337,12 @@ def get_gate_entry_statistics(filters=None):
             as_dict=True
         )
         
-        
+        # Convert to dictionary for easy lookup
         status_count_dict = {item["status"]: item["count"] for item in status_counts}
 
-        
+        # Add count for each status (as simple number)
         for status in status_options:
             count = status_count_dict.get(status, 0)
-            
-           
             key = f"{status.lower().replace(' ', '_')}_count"
             data[key] = count
 
