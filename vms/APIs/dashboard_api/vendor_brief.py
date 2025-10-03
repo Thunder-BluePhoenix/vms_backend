@@ -874,10 +874,12 @@ def calculate_vendor_analytics():
     total_vendors = frappe.db.count('Vendor Master')
     
     # Imported vendors (via_data_import = 1)
-    imported_vendors = frappe.db.count('Vendor Master', {'via_data_import': 1})
+    only_imported_vendors = frappe.db.count('Vendor Master', {'via_data_import': 1, 'created_from_registration': 0})
     
     # Registered via VMS (via_data_import = 0)
-    vms_registered = frappe.db.count('Vendor Master', {'created_from_registration': 1})
+    only_vms_registered = frappe.db.count('Vendor Master', {'created_from_registration': 1, 'via_data_import': 0})
+
+    both_imported_and_vms_registered = frappe.db.count('Vendor Master', {'via_data_import': 1, 'created_from_registration': 1})
 
     total_vc_code = frappe.db.count("Vendor Code", filters={"vendor_code": ["is", "set"]})
 
@@ -909,8 +911,9 @@ def calculate_vendor_analytics():
     return {
         'total_vendors': total_vendors,
         'total_vc_code':total_vc_code,
-        'imported_vendors': imported_vendors,
-        'vms_registered': vms_registered,
+        'imported_vendors': only_imported_vendors,
+        'vms_registered': only_vms_registered,
+        'both_imported_and_vms_registered': both_imported_and_vms_registered,
         'approved_by_accounts_team': approved_by_accounts,
         'approved_by_purchase_team': approved_by_purchase,
         'approved_by_any': approved_by_accounts + approved_by_purchase ,
@@ -1516,8 +1519,6 @@ def get_vendors_with_pagination_next(
                 LEFT JOIN `tabCompany Master` cm ON ivc.meril_company_name = cm.name
                 WHERE {vendor_company_where}
             """, vendor_company_values, as_dict=True)
-
-            # No exclusion for vendor_company_details as it's not a required filter
             
             # Process bank details with child tables
             if bank_details:
@@ -1543,6 +1544,60 @@ def get_vendors_with_pagination_next(
             
             enriched_vendors.append(vendor)
             
+            # ========== COLLECT UNIQUE PAN NUMBERS FROM ALL SOURCES ==========
+            unique_pan_numbers = set()
+            
+            # 1. Get PAN from vendor_company_details table in Vendor Master
+            vendor_master_company_details = frappe.db.sql("""
+                SELECT vcd.vendor_pan
+                FROM `tabImported Vendor Company` vcd
+                WHERE vcd.parent = %(vendor_name)s
+                AND vcd.vendor_pan IS NOT NULL
+                AND vcd.vendor_pan != ''
+            """, {'vendor_name': vendor['name']}, as_dict=True)
+            
+            for detail in vendor_master_company_details:
+                pan = detail.get('vendor_pan')
+                if pan:
+                    unique_pan_numbers.add(pan)
+            
+            # 2. Get PAN from Vendor Onboarding -> Company of Vendor -> Vendor Onboarding Company Details
+            if vendor.get('vendor_onb_records'):
+                for onb_record in vendor['vendor_onb_records']:
+                    vendor_onboarding_no = onb_record.get('vendor_onboarding_no')
+                    if vendor_onboarding_no:
+                        # Get all Company of Vendor records for this onboarding
+                        company_of_vendor_records = frappe.db.sql("""
+                            SELECT cov.vendor_company_details
+                            FROM `tabCompany of Vendor` cov
+                            WHERE cov.parent = %(onboarding_no)s
+                            AND cov.vendor_company_details IS NOT NULL
+                            AND cov.vendor_company_details != ''
+                        """, {'onboarding_no': vendor_onboarding_no}, as_dict=True)
+                        
+                        # For each Company of Vendor, get the PAN from Vendor Onboarding Company Details
+                        for cov in company_of_vendor_records:
+                            vendor_company_detail_id = cov.get('vendor_company_details')
+                            if vendor_company_detail_id:
+                                vocd_records = frappe.db.sql("""
+                                    SELECT vocd.company_pan_number
+                                    FROM `tabVendor Onboarding Company Details` vocd
+                                    WHERE vocd.name = %(vocd_id)s
+                                    AND vocd.company_pan_number IS NOT NULL
+                                    AND vocd.company_pan_number != ''
+                                """, {'vocd_id': vendor_company_detail_id}, as_dict=True)
+                                
+                                for vocd in vocd_records:
+                                    pan = vocd.get('company_pan_number')
+                                    if pan:
+                                        unique_pan_numbers.add(pan)
+            
+            # 3. Get PAN from Bank Details (company_pan_number field)
+            if vendor.get('bank_details'):
+                bank_pan = vendor['bank_details'].get('company_pan_number')
+                if bank_pan:
+                    unique_pan_numbers.add(bank_pan)
+            
             # ========== CREATE FLATTENED VENDOR DATA FOR vendor_data_in_list ==========
             vendor_flat_data = {
                 # Vendor Master meaningful fields
@@ -1560,6 +1615,9 @@ def get_vendors_with_pagination_next(
                 'validity_label': vendor.get('validity_label'),
                 'creation': vendor.get('creation'),
                 'modified': vendor.get('modified'),
+                
+                # Unique PAN numbers collected from all sources
+                'unique_pan_numbers': list(unique_pan_numbers),
                 
                 # Multiple Company Data - specific fields
                 'company_data': [],
@@ -1622,7 +1680,8 @@ def get_vendors_with_pagination_next(
                     'bank_key': bank.get('bank_key'),
                     'account_number': bank.get('account_number'),
                     'account_holder_name': bank.get('account_holder_name'),
-                    'currency': bank.get('currency')
+                    'currency': bank.get('currency'),
+                    'company_pan_number': bank.get('company_pan_number')
                 }
                 
                 # Extract meaningful fields from bank child tables
