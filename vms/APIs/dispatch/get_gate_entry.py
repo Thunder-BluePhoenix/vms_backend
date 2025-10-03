@@ -233,64 +233,18 @@ def get_gate_entry_list(
 @frappe.whitelist()
 def get_gate_entry_statistics(filters=None):
     try:
-        # Check permission
+      
         if not frappe.has_permission("Gate Entry", "read"):
             frappe.response.http_status_code = 403
             return {"message": "Failed", "error": "You don't have permission to view Gate Entry statistics"}
 
-        # Parse filters if JSON string
+        
         if isinstance(filters, str):
             filters = json.loads(filters) if filters else {}
         elif filters is None:
             filters = {}
 
-        # Get total count
-        total_count = frappe.db.count("Gate Entry", filters)
-
-        # Get company-wise count
-        company_wise_sql = """
-            SELECT 
-                name_of_company as company,
-                COUNT(*) as count
-            FROM 
-                `tabGate Entry`
-            {where_clause}
-            GROUP BY 
-                name_of_company
-            ORDER BY 
-                count DESC
-        """
-
-        # Get status-wise count
-        status_wise_sql = """
-            SELECT 
-                status,
-                COUNT(*) as count
-            FROM 
-                `tabGate Entry`
-            {where_clause}
-            GROUP BY 
-                status
-            ORDER BY 
-                count DESC
-        """
-
-        # Get company and status matrix (combined)
-        company_status_matrix_sql = """
-            SELECT 
-                name_of_company as company,
-                status,
-                COUNT(*) as count
-            FROM 
-                `tabGate Entry`
-            {where_clause}
-            GROUP BY 
-                name_of_company, status
-            ORDER BY 
-                name_of_company, status
-        """
-
-        # Build WHERE clause from filters
+        
         where_conditions = []
         sql_params = {}
         
@@ -303,59 +257,93 @@ def get_gate_entry_statistics(filters=None):
         if where_conditions:
             where_clause = "WHERE " + " AND ".join(where_conditions)
 
-        # Execute queries
-        company_wise_count = frappe.db.sql(
-            company_wise_sql.format(where_clause=where_clause),
+       
+        data = {}
+
+        
+        total_count = frappe.db.count("Gate Entry", filters)
+        data["total_count"] = total_count
+
+        
+        all_companies = frappe.get_all(
+            "Company Master",
+            fields=["name", "company_code", "company_name"],
+            order_by="company_code"
+        )
+
+        
+        company_counts_sql = f"""
+            SELECT 
+                name_of_company as company,
+                COUNT(*) as count
+            FROM 
+                `tabGate Entry`
+            {where_clause}
+            GROUP BY 
+                name_of_company
+        """
+        
+        company_counts = frappe.db.sql(
+            company_counts_sql,
             sql_params,
             as_dict=True
         )
+        
+        
+        company_count_dict = {item["company"]: item["count"] for item in company_counts}
 
-        status_wise_count = frappe.db.sql(
-            status_wise_sql.format(where_clause=where_clause),
+       
+        for company in all_companies:
+            company_code = company.get("company_code") or company.get("name")
+            company_name = company.get("company_name") or company.get("name")
+            count = company_count_dict.get(company.get("name"), 0)
+            
+           
+            if company_code:
+                key = f"{company_code.lower().replace(' ', '_').replace('-', '_')}_count"
+            else:
+                key = f"{company_name.lower().replace(' ', '_').replace('-', '_')}_count"
+            
+            data[key] = count
+
+        
+        status_options = [
+            "Gate Received",
+            "Received At Store", 
+            "HandedOver"
+        ]
+
+        status_counts_sql = f"""
+            SELECT 
+                status,
+                COUNT(*) as count
+            FROM 
+                `tabGate Entry`
+            {where_clause}
+            GROUP BY 
+                status
+        """
+        
+        status_counts = frappe.db.sql(
+            status_counts_sql,
             sql_params,
             as_dict=True
         )
+        
+        
+        status_count_dict = {item["status"]: item["count"] for item in status_counts}
 
-        company_status_matrix = frappe.db.sql(
-            company_status_matrix_sql.format(where_clause=where_clause),
-            sql_params,
-            as_dict=True
-        )
-
-        # Enhance company-wise count with company names
-        for item in company_wise_count:
-            if item.get("company"):
-                company_name = frappe.db.get_value(
-                    "Company Master",
-                    item["company"],
-                    "company_name"
-                )
-                company_code = frappe.db.get_value(
-                    "Company Master",
-                    item["company"],
-                    "company_code"
-                )
-                item["company_name"] = company_name
-                item["company_code"] = company_code
-
-        # Enhance matrix with company names
-        for item in company_status_matrix:
-            if item.get("company"):
-                company_name = frappe.db.get_value(
-                    "Company Master",
-                    item["company"],
-                    "company_name"
-                )
-                item["company_name"] = company_name
+        
+        for status in status_options:
+            count = status_count_dict.get(status, 0)
+            
+           
+            key = f"{status.lower().replace(' ', '_')}_count"
+            data[key] = count
 
         return {
             "message": "Success",
-            "data": {
-                "total_count": total_count,
-                "company_wise_count": company_wise_count,
-                "status_wise_count": status_wise_count,
-                # "company_status_matrix": company_status_matrix
-            }
+            "data": data
         }
 
     except json.JSONDecodeError:
@@ -370,4 +358,3 @@ def get_gate_entry_statistics(filters=None):
         frappe.response.http_status_code = 500
         frappe.log_error(frappe.get_traceback(), "Gate Entry Statistics Error")
         return {"message": "Failed", "error": str(e)}
-
