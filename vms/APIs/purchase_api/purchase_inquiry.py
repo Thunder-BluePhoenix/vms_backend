@@ -79,6 +79,7 @@ def filter_subhead_email():
 def filter_purchase_group(company):
     try:
         if not company:
+            frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
                 "message": "Company is required"
@@ -90,12 +91,27 @@ def filter_purchase_group(company):
             fields=["name", "purchase_group_code", "purchase_group_name", "description"]
         )
 
+        cost_center = frappe.get_all(
+            "Cost Center",
+            filters={"company_code": company},
+            fields=["name", "cost_center_code", "cost_center_name", "description", "short_text"]
+        )
+
+        gl_account = frappe.get_all(
+            "GL Account",
+            filters={"company": company},
+            fields=["name", "gl_account_code", "gl_account_name", "account_group", "description"]
+        )
+
         return {
             "status": "success",
-            "pur_grp": pur_grp
+            "pur_grp": pur_grp,
+            "cost_center": cost_center,
+            "gl_account": gl_account
         }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 400
         frappe.log_error(frappe.get_traceback(), "Error filtering purchase group")
         return {
             "status": "error",
