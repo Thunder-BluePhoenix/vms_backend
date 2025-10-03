@@ -77,7 +77,7 @@ def block_quotation_link():
 
     req_quotations = frappe.get_all(
         "Request For Quotation",
-        filters = {"revised_rfq": 0},
+        filters = {"quotation_rfq_deadline_pass" : 0, "revised_rfq": 0},
         fields=["name", "rfq_cutoff_date_logistic", "raised_by", "quotation_rfq_deadline_pass"]
     )
 
@@ -124,64 +124,65 @@ def block_quotation_link():
     }
 
 
+# Pending to do
 # Send a reminder email to the vendor one hour before the deadline to check how much of the quotation they have submitted
 
-from datetime import datetime
-import frappe
+# from datetime import datetime
+# import frappe
 
-def quotation_count_reminder_mail():
-    try:
-        rfq_settings = frappe.get_doc("RFQ Settings")
-        reminder_seconds = int(rfq_settings.vendor_filled_quotations_count or 3600)
+# def quotation_count_reminder_mail():
+#     try:
+#         rfq_settings = frappe.get_doc("RFQ Settings")
+#         reminder_seconds = int(rfq_settings.vendor_filled_quotations_count or 3600)
 
-        req_quotations = frappe.get_all(
-            "Request For Quotation",
-            filters={
-                "quotation_rfq_deadline_pass": 0,
-                "revised_rfq": 0,
-            },
-            fields=["name", "rfq_cutoff_date_logistic"]
-        )
+#         req_quotations = frappe.get_all(
+#             "Request For Quotation",
+#             filters={
+#                 "quotation_rfq_deadline_pass": 0,
+#                 "revised_rfq": 0,
+#             },
+#             fields=["name", "rfq_cutoff_date_logistic"]
+#         )
 
-        now = datetime.now()
-        now_seconds = now.hour * 3600 + now.minute * 60 + now.second
+#         now = datetime.now()
+#         now_seconds = now.hour * 3600 + now.minute * 60 + now.second
 
-        for rfq_data in req_quotations:
-            rfq_cutoff = rfq_data.get("rfq_cutoff_date_logistic")
+#         for rfq_data in req_quotations:
+#             rfq_cutoff = rfq_data.get("rfq_cutoff_date_logistic")
 
-            if rfq_cutoff:
-                if isinstance(rfq_cutoff, str):
-                    cutoff_dt = datetime.strptime(rfq_cutoff, "%Y-%m-%d %H:%M:%S")
-                else:
-                    cutoff_dt = rfq_cutoff 
+#             if rfq_cutoff:
+#                 if isinstance(rfq_cutoff, str):
+#                     cutoff_dt = datetime.strptime(rfq_cutoff, "%Y-%m-%d %H:%M:%S")
+#                 else:
+#                     cutoff_dt = rfq_cutoff 
 
-                cutoff_seconds = cutoff_dt.hour * 3600 + cutoff_dt.minute * 60 + cutoff_dt.second
+#                 cutoff_seconds = cutoff_dt.hour * 3600 + cutoff_dt.minute * 60 + cutoff_dt.second
                
-                diff = cutoff_seconds - now_seconds
-                print(f"Now seconds: {now_seconds}, Cutoff seconds: {cutoff_seconds}, Diff: {diff}, name: {rfq_data.get("name")}")
+#                 diff = cutoff_seconds - now_seconds
+#                 print(f"Now seconds: {now_seconds}, Cutoff seconds: {cutoff_seconds}, Diff: {diff}, name: {rfq_data.get("name")}")
 
-                # Now you can compare diff with reminder_seconds (or any logic you want)
-                if reminder_seconds > diff:
-                    subject = f"RFQ Deadline Passed:"
+#                 # Now you can compare diff with reminder_seconds (or any logic you want)
+#                 if reminder_seconds > diff:
+#                     subject = f"RFQ Deadline Passed:"
 
-                    message = f"""
-                        <p>Dear Purchase Team,</p>
+#                     message = f"""
+#                         <p>Dear Purchase Team,</p>
 
-                        <p>Heelooooooo abhishek</p>
+#                         <p>Heelooooooo abhishek</p>
 
-                        <p>Regards,<br>VMS Team</p>
-                    """
+#                         <p>Regards,<br>VMS Team</p>
+#                     """
 
-                    frappe.custom_sendmail(
-                        recipients="rishi.hingad@merillife.com",
-                        subject=subject,
-                        message=message,
-                        now=True
-                    )
+#                     frappe.custom_sendmail(
+#                         recipients="rishi.hingad@merillife.com",
+#                         subject=subject,
+#                         message=message,
+#                         now=True
+#                     )
 
-    except Exception as e:
-        frappe.log_error(f"Error in quotation_count_reminder_mail: {str(e)}")
-        print(f"Error: {e}")
+#     except Exception as e:
+#         frappe.log_error(f"Error in quotation_count_reminder_mail: {str(e)}")
+#         print(f"Error: {e}")
 
 
 

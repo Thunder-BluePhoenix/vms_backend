@@ -409,6 +409,7 @@ def get_full_rfq_data(unique_id):
 			cutoff_date = current_rfq.get("rfq_cutoff_date_logistic") or current_rfq.get("quotation_deadline")
 
 			vendor_data = []
+			# Process onboarded vendors
 			for row in current_rfq.vendor_details:
 				try:
 					parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
@@ -423,6 +424,26 @@ def get_full_rfq_data(unique_id):
 						"office_email_primary": row.office_email_primary,
 						"mobile_number": row.mobile_number,
 						"service_provider_type": row.service_provider_type,
+						"country": row.country,
+						"bid_won": row.bid_won,
+						"bid_loss": row.bid_loss,
+						"quotations": parsed_json
+					})
+
+			# Process non-onboarded vendors
+			for row in current_rfq.non_onboarded_vendor_details:
+				try:
+					parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
+				except Exception:
+					parsed_json = []
+				
+				if parsed_json:
+					vendor_data.append({
+						"vendor_name": row.vendor_name,
+						"vendor_code": [],
+						"office_email_primary": row.office_email_primary,
+						"mobile_number": row.mobile_number,
+						"service_provider_type": "",
 						"country": row.country,
 						"bid_won": row.bid_won,
 						"bid_loss": row.bid_loss,
