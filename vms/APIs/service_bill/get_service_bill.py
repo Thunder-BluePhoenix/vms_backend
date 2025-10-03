@@ -112,25 +112,6 @@ def get_service_bill_statistics(filters=None):
         elif filters is None:
             filters = {}
 
-        # Get total count
-        total_count = frappe.db.count("Service Bill", filters)
-
-        # Get company-wise count
-        company_wise_sql = """
-            SELECT 
-                company as company,
-                COUNT(*) as count
-            FROM 
-                `tabService Bill`
-            {where_clause}
-            GROUP BY 
-                company
-            ORDER BY 
-                count DESC
-        """
-
-      
-
         # Build WHERE clause from filters
         where_conditions = []
         sql_params = {}
@@ -144,42 +125,58 @@ def get_service_bill_statistics(filters=None):
         if where_conditions:
             where_clause = "WHERE " + " AND ".join(where_conditions)
 
-        # Execute queries
-        company_wise_count = frappe.db.sql(
-            company_wise_sql.format(where_clause=where_clause),
+     
+        data = {}
+
+    
+        total_count = frappe.db.count("Service Bill", filters)
+        data["total_count"] = total_count
+
+        # Get all companies from Company Master
+        all_companies = frappe.get_all(
+            "Company Master",
+            fields=["name", "company_code", "company_name"],
+            order_by="company_code"
+        )
+
+        # Get company-wise counts
+        company_counts_sql = f"""
+            SELECT 
+                company,
+                COUNT(*) as count
+            FROM 
+                `tabService Bill`
+            {where_clause}
+            GROUP BY 
+                company
+        """
+        
+        company_counts = frappe.db.sql(
+            company_counts_sql,
             sql_params,
             as_dict=True
         )
+        
+        
+        company_count_dict = {item["company"]: item["count"] for item in company_counts}
 
        
-
-       
-
-        # Enhance company-wise count with company names
-        for item in company_wise_count:
-            if item.get("company"):
-                company_name = frappe.db.get_value(
-                    "Company Master",
-                    item["company"],
-                    "company_name"
-                )
-                company_code = frappe.db.get_value(
-                    "Company Master",
-                    item["company"],
-                    "company_code",
-                )
-                item["company_name"] = company_name
-                item["company_code"] = company_code
-
-       
-       
+        for company in all_companies:
+            company_code = company.get("company_code") or company.get("name")
+            company_name = company.get("company_name") or company.get("name")
+            count = company_count_dict.get(company.get("name"), 0)
+            
+            # Create key as company_code_count
+            if company_code:
+                key = f"{company_code.lower().replace(' ', '_').replace('-', '_')}_count"
+            else:
+                key = f"{company_name.lower().replace(' ', '_').replace('-', '_')}_count"
+            
+            data[key] = count
 
         return {
             "message": "Success",
-            "data": {
-                "total_count": total_count,
-                "company_wise_count": company_wise_count,
-            }
+            "data": data
         }
 
     except json.JSONDecodeError:
