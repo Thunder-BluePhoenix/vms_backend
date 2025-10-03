@@ -183,6 +183,7 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "requisitioner": "Compulsory"
             }
         else:
+            frappe.local.response["http_status_code"] = 500
             return {
                 "status": "error",
                 "message": "Invalid combination of company, purchase type, and account category."
@@ -190,6 +191,7 @@ def filter_req_fields(company, pur_type, acct_cate):
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Filter Request Fields API Error")
+        frappe.local.response["http_status_code"] = 500
         return {
             "status": "error",
             "message": "Failed to retrieve filter request fields.",

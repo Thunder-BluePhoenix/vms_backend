@@ -469,6 +469,93 @@ def send_thank_you_email_to_vendor(quotation):
 
 # Return the Prev Quotation data based on prev Quotation ID
 
+# @frappe.whitelist(allow_guest=True)
+# def get_quotation_details(quotation_name):
+#     try:
+#         if not quotation_name:
+#             frappe.local.response["http_status_code"] = 400
+#             return {
+#                 "status": "error",
+#                 "message": "Quotation ID is required."
+#             }
+
+#         quotation = frappe.get_doc("Quotation", quotation_name)
+
+#         quotation_data = {
+#             "quotation_name": quotation.name,
+#             "rfq_number": quotation.rfq_number,
+#             "ref_no": quotation.ref_no,
+#             "vendor_name": quotation.vendor_name,
+#             "vendor_code": quotation.vendor_code,
+#             "rfq_type": quotation.rfq_type,
+#             "office_email_primary": quotation.office_email_primary,
+#             "vendor_contact": quotation.vendor_contact,
+
+#             "logistic_type": quotation.logistic_type,
+#             "company_name_logistic": quotation.company_name_logistic,
+#             "mode_of_shipment": quotation.mode_of_shipment,
+#             "sr_no": quotation.sr_no,
+#             "airlinevessel_name": quotation.airlinevessel_name,
+#             "chargeable_weight": quotation.chargeable_weight,
+#             "rfq_cutoff_date": quotation.rfq_cutoff_date,
+#             "ratekg": quotation.ratekg,
+#             "fuel_surcharge": quotation.fuel_surcharge,
+#             "surcharge": quotation.surcharge,
+#             "sc": quotation.sc,
+#             "xray": quotation.xray,
+#             "pickuporigin": quotation.pickuporigin,
+#             "transit_days": quotation.transit_days,
+#             "total_freight": quotation.total_freight,
+#             "from_currency": quotation.from_currency,
+#             "exchange_rate": quotation.exchange_rate,
+#             "total_freightinr": quotation.total_freightinr,
+#             "destination_charge": quotation.destination_charge,
+#             "shipping_line_charge": quotation.shipping_line_charge,
+#             "cfs_charge": quotation.cfs_charge,
+#             "total_landing_price": quotation.total_landing_price,
+#             "remarks": quotation.remarks,
+
+#             "destination_port": quotation.destination_port,
+#             "port_code": quotation.port_code,
+#             "port_of_loading": quotation.port_of_loading,
+#             "inco_terms": quotation.inco_terms,
+#             "shipper_name": quotation.shipper_name,
+#             "package_type": quotation.package_type,
+#             "no_of_pkg_units": quotation.no_of_pkg_units,
+#             "product_category_logistic": quotation.product_category_logistic,
+#             "vol_weight": quotation.vol_weight,
+#             "actual_weight": quotation.actual_weight,
+#             "invoice_date": quotation.invoice_date,
+#             "invoice_no": quotation.invoice_no,
+#             "invoice_value": quotation.invoice_value,
+#             "expected_date_of_arrival": quotation.expected_date_of_arrival,
+#             "consignee_name": quotation.consignee_name,
+#             "shipment_date": quotation.shipment_date,
+#             "shipment_type": quotation.shipment_type,
+#             "quantity": quotation.quantity,
+#             "ship_to_address": quotation.ship_to_address,
+#         }
+
+#         return {
+#             "status": "success",
+#             "data": quotation_data
+#         }
+
+#     except frappe.DoesNotExistError:
+#         frappe.local.response["http_status_code"] = 404
+#         return {
+#             "status": "error",
+#             "message": f"Quotation '{quotation_name}' not found"
+#         }
+
+#     except Exception as e:
+#         frappe.local.response["http_status_code"] = 500
+#         frappe.log_error(frappe.get_traceback(), "Error in get_quotation_details")
+#         return {
+#             "status": "error",
+#             "message": "An unexpected error occurred while fetching Quotation details."
+#         }
+
 @frappe.whitelist(allow_guest=True)
 def get_quotation_details(quotation_name):
     try:
@@ -481,60 +568,178 @@ def get_quotation_details(quotation_name):
 
         quotation = frappe.get_doc("Quotation", quotation_name)
 
-        quotation_data = {
-            "quotation_name": quotation.name,
-            "rfq_number": quotation.rfq_number,
-            "ref_no": quotation.ref_no,
-            "vendor_name": quotation.vendor_name,
-            "vendor_code": quotation.vendor_code,
-            "rfq_type": quotation.rfq_type,
-            "office_email_primary": quotation.office_email_primary,
-            "vendor_contact": quotation.vendor_contact,
+        def get_attachments():
+            attachments = []
+            for row in quotation.attachments:
+                file_url = row.get("attachment_name")
+                if file_url:
+                    file_doc = frappe.get_doc("File", {"file_url": file_url})
+                    attachments.append({
+                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                        "name": file_doc.name,
+                        "file_name": file_doc.file_name
+                    })
+                else:
+                    attachments.append({
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    })
+            return attachments
 
-            "logistic_type": quotation.logistic_type,
-            "company_name_logistic": quotation.company_name_logistic,
-            "mode_of_shipment": quotation.mode_of_shipment,
-            "sr_no": quotation.sr_no,
-            "airlinevessel_name": quotation.airlinevessel_name,
-            "chargeable_weight": quotation.chargeable_weight,
-            "rfq_cutoff_date": quotation.rfq_cutoff_date,
-            "ratekg": quotation.ratekg,
-            "fuel_surcharge": quotation.fuel_surcharge,
-            "surcharge": quotation.surcharge,
-            "sc": quotation.sc,
-            "xray": quotation.xray,
-            "pickuporigin": quotation.pickuporigin,
-            "transit_days": quotation.transit_days,
-            "total_freight": quotation.total_freight,
-            "from_currency": quotation.from_currency,
-            "exchange_rate": quotation.exchange_rate,
-            "total_freightinr": quotation.total_freightinr,
-            "destination_charge": quotation.destination_charge,
-            "shipping_line_charge": quotation.shipping_line_charge,
-            "cfs_charge": quotation.cfs_charge,
-            "total_landing_price": quotation.total_landing_price,
-            "remarks": quotation.remarks,
+        if quotation.rfq_type == "Logistics Vendor":
+            quotation_data = {
+                "quotation_name": quotation.name,
+                "rfq_number": quotation.rfq_number,
+                "ref_no": quotation.ref_no,
+                "vendor_name": quotation.vendor_name,
+                "vendor_code": quotation.vendor_code,
+                "rfq_type": quotation.rfq_type,
+                "office_email_primary": quotation.office_email_primary,
+                "vendor_contact": quotation.vendor_contact,
+                "logistic_type": quotation.logistic_type,
+                "company_name_logistic": quotation.company_name_logistic,
+                "mode_of_shipment": quotation.mode_of_shipment,
+                "sr_no": quotation.sr_no,
+                "airlinevessel_name": quotation.airlinevessel_name,
+                "chargeable_weight": quotation.chargeable_weight,
+                "rfq_cutoff_date": quotation.rfq_cutoff_date,
+                "ratekg": quotation.ratekg,
+                "fuel_surcharge": quotation.fuel_surcharge,
+                "surcharge": quotation.surcharge,
+                "sc": quotation.sc,
+                "xray": quotation.xray,
+                "pickuporigin": quotation.pickuporigin,
+                "transit_days": quotation.transit_days,
+                "total_freight": quotation.total_freight,
+                "from_currency": quotation.from_currency,
+                "exchange_rate": quotation.exchange_rate,
+                "total_freightinr": quotation.total_freightinr,
+                "destination_charge": quotation.destination_charge,
+                "shipping_line_charge": quotation.shipping_line_charge,
+                "cfs_charge": quotation.cfs_charge,
+                "total_landing_price": quotation.total_landing_price,
+                "remarks": quotation.remarks,
+                "destination_port": quotation.destination_port,
+                "port_code": quotation.port_code,
+                "port_of_loading": quotation.port_of_loading,
+                "inco_terms": quotation.inco_terms,
+                "shipper_name": quotation.shipper_name,
+                "package_type": quotation.package_type,
+                "no_of_pkg_units": quotation.no_of_pkg_units,
+                "product_category_logistic": quotation.product_category_logistic,
+                "vol_weight": quotation.vol_weight,
+                "actual_weight": quotation.actual_weight,
+                "invoice_date": quotation.invoice_date,
+                "invoice_no": quotation.invoice_no,
+                "invoice_value": quotation.invoice_value,
+                "expected_date_of_arrival": quotation.expected_date_of_arrival,
+                "consignee_name": quotation.consignee_name,
+                "shipment_date": quotation.shipment_date,
+                "shipment_type": quotation.shipment_type,
+                "quantity": quotation.quantity,
+                "ship_to_address": quotation.ship_to_address,
+                "rank": quotation.rank,
+                "attachments": get_attachments()
+            }
 
-            "destination_port": quotation.destination_port,
-            "port_code": quotation.port_code,
-            "port_of_loading": quotation.port_of_loading,
-            "inco_terms": quotation.inco_terms,
-            "shipper_name": quotation.shipper_name,
-            "package_type": quotation.package_type,
-            "no_of_pkg_units": quotation.no_of_pkg_units,
-            "product_category_logistic": quotation.product_category_logistic,
-            "vol_weight": quotation.vol_weight,
-            "actual_weight": quotation.actual_weight,
-            "invoice_date": quotation.invoice_date,
-            "invoice_no": quotation.invoice_no,
-            "invoice_value": quotation.invoice_value,
-            "expected_date_of_arrival": quotation.expected_date_of_arrival,
-            "consignee_name": quotation.consignee_name,
-            "shipment_date": quotation.shipment_date,
-            "shipment_type": quotation.shipment_type,
-            "quantity": quotation.quantity,
-            "ship_to_address": quotation.ship_to_address,
-        }
+        elif quotation.rfq_type == "Material Vendor":
+            rfq_item_list = []
+            for row in quotation.rfq_item_list:
+                rfq_item_list.append({
+                    "row_id": row.name,
+                    "head_unique_field": row.head_unique_field,
+                    "purchase_requisition_number": row.purchase_requisition_number,
+                    "material_code_head": row.material_code_head,
+                    "delivery_date_head": row.delivery_date_head,
+                    "material_name_head": row.material_name_head,
+                    "quantity_head": row.quantity_head,
+                    "uom_head": row.uom_head,
+                    "price_head": row.price_head,
+                    "rate_with_tax": row.rate_with_tax,
+                    "rate_without_tax": row.rate_without_tax,
+                    "moq_head": row.moq_head,
+                    "lead_time_head": row.lead_time_head,
+                    "tax": row.tax,
+                })
+
+            quotation_data = {
+                "quotation_name": quotation.name,
+                "rfq_number": quotation.rfq_number,
+                "ref_no": quotation.ref_no,
+                "vendor_name": quotation.vendor_name,
+                "vendor_code": quotation.vendor_code,
+                "rfq_type": quotation.rfq_type,
+                "office_email_primary": quotation.office_email_primary,
+                "vendor_contact": quotation.vendor_contact,
+                "logistic_type": quotation.logistic_type,
+                "company_name": quotation.company_name,
+                "quotation_deadline": quotation.quotation_deadline,
+                "quote_amount": quotation.quote_amount,
+                "rfq_item_list": rfq_item_list,
+                "attachments": get_attachments()
+            }
+
+        elif quotation.rfq_type == "Service Vendor":
+            grouped_data = {}
+            for row in sorted(quotation.rfq_item_list, key=lambda x: x.idx):
+                head_id = row.head_unique_field
+                if not head_id:
+                    continue
+                if head_id not in grouped_data:
+                    grouped_data[head_id] = {
+                        "row_id": row.name,
+                        "head_unique_field": row.head_unique_field,
+                        "purchase_requisition_number": row.purchase_requisition_number,
+                        "material_code_head": row.material_code_head,
+                        "delivery_date_head": row.delivery_date_head,
+                        "material_name_head": row.material_name_head,
+                        "quantity_head": row.quantity_head,
+                        "uom_head": row.uom_head,
+                        "price_head": row.price_head,
+                        "rate_with_tax": row.rate_with_tax,
+                        "rate_without_tax": row.rate_without_tax,
+                        "moq_head": row.moq_head,
+                        "lead_time_head": row.lead_time_head,
+                        "tax": row.tax,
+                        "remarks": row.remarks,
+                        "subhead_fields": []
+                    }
+
+                subhead_data = {
+                    "subhead_unique_field": row.subhead_unique_field,
+                    "material_code_subhead": row.material_code_subhead,
+                    "material_name_subhead": row.material_name_subhead,
+                    "quantity_subhead": row.quantity_subhead,
+                    "uom_subhead": row.uom_subhead,
+                    "price_subhead": row.price_subhead,
+                    "delivery_date_subhead": row.delivery_date_subhead
+                }
+                grouped_data[head_id]["subhead_fields"].append(subhead_data)
+
+            quotation_data = {
+                "quotation_name": quotation.name,
+                "rfq_number": quotation.rfq_number,
+                "ref_no": quotation.ref_no,
+                "vendor_name": quotation.vendor_name,
+                "vendor_code": quotation.vendor_code,
+                "rfq_type": quotation.rfq_type,
+                "office_email_primary": quotation.office_email_primary,
+                "vendor_contact": quotation.vendor_contact,
+                "logistic_type": quotation.logistic_type,
+                "company_name": quotation.company_name,
+                "quotation_deadline": quotation.quotation_deadline,
+                "quote_amount": quotation.quote_amount,
+                "rfq_item_list": list(grouped_data.values()),
+                "attachments": get_attachments()
+            }
+
+        else:
+            frappe.local.response["http_status_code"] = 400
+            return {
+                "status": "error",
+                "message": f"Unsupported RFQ type: {quotation.rfq_type}"
+            }
 
         return {
             "status": "success",
@@ -548,7 +753,7 @@ def get_quotation_details(quotation_name):
             "message": f"Quotation '{quotation_name}' not found"
         }
 
-    except Exception as e:
+    except Exception:
         frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "Error in get_quotation_details")
         return {
