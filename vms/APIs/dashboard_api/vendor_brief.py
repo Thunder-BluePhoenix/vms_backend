@@ -1261,3 +1261,444 @@ def get_vendor_bank_details(vendor_id):
             "success": False,
             "message": "Error fetching bank details"
         }
+    
+
+
+
+@frappe.whitelist(allow_guest = True)
+def get_vendors_with_pagination_next(
+    page=1, 
+    page_size=20, 
+    search_filters=None,
+    company_name=None,
+    onboarding_form=None,
+    via_data_import=None
+):
+    """
+    API to fetch vendor masters with pagination, multiple search filters and advanced analytics
+    
+    Parameters:
+    - page: Current page number (default: 1)
+    - page_size: Number of records per page (default: 20) 
+    - search_filters: JSON string with multiple search fields and parameters
+      Example: '{"vendor_name": ["ABC", "XYZ"], "office_email_primary": ["@gmail.com", "@yahoo.com"]}'
+    - company_name: Filter by specific company name from multiple_company_data
+    - onboarding_form: Filter by onboarding form status in vendor_onb_records
+    - via_data_import: Filter by via_data_import field (1/true for imported vendors)
+    
+    Returns:
+    - vendor_data_list: Flattened meaningful data list
+    - pagination: Pagination metadata
+    - analytics: Vendor counts and analytics
+    - company_analytics: Company-wise vendor counts
+    """
+    
+    try:
+        import json
+        
+        # Validate pagination parameters
+        page = max(int(page), 1)
+        page_size = max(min(int(page_size), 100), 1)  # Max 100 records per page
+        
+        # Build base query
+        conditions = []
+        values = {}
+        
+        # Parse search filters - each field's conditions are OR'd, different fields are AND'd
+        if search_filters:
+            try:
+                if isinstance(search_filters, str):
+                    search_filters = json.loads(search_filters)
+                
+                # Validate search fields exist in Vendor Master doctype
+                valid_search_fields = [
+                    'vendor_name', 'office_email_primary', 'office_email_secondary', 
+                    'mobile_number', 'search_term', 'country', 'first_name', 'last_name',
+                    'registered_by', 'status', 'onboarding_form_status', 'remarks'
+                ]
+                
+                search_conditions = []
+                param_counter = 0
+                
+                for field, params in search_filters.items():
+                    if field in valid_search_fields and params:
+                        # Ensure params is a list
+                        if not isinstance(params, list):
+                            params = [params]
+                        
+                        field_conditions = []
+                        for param in params:
+                            if param and str(param).strip():  # Skip empty params
+                                param_key = f"search_param_{param_counter}"
+                                field_conditions.append(f"vm.{field} LIKE %({param_key})s")
+                                values[param_key] = f"%{str(param).strip()}%"
+                                param_counter += 1
+                        
+                        if field_conditions:
+                            # Use OR between parameters for the SAME field
+                            search_conditions.append(f"({' OR '.join(field_conditions)})")
+                
+                if search_conditions:
+                    # Use AND between DIFFERENT fields
+                    conditions.append(f"({' AND '.join(search_conditions)})")
+                    
+            except (json.JSONDecodeError, TypeError) as e:
+                frappe.log_error(f"Invalid search_filters format: {str(e)}")
+        
+        # Company filter from multiple_company_data table
+        company_join = ""
+        if company_name:
+            company_join = """
+            INNER JOIN `tabMultiple Company Data` mcd 
+            ON vm.name = mcd.parent 
+            INNER JOIN `tabCompany Master` cm 
+            ON mcd.company_name = cm.name
+            """
+            conditions.append("cm.company_name LIKE %(company_name)s")
+            values['company_name'] = f"%{company_name}%"
+        
+        # Onboarding form filter from vendor_onb_records table
+        onboarding_join = ""
+        if onboarding_form:
+            onboarding_join = """
+            INNER JOIN `tabVendor Onboarding Records` vor 
+            ON vm.name = vor.parent
+            """
+            conditions.append("vor.onboarding_form_status = %(onboarding_form)s")
+            values['onboarding_form'] = onboarding_form
+        
+        # Via data import filter
+        if via_data_import is not None:
+            # Handle various truthy values (1, "1", True, "true", etc.)
+            if str(via_data_import).lower() in ['1', 'true', 'yes']:
+                conditions.append("vm.via_data_import = 1")
+            else:
+                conditions.append("(vm.via_data_import = 0 OR vm.via_data_import IS NULL)")
+        
+        # Combine all joins
+        all_joins = f"{company_join} {onboarding_join}"
+        
+        # Build WHERE clause - ALL conditions are combined with AND
+        where_clause = ""
+        if conditions:
+            where_clause = "WHERE " + " AND ".join(conditions)
+        
+        # Calculate total count for pagination
+        count_query = f"""
+        SELECT COUNT(DISTINCT vm.name) as total_count
+        FROM `tabVendor Master` vm
+        {all_joins}
+        {where_clause}
+        """
+        
+        total_count = frappe.db.sql(count_query, values, as_dict=True)[0]['total_count']
+        total_pages = math.ceil(total_count / page_size)
+        
+        # Calculate offset
+        offset = (page - 1) * page_size
+        
+        # Main query to fetch all vendor data fields
+        main_query = f"""
+        SELECT DISTINCT vm.*
+        FROM `tabVendor Master` vm
+        {all_joins}
+        {where_clause}
+        ORDER BY vm.modified DESC
+        LIMIT %(page_size)s OFFSET %(offset)s
+        """
+        
+        values.update({
+            'page_size': page_size,
+            'offset': offset
+        })
+        
+        vendors = frappe.db.sql(main_query, values, as_dict=True)
+        
+        # Enrich vendor data with related information
+        # Get child table information once for efficiency
+        bank_meta = frappe.get_meta("Vendor Bank Details")
+        bank_child_tables = {}
+        for field in bank_meta.fields:
+            if field.fieldtype == "Table":
+                bank_child_tables[field.fieldname] = field.options
+
+        enriched_vendors = []
+        vendor_data_in_list = []
+        
+        for vendor in vendors:
+            # Flag to track if vendor should be excluded
+            should_exclude_vendor = False
+            
+            # Fetch and filter multiple_company_data
+            company_data_conditions = ["mcd.parent = %(vendor_name)s"]
+            company_data_values = {'vendor_name': vendor['name']}
+
+            if company_name:
+                company_data_conditions.append("cm.company_name LIKE %(company_name_filter)s")
+                company_data_values['company_name_filter'] = f"%{company_name}%"
+
+            company_data_where = " AND ".join(company_data_conditions)
+
+            vendor['multiple_company_data'] = frappe.db.sql(f"""
+                SELECT mcd.*, cm.company_name as company_display_name
+                FROM `tabMultiple Company Data` mcd
+                LEFT JOIN `tabCompany Master` cm ON mcd.company_name = cm.name
+                WHERE {company_data_where}
+            """, company_data_values, as_dict=True)
+
+            # Exclude vendor if company_name filter is applied but no company data found
+            if company_name and not vendor['multiple_company_data']:
+                should_exclude_vendor = True
+                continue
+            
+            # Fetch and filter vendor_onb_records
+            vendor_onb_conditions = ["vor.parent = %(vendor_name)s"]
+            vendor_onb_values = {'vendor_name': vendor['name']}
+
+            vendor_onb_join = """
+                LEFT JOIN `tabVendor Onboarding` vo 
+                ON vor.vendor_onboarding_no = vo.name
+            """
+
+            if onboarding_form:
+                vendor_onb_conditions.append(
+                    "(vor.onboarding_status = %(onboarding_form_filter)s OR vor.onboarding_form_status = %(onboarding_form_filter)s)"
+                )
+                vendor_onb_values['onboarding_form_filter'] = onboarding_form
+
+            if company_name:
+                vendor_onb_conditions.append("vo.company_name LIKE %(company_name_filter)s")
+                vendor_onb_values['company_name_filter'] = f"%{company_name}%"
+
+            vendor_onb_where = " AND ".join(vendor_onb_conditions)
+
+            vendor['vendor_onb_records'] = frappe.db.sql(f"""
+                SELECT vor.*, vo.company_name as onboarding_company_name
+                FROM `tabVendor Onboarding Records` vor
+                {vendor_onb_join}
+                WHERE {vendor_onb_where}
+            """, vendor_onb_values, as_dict=True)
+
+            # Exclude vendor if onboarding_form filter is applied but no onboarding records found
+            if onboarding_form and not vendor['vendor_onb_records']:
+                should_exclude_vendor = True
+                continue
+            
+            # Fetch vendor_types (no filter, so no exclusion needed)
+            vendor['vendor_types'] = frappe.db.sql("""
+                SELECT vt.*
+                FROM `tabVendor Type Group` vt
+                WHERE vt.parent = %(vendor_name)s
+            """, {'vendor_name': vendor['name']}, as_dict=True)
+            
+            # Fetch bank_details
+            bank_details = frappe.db.sql("""
+                SELECT bd.*
+                FROM `tabVendor Bank Details` bd
+                INNER JOIN `tabVendor Master` vm ON vm.bank_details = bd.name
+                WHERE vm.name = %(vendor_name)s
+                LIMIT 1
+            """, {'vendor_name': vendor['name']}, as_dict=True)
+
+            # Fetch and filter vendor_company_details
+            vendor_company_conditions = ["ivc.parent = %(vendor_name)s"]
+            vendor_company_values = {'vendor_name': vendor['name']}
+
+            if company_name:
+                vendor_company_conditions.append("cm.company_name LIKE %(company_name_filter)s")
+                vendor_company_values['company_name_filter'] = f"%{company_name}%"
+
+            vendor_company_where = " AND ".join(vendor_company_conditions)
+
+            vendor['vendor_company_details'] = frappe.db.sql(f"""
+                SELECT ivc.*, cm.company_name as meril_company_name
+                FROM `tabImported Vendor Company` ivc
+                LEFT JOIN `tabCompany Master` cm ON ivc.meril_company_name = cm.name
+                WHERE {vendor_company_where}
+            """, vendor_company_values, as_dict=True)
+
+            # No exclusion for vendor_company_details as it's not a required filter
+            
+            # Process bank details with child tables
+            if bank_details:
+                bank_doc = bank_details[0]
+                bank_doc_name = bank_doc['name']
+                
+                for table_fieldname, child_doctype in bank_child_tables.items():
+                    bank_doc[table_fieldname] = frappe.db.sql("""
+                        SELECT *
+                        FROM `tab{child_doctype}`
+                        WHERE parent = %(parent)s
+                        ORDER BY idx
+                    """.format(child_doctype=child_doctype), 
+                    {'parent': bank_doc_name}, as_dict=True)
+                
+                vendor['bank_details'] = bank_doc
+            else:
+                vendor['bank_details'] = None
+            
+            # Skip this vendor if it should be excluded
+            if should_exclude_vendor:
+                continue
+            
+            enriched_vendors.append(vendor)
+            
+            # ========== CREATE FLATTENED VENDOR DATA FOR vendor_data_in_list ==========
+            vendor_flat_data = {
+                # Vendor Master meaningful fields
+                'vendor_id': vendor.get('name'),
+                'vendor_name': vendor.get('vendor_name'),
+                'vendor_title': vendor.get('vendor_title'),
+                'office_email_primary': vendor.get('office_email_primary'),
+                'office_email_secondary': vendor.get('office_email_secondary'),
+                'mobile_number': vendor.get('mobile_number'),
+                'validity_status': vendor.get('validity_status'),
+                'created_from_registration': vendor.get('created_from_registration'),
+                'via_data_import': vendor.get('via_data_import'),
+                'is_blocked': vendor.get('is_blocked'),
+                'remarks_ok': vendor.get('remarks_ok'),
+                'validity_label': vendor.get('validity_label'),
+                'creation': vendor.get('creation'),
+                'modified': vendor.get('modified'),
+                
+                # Multiple Company Data - specific fields
+                'company_data': [],
+                
+                # Vendor Onboarding Records
+                'onboarding_records': [],
+                
+                # Vendor Types
+                'vendor_types': [],
+                
+                # Bank Details
+                'bank_details': {},
+                
+                # Imported Vendor Company
+                'vendor_company_details': []
+            }
+            
+            # Extract Multiple Company Data specific fields
+            if vendor.get('multiple_company_data'):
+                for mcd in vendor['multiple_company_data']:
+                    company_data = {
+                        'company_display_name': mcd.get('company_display_name'),
+                        'company_name': mcd.get('company_name'),
+                        'purchase_organization': mcd.get('purchase_organization'),
+                        'terms_of_payment': mcd.get('terms_of_payment'),
+                        'account_group': mcd.get('account_group'),
+                        'purchase_group': mcd.get('purchase_group'),
+                        'sap_client_code': mcd.get('sap_client_code'),
+                        'incoterm': mcd.get('incoterm'),
+                        'reconciliation_account': mcd.get('reconciliation_account'),
+                        'company_vendor_code': mcd.get('company_vendor_code'),
+                        'via_import': mcd.get('via_import')
+                    }
+                    vendor_flat_data['company_data'].append(company_data)
+            
+            # Extract Vendor Onboarding Records - specific fields
+            if vendor.get('vendor_onb_records'):
+                for onb in vendor['vendor_onb_records']:
+                    onboarding_data = {
+                        'vendor_onboarding_no': onb.get('vendor_onboarding_no'),
+                        'onboarding_status': onb.get('onboarding_status'),
+                        'onboarding_form_status': onb.get('onboarding_form_status'),
+                        'onboarding_company_name': onb.get('onboarding_company_name')
+                    }
+                    vendor_flat_data['onboarding_records'].append(onboarding_data)
+            
+            # Extract Vendor Types
+            if vendor.get('vendor_types'):
+                for vt in vendor['vendor_types']:
+                    vendor_flat_data['vendor_types'].append({
+                        'vendor_type': vt.get('vendor_type')
+                    })
+            
+            # Extract Bank Details - meaningful fields only
+            if vendor.get('bank_details'):
+                bank = vendor['bank_details']
+                vendor_flat_data['bank_details'] = {
+                    'bank_name': bank.get('bank_name'),
+                    'ifsc_code': bank.get('ifsc_code'),
+                    'bank_key': bank.get('bank_key'),
+                    'account_number': bank.get('account_number'),
+                    'account_holder_name': bank.get('account_holder_name'),
+                    'currency': bank.get('currency')
+                }
+                
+                # Extract meaningful fields from bank child tables
+                for table_fieldname in bank_child_tables.keys():
+                    if bank.get(table_fieldname):
+                        vendor_flat_data['bank_details'][table_fieldname] = []
+                        for child_record in bank[table_fieldname]:
+                            # Filter only meaningful fields (exclude system fields)
+                            meaningful_data = {k: v for k, v in child_record.items() 
+                                             if k not in ['name', 'owner', 'creation', 'modified', 
+                                                         'modified_by', 'parent', 'parentfield', 
+                                                         'parenttype', 'idx', 'docstatus', 'doctype']}
+                            if meaningful_data:  # Only add if there's meaningful data
+                                vendor_flat_data['bank_details'][table_fieldname].append(meaningful_data)
+            
+            # Extract Imported Vendor Company - meaningful fields only
+            if vendor.get('vendor_company_details'):
+                for ivc in vendor['vendor_company_details']:
+                    company_detail = {
+                        'vendor_company_details': ivc.get('vendor_company_details'),
+                        'meril_company_name': ivc.get('meril_company_name'),
+                        'vendor_gst': ivc.get('vendor_gst'),
+                        'vendor_pan': ivc.get('vendor_pan'),
+                        'vc_country': ivc.get('vc_country'),
+                        'vc_city': ivc.get('vc_city'),
+                        'vc_state': ivc.get('vc_state'),
+                        'vc_pincode': ivc.get('vc_pincode')
+                    }
+                    vendor_flat_data['vendor_company_details'].append(company_detail)
+            
+            vendor_data_in_list.append(vendor_flat_data)
+        
+        # Recalculate total count based on filtered vendors
+        actual_total_count = len(vendor_data_in_list)
+        
+        # Calculate analytics
+        analytics = calculate_vendor_analytics()
+        
+        # Calculate company-wise analytics (no filtering - always show all companies)
+        company_analytics = calculate_company_wise_analytics()
+        
+        # Calculate search result analytics
+        search_analytics = calculate_search_analytics(search_filters, company_name, values, all_joins, where_clause, onboarding_form, via_data_import)
+        
+        # Build pagination metadata
+        pagination = {
+            'current_page': page,
+            'page_size': page_size,
+            'total_records': actual_total_count,
+            'total_pages': math.ceil(actual_total_count / page_size) if actual_total_count > 0 else 0,
+            'has_next': page < math.ceil(actual_total_count / page_size) if actual_total_count > 0 else False,
+            'has_previous': page > 1,
+            'next_page': page + 1 if page < math.ceil(actual_total_count / page_size) else None,
+            'previous_page': page - 1 if page > 1 else None
+        }
+        
+        return {
+            'success': True,
+            'data': {
+                'vendor_data_list': vendor_data_in_list,
+                'pagination': pagination,
+                'analytics': analytics,
+                'company_analytics': company_analytics,
+                'search_analytics': search_analytics,
+                'applied_filters': {
+                    'search_filters': search_filters,
+                    'company_name': company_name,
+                    'onboarding_form': onboarding_form,
+                    'via_data_import': via_data_import
+                }
+            }
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_vendors_with_pagination: {str(e)}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
