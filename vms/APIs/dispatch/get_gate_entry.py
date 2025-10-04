@@ -316,8 +316,8 @@ def get_gate_entry_statistics(filters=None):
         # Get status-wise counts
         status_options = [
             "Gate Received",
-            "Received At Store", 
-            "HandedOver"
+            "Received", 
+            "HandOver"
         ]
 
         status_counts_sql = f"""
