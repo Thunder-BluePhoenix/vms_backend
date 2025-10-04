@@ -20,6 +20,7 @@
   "hawb_no",
   "column_break_grmb",
   "rfq_date",
+  "service_bill_status",
   "meril_date",
   "bill_date",
   "bill_amount",
@@ -30,6 +31,7 @@
   "utr_number",
   "amount_paid",
   "section_break_rfyv",
+  "service_provider_name",
   "service_provider_remark",
   "column_break_ksfa",
   "exim_team_remark"
@@ -164,13 +166,24 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "service_provider_name",
+   "fieldtype": "Data",
+   "label": "Service Provider Name"
+  },
+  {
+   "fieldname": "service_bill_status",
+   "fieldtype": "Select",
+   "label": "Service Bill Status",
+   "options": "\nBill Pending\nSubmission Pending\nBill Not Submitted\nSubmitted"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-10-01 17:48:16.737358",
+ "modified": "2025-10-04 11:12:01.184407",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Service Bill",

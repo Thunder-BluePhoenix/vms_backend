@@ -79,7 +79,7 @@ def update_gate_entry(name, data):
 
     is_store_user = check_if_store_user()
     if is_store_user:
-        doc.status = "Received At Store"
+        doc.status = "Received"
 
     doc.save()
     frappe.db.commit()
@@ -310,9 +310,9 @@ def handover_gate_entry():
         doc = frappe.get_doc("Gate Entry", name)
 
    
-        if doc.status != "Received At Store":
+        if doc.status != "Received":
             frappe.response.http_status_code = 400
-            return {"message": "Failed", "error": f"Cannot handover. Current status is '{doc.status}'. Must be 'Received At Store'"}
+            return {"message": "Failed", "error": f"Cannot handover. Current status is '{doc.status}'. Must be 'Received'"}
 
 
         doc.handover_to_person = handover_person
@@ -322,7 +322,7 @@ def handover_gate_entry():
             doc.handover_remark = handover_remarks
 
 
-        doc.status = "HandedOver"
+        doc.status = "HandOver"
 
        
         doc.save(ignore_permissions=True)

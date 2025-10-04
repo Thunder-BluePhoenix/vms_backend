@@ -136,7 +136,7 @@ def get_shipment_status_statistics(filters=None):
         # Get all companies from Company Master
         all_companies = frappe.get_all(
             "Company Master",
-            fields=["name", "company_code", "company_name"],
+            fields=["name", "company_code", "company_name","company_short_form"],
             order_by="company_code"
         )
 
@@ -166,19 +166,21 @@ def get_shipment_status_statistics(filters=None):
             company_code = company.get("company_code") or company.get("name")
             company_name = company.get("company_name") or ""
             company_id = company.get("name")
+            short_name = company.get("company_short_form") or ""
             count = company_count_dict.get(company_id, 0)
             
             # Create key from company_code
             if company_code:
-                key = f"{company_code.lower().replace(' ', '_').replace('-', '_')}_count"
+                key = f"{company_id.lower().replace(' ', '_').replace('-', '_')}_count"
             else:
-                key = f"{company_name.lower().replace(' ', '_').replace('-', '_')}_count"
+                key = f"{company_code.lower().replace(' ', '_').replace('-', '_')}_count"
             
             # Store as object with details
             data[key] = {
                 "name": company_id,
                 "company_code": company_code,
                 "company_name": company_name,
+                "short_name": short_name,
                 "count": count
             }
 
