@@ -358,9 +358,12 @@ def rejection_mail_to_user(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+		
+		rejected_by = frappe.get_value("Employee", {"user_id": doc.rejected_by}, "full_name")
+		
+		hod_email = None 
 		if hod:
 			hod_email = frappe.get_value("Employee", hod, "user_id")
-			rejected_by = frappe.get_value("Employee", {"user_id": doc.rejected_by}, "full_name")
 
 		table_html = """
 			<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
@@ -400,9 +403,10 @@ def rejection_mail_to_user(doc, method=None):
 			{table_html}
 			<p>Thank you!</p>
 		"""
-		frappe.custom_sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
-
-		# doc.ack_mail_to_user = 1
+		
+		# Only include cc if hod_email exists
+		cc_list = [hod_email] if hod_email else []
+		frappe.custom_sendmail(recipients=[doc.user], cc=cc_list, subject=subject, message=message, now=True)
 		frappe.db.set_value("Cart Details", doc.name, "ack_mail_to_user", 1)
 		
 		return {
@@ -417,8 +421,6 @@ def rejection_mail_to_user(doc, method=None):
 			"message": "Failed to send email to User.",
 			"error": str(e)
 		}
-
-
 
 
 # hod Approval Flow	
