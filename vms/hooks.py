@@ -233,7 +233,8 @@ scheduler_events = {
         "vms.APIs.req_for_quotation.rfq_reminder.send_reminder_notification",
         "vms.chat_vms.maintenance.cleanup_old_messages",
         "vms.chat_vms.maintenance.update_room_statistics",
-        "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.cleanup_user_status_cache"  # New
+        "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.cleanup_user_status_cache",  # New
+        "vms.vms.doctype.otp_verification.otp_verification.cleanup_old_otps"
     ],
     "cron": {
         "0 0 * * *": [
@@ -252,13 +253,18 @@ scheduler_events = {
             "vms.chat_vms.maintenance.update_user_online_status"
         ],
         "*/1 * * * *": [  # Every minute - for real-time status updates
-            "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.update_user_activity_status"
+            "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.update_user_activity_status",
+            "vms.vms.doctype.otp_verification.otp_verification.expire_otps"
         ],
         "0 */2 * * *": [  # Every 2 hours - cleanup stuck SAP status
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.cleanup_stuck_sap_status"
         ],
+        # "*/5 * * * *": [
+        #     "vms.vms.doctype.otp_verification.otp_verification.expire_otps"
+        # ],
         "*/10 * * * *": [
-            "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_background_jobs"
+            "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_background_jobs",
+            "vms.vms.doctype.otp_verification.otp_verification.delete_expired_otps"
         ],
         "*/30 * * * *": [
             "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_queued_records"
