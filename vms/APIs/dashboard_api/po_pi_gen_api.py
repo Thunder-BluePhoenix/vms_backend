@@ -561,13 +561,24 @@ def vendor_data_for_purchase(usr, user_roles):
         """
 
         cart_count = frappe.db.sql(cart_query, (usr,))[0][0]
-        pr_count = frappe.db.count("Purchase Requisition Webform")
+        
 
         user_cart_count = frappe.db.count("Cart Details",
                                     filters= {"user":usr })
         
         user_pr_count = frappe.db.count("Purchase Requisition Webform",
                                     filters= {"requisitioner":usr })
+        
+        # pr_count = frappe.db.count("Purchase Requisition Webform")
+        pr_count = 0
+        
+
+
+        if employee.show_all_purchase_groups == 1:
+            pr_count = frappe.db.count("Purchase Requisition Webform")
+        else:
+            pr_count = frappe.db.count("Purchase Requisition Webform",
+                                    filters= {"purchase_group": ["in", pur_grp]})
         # cart_count = len(all_cart)
 
         # Count of Vendor Master records created by users from the same team.requisitioner
@@ -733,6 +744,8 @@ def vendor_data_for_super_head (usr, user_roles):
             }
         )
 
+        pr_count = frappe.db.count("Purchase Requisition Webform")
+
 
         return {
             "status": "success",
@@ -750,7 +763,10 @@ def vendor_data_for_super_head (usr, user_roles):
             "pending_vendor_count_by_accounts_team": pending_vendor_count_by_accounts_team,
             "rejected_vendor_count_by_accounts_team": rejected_vendor_count_by_accounts_team,
             "sap_error_vendor_count_by_accounts_team": sap_error_vendor_count_by_accounts_team,
-            "expired_vendor_count_by_accounts_team": expired_vendor_count_by_accounts_team
+            "expired_vendor_count_by_accounts_team": expired_vendor_count_by_accounts_team,
+
+
+            "pr_count":pr_count
         }
 
     except Exception as e:
