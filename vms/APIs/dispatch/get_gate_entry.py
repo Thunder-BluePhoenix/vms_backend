@@ -109,10 +109,11 @@ def get_gate_entry_list(
     search_term=None,
     company=None,
     status=None,
-    get_all=False  
+    get_all=False,
+    include_child_tables=True
 ):
     try:
-       
+        # Check permission
         if not frappe.has_permission("Gate Entry", "read"):
             frappe.response.http_status_code = 403
             return {"message": "Failed", "error": "You don't have permission to view Gate Entry"}
@@ -125,17 +126,26 @@ def get_gate_entry_list(
 
         # Parse fields if they're passed as JSON string
         if isinstance(fields, str):
-            fields = json.loads(fields) if fields else ["name","inward_location","gate_entry_date","status","vendor","name_of_vendor","handover_to_person"]
+            fields = json.loads(fields) if fields else [
+                "name", "inward_location", "gate_entry_date", "status", 
+                "vendor", "name_of_vendor", "handover_to_person", "name_of_company"
+            ]
         elif fields is None:
-            fields = ["name","inward_location","gate_entry_date","status","vendor","name_of_vendor","handover_to_person"]
+            fields = [
+                "name", "inward_location", "gate_entry_date", "status", 
+                "vendor", "name_of_vendor", "handover_to_person", "name_of_company"
+            ]
 
         # Convert parameters to proper types
         limit = int(limit) if limit else 20
         offset = int(offset) if offset else 0
         
-        # Convert get_all to boolean
+        # Convert boolean parameters
         if isinstance(get_all, str):
             get_all = get_all.lower() in ['true', '1', 'yes']
+        
+        if isinstance(include_child_tables, str):
+            include_child_tables = include_child_tables.lower() in ['true', '1', 'yes']
         
         # Set default order_by if not provided
         if not order_by:
@@ -195,6 +205,10 @@ def get_gate_entry_list(
         else:
             total_count = frappe.db.count("Gate Entry", search_filters)
 
+        
+        if include_child_tables:
+            documents = enhance_with_child_tables(documents)
+
         # Build response
         response = {
             "message": "Success",
@@ -228,6 +242,34 @@ def get_gate_entry_list(
         frappe.log_error(frappe.get_traceback(), "Gate Entry List Error")
         return {"message": "Failed", "error": str(e)}
 
+
+def enhance_with_child_tables(documents):
+    try:
+        for doc in documents:
+            # Get the full document to access child tables
+            gate_entry = frappe.get_doc("Gate Entry", doc.get("name"))
+            
+            # Add gate_entry_details child table
+            if hasattr(gate_entry, 'gate_entry_details') and gate_entry.gate_entry_details:
+                gate_entry_details = []
+                
+                for child_row in gate_entry.gate_entry_details:
+                    # Convert child row to dictionary with all fields
+                    child_dict = child_row.as_dict()
+                    gate_entry_details.append(child_dict)
+                
+                doc["gate_entry_details"] = gate_entry_details
+            else:
+                doc["gate_entry_details"] = []
+        
+        return documents
+        
+    except Exception as e:
+        frappe.log_error(
+            f"Error enhancing documents with child tables: {str(e)}",
+            "Gate Entry Child Table Enhancement Error"
+        )
+        return documents
 
 #vms.APIs.dispatch.get_gate_entry.get_gate_entry_statistics
 @frappe.whitelist()
