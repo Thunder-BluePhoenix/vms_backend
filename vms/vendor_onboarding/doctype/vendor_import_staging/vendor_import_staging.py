@@ -3480,6 +3480,92 @@ def get_master_creation_template(doctype):
     return templates.get(doctype, {"required_fields": [], "optional_fields": [], "field_types": {}})
 
 
+@frappe.whitelist()
+def process_single_staging_record_from_doc(docname):
+    """
+    IMPROVED: Process a single staging record to vendor master with better error handling
+    
+    This version:
+    - Validates before processing
+    - Uses create_vendor_master_from_staging (the correct function)
+    - Better error handling and logging
+    - Updates status properly
+    """
+    
+    try:
+        # Get staging document
+        staging_doc = frappe.get_doc("Vendor Import Staging", docname)
+        
+        # Check validation status
+        if staging_doc.validation_status == "Invalid":
+            return {
+                "status": "error",
+                "error": "Cannot process invalid record. Please fix validation errors first.",
+                "error_log": staging_doc.error_log
+            }
+        
+        # Update status to Processing
+        staging_doc.db_set("import_status", "Processing", update_modified=False)
+        frappe.db.commit()
+        
+        # Use the correct processing function
+        result = create_vendor_master_from_staging(staging_doc)
+        
+        if result["status"] == "success":
+            # Update staging record to Completed
+            staging_doc.db_set("import_status", "Completed", update_modified=False)
+            staging_doc.db_set("processed_records", 1, update_modified=False)
+            staging_doc.db_set("processing_progress", 100, update_modified=False)
+            staging_doc.db_set("last_processed", now_datetime(), update_modified=False)
+            
+            # Clear any old error logs
+            staging_doc.db_set("error_log", "", update_modified=False)
+            
+            frappe.db.commit()
+            
+            return {
+                "status": "success",
+                "vendor_name": result.get("vendor_name"),
+                "message": f"Vendor Master {result.get('vendor_name')} created/updated successfully",
+                "details": result.get("details", {})
+            }
+        else:
+            # Update staging record to Failed
+            staging_doc.db_set("import_status", "Failed", update_modified=False)
+            staging_doc.db_set("failed_records", 1, update_modified=False)
+            staging_doc.db_set("error_log", result.get("error", "Unknown error"), update_modified=False)
+            staging_doc.db_set("import_attempts", (staging_doc.import_attempts or 0) + 1, update_modified=False)
+            
+            frappe.db.commit()
+            
+            return {
+                "status": "error",
+                "error": result.get("error", "Failed to create vendor master"),
+                "error_log": result.get("error", "")
+            }
+            
+    except Exception as e:
+        error_message = f"Error processing single staging record: {str(e)}"
+        frappe.log_error(error_message, "Single Staging Processing Error")
+        
+        # Update status to Failed
+        try:
+            frappe.db.set_value("Vendor Import Staging", docname, {
+                "import_status": "Failed",
+                "error_log": error_message,
+                "failed_records": 1,
+                "import_attempts": frappe.db.get_value("Vendor Import Staging", docname, "import_attempts") + 1 or 1
+            })
+            frappe.db.commit()
+        except:
+            pass
+        
+        return {
+            "status": "error",
+            "error": error_message
+        }
+
+
 # @frappe.whitelist()
 # def comprehensive_health_check():
 #     """

@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 from frappe.utils import now_datetime, add_to_date, get_datetime
 import json
+from vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging import create_vendor_master_from_staging
 
 @frappe.whitelist()
 def analyze_and_recover_stuck_records():
@@ -255,14 +256,18 @@ def check_vendor_master_completeness(staging_record):
     # Company Vendor Code
     if staging_record.get("vendor_code") and staging_record.get("c_code"):
         company_code_exists = frappe.db.exists("Company Vendor Code", {
-            "vendor_ref_no": vendor_master
+            "vendor_ref_no": vendor_master,
+            "company_name": staging_record.get("c_code"),
+            "imported": 1
         })
         if not company_code_exists:
             status["missing_data"].append("Related: Company Vendor Code")
     
     # Vendor Onboarding Company Details
     company_details_exists = frappe.db.exists("Vendor Onboarding Company Details", {
-        "ref_no": vendor_master
+        "ref_no": vendor_master,
+        "via_data_import": 1,
+        "company_name": staging_record.get("c_code")
     })
     if not company_details_exists:
         status["missing_data"].append("Related: Company Details")
@@ -270,7 +275,8 @@ def check_vendor_master_completeness(staging_record):
     # Bank Details (if staging has bank info)
     if staging_record.get("bank_name") or staging_record.get("account_number"):
         bank_details_exists = frappe.db.exists("Vendor Bank Details", {
-            "ref_no": vendor_master
+            "ref_no": vendor_master,
+            "via_data_import": 1
         })
         if not bank_details_exists:
             status["missing_data"].append("Related: Bank Details")
@@ -754,7 +760,9 @@ def check_vendor_and_child_tables(staging_record):
     
     # Check Vendor Onboarding Company Details
     company_details_exists = frappe.db.exists("Vendor Onboarding Company Details", {
-        "ref_no": vendor_master
+        "ref_no": vendor_master,
+        "via_data_import": 1,
+        "company_name": staging_record.get("c_code")
     })
     if not company_details_exists:
         status["missing_data"].append("Vendor Onboarding Company Details not created")
@@ -762,7 +770,8 @@ def check_vendor_and_child_tables(staging_record):
     # Check Bank Details (if staging has bank info)
     if staging_record.get("bank_name") or staging_record.get("account_number"):
         bank_details_exists = frappe.db.exists("Vendor Bank Details", {
-            "ref_no": vendor_master
+            "ref_no": vendor_master,
+            "created_from_import": 1
         })
         if not bank_details_exists:
             status["missing_data"].append("Vendor Bank Details not created")
@@ -798,7 +807,9 @@ def check_company_vendor_code_table(vendor_master_name, staging_record):
     try:
         # Find Company Vendor Code document
         company_vendor_code = frappe.db.exists("Company Vendor Code", {
-            "vendor_ref_no": vendor_master_name
+            "vendor_ref_no": vendor_master_name,
+            "company_name": staging_record.get("c_code"),
+            "imported": 1
         })
         
         if not company_vendor_code:
@@ -945,6 +956,72 @@ def get_queued_records_status():
         }
 
 
+
+
+
+# Add this to: vms/vendor_onboarding/doctype/vendor_import_staging/vis_stuck_data_handle.py
+
+def monitor_background_jobs():
+    """
+    Monitor background job processing for stuck Processing records
+    This runs every 5-10 minutes via scheduler
+    
+    Checks for:
+    1. Processing records stuck > 2 hours
+    2. Queued records stuck > 1 hour (warning only)
+    """
+    
+    try:
+        # Check for stuck processing records (processing for more than 2 hours)
+        stuck_threshold = add_to_date(now_datetime(), hours=-2)
+        
+        stuck_records = frappe.get_all(
+            "Vendor Import Staging",
+            filters={
+                "import_status": "Processing",
+                "modified": ["<", stuck_threshold]
+            },
+            fields=["name", "vendor_name", "modified"]
+        )
+        
+        if stuck_records:
+            # Use the analyze_and_recover function for processing records
+            frappe.log_error(
+                f"Found {len(stuck_records)} stuck Processing records. Running recovery...",
+                "Processing Records Monitor"
+            )
+            
+            # Run recovery
+            analyze_and_recover_stuck_records()
+        
+        # Check for long queued records (queued for more than 1 hour) - WARNING ONLY
+        queue_threshold = add_to_date(now_datetime(), hours=-1)
+        
+        long_queued = frappe.get_all(
+            "Vendor Import Staging",
+            filters={
+                "import_status": "Queued",
+                "modified": ["<", queue_threshold]
+            },
+            fields=["name", "vendor_name", "modified"]
+        )
+        
+        if long_queued:
+            # Just log warning - the monitor_queued_records will handle > 2.5 hours
+            frappe.log_error(
+                f"Found {len(long_queued)} records queued for more than 1 hour. "
+                f"Will auto-recover if still queued after 2.5 hours.",
+                "Queued Records Warning"
+            )
+        
+    except Exception as e:
+        frappe.log_error(
+            f"Error in monitor_background_jobs: {str(e)}",
+            "Background Job Monitor Error"
+        )
+
+
+        
 # ============================================================================
 # HOOKS.PY CONFIGURATION
 # ============================================================================
