@@ -160,19 +160,26 @@ def get_shipment_status_statistics(filters=None):
         # Convert to dictionary for easy lookup
         company_count_dict = {item["company"]: item["count"] for item in company_counts}
 
-        # Add count for each company (0 if no entries)
+        # Add count object for each company
         for company in all_companies:
             company_code = company.get("company_code") or company.get("name")
-            company_name = company.get("company_name") or company.get("name")
-            count = company_count_dict.get(company.get("name"), 0)
+            company_name = company.get("company_name") or ""
+            company_id = company.get("name")
+            count = company_count_dict.get(company_id, 0)
             
-            # Create key as company_code_count
+            # Create key from company_code
             if company_code:
                 key = f"{company_code.lower().replace(' ', '_').replace('-', '_')}_count"
             else:
                 key = f"{company_name.lower().replace(' ', '_').replace('-', '_')}_count"
             
-            data[key] = count
+            # Store as object with details
+            data[key] = {
+                "name": company_id,
+                "company_code": company_code,
+                "company_name": company_name,
+                "count": count
+            }
 
         return {
             "message": "Success",
