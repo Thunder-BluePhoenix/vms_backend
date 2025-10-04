@@ -125,10 +125,10 @@ def get_service_bill_statistics(filters=None):
         if where_conditions:
             where_clause = "WHERE " + " AND ".join(where_conditions)
 
-     
+        # Initialize response data
         data = {}
 
-    
+        # Get total count
         total_count = frappe.db.count("Service Bill", filters)
         data["total_count"] = total_count
 
@@ -157,22 +157,29 @@ def get_service_bill_statistics(filters=None):
             as_dict=True
         )
         
-        
+        # Convert to dictionary for easy lookup
         company_count_dict = {item["company"]: item["count"] for item in company_counts}
 
-       
+        # Add count object for each company
         for company in all_companies:
             company_code = company.get("company_code") or company.get("name")
-            company_name = company.get("company_name") or company.get("name")
-            count = company_count_dict.get(company.get("name"), 0)
+            company_name = company.get("company_name") or ""
+            company_id = company.get("name")
+            count = company_count_dict.get(company_id, 0)
             
-            # Create key as company_code_count
+            # Create key from company_code
             if company_code:
                 key = f"{company_code.lower().replace(' ', '_').replace('-', '_')}_count"
             else:
                 key = f"{company_name.lower().replace(' ', '_').replace('-', '_')}_count"
             
-            data[key] = count
+            # Store as object with details
+            data[key] = {
+                "name": company_id,
+                "company_code": company_code,
+                "company_name": company_name,
+                "count": count
+            }
 
         return {
             "message": "Success",
@@ -191,4 +198,3 @@ def get_service_bill_statistics(filters=None):
         frappe.response.http_status_code = 500
         frappe.log_error(frappe.get_traceback(), "Service Bill Statistics Error")
         return {"message": "Failed", "error": str(e)}
-
