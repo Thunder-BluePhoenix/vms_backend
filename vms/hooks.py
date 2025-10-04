@@ -257,8 +257,11 @@ scheduler_events = {
         "0 */2 * * *": [  # Every 2 hours - cleanup stuck SAP status
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.cleanup_stuck_sap_status"
         ],
-        "*/5 * * * *": [
-            "vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.monitor_background_jobs"
+        "*/10 * * * *": [
+            "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_background_jobs"
+        ],
+        "*/30 * * * *": [
+            "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_queued_records"
         ]
     }    
 	# "hourly": [
