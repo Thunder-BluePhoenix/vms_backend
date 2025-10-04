@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "rfq_number",
+  "serial_no",
   "company",
   "meril_job",
   "bill_number",
@@ -177,13 +178,19 @@
    "fieldtype": "Select",
    "label": "Service Bill Status",
    "options": "\nBill Pending\nSubmission Pending\nBill Not Submitted\nSubmitted"
+  },
+  {
+   "fetch_from": "rfq_number.sr_no",
+   "fieldname": "serial_no",
+   "fieldtype": "Data",
+   "label": "Serial No"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-10-04 11:12:01.184407",
+ "modified": "2025-10-04 11:55:50.622900",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Service Bill",
