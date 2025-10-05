@@ -1,0 +1,282 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "field:vendor_onboarding_link",
+  "creation": "2025-10-06 00:00:00",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "vendor_details_section",
+    "vendor_onboarding_link",
+    "vendor_name",
+    "vendor_ref_no",
+    "gst_number",
+    "column_break_1",
+    "primary_vendor_code",
+    "company_code",
+    "sap_client_code",
+    "vendor_status",
+    "vendor_codes_section",
+    "vendor_codes_by_company",
+    "vendor_creation_section",
+    "vendor_creation_date",
+    "vendor_onboarding_date",
+    "sap_log_reference",
+    "column_break_2",
+    "days_since_creation",
+    "vendor_aging_status",
+    "last_activity_date",
+    "purchase_orders_section",
+    "purchase_order_details",
+    "total_purchase_orders",
+    "aging_summary_section",
+    "total_aging_days",
+    "average_po_aging",
+    "oldest_pending_po",
+    "column_break_3",
+    "newest_po_date",
+    "total_po_value",
+    "pending_po_count"
+  ],
+  "fields": [
+    {
+      "fieldname": "vendor_details_section",
+      "fieldtype": "Section Break",
+      "label": "Vendor Details"
+    },
+    {
+      "fieldname": "vendor_onboarding_link",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Vendor Onboarding",
+      "options": "Vendor Onboarding",
+      "reqd": 1,
+      "unique": 1
+    },
+    {
+      "fieldname": "vendor_name",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "label": "Vendor Name"
+    },
+    {
+      "fieldname": "vendor_ref_no",
+      "fieldtype": "Data",
+      "label": "Vendor Reference No"
+    },
+    {
+      "fieldname": "gst_number",
+      "fieldtype": "Data",
+      "label": "GST Number"
+    },
+    {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "primary_vendor_code",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "label": "Primary Vendor Code (SAP)"
+    },
+    {
+      "fieldname": "company_code",
+      "fieldtype": "Data",
+      "in_standard_filter": 1,
+      "label": "Primary Company Code"
+    },
+    {
+      "fieldname": "sap_client_code",
+      "fieldtype": "Data",
+      "label": "SAP Client Code"
+    },
+    {
+      "fieldname": "vendor_status",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Vendor Status",
+      "options": "Active\nInactive\nPending\nBlocked"
+    },
+    {
+      "fieldname": "vendor_codes_section",
+      "fieldtype": "Section Break",
+      "label": "Vendor Codes by Company"
+    },
+    {
+      "fieldname": "vendor_codes_by_company",
+      "fieldtype": "Table",
+      "label": "Vendor Codes",
+      "options": "Vendor Aging Company Codes"
+    },
+    {
+      "fieldname": "vendor_creation_section",
+      "fieldtype": "Section Break",
+      "label": "Vendor Creation & Aging"
+    },
+    {
+      "fieldname": "vendor_creation_date",
+      "fieldtype": "Datetime",
+      "in_list_view": 1,
+      "label": "Vendor Creation Date (SAP)",
+      "reqd": 1
+    },
+    {
+      "fieldname": "vendor_onboarding_date",
+      "fieldtype": "Datetime",
+      "label": "Vendor Onboarding Date (ERP)"
+    },
+    {
+      "fieldname": "sap_log_reference",
+      "fieldtype": "Link",
+      "label": "SAP Log Reference",
+      "options": "VMS SAP Logs"
+    },
+    {
+      "fieldname": "column_break_2",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "days_since_creation",
+      "fieldtype": "Int",
+      "in_list_view": 1,
+      "label": "Days Since Creation",
+      "read_only": 1
+    },
+    {
+      "fieldname": "vendor_aging_status",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "label": "Aging Status",
+      "options": "New (0-30 days)\nRecent (31-90 days)\nEstablished (91-180 days)\nLong Term (180+ days)"
+    },
+    {
+      "fieldname": "last_activity_date",
+      "fieldtype": "Datetime",
+      "label": "Last Activity Date"
+    },
+    {
+      "fieldname": "purchase_orders_section",
+      "fieldtype": "Section Break",
+      "label": "Purchase Orders"
+    },
+    {
+      "fieldname": "purchase_order_details",
+      "fieldtype": "Table",
+      "label": "Purchase Order Details",
+      "options": "Vendor Aging PO Details"
+    },
+    {
+      "fieldname": "total_purchase_orders",
+      "fieldtype": "Int",
+      "label": "Total Purchase Orders",
+      "read_only": 1
+    },
+    {
+      "fieldname": "aging_summary_section",
+      "fieldtype": "Section Break",
+      "label": "Aging Summary"
+    },
+    {
+      "fieldname": "total_aging_days",
+      "fieldtype": "Int",
+      "label": "Total Aging Days (Vendor)",
+      "read_only": 1
+    },
+    {
+      "fieldname": "average_po_aging",
+      "fieldtype": "Float",
+      "label": "Average PO Aging (Days)",
+      "precision": "2",
+      "read_only": 1
+    },
+    {
+      "fieldname": "oldest_pending_po",
+      "fieldtype": "Link",
+      "label": "Oldest Pending PO",
+      "options": "Purchase Order",
+      "read_only": 1
+    },
+    {
+      "fieldname": "column_break_3",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "newest_po_date",
+      "fieldtype": "Date",
+      "label": "Newest PO Date",
+      "read_only": 1
+    },
+    {
+      "fieldname": "total_po_value",
+      "fieldtype": "Currency",
+      "label": "Total PO Value",
+      "read_only": 1
+    },
+    {
+      "fieldname": "pending_po_count",
+      "fieldtype": "Int",
+      "label": "Pending PO Count",
+      "read_only": 1
+    }
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2025-10-06 00:00:00",
+  "modified_by": "Administrator",
+  "module": "VMS",
+  "name": "Vendor Aging Tracker",
+  "naming_rule": "By fieldname",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Purchase Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Purchase User",
+      "share": 1
+    },
+    {
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Accounts Manager",
+      "share": 1
+    }
+  ],
+  "row_format": "Dynamic",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "title_field": "vendor_name",
+  "track_changes": 1
+}
