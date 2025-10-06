@@ -7,13 +7,25 @@ from frappe import _
 from datetime import datetime, timedelta, date
 from frappe.utils.jinja import render_template
 from frappe.utils import today, getdate
-from frappe.utils import now_datetime, get_datetime
+from frappe.utils import now_datetime, get_datetime, add_to_date
 import datetime
 import time
 from vms.utils.custom_send_mail import custom_sendmail
 
 
 class PurchaseOrder(Document):
+
+	def after_insert(self):
+		try:
+			from vms.vms.doctype.vendor_aging_tracker.vendor_aging_tracker import update_aging_tracker_with_po
+			update_aging_tracker_with_po(self.name)
+			return {"status": "success", "message": "Aging tracker update completed"}
+		except Exception as e:
+			frappe.log_error(f"Aging tracker update error for {self.name}: {str(e)}")
+			return {"status": "error", "message": str(e)}
+
+
+
 	def validate(self):
 		for item in self.po_items:
 			it_qty = item.quantity or "0"
@@ -25,47 +37,82 @@ class PurchaseOrder(Document):
 	def on_update(self):
 		update_dispatch_qty(self, method=None)
 		update_po_sign(self, method=None)
-		# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", update_dispatch_qty(self, method=None))
-		if self.approved_from_vendor == 1 and self.sent_notification_triggered == 0 and self.po_dispatch_status != "Completed" and self.sent_notification_to_vendor == 0:
-			notf_sett_doc = frappe.get_doc("Dispatch Notification Setting")
+		aging_track_po(self, method = None)
+
+		if (self.approved_from_vendor == 1 and 
+			self.sent_notification_triggered == 0 and 
+			self.po_dispatch_status != "Completed" and 
+			self.sent_notification_to_vendor == 0):
 			
+			notf_sett_doc = frappe.get_doc("Dispatch Notification Setting")
 			
 			delivery_date = get_datetime(self.delivery_date)
 			delivery_date = delivery_date.replace(hour=23, minute=50, second=50, microsecond=0)
 			
-			
 			current_date = now_datetime()
-			
-			
 			total_seconds = int((delivery_date - current_date).total_seconds())
-
-			# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@TS:", total_seconds)
 			
 			notf_time_sec = int(notf_sett_doc.dispatch_notification)
-			exp_t_sec = None
-			exp_d_sec = None
-			if total_seconds < notf_time_sec :
-				exp_t_sec = int(float(total_seconds)*24/100)
-				exp_d_sec = exp_t_sec + 800
-
-			# Time after which to trigger the notification
+			
+			if total_seconds < notf_time_sec:
+				exp_t_sec = int(float(total_seconds) * 24 / 100)
 			else:
 				exp_t_sec = total_seconds - notf_time_sec
-				# exp_t_sec = exp_t_sec if exp_t_sec > 0 else 0 
-
-				exp_d_sec = exp_t_sec + 800
-
-			# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", exp_t_sec ,exp_d_sec)
+			
+			# Calculate the scheduled notification time
+			scheduled_notification_time = add_to_date(current_date, seconds=exp_t_sec)
+			
+			# Store the scheduled time in the document
+			self.scheduled_notification_time = scheduled_notification_time
 			self.sent_notification_triggered = 1
-			# frappe.db.commit()
 
-			frappe.enqueue(
-				method=self.handle_notification,
-				queue='default',
-				timeout=exp_d_sec,
-				now=False,
-				job_name=f'dispatch_order_notification_trigger_{self.name}',
-			)
+
+
+
+
+
+
+		# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", update_dispatch_qty(self, method=None))
+		# if self.approved_from_vendor == 1 and self.sent_notification_triggered == 0 and self.po_dispatch_status != "Completed" and self.sent_notification_to_vendor == 0:
+		# 	notf_sett_doc = frappe.get_doc("Dispatch Notification Setting")
+			
+			
+		# 	delivery_date = get_datetime(self.delivery_date)
+		# 	delivery_date = delivery_date.replace(hour=23, minute=50, second=50, microsecond=0)
+			
+			
+		# 	current_date = now_datetime()
+			
+			
+		# 	total_seconds = int((delivery_date - current_date).total_seconds())
+
+		# 	# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@TS:", total_seconds)
+			
+		# 	notf_time_sec = int(notf_sett_doc.dispatch_notification)
+		# 	exp_t_sec = None
+		# 	exp_d_sec = None
+		# 	if total_seconds < notf_time_sec :
+		# 		exp_t_sec = int(float(total_seconds)*24/100)
+		# 		exp_d_sec = exp_t_sec + 800
+
+		# 	# Time after which to trigger the notification
+		# 	else:
+		# 		exp_t_sec = total_seconds - notf_time_sec
+		# 		# exp_t_sec = exp_t_sec if exp_t_sec > 0 else 0 
+
+		# 		exp_d_sec = exp_t_sec + 800
+
+		# 	# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", exp_t_sec ,exp_d_sec)
+		# 	self.sent_notification_triggered = 1
+		# 	# frappe.db.commit()
+
+		# 	frappe.enqueue(
+		# 		method=self.handle_notification,
+		# 		queue='default',
+		# 		timeout=exp_d_sec,
+		# 		now=False,
+		# 		job_name=f'dispatch_order_notification_trigger_{self.name}',
+		# 	)
 			# frappe.db.commit()
 
 
@@ -317,3 +364,74 @@ def update_po_sign(doc, method=None):
 		# print("sign_rec3")
 		# doc.sign_of_approval3 = sign_rec3
 		doc.db_set("sign_of_approval3", sign_rec3)
+
+
+
+
+
+def aging_track_po(self, method=None):
+	try:
+		from vms.vms.doctype.vendor_aging_tracker.vendor_aging_tracker import update_aging_tracker_with_po
+		update_aging_tracker_with_po(self.name)
+		return {"status": "success", "message": "Aging tracker update completed"}
+	except Exception as e:
+		frappe.log_error(f"Aging tracker update error for {self.name}: {str(e)}")
+		return {"status": "error", "message": str(e)}
+	
+
+
+def send_pending_notifications(self):
+    """Method to be called by cron job"""
+    if (self.sent_notification_triggered == 1 and 
+        self.sent_notification_to_vendor == 0 and 
+        self.scheduled_notification_time):
+        
+        current_time = now_datetime()
+        
+        # Check if it's time to send the notification
+        if current_time >= get_datetime(self.scheduled_notification_time):
+            try:
+                send_mail_to_vendor(self)
+                
+                self.sent_notification_triggered = 0
+                self.sent_notification_to_vendor = 1
+                self.scheduled_notification_time = None
+                self.save(ignore_permissions=True)
+                frappe.db.commit()
+                
+                frappe.logger().info(f"Dispatch notification sent for PO: {self.name}")
+            except Exception as e:
+                frappe.log_error(f"Error sending dispatch notification for {self.name}: {str(e)}")
+
+
+
+
+def send_dispatch_notifications():
+    """
+    Cron job to send dispatch notifications for Purchase Orders
+    This should run every 15 minutes (or as needed)
+    """
+    try:
+        # Get all POs that are ready for notification
+        pos = frappe.get_all(
+            "Purchase Order",
+            filters={
+                "sent_notification_triggered": 1,
+                "sent_notification_to_vendor": 0,
+                "scheduled_notification_time": ["is", "set"],
+                "po_dispatch_status": ["!=", "Completed"]
+            },
+            fields=["name", "scheduled_notification_time"]
+        )
+        
+        current_time = now_datetime()
+        
+        for po in pos:
+            if get_datetime(po.scheduled_notification_time) <= current_time:
+                po_doc = frappe.get_doc("Purchase Order", po.name)
+                po_doc.send_pending_notifications()
+        
+        frappe.db.commit()
+        
+    except Exception as e:
+        frappe.log_error(f"Error in send_dispatch_notifications cron: {str(e)}")
