@@ -1,74 +1,96 @@
 {
-  "actions": [],
-  "allow_rename": 1,
-  "creation": "2025-10-06 00:00:00",
-  "doctype": "DocType",
-  "editable_grid": 1,
-  "engine": "InnoDB",
-  "field_order": [
-    "company",
-    "company_code",
-    "vendor_code",
-    "column_break_1",
-    "gst_number",
-    "sap_client_code",
-    "state"
-  ],
-  "fields": [
-    {
-      "fieldname": "company",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "label": "Company",
-      "options": "Company Master"
-    },
-    {
-      "fieldname": "company_code",
-      "fieldtype": "Data",
-      "in_list_view": 1,
-      "label": "Company Code"
-    },
-    {
-      "fieldname": "vendor_code",
-      "fieldtype": "Data",
-      "in_list_view": 1,
-      "label": "Vendor Code (SAP)",
-      "reqd": 1
-    },
-    {
-      "fieldname": "column_break_1",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "gst_number",
-      "fieldtype": "Data",
-      "in_list_view": 1,
-      "label": "GST Number"
-    },
-    {
-      "fieldname": "sap_client_code",
-      "fieldtype": "Data",
-      "label": "SAP Client Code"
-    },
-    {
-      "fieldname": "state",
-      "fieldtype": "Data",
-      "label": "State"
-    }
-  ],
-  "grid_page_length": 50,
-  "index_web_pages_for_search": 1,
-  "istable": 1,
-  "links": [],
-  "modified": "2025-10-06 00:00:00",
-  "modified_by": "Administrator",
-  "module": "VMS",
-  "name": "Vendor Aging Company Codes",
-  "owner": "Administrator",
-  "permissions": [],
-  "row_format": "Dynamic",
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "states": [],
-  "track_changes": 1
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-06 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "company_code",
+  "vendor_code",
+  "column_break_1",
+  "gst_number",
+  "sap_client_code",
+  "state",
+  "section_break_bjwz",
+  "vms_sap_log",
+  "column_break_kibf",
+  "vendor_code_generation_time"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "company_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Company Code"
+  },
+  {
+   "fieldname": "vendor_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Vendor Code (SAP)"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gst_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "GST Number"
+  },
+  {
+   "fieldname": "sap_client_code",
+   "fieldtype": "Data",
+   "label": "SAP Client Code"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "section_break_bjwz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "vendor_code_generation_time",
+   "fieldtype": "Datetime",
+   "label": "Vendor Code generation Time"
+  },
+  {
+   "fieldname": "vms_sap_log",
+   "fieldtype": "Link",
+   "label": "VMS SAP Log",
+   "options": "VMS SAP Logs"
+  },
+  {
+   "fieldname": "column_break_kibf",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-06 20:47:56.779757",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Vendor Aging Company Codes",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
 }

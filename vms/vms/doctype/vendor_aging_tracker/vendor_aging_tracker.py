@@ -8,367 +8,451 @@ import json
 
 
 class VendorAgingTracker(Document):
-    """
-    Vendor Aging Tracker DocType Controller
-    Tracks aging for vendor onboarding and associated purchase orders
-    """
-    
-    def validate(self):
-        """Validate and calculate aging metrics"""
-        self.calculate_vendor_aging()
-        self.update_po_aging()
-        self.calculate_summary_metrics()
-    
-    def before_save(self):
-        """Before save calculations"""
-        self.update_vendor_status()
-    
-    def calculate_vendor_aging(self):
-        """Calculate days since vendor creation"""
-        if self.vendor_creation_date:
-            creation_datetime = get_datetime(self.vendor_creation_date)
-            current_datetime = get_datetime(now())
-            self.days_since_creation = (current_datetime - creation_datetime).days
-            
-            # Set aging status based on days
-            self.vendor_aging_status = self.get_aging_status_category(self.days_since_creation)
-    
-    def get_aging_status_category(self, days):
-        """Determine aging status category"""
-        if days <= 30:
-            return "New (0-30 days)"
-        elif days <= 90:
-            return "Recent (31-90 days)"
-        elif days <= 180:
-            return "Established (91-180 days)"
-        else:
-            return "Long Term (180+ days)"
-    
-    def update_po_aging(self):
-        """Calculate aging for each purchase order"""
-        if not self.purchase_order_details:
-            return
-        
-        current_date = getdate(nowdate())
-        
-        for po in self.purchase_order_details:
-            if po.po_date:
-                po_date = getdate(po.po_date)
-                po.days_since_po = date_diff(current_date, po_date)
-                po.po_aging_status = self.get_po_aging_status(po.days_since_po)
-    
-    def get_po_aging_status(self, days):
-        """Determine PO aging status"""
-        if days <= 7:
-            return "Fresh (0-7 days)"
-        elif days <= 15:
-            return "Recent (8-15 days)"
-        elif days <= 30:
-            return "Moderate (16-30 days)"
-        elif days <= 60:
-            return "Old (31-60 days)"
-        else:
-            return "Very Old (60+ days)"
-    
-    def calculate_summary_metrics(self):
-        """Calculate summary metrics for aging"""
-        self.total_aging_days = self.days_since_creation
-        
-        if self.purchase_order_details:
-            # Count total POs
-            self.total_purchase_orders = len(self.purchase_order_details)
-            
-            # Calculate average PO aging
-            total_days = sum([po.days_since_po or 0 for po in self.purchase_order_details])
-            self.average_po_aging = total_days / len(self.purchase_order_details) if self.purchase_order_details else 0
-            
-            # Calculate total PO value
-            self.total_po_value = sum([po.po_value or 0 for po in self.purchase_order_details])
-            
-            # Find oldest pending PO
-            oldest_po = None
-            max_days = 0
-            pending_count = 0
-            
-            for po in self.purchase_order_details:
-                # Count pending POs (not completed/closed)
-                if po.po_status not in ["Completed", "Closed", "Cancelled"]:
-                    pending_count += 1
-                
-                # Find oldest PO
-                if po.days_since_po and po.days_since_po > max_days:
-                    max_days = po.days_since_po
-                    oldest_po = po.purchase_order
-            
-            self.oldest_pending_po = oldest_po
-            self.pending_po_count = pending_count
-            
-            # Get newest PO date
-            po_dates = [getdate(po.po_date) for po in self.purchase_order_details if po.po_date]
-            if po_dates:
-                self.newest_po_date = max(po_dates)
-    
-    def update_vendor_status(self):
-        """Update vendor status based on activity"""
-        if self.purchase_order_details:
-            self.vendor_status = "Active"
-            self.last_activity_date = self.newest_po_date
-        elif self.days_since_creation > 90 and not self.purchase_order_details:
-            self.vendor_status = "Inactive"
-        else:
-            self.vendor_status = "Active"
+	"""
+	Vendor Aging Tracker DocType Controller
+	Tracks aging for vendor onboarding and associated purchase orders
+	"""
+
+	def validate(self):
+		"""Validate and calculate aging metrics"""
+		self.calculate_vendor_aging()
+		self.update_po_aging()
+		self.calculate_summary_metrics()
+		self.calculate_vendor_aging_duration()
+
+	def before_save(self):
+		"""Before save calculations"""
+		self.update_vendor_status()
+		
+	# def on_update(self):
+	# 	"""On update actions"""
+	# 	self.calculate_vendor_aging_duration()
+		
+	
+
+	
+
+	def calculate_vendor_aging_duration(self):
+		"""Calculate total vendor aging duration"""
+		if self.vendor_creation_date and self.vendor_onboarding_date and self.vendor_creation_date_sap:
+			try:
+				# Convert string datetime to datetime objects
+				creation_datetime = get_datetime(self.vendor_creation_date)
+				onboarding_datetime = get_datetime(self.vendor_onboarding_date)
+				sap_approval_datetime = get_datetime(self.vendor_creation_date_sap)
+				
+				# Calculate duration from onboarding to SAP approval
+				time_diff = sap_approval_datetime - onboarding_datetime
+				
+				# Convert to seconds (Duration field stores value in seconds)
+				self.vendor_onboard_to_approval_time = time_diff.total_seconds() if time_diff else 0
+			except:
+				self.vendor_onboard_to_approval_time = 0
+
+		if self.oldest_po_creation_time:
+			try:
+				# Convert to datetime objects
+				oldest_po_datetime = get_datetime(self.oldest_po_creation_time)
+				onboarding_datetime = get_datetime(self.vendor_onboarding_date)
+				sap_approval_datetime = get_datetime(self.vendor_creation_date_sap)
+				
+				# Calculate durations
+				total_po_time_diff = oldest_po_datetime - onboarding_datetime
+				approve_to_first_po_time = oldest_po_datetime - sap_approval_datetime
+
+				self.vendor_creation_to_po_time = total_po_time_diff.total_seconds() if total_po_time_diff else 0
+				self.vendor_approval_to__first_po_time = approve_to_first_po_time.total_seconds() if approve_to_first_po_time else 0
+			except:
+				self.vendor_creation_to_po_time = 0
+				self.vendor_approval_to__first_po_time = 0
+
+
+	def calculate_vendor_aging(self):
+		"""Calculate days since vendor creation"""
+		if self.vendor_creation_date:
+			creation_datetime = get_datetime(self.vendor_creation_date)
+			current_datetime = get_datetime(now())
+			self.days_since_creation = (current_datetime - creation_datetime).days
+			
+			# Set aging status based on days
+			self.vendor_aging_status = self.get_aging_status_category(self.days_since_creation)
+
+	def get_aging_status_category(self, days):
+		"""Determine aging status category"""
+		if days <= 30:
+			return "New (0-30 days)"
+		elif days <= 90:
+			return "Recent (31-90 days)"
+		elif days <= 180:
+			return "Established (91-180 days)"
+		else:
+			return "Long Term (180+ days)"
+
+	def update_po_aging(self):
+		"""Calculate aging for each purchase order"""
+		if not self.purchase_order_details:
+			return
+		
+		current_date = getdate(nowdate())
+		
+		for po in self.purchase_order_details:
+			if po.po_date:
+				po_date = getdate(po.po_date)
+				po.days_since_po = date_diff(current_date, po_date)
+				po.po_aging_status = self.get_po_aging_status(po.days_since_po)
+
+		
+
+	def get_po_aging_status(self, days):
+		"""Determine PO aging status"""
+		if days <= 7:
+			return "Fresh (0-7 days)"
+		elif days <= 15:
+			return "Recent (8-15 days)"
+		elif days <= 30:
+			return "Moderate (16-30 days)"
+		elif days <= 60:
+			return "Old (31-60 days)"
+		else:
+			return "Very Old (60+ days)"
+
+	def calculate_summary_metrics(self):
+		"""Calculate summary metrics for aging"""
+		self.total_aging_days = self.days_since_creation
+		
+		if self.purchase_order_details:
+			# Count total POs
+			self.total_purchase_orders = len(self.purchase_order_details)
+			
+			# Calculate average PO aging
+			total_days = sum([po.days_since_po or 0 for po in self.purchase_order_details])
+			self.average_po_aging = total_days / len(self.purchase_order_details) if self.purchase_order_details else 0
+			
+			# Calculate total PO value
+			self.total_po_value = sum([po.po_value or 0 for po in self.purchase_order_details])
+			
+			# Find oldest pending PO and oldest PO
+			oldest_pending_po = None
+			max_days = 0
+			max_pending_days = 0
+			pending_count = 0
+			
+			for po in self.purchase_order_details:
+				# Count pending POs (not completed/closed)
+				if po.po_status not in ["Completed", "Closed", "Cancelled"]:
+					pending_count += 1
+					
+					# Find oldest pending PO
+					if po.days_since_po and po.days_since_po > max_pending_days:
+						max_pending_days = po.days_since_po
+						oldest_pending_po = po.purchase_order
+				
+				# Find oldest PO (regardless of status)
+				# if po.days_since_po and po.days_since_po > max_days:
+				# 	max_days = po.days_since_po
+				# 	oldest_po = po.purchase_order
+			oldest_po = None
+			oldest_po_datetime = None
+
+			for po in self.purchase_order_details:
+				if po.po_creation_datetime:
+					po_datetime = get_datetime(po.po_creation_datetime)
+					
+					# Check if this is the oldest PO so far
+					if oldest_po_datetime is None or po_datetime < oldest_po_datetime:
+						oldest_po_datetime = po_datetime
+						oldest_po = po.purchase_order
+
+			# Store the results
+			self.oldest_po = oldest_po
+			self.oldest_po_creation_time = oldest_po_datetime
+			
+			self.oldest_pending_po = oldest_pending_po
+			# self.oldest_pending_po_creation_time = frappe.get_value("Purchase Order", oldest_pending_po, "creation") if oldest_pending_po else None
+			self.pending_po_count = pending_count
+			
+			# Get newest PO date
+			po_dates = [getdate(po.po_date) for po in self.purchase_order_details if po.po_date]
+			if po_dates:
+				self.newest_po_date = max(po_dates)
+
+	def update_vendor_status(self):
+		"""Update vendor status based on activity"""
+		if self.purchase_order_details:
+			self.vendor_status = "Active"
+			self.last_activity_date = self.newest_po_date
+		elif self.days_since_creation > 90 and not self.purchase_order_details:
+			self.vendor_status = "Inactive"
+		else:
+			self.vendor_status = "Active"
 
 
 # Hook functions to be called from other doctypes
 
 @frappe.whitelist()
 def create_or_update_aging_tracker_from_vendor_onboarding(vendor_onboarding_name):
-    """
-    Create or update Vendor Aging Tracker when Vendor Onboarding is created/updated
-    ONE tracker per vendor onboarding (not per vendor code)
-    Called from Vendor Onboarding after_insert/on_update hook
-    """
-    try:
-        onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding_name)
-        
-        # Check if data_sent_to_sap is checked (vendor created in SAP)
-        if not onboarding_doc.data_sent_to_sap:
-            return
-        
-        # Check if vendor company details exist
-        if not onboarding_doc.vendor_company_details:
-            frappe.log_error("No vendor company details found", "Vendor Aging Tracker")
-            return
-        
-        # Check if aging tracker already exists for this vendor onboarding
-        existing = frappe.db.exists("Vendor Aging Tracker", {"vendor_onboarding_link": vendor_onboarding_name})
-        
-        if existing:
-            # Update existing tracker
-            aging_doc = frappe.get_doc("Vendor Aging Tracker", existing)
-            # Clear existing vendor codes to refresh
-            aging_doc.vendor_codes_by_company = []
-        else:
-            # Create new aging tracker
-            aging_doc = frappe.new_doc("Vendor Aging Tracker")
-            aging_doc.vendor_onboarding_link = vendor_onboarding_name
-        
-        # Extract vendor information from onboarding document
-        aging_doc.vendor_name = onboarding_doc.vendor_name or ""
-        aging_doc.vendor_ref_no = onboarding_doc.ref_no or ""
-        
-        # Set creation dates
-        if onboarding_doc.creation:
-            aging_doc.vendor_creation_date = onboarding_doc.creation
-            aging_doc.vendor_onboarding_date = onboarding_doc.creation
-        
-        # Set vendor status based on onboarding status
-        if onboarding_doc.onboarding_form_status == "Approved":
-            aging_doc.vendor_status = "Active"
-        elif onboarding_doc.rejected:
-            aging_doc.vendor_status = "Blocked"
-        else:
-            aging_doc.vendor_status = "Pending"
-        
-        # Process all company details and add to child table
-        primary_code_set = False
-        for idx, company_detail in enumerate(onboarding_doc.vendor_company_details):
-            if not company_detail.vendor_code:
-                continue
-            
-            # Set primary vendor code (first one)
-            if not primary_code_set:
-                aging_doc.primary_vendor_code = company_detail.vendor_code
-                aging_doc.company_code = company_detail.company_code or ""
-                aging_doc.gst_number = company_detail.gst_no or ""
-                
-                # Get SAP client code from company master
-                if company_detail.company:
-                    try:
-                        company_master = frappe.get_doc("Company Master", company_detail.company)
-                        if hasattr(company_master, 'sap_client_code'):
-                            aging_doc.sap_client_code = company_master.sap_client_code
-                    except:
-                        pass
-                
-                primary_code_set = True
-            
-            # Add to vendor codes child table
-            aging_doc.append("vendor_codes_by_company", {
-                "company": company_detail.company or "",
-                "company_code": company_detail.company_code or "",
-                "vendor_code": company_detail.vendor_code,
-                "gst_number": company_detail.gst_no or "",
-                "state": company_detail.state or ""
-            })
-        
-        aging_doc.save(ignore_permissions=True)
-        frappe.db.commit()
-        
-        frappe.msgprint(f"Vendor Aging Tracker created/updated for: {onboarding_doc.vendor_name}")
-        
-    except Exception as e:
-        frappe.log_error(f"Error creating/updating Vendor Aging Tracker from Vendor Onboarding: {str(e)}", 
-                        "Vendor Aging Tracker Error")
+	"""
+	Create or update Vendor Aging Tracker when Vendor Onboarding is created/updated
+	ONE tracker per vendor onboarding (not per vendor code)
+	Called from Vendor Onboarding after_insert/on_update hook
+	"""
+	try:
+		onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding_name)
+		
+		# # Check if data_sent_to_sap is checked (vendor created in SAP)
+		# if not onboarding_doc.data_sent_to_sap:
+		#     return
+		
+		# # Check if vendor company details exist
+		# if not onboarding_doc.vendor_company_details:
+		#     frappe.log_error("No vendor company details found", "Vendor Aging Tracker")
+		#     return
+		
+		# Check if aging tracker already exists for this vendor onboarding
+		existing = frappe.db.exists("Vendor Aging Tracker", {"vendor_onboarding_link": vendor_onboarding_name})
+		
+		if existing:
+			# Update existing tracker
+			aging_doc = frappe.get_doc("Vendor Aging Tracker", existing)
+			# Clear existing vendor codes to refresh
+			aging_doc.vendor_codes_by_company = []
+		else:
+			# Create new aging tracker
+			aging_doc = frappe.new_doc("Vendor Aging Tracker")
+			aging_doc.vendor_onboarding_link = vendor_onboarding_name
+		
+		# Extract vendor information from onboarding document
+		aging_doc.vendor_name = onboarding_doc.vendor_name or ""
+		aging_doc.vendor_ref_no = onboarding_doc.ref_no or ""
+		
+		# Set creation dates
+		if onboarding_doc.creation:
+			aging_doc.vendor_creation_date = onboarding_doc.creation
+			aging_doc.vendor_onboarding_date = onboarding_doc.creation
+		
+		# Set vendor status based on onboarding status
+		if onboarding_doc.onboarding_form_status == "Approved":
+			aging_doc.vendor_status = "Active"
+		elif onboarding_doc.rejected:
+			aging_doc.vendor_status = "Blocked"
+		else:
+			aging_doc.vendor_status = "Pending"
+		
+		# Process all company details and add to child table
+		primary_code_set = False
+		for idx, company_detail in enumerate(onboarding_doc.vendor_company_details):
+			if not company_detail.vendor_company_details:
+				continue
+			
+			# Set primary vendor code (first one)
+			onb_com= frappe.get_doc("Vendor Onboarding Company Details", company_detail.vendor_company_details)
+			sap_client_code = None
+			if not primary_code_set:
+				# aging_doc.primary_vendor_code = company_detail.vendor_code
+				aging_doc.company_code = onb_com.company_name or ""
+				aging_doc.gst_number = onb_com.gst or ""
+				
+				# Get SAP client code from company master
+				if onb_com.company_name:
+					try:
+						company_master = frappe.get_doc("Company Master", onb_com.company_name)
+						if hasattr(company_master, 'sap_client_code'):
+							aging_doc.sap_client_code = company_master.sap_client_code
+							sap_client_code = company_master.sap_client_code
+					except:
+						pass
+				
+				primary_code_set = True
+			
+			# Add to vendor codes child table
+			for cgt in onb_com.comp_gst_table:
+				aging_doc.append("vendor_codes_by_company", {
+					"company": onb_com.company_name or "",
+					"company_code": onb_com.company_name or "",
+					"sap_client_code":sap_client_code or "",
+					"gst_number": cgt.gst_number or "",
+					"state": cgt.gst_state or ""
+				})
+		
+		aging_doc.save(ignore_permissions=True)
+		frappe.db.commit()
+		
+		frappe.msgprint(f"Vendor Aging Tracker created/updated for: {onboarding_doc.vendor_name}")
+		
+	except Exception as e:
+		frappe.log_error(f"Error creating/updating Vendor Aging Tracker from Vendor Onboarding: {str(e)}", 
+						"Vendor Aging Tracker Error")
 
 
 @frappe.whitelist()
 def create_or_update_aging_tracker_from_sap_log(sap_log_name):
-    """
-    Create or update Vendor Aging Tracker when VMS SAP Log is created
-    Parses JSON to extract vendor_code
-    Called from VMS SAP Logs after_insert hook
-    """
-    try:
-        sap_log = frappe.get_doc("VMS SAP Logs", sap_log_name)
-        
-        # Check if status is Success
-        if sap_log.status != "Success":
-            return
-        
-        # If linked to vendor onboarding, use that method instead
-        if sap_log.vendor_onboarding_link:
-            create_or_update_aging_tracker_from_vendor_onboarding(sap_log.vendor_onboarding_link)
-            return
-        
-        # Parse total_transaction JSON to extract vendor_code
-        if not sap_log.total_transaction:
-            return
-        
-        transaction_data = json.loads(sap_log.total_transaction)
-        
-        # Extract vendor code from transaction_summary
-        vendor_code = transaction_data.get("transaction_summary", {}).get("vendor_code")
-        if not vendor_code:
-            # Try response_details as fallback
-            vendor_code = transaction_data.get("response_details", {}).get("vendor_code")
-        
-        if not vendor_code:
-            frappe.log_error("No vendor code found in SAP log total_transaction", "Vendor Aging Tracker")
-            return
-        
-        # Check if aging tracker already exists with this vendor code
-        # Since we now have one tracker per onboarding, we need to check if this code exists
-        existing = frappe.db.sql("""
-            SELECT parent 
-            FROM `tabVendor Aging Company Codes` 
-            WHERE vendor_code = %s
-            LIMIT 1
-        """, vendor_code)
-        
-        if existing and existing[0][0]:
-            # Update existing tracker
-            aging_doc = frappe.get_doc("Vendor Aging Tracker", existing[0][0])
-        else:
-            # Create new aging tracker (orphan - no vendor onboarding)
-            aging_doc = frappe.new_doc("Vendor Aging Tracker")
-            # Generate a unique vendor onboarding link reference
-            aging_doc.vendor_onboarding_link = f"SAP-{sap_log_name}"
-        
-        # Update fields from transaction data
-        transaction_summary = transaction_data.get("transaction_summary", {})
-        request_details = transaction_data.get("request_details", {})
-        payload = request_details.get("payload", {})
-        
-        aging_doc.vendor_name = payload.get("Name1", "")
-        aging_doc.primary_vendor_code = vendor_code
-        aging_doc.company_code = request_details.get("company_name", "")
-        aging_doc.sap_client_code = request_details.get("sap_client_code", "")
-        aging_doc.gst_number = request_details.get("gst_number", "")
-        aging_doc.vendor_ref_no = request_details.get("vendor_ref_no", "")
-        
-        # Set creation date from timestamp
-        aging_doc.vendor_creation_date = transaction_summary.get("timestamp", now())
-        
-        # Link to SAP log
-        aging_doc.sap_log_reference = sap_log_name
-        aging_doc.vendor_status = "Active"
-        
-        # Add vendor code to child table if not already exists
-        code_exists = False
-        for code_row in aging_doc.vendor_codes_by_company:
-            if code_row.vendor_code == vendor_code:
-                code_exists = True
-                break
-        
-        if not code_exists:
-            aging_doc.append("vendor_codes_by_company", {
-                "company_code": request_details.get("company_name", ""),
-                "vendor_code": vendor_code,
-                "gst_number": request_details.get("gst_number", ""),
-                "sap_client_code": request_details.get("sap_client_code", "")
-            })
-        
-        aging_doc.save(ignore_permissions=True)
-        frappe.db.commit()
-        
-    except Exception as e:
-        frappe.log_error(f"Error creating/updating Vendor Aging Tracker from SAP log: {str(e)}", 
-                        "Vendor Aging Tracker Error")
+	"""
+	Create or update Vendor Aging Tracker when VMS SAP Log is created
+	Parses JSON to extract vendor_code
+	Called from VMS SAP Logs after_insert hook
+	"""
+	try:
+		sap_log = frappe.get_doc("VMS SAP Logs", sap_log_name)
+		
+		# Check if status is Success
+		if sap_log.status != "Success":
+			return
+		
+		# If linked to vendor onboarding, use that method instead
+		# if sap_log.vendor_onboarding_link:
+		# 	create_or_update_aging_tracker_from_vendor_onboarding(sap_log.vendor_onboarding_link)
+		# 	return
+		
+		# Parse total_transaction JSON to extract vendor_code
+		if not sap_log.total_transaction:
+			return
+		
+		transaction_data = json.loads(sap_log.total_transaction)
+		
+		# Extract vendor code from transaction_summary
+		vendor_code = transaction_data.get("transaction_summary", {}).get("vendor_code")
+		if not vendor_code:
+			# Try response_details as fallback
+			vendor_code = transaction_data.get("response_details", {}).get("vendor_code")
+		
+		if not vendor_code:
+			frappe.log_error("No vendor code found in SAP log total_transaction", "Vendor Aging Tracker")
+			return
+		
+		# Check if aging tracker already exists with this vendor code
+		# Since we now have one tracker per onboarding, we need to check if this code exists
+		# Check if Vendor Aging Tracker exists with the vendor_onboarding_link name
+		if frappe.db.exists("Vendor Aging Tracker", sap_log.vendor_onboarding_link):
+			# Get existing tracker
+			aging_doc = frappe.get_doc("Vendor Aging Tracker", sap_log.vendor_onboarding_link)
+		else:
+			# Create new aging tracker
+			aging_doc = frappe.new_doc("Vendor Aging Tracker")
+			aging_doc.vendor_onboarding_link = sap_log.vendor_onboarding_link
+		
+		# Update fields from transaction data
+		transaction_summary = transaction_data.get("transaction_summary", {})
+		request_details = transaction_data.get("request_details", {})
+		payload = request_details.get("payload", {})
+		
+		aging_doc.vendor_name = payload.get("Name1", "")
+		aging_doc.primary_vendor_code = vendor_code
+		aging_doc.company_code = request_details.get("company_name", "")
+		aging_doc.sap_client_code = request_details.get("sap_client_code", "")
+		aging_doc.gst_number = request_details.get("gst_number", "")
+		aging_doc.vendor_ref_no = request_details.get("vendor_ref_no", "")
+		
+		# Set creation date from timestamp
+		if aging_doc.vendor_creation_date_sap is None:
+			aging_doc.vendor_creation_date_sap = get_datetime(sap_log.creation)
+		
+		
+		# Link to SAP log
+		aging_doc.sap_log_reference = sap_log_name
+		aging_doc.vendor_status = "Active"
+		
+		# Add vendor code to child table if not already exists
+		code_exists = False
+		row_to_update = None
+
+		for code_row in aging_doc.vendor_codes_by_company:
+			# Check if GST number and SAP client code match
+			if (code_row.gst_number == request_details.get("gst_number", "") and 
+				code_row.sap_client_code == request_details.get("sap_client_code", "") and
+				code_row.company_code == request_details.get("company_name", "")):
+				# If match found, mark for updating vendor code
+				row_to_update = code_row
+				code_exists = True
+				break
+
+		if code_exists and row_to_update:
+			# Update existing row with vendor code
+			row_to_update.vendor_code = vendor_code
+			row_to_update.vendor_code_generation_time = get_datetime(sap_log.creation)
+			row_to_update.vms_sap_log = sap_log.name
+		else:
+			# Append new row with all details
+			aging_doc.append("vendor_codes_by_company", {
+				"company_code": request_details.get("company_name", ""),
+				"vendor_code": vendor_code,
+				"gst_number": request_details.get("gst_number", ""),
+				"sap_client_code": request_details.get("sap_client_code", ""),
+                "vendor_code_generation_time": get_datetime(sap_log.creation),
+				"vms_sap_log":sap_log.name
+			})
+		
+		aging_doc.save(ignore_permissions=True)
+		frappe.db.commit()
+		
+	except Exception as e:
+		frappe.log_error(f"Error creating/updating Vendor Aging Tracker from SAP log: {str(e)}", 
+						"Vendor Aging Tracker Error")
 
 
 @frappe.whitelist()
 def update_aging_tracker_with_po(purchase_order_name):
-    """
-    Update Vendor Aging Tracker when a Purchase Order is created
-    Matches PO vendor_code with any vendor code in the tracker
-    Called from Purchase Order after_insert/on_update hook
-    """
-    try:
-        po_doc = frappe.get_doc("Purchase Order", purchase_order_name)
-        
-        # Check if vendor_code exists
-        if not po_doc.vendor_code:
-            return
-        
-        # Find aging tracker that has this vendor code in its child table
-        tracker_name = frappe.db.sql("""
-            SELECT parent 
-            FROM `tabVendor Aging Company Codes` 
-            WHERE vendor_code = %s
-            LIMIT 1
-        """, po_doc.vendor_code)
-        
-        if not tracker_name or not tracker_name[0][0]:
-            # No tracker found with this vendor code
-            frappe.log_error(
-                f"No Vendor Aging Tracker found for vendor code: {po_doc.vendor_code}",
-                "Vendor Aging Tracker PO Link"
-            )
-            return
-        
-        aging_doc = frappe.get_doc("Vendor Aging Tracker", tracker_name[0][0])
-        
-        # Check if PO already exists in the tracker
-        po_exists = False
-        for existing_po in aging_doc.purchase_order_details:
-            if existing_po.purchase_order == purchase_order_name:
-                po_exists = True
-                # Update existing PO details
-                existing_po.po_number = po_doc.po_number
-                existing_po.po_date = po_doc.po_date
-                existing_po.po_status = po_doc.vendor_status
-                existing_po.po_value = po_doc.total_value_of_po__so
-                existing_po.delivery_date = po_doc.delivery_date
-                break
-        
-        # Add PO to tracker if it doesn't exist
-        if not po_exists:
-            aging_doc.append("purchase_order_details", {
-                "purchase_order": purchase_order_name,
-                "po_number": po_doc.po_number,
-                "po_date": po_doc.po_date,
-                "po_status": po_doc.vendor_status,
-                "po_value": po_doc.total_value_of_po__so,
-                "delivery_date": po_doc.delivery_date
-            })
-        
-        aging_doc.save(ignore_permissions=True)
-        frappe.db.commit()
-        
-    except Exception as e:
-        frappe.log_error(f"Error updating Vendor Aging Tracker with PO: {str(e)}", 
-                        "Vendor Aging Tracker PO Update Error")
+	"""
+	Update Vendor Aging Tracker when a Purchase Order is created
+	Matches PO vendor_code with any vendor code in the tracker
+	Called from Purchase Order after_insert/on_update hook
+	"""
+	try:
+		po_doc = frappe.get_doc("Purchase Order", purchase_order_name)
+		
+		# Check if vendor_code exists
+		if not po_doc.vendor_code:
+			return
+		
+		# Find aging tracker that has this vendor code in its child table
+		tracker_name = frappe.db.sql("""
+			SELECT parent 
+			FROM `tabVendor Aging Company Codes` 
+			WHERE vendor_code = %s
+			LIMIT 1
+		""", po_doc.vendor_code)
+		
+		if not tracker_name or not tracker_name[0][0]:
+			# No tracker found with this vendor code
+			frappe.log_error(
+				f"No Vendor Aging Tracker found for vendor code: {po_doc.vendor_code}",
+				"Vendor Aging Tracker PO Link"
+			)
+			return
+		
+		aging_doc = frappe.get_doc("Vendor Aging Tracker", tracker_name[0][0])
+		
+		# Check if PO already exists in the tracker
+		po_exists = False
+		for existing_po in aging_doc.purchase_order_details:
+			if existing_po.purchase_order == purchase_order_name:
+				po_exists = True
+				# Update existing PO details
+				existing_po.po_number = po_doc.po_number
+				existing_po.po_date = po_doc.po_date
+				existing_po.po_status = po_doc.vendor_status
+				existing_po.po_value = po_doc.total_value_of_po__so
+				existing_po.delivery_date = po_doc.delivery_date
+				existing_po.po_creation_datetime = get_datetime(po_doc.creation)
+				break
+		
+		# Add PO to tracker if it doesn't exist
+		if not po_exists:
+			aging_doc.append("purchase_order_details", {
+				"purchase_order": purchase_order_name,
+				"po_number": po_doc.po_number,
+				"po_date": po_doc.po_date,
+				"po_status": po_doc.vendor_status,
+				"po_value": po_doc.total_value_of_po__so,
+				"delivery_date": po_doc.delivery_date,
+				"po_creation_datetime": get_datetime(po_doc.creation)
+			})
+		
+		aging_doc.save(ignore_permissions=True)
+		frappe.db.commit()
+		
+	except Exception as e:
+		frappe.log_error(f"Error updating Vendor Aging Tracker with PO: {str(e)}", 
+						"Vendor Aging Tracker PO Update Error")
 
 
 @frappe.whitelist()
