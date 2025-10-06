@@ -234,7 +234,8 @@ scheduler_events = {
         "vms.chat_vms.maintenance.cleanup_old_messages",
         "vms.chat_vms.maintenance.update_room_statistics",
         "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.cleanup_user_status_cache",  # New
-        "vms.vms.doctype.otp_verification.otp_verification.cleanup_old_otps"
+        "vms.vms.doctype.otp_verification.otp_verification.cleanup_old_otps",
+        "vms.vms.doctype.vendor_aging_tracker.vendor_aging_tracker.refresh_all_aging_trackers"
     ],
     "cron": {
         "0 0 * * *": [
@@ -250,7 +251,8 @@ scheduler_events = {
             "vms.chat_vms.maintenance.cleanup_deleted_files"
         ],
         "*/15 * * * *": [  # Every 15 minutes
-            "vms.chat_vms.maintenance.update_user_online_status"
+            "vms.chat_vms.maintenance.update_user_online_status",
+            "vms.purchase.doctype.purchase_order.purchase_order.send_dispatch_notifications"
         ],
         "*/1 * * * *": [  # Every minute - for real-time status updates
             "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.update_user_activity_status",
