@@ -22,6 +22,17 @@ populator = VendorDataPopulator()
 
 
 class VendorOnboarding(Document):
+
+    def after_insert(self):
+        try:
+            from vms.vms.doctype.vendor_aging_tracker.vendor_aging_tracker import create_or_update_aging_tracker_from_vendor_onboarding
+            create_or_update_aging_tracker_from_vendor_onboarding(self.name)
+            return {"status": "success", "message": "Aging tracker update completed"}
+        except Exception as e:
+            frappe.log_error(f"Aging tracker update error for {self.name}: {str(e)}")
+            return {"status": "error", "message": str(e)}
+
+
     
     def validate(self):
         """
@@ -384,7 +395,8 @@ def run_post_update_tasks_smart_granular(doc_name, user=None, is_new=False):
         'sync_maintain': 1.8,        # High risk - syncs multiple records
         'sap_update': 1.5,          # Medium risk - external API + doc update
         'submission_handling': 1.0,  # Medium risk - document state changes
-        'doc_change_emails': 0.3    # Low risk - external operations
+        'doc_change_emails': 0.3,    # Low risk - external operations
+        'aging_tracker': 2.0
     }
     
     try:
@@ -440,6 +452,11 @@ def run_post_update_tasks_smart_granular(doc_name, user=None, is_new=False):
 
         time.sleep(SLEEP_DURATIONS['sync_maintain'])
         task_results['sync_maintain'] = run_sync_maintain(doc)
+
+        time.sleep(SLEEP_DURATIONS['aging_tracker'])
+        task_results['track_age_onboarding'] = run_aging_tracker_update(doc.name)
+
+        
         
         return task_results
         
@@ -452,6 +469,18 @@ def run_post_update_tasks_smart_granular(doc_name, user=None, is_new=False):
 
 
 # Individual task functions that maintain all existing functionality
+
+
+def run_aging_tracker_update(doc_name):
+    """Run vendor aging tracker update - replaces update_vendor_aging_tracker"""
+    try:
+        from vms.vms.doctype.vendor_aging_tracker.vendor_aging_tracker import create_or_update_aging_tracker_from_vendor_onboarding
+        create_or_update_aging_tracker_from_vendor_onboarding(doc_name)
+        return {"status": "success", "message": "Aging tracker update completed"}
+    except Exception as e:
+        frappe.log_error(f"Aging tracker update error for {doc_name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
 
 def run_field_validation(doc):
     """Run field validation - replaces on_update_check_fields"""
