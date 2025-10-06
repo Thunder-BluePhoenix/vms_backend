@@ -1282,6 +1282,9 @@ def get_pr_w(page_no=None, page_length=None):
 
         user = frappe.session.user
 
+        # getting Roles
+        user_roles = frappe.get_roles(user)
+
         # Fetch team and designation of the logged-in user
         emp_data = frappe.get_value("Employee", {"user_id": user}, ["team", "designation"])
         if not emp_data:
@@ -1302,7 +1305,7 @@ def get_pr_w(page_no=None, page_length=None):
         start = (page_no - 1) * page_length
 
         # --- Enquirer Role ---
-        if designation == "Enquirer":
+        if "Enquirer" in user_roles or designation == "Enquirer":
             total_count = frappe.db.count("Purchase Requisition Webform", 
                                           filters={"requisitioner": user})
             
