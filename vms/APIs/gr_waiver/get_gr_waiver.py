@@ -69,7 +69,7 @@ def get_gr_waiver_list(filters=None, fields=None, limit=20, offset=0, order_by=N
             limit=limit,
             start=offset,
             order_by=order_by,
-            ignore_permissions=False  # Set to True if you want to ignore permissions
+            ignore_permissions=False 
         )
 
         # Get total count for pagination
