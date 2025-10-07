@@ -16,7 +16,9 @@
   "url",
   "purchase_requisition_sap_section",
   "column_break_qmkf",
-  "sap_pr_url"
+  "sap_pr_url",
+  "material_onboarding_sap_section",
+  "mo_sap_link"
  ],
  "fields": [
   {
@@ -74,7 +76,7 @@
    "label": "Purchase Requisition SAP"
   },
   {
-   "description": "Sending data to sap and fetch vendor code. eg: http://10.10.103.133:8000//sap/opu/odata/sap/ZMM_ME51N_PR7_SRV/HdrSet?sap-client=",
+   "description": "Sending PR data to sap. eg link: http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_ME51N_PR7_SRV/HdrSet?sap-client=",
    "fieldname": "sap_pr_url",
    "fieldtype": "Data",
    "label": "URL"
@@ -82,13 +84,24 @@
   {
    "fieldname": "column_break_qmkf",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "material_onboarding_sap_section",
+   "fieldtype": "Section Break",
+   "label": "Material Onboarding SAP"
+  },
+  {
+   "description": "Sending MO data to sap. eg link: http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_MM01M_SRV/ZHDRSet?sap-client=",
+   "fieldname": "mo_sap_link",
+   "fieldtype": "Data",
+   "label": "URL"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-08-22 14:39:51.475368",
+ "modified": "2025-10-07 14:46:07.667403",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "SAP Settings",
