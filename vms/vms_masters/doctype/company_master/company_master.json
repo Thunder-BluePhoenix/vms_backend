@@ -16,6 +16,7 @@
   "dl_number",
   "ssi_region_number",
   "company_logo",
+  "qms_required",
   "company_address_section",
   "street_1",
   "street_2",
@@ -110,12 +111,18 @@
    "fieldname": "inactive",
    "fieldtype": "Check",
    "label": "Inactive"
+  },
+  {
+   "default": "0",
+   "fieldname": "qms_required",
+   "fieldtype": "Check",
+   "label": "QMS Required"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-20 14:03:31.731483",
+ "modified": "2025-10-07 11:26:41.829959",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Company Master",
