@@ -384,7 +384,7 @@ def update_cart_products():
 		product_row = {}
 		product_fields = [
 			"assest_code", "product_name", "product_price", "uom",
-			"lead_time", "product_quantity", "user_specifications"
+			"lead_time", "product_quantity", "user_specifications", "need_asset_code"
 		]
 
 		for field in product_fields:
@@ -453,7 +453,7 @@ def update_cart_products():
 			"lead_time": product_row.get("lead_time", 0),
 			"product_quantity": product_row.get("product_quantity", 0),
 			"final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", 0),
-			"need_asset_code": product_row.get("need_asset_code", 0)
+			# "need_asset_code": product_row.get("need_asset_code", 0)
 		}
 
 		# Handle numeric fields (ensure they are properly set)
