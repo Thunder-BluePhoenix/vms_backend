@@ -8,13 +8,18 @@
  "field_order": [
   "naming_series",
   "material_onboarding_link",
+  "requestor_ref",
   "column_break_inpw",
   "status",
   "direction",
   "section_break_tzmc",
+  "total_transaction",
+  "tab_2_tab",
   "erp_to_sap_data",
   "sap_response",
-  "total_transaction"
+  "column_break_mhud",
+  "sap_to_erp_data",
+  "erp_response"
  ],
  "fields": [
   {
@@ -63,13 +68,39 @@
   {
    "fieldname": "direction",
    "fieldtype": "Select",
-   "label": "Direction"
+   "label": "Direction",
+   "options": "\nERP to SAP\nSAP to ERP"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "DATA And Response"
+  },
+  {
+   "fieldname": "column_break_mhud",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sap_to_erp_data",
+   "fieldtype": "Code",
+   "label": "SAP to ERP DATA"
+  },
+  {
+   "fieldname": "erp_response",
+   "fieldtype": "Code",
+   "label": "ERP Response"
+  },
+  {
+   "fieldname": "requestor_ref",
+   "fieldtype": "Link",
+   "label": "Requestor Ref",
+   "options": "Requestor Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-07 15:19:11.774574",
+ "modified": "2025-10-07 17:34:32.784732",
  "modified_by": "Administrator",
  "module": "SAP LOGs",
  "name": "MO SAP Logs",

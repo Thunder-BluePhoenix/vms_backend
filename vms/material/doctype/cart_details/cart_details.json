@@ -297,7 +297,7 @@
   {
    "fieldname": "acknowledged_date",
    "fieldtype": "Date",
-   "label": "Acknowledged Date"
+   "label": "Expected Delivery Date"
   },
   {
    "default": "0",
@@ -421,7 +421,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-07 13:50:24.939088",
+ "modified": "2025-10-07 17:14:54.866389",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
