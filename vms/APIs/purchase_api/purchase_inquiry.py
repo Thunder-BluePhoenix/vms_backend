@@ -468,15 +468,24 @@ def update_cart_products():
 				if row.name == row_name:
 					# store existing attachment
 					existing_attachment = row.attachment  # Get existing attachment
+					need_asset_code = row.need_asset_code  # Get existing checkbox
 
 					for field, value in row_data.items():
-						# Special handling for attachment
 						if field == "attachment":
-							# If no new file is uploaded (i.e., 'undefined' or empty), retain old
+							# Handle attachment fallback
 							if value in ["undefined", None, ""]:
-								setattr(row, field, existing_attachment)
+								setattr(row, "attachment", existing_attachment)
 							else:
-								setattr(row, field, value)
+								setattr(row, "attachment", value)
+
+						elif field == "need_asset_code":
+							# Handle checkbox fallback
+							if value in ["undefined", None, ""]:
+								setattr(row, "need_asset_code", need_asset_code)
+							else:
+								# Cast to int/bool if needed
+								setattr(row, "need_asset_code", int(value) if isinstance(value, (str, bool)) else value)
+
 						else:
 							setattr(row, field, value)
 
@@ -643,6 +652,9 @@ def modified_peq(data):
                     if child.name == row_id:
                         child.need_asset_code = need_asset_code
                         break 
+
+            doc.purchase_team_approval_status = "Modify"
+            doc.purchase_team_status = "Raised Query"
                       
             doc.save()
 
@@ -716,6 +728,7 @@ def acknowledge_purchase_inquiry(data):
             doc.acknowledged_date = data.get("acknowledged_date")
             doc.acknowledged_remarks = data.get("acknowledged_remarks")
             doc.purchase_team_status = "Acknowledged"
+            doc.purchase_team_approval_status = "Acknowledged"
             doc.save(ignore_permissions=True)
 
             employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
