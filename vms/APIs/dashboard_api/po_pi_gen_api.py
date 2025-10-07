@@ -931,6 +931,17 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_
                 user = frappe.get_doc("User", item['user'])
                 item['created_by_user_name'] = user.full_name if user.full_name else user.first_name
 
+        # visibility condition of PR Creation button in Dashboard
+        for item in all_cart_details:
+            pi_doc = frappe.get_doc("Cart Details", item.name)
+            pr_button_show = 0
+            if pi_doc.purchase_team_approved and pi_doc.hod_approved and not pi_doc.mail_sent_to_second_stage_approval:
+                pr_button_show = 1
+            if pi_doc.purchase_team_approved and pi_doc.hod_approved and pi_doc.mail_sent_to_second_stage_approval:
+                pr_button_show = 0
+            if pi_doc.purchase_team_approved and pi_doc.hod_approved and pi_doc.second_stage_approved:
+                pr_button_show = 1
+            item['pr_button_show'] = pr_button_show
         
         
         seen_names = set()
@@ -1015,6 +1026,18 @@ def get_pi(page_no=None, page_length=None, cart_id = None):
                                     start=start,
                                     page_length=page_length)
             
+            # visibility condition of PR Creation button in Dashboard
+            for item in all_pi:
+                pi_doc = frappe.get_doc("Cart Details", item.name)
+                pr_button_show = 0
+                if pi_doc.purchase_team_approved and pi_doc.hod_approved and not pi_doc.mail_sent_to_second_stage_approval:
+                    pr_button_show = 1
+                if pi_doc.purchase_team_approved and pi_doc.hod_approved and pi_doc.mail_sent_to_second_stage_approval:
+                    pr_button_show = 0
+                if pi_doc.purchase_team_approved and pi_doc.hod_approved and pi_doc.second_stage_approved:
+                    pr_button_show = 1
+                item['pr_button_show'] = pr_button_show 
+
             return {
                 "status": "success",
                 "message": "Cart details fetched successfully.",
@@ -1202,10 +1225,6 @@ def get_pi_details(pi_name):
         frappe.log_error(frappe.get_traceback(), "get_pi_details Error")
         frappe.throw(_("An unexpected error occurred while fetching PI details."))
 
-
-# http://127.0.0.1:8003/api/method/vms.APIs.dashboard_api.po_pi_gen_api.get_pr_w
-
-# apps/vms/vms/APIs/dashboard_api/po_pi_gen_api.py
 
 # Purchase Requisition Webform Dashboard
 # @frappe.whitelist(allow_guest=True)

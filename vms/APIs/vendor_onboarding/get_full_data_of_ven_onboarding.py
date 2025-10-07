@@ -1045,6 +1045,13 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                     "is_accounts_team_approve": 0,
                     "is_accounts_head_approve": 0
                 })
+            if vonb.rejected:
+                validation_check.update({
+                    "is_purchase_approve": 0,
+                    "is_purchase_head_approve": 0,
+                    "is_accounts_team_approve": 0,
+                    "is_accounts_head_approve": 0
+                })
             else:
                 pass
         
@@ -1072,12 +1079,28 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                     "is_accounts_team_approve": 0,
                     "is_accounts_head_approve": 0
                 })
+            if vonb.rejected:
+                validation_check.update({
+                    "is_purchase_approve": 0,
+                    "is_purchase_head_approve": 0,
+                    "is_accounts_team_approve": 0,
+                    "is_accounts_head_approve": 0
+                })
             
             else:
                 pass
 
         else:
             pass
+
+        version_changes = []
+
+        for row in vonb.version_history:
+            if row.field_json:
+                version_changes.append({
+                    "date_and_time": row.date_and_time,
+                    "field_json": row.field_json
+                })
 
         return {
             "status": "success",
@@ -1097,7 +1120,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "purchasing_details": purchasing_details,
             "validation_check": validation_check,
             "is_multi_company":registered_for_multi_companies,
-            "multi_company_data": multi_company_name
+            "multi_company_data": multi_company_name,
+            "version_changes": version_changes
         }
 
     except Exception as e:
