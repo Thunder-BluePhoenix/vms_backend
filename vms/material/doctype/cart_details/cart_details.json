@@ -65,7 +65,14 @@
   "section_break_iwzm",
   "is_approval",
   "mailed_to_alternate_purchase_team",
-  "mailed_to_purchase_head"
+  "mailed_to_purchase_head",
+  "approval_workflow_tab",
+  "approval_status",
+  "approvals",
+  "next_approver",
+  "next_approver_role",
+  "current_approval_stage",
+  "approval_matrix"
  ],
  "fields": [
   {
@@ -402,12 +409,52 @@
    "fieldname": "is_submited",
    "fieldtype": "Check",
    "label": "Is Submited"
+  },
+  {
+   "fieldname": "approval_workflow_tab",
+   "fieldtype": "Tab Break",
+   "label": "Approval Workflow"
+  },
+  {
+   "fieldname": "approval_status",
+   "fieldtype": "Data",
+   "label": "Approval Status"
+  },
+  {
+   "fieldname": "approvals",
+   "fieldtype": "Table",
+   "label": "Approvals",
+   "options": "Doc Approval"
+  },
+  {
+   "fieldname": "next_approver",
+   "fieldtype": "Link",
+   "label": "Next Approver",
+   "options": "User"
+  },
+  {
+   "fieldname": "next_approver_role",
+   "fieldtype": "Link",
+   "label": "Next Approver Role",
+   "options": "Role"
+  },
+  {
+   "fieldname": "current_approval_stage",
+   "fieldtype": "Int",
+   "label": "Current Approval Stage",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "approval_matrix",
+   "fieldtype": "Link",
+   "label": "Approval Matrix",
+   "options": "Approval Matrix"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-09 17:00:42.779282",
+ "modified": "2025-10-08 11:06:11.288066",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
