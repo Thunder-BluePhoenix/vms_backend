@@ -147,12 +147,14 @@
   {
    "fieldname": "zmsg",
    "fieldtype": "Code",
-   "label": "Zmsg"
+   "label": "Zmsg",
+   "read_only": 1
   },
   {
    "fieldname": "maktx",
    "fieldtype": "Code",
-   "label": "maktx"
+   "label": "maktx",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_gesg",
@@ -161,7 +163,8 @@
   {
    "fieldname": "ztext",
    "fieldtype": "Code",
-   "label": "ztext"
+   "label": "ztext",
+   "read_only": 1
   },
   {
    "fieldname": "sap_response_section",
@@ -181,12 +184,13 @@
   {
    "fieldname": "sap_summary",
    "fieldtype": "Code",
-   "label": "SAP Summary"
+   "label": "SAP Summary",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-07 16:00:21.725544",
+ "modified": "2025-10-08 11:46:56.005431",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Requestor Master",
