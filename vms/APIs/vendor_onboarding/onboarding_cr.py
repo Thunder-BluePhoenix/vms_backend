@@ -14,24 +14,60 @@ def request_change_by_at(vend_onb, cr_description):
     try:
         # Validate inputs
         if not vend_onb or not cr_description:
+            frappe.local.response['http_status_code'] = 400
             return {
                 'status': 'error',
-                'message': _('Vendor Onboarding and Change Request Description are required.')
+                'message': _('Vendor Onboarding and Change Request Description are required.'),
+                'code': 400
+            }
+        
+        # Check if vendor onboarding document exists
+        if not frappe.db.exists('Vendor Onboarding', vend_onb):
+            frappe.local.response['http_status_code'] = 404
+            return {
+                'status': 'error',
+                'message': _('Vendor Onboarding document not found.'),
+                'code': 404
             }
         
         # Get the vendor onboarding document
         vend_onb_doc = frappe.get_doc('Vendor Onboarding', vend_onb)
+        employee_designation = frappe.db.get_value('Employee', {"user_id": frappe.session.user}, 'designation')
+
+        if employee_designation not in ("Purchase Head", "Accounts Team"):
+            frappe.local.response['http_status_code'] = 403
+            return {
+                'status': 'error',
+                'message': _('Only Purchase Head and Accounts Team can create change requests.'),
+                'code': 403
+            }
         
-        # Set change request fields
+        # Check permissions
+        if not frappe.has_permission('Vendor Onboarding', 'write', vend_onb_doc):
+            frappe.local.response['http_status_code'] = 403
+            return {
+                'status': 'error',
+                'message': _('Insufficient permissions to modify this document.'),
+                'code': 403
+            }
+        
+        
         vend_onb_doc.change_request_by_at = 1
         vend_onb_doc.cr_description = cr_description
         vend_onb_doc.change_requested_by = frappe.session.user
+        vend_onb_doc.made_changes_by_pt = 0
+        vend_onb_doc.change_requested_by_designation = employee_designation
         
         # Send change request email (before saving)
         mail_response = send_cr_email(vend_onb_doc)
         
-        if mail_response['status'] == 'error':
-            return mail_response
+        if mail_response.get('status') == 'error':
+            frappe.local.response['http_status_code'] = 500
+            return {
+                'status': 'error',
+                'message': mail_response.get('message', _('Failed to send change request email.')),
+                'code': 500
+            }
         
         # If email sent successfully, mark it and save everything in one go
         vend_onb_doc.mail_sent_for_cr = 1
@@ -40,21 +76,68 @@ def request_change_by_at(vend_onb, cr_description):
         # Commit the transaction
         frappe.db.commit()
         
+        frappe.local.response['http_status_code'] = 200
         return {
             'status': 'success',
             'message': _('Change request created and notification sent successfully.'),
-            'vendor_onboarding': vend_onb_doc.name
+            'data': {
+                'vendor_onboarding': vend_onb_doc.name,
+                'change_requested_by': vend_onb_doc.change_requested_by,
+                'cr_description': vend_onb_doc.cr_description
+            },
+            'code': 200
         }
         
+    except frappe.DoesNotExistError:
+        frappe.db.rollback()
+        frappe.local.response['http_status_code'] = 404
+        frappe.log_error(
+            title='Change Request by AT - Document Not Found',
+            message=f"Vendor Onboarding {vend_onb} not found:\n{frappe.get_traceback()}"
+        )
+        return {
+            'status': 'error',
+            'message': _('Vendor Onboarding document not found.'),
+            'code': 404
+        }
+    
+    except frappe.PermissionError:
+        frappe.db.rollback()
+        frappe.local.response['http_status_code'] = 403
+        frappe.log_error(
+            title='Change Request by AT - Permission Denied',
+            message=f"Permission denied for {vend_onb}:\n{frappe.get_traceback()}"
+        )
+        return {
+            'status': 'error',
+            'message': _('You do not have permission to perform this action.'),
+            'code': 403
+        }
+    
+    except frappe.ValidationError as e:
+        frappe.db.rollback()
+        frappe.local.response['http_status_code'] = 422
+        frappe.log_error(
+            title='Change Request by AT - Validation Error',
+            message=f"Validation error for {vend_onb}:\n{frappe.get_traceback()}"
+        )
+        return {
+            'status': 'error',
+            'message': _('Validation failed: {0}').format(str(e)),
+            'code': 422
+        }
+    
     except Exception as e:
         frappe.db.rollback()
+        frappe.local.response['http_status_code'] = 500
         frappe.log_error(
-            title='Change Request by AT Error',
+            title='Change Request by AT - Internal Error',
             message=f"Error creating change request for {vend_onb}:\n{frappe.get_traceback()}"
         )
         return {
             'status': 'error',
-            'message': _('Failed to create change request: {0}').format(str(e))
+            'message': _('An unexpected error occurred. Please try again or contact support.'),
+            'code': 500
         }
 
 
@@ -144,58 +227,157 @@ def send_cr_email(vend_onb_doc):
 
 @frappe.whitelist()
 def completed_cr_by_pt(vend_onb):
-    """
-    Mark change request as completed by Purchase Team (PT)
-    
-    Parameters:
-    - vend_onb: Vendor Onboarding document name
-    """
+   
     try:
-        # Validate input
+        
         if not vend_onb:
+            frappe.local.response['http_status_code'] = 400
             return {
                 'status': 'error',
-                'message': _('Vendor Onboarding is required.')
+                'message': _('Vendor Onboarding is required.'),
+                'code': 400
             }
         
-        # Get the vendor onboarding document
+        
+        if not frappe.db.exists('Vendor Onboarding', vend_onb):
+            frappe.local.response['http_status_code'] = 404
+            return {
+                'status': 'error',
+                'message': _('Vendor Onboarding document not found.'),
+                'code': 404
+            }
+        
+        
+        employee = frappe.db.get_value('Employee', {'user_id': frappe.session.user}, ['name', 'designation'], as_dict=True)
+        
+        if not employee:
+            frappe.local.response['http_status_code'] = 401
+            return {
+                'status': 'error',
+                'message': _('No employee record found for current user.'),
+                'code': 401
+            }
+        
+        allowed_designations = ['Purchase Team']
+        
+        if employee.designation not in allowed_designations:
+            frappe.local.response['http_status_code'] = 403
+            return {
+                'status': 'error',
+                'message': _('Only Purchase Team members can complete change requests. Your designation: {0}').format(employee.designation),
+                'code': 403
+            }
+        
+        
         vend_onb_doc = frappe.get_doc('Vendor Onboarding', vend_onb)
         
-        # Set completion fields
+
+        if not frappe.has_permission('Vendor Onboarding', 'write', vend_onb_doc):
+            frappe.local.response['http_status_code'] = 403
+            return {
+                'status': 'error',
+                'message': _('Insufficient permissions to modify this document.'),
+                'code': 403
+            }
+        
+        if not vend_onb_doc.change_request_by_at:
+            frappe.local.response['http_status_code'] = 422
+            return {
+                'status': 'error',
+                'message': _('No active change request found for this vendor onboarding.'),
+                'code': 422
+            }
+        
+       
         vend_onb_doc.made_changes_by_pt = 1
         vend_onb_doc.change_request_by_at = 0
         vend_onb_doc.mail_sent_for_cr = 0
         
-        # Send completion notification email (before saving)
+       
         mail_response = send_cr_completion_email(vend_onb_doc)
         
-        if mail_response['status'] == 'error':
-            return mail_response
+
         
-        # Save all changes in one go
+        if mail_response.get('status') == 'error':
+            frappe.local.response['http_status_code'] = 500
+            return {
+                'status': 'error',
+                'message': mail_response.get('message', _('Failed to send completion notification email.')),
+                'code': 500
+            }
+        
+        
         vend_onb_doc.save(ignore_permissions=True)
         
-        # Commit the transaction
+        
         frappe.db.commit()
         
+       
+        frappe.local.response['http_status_code'] = 200
         return {
             'status': 'success',
             'message': _('Change request completed by Purchase Team and notification sent successfully.'),
-            'vendor_onboarding': vend_onb_doc.name
+            'data': {
+                'vendor_onboarding': vend_onb_doc.name,
+                'change_requested_by': vend_onb_doc.change_requested_by,
+                'change_requested_by_designation': vend_onb_doc.change_requested_by_designation
+            },
+            'code': 200
         }
         
+    except frappe.DoesNotExistError:
+        frappe.db.rollback()
+        frappe.local.response['http_status_code'] = 404
+        frappe.log_error(
+            title='CR Completion - Document Not Found',
+            message=f"Vendor Onboarding {vend_onb} not found:\n{frappe.get_traceback()}"
+        )
+        return {
+            'status': 'error',
+            'message': _('Vendor Onboarding document not found.'),
+            'code': 404
+        }
+    
+    except frappe.PermissionError:
+        frappe.db.rollback()
+        frappe.local.response['http_status_code'] = 403
+        frappe.log_error(
+            title='CR Completion - Permission Denied',
+            message=f"Permission denied for {vend_onb}:\n{frappe.get_traceback()}"
+        )
+        return {
+            'status': 'error',
+            'message': _('You do not have permission to perform this action.'),
+            'code': 403
+        }
+    
+    except frappe.ValidationError as e:
+        frappe.db.rollback()
+        frappe.local.response['http_status_code'] = 422
+        frappe.log_error(
+            title='CR Completion - Validation Error',
+            message=f"Validation error for {vend_onb}:\n{frappe.get_traceback()}"
+        )
+        return {
+            'status': 'error',
+            'message': _('Validation failed: {0}').format(str(e)),
+            'code': 422
+        }
+    
     except Exception as e:
         frappe.db.rollback()
+        frappe.local.response['http_status_code'] = 500
         frappe.log_error(
-            title='Change Request Completion Error',
+            title='CR Completion - Internal Error',
             message=f"Error completing change request for {vend_onb}:\n{frappe.get_traceback()}"
         )
         return {
             'status': 'error',
-            'message': _('Failed to complete change request: {0}').format(str(e))
+            'message': _('An unexpected error occurred while completing the change request.'),
+            'code': 500
         }
 
-
+    
 def send_cr_completion_email(vend_onb_doc):
     """
     Send change request completion notification email to Accounts Team
@@ -208,7 +390,7 @@ def send_cr_completion_email(vend_onb_doc):
         if not vend_onb_doc.change_requested_by:
             return {
                 'status': 'error',
-                'message': _('Accounts Team approval email not configured.')
+                'message': _('Change request recipient email not configured.')
             }
         
         # Prepare email content
@@ -216,7 +398,7 @@ def send_cr_completion_email(vend_onb_doc):
         cc = [vend_onb_doc.purchase_h_approval] if vend_onb_doc.purchase_h_approval else []
         
         message = f"""
-        <p>Dear Accounts Team,</p>
+        <p>Dear Requestor,</p>
         
         <p>The change request for <b>Vendor Onboarding {vend_onb_doc.name}</b> has been completed by the Purchase Team.</p>
         
