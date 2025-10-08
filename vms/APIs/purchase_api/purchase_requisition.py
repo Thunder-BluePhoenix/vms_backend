@@ -193,9 +193,9 @@ def filter_material_master(company):
             }
 
         material_master = frappe.get_all(
-            "Material Master",
+            "Material Code",
             filters={"company": company},
-            fields=["name", "material_code", "material_name", "material_type", "material_category", "description"]
+            fields=["name", "material_code", "material_code_name", "material_type", "material_group", "material_description"]
         )
 
         return {
@@ -204,10 +204,10 @@ def filter_material_master(company):
         }
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error filtering material master")
+        frappe.log_error(frappe.get_traceback(), "Error filtering material Code Master")
         return {
             "status": "error",
-            "message": "Failed to filter material master",
+            "message": "Failed to filter material code master",
             "error": str(e)
         }
 	
@@ -313,9 +313,9 @@ def filter_masters(company):
         )
 
         material_master = frappe.get_all(
-            "Material Master",
+            "Material Code",
             filters={"company": company},
-            fields=["name", "material_code", "material_name", "material_type", "material_category", "description"]
+            fields=["name", "material_code", "material_code_name", "material_type", "material_group", "material_description"]
         )
 
         material_group = frappe.get_all(
@@ -398,7 +398,11 @@ def create_purchase_requisition(cart_id):
 		prev_pur_req = frappe.get_all("Purchase Requisition Webform", filters={"cart_details_id": cart_id})
 		if prev_pur_req:
 			frappe.response["http_status_code"] = 400
-			return {"status": "error", "message": "Purchase Requisition already exists for this Cart or Inquiry."}
+			return {
+				"status": "error", 
+				"message": f"Purchase Requisition ({prev_pur_req[0]['name']}) already exists for this Cart or Inquiry.",
+				"prev_pur_req": prev_pur_req[0]['name']
+			}
 
 		cart_details = frappe.get_doc("Cart Details", cart_id)
 

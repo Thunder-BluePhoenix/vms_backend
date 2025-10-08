@@ -935,12 +935,25 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_
         for item in all_cart_details:
             pi_doc = frappe.get_doc("Cart Details", item.name)
             pr_button_show = 0
+            pr_created = 0
+
+            if pi_doc.purchase_requisition_form:
+                pr_created = 1
+                pur_req = pi_doc.purchase_requisition_form
+            else:
+                pr_created = 0
+                pur_req = ""
+
+            item['pr_created'] = pr_created
+            item['pur_req'] = pur_req
+
             if pi_doc.purchase_team_approved and pi_doc.hod_approved and not pi_doc.mail_sent_to_second_stage_approval:
                 pr_button_show = 1
             if pi_doc.purchase_team_approved and pi_doc.hod_approved and pi_doc.mail_sent_to_second_stage_approval:
                 pr_button_show = 0
             if pi_doc.purchase_team_approved and pi_doc.hod_approved and pi_doc.second_stage_approved:
                 pr_button_show = 1
+            
             item['pr_button_show'] = pr_button_show
         
         
@@ -1029,13 +1042,26 @@ def get_pi(page_no=None, page_length=None, cart_id = None):
             # visibility condition of PR Creation button in Dashboard
             for item in all_pi:
                 pi_doc = frappe.get_doc("Cart Details", item.name)
+                pr_created = 0
                 pr_button_show = 0
+
+                if pi_doc.purchase_requisition_form:
+                    pr_created = 1
+                    pur_req = pi_doc.purchase_requisition_form
+                else:
+                    pr_created = 0
+                    pur_req = ""
+
+                item['pr_created'] = pr_created
+                item['pur_req'] = pur_req
+                
                 if pi_doc.purchase_team_approved and pi_doc.hod_approved and not pi_doc.mail_sent_to_second_stage_approval:
                     pr_button_show = 1
                 if pi_doc.purchase_team_approved and pi_doc.hod_approved and pi_doc.mail_sent_to_second_stage_approval:
                     pr_button_show = 0
                 if pi_doc.purchase_team_approved and pi_doc.hod_approved and pi_doc.second_stage_approved:
                     pr_button_show = 1
+                
                 item['pr_button_show'] = pr_button_show 
 
             return {
