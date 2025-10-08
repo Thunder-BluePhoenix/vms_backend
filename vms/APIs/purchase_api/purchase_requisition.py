@@ -391,7 +391,14 @@ def get_cart_details(cart_id):
 def create_purchase_requisition(cart_id):
 	try:
 		if not cart_id:
+			frappe.response["http_status_code"] = 400
 			return {"status": "error", "message": "Cart ID is required."}
+
+		# Check if a purchase requisition already exists for the same cart ID
+		prev_pur_req = frappe.get_all("Purchase Requisition Webform", filters={"cart_details_id": cart_id})
+		if prev_pur_req:
+			frappe.response["http_status_code"] = 400
+			return {"status": "error", "message": "Purchase Requisition already exists for this Cart or Inquiry."}
 
 		cart_details = frappe.get_doc("Cart Details", cart_id)
 
@@ -407,11 +414,15 @@ def create_purchase_requisition(cart_id):
 		for row in cart_details.cart_product:
 			pur_req.append("purchase_requisition_form_table", {
 				"item_number_of_purchase_requisition_head": str(item_number),
+				"uom_head": row.uom,
 				"main_asset_no_head": row.assest_code,
 				"product_name_head": row.product_name,
 				"product_price_head": row.product_price,
 				"final_price_by_purchase_team_head": row.final_price_by_purchase_team,
+				"quantity_head": row.product_quantity,
 				"lead_time_head": row.lead_time,
+				"purchase_group_head": cart_details.purchase_group,
+				"delivery_date_head": cart_details.acknowledged_date,
 				"purchase_requisition_type": cart_details.purchase_type,
 				"plant_head": cart_details.plant,
 				"requisitioner_name_head": cart_details.user,
@@ -430,6 +441,7 @@ def create_purchase_requisition(cart_id):
 		}
 
 	except Exception as e:
+		frappe.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "Create Purchase Requisition Error")
 		return {
 			"status": "error", 
