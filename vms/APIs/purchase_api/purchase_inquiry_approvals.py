@@ -4,52 +4,52 @@ from frappe import _
 from vms.utils.custom_send_mail import custom_sendmail
 
 
-@frappe.whitelist(allow_guest=True)
-def hod_approval_check(data):
-    try:
-        if isinstance(data, str):
-            data = json.loads(data)
+# @frappe.whitelist(allow_guest=True)
+# def hod_approval_check(data):
+#     try:
+#         if isinstance(data, str):
+#             data = json.loads(data)
 
-        cart_details = data.get("cart_id")
-        user = data.get("user")
-        is_approved = int(data.get("approve"))
-        is_rejected = int(data.get("reject"))
-        rejection_reason = data.get("rejected_reason")
-        comments = data.get("comments")
+#         cart_details = data.get("cart_id")
+#         user = data.get("user")
+#         is_approved = int(data.get("approve"))
+#         is_rejected = int(data.get("reject"))
+#         rejection_reason = data.get("rejected_reason")
+#         comments = data.get("comments")
 
-        if is_approved and is_rejected:
-            frappe.throw(_("Cannot approve and reject at the same time."))
+#         if is_approved and is_rejected:
+#             frappe.throw(_("Cannot approve and reject at the same time."))
 
-        # Fetch cart details document
-        cart_details_doc = frappe.get_doc("Cart Details", cart_details)
+#         # Fetch cart details document
+#         cart_details_doc = frappe.get_doc("Cart Details", cart_details)
         
-        if is_approved:
-            cart_details_doc.hod_approved = 1
-            cart_details_doc.hod_approval_status = "Approved"
-            cart_details_doc.hod_approval_remarks = comments
-        elif is_rejected:
-            cart_details_doc.rejected = 1
-            cart_details_doc.rejected_by = user
-            cart_details_doc.hod_approval_status = "Rejected"
-            cart_details_doc.reason_for_rejection = rejection_reason
-        else:
-            frappe.throw(_("Invalid request: either approve or reject must be set."))
+#         if is_approved:
+#             cart_details_doc.hod_approved = 1
+#             cart_details_doc.hod_approval_status = "Approved"
+#             cart_details_doc.hod_approval_remarks = comments
+#         elif is_rejected:
+#             cart_details_doc.rejected = 1
+#             cart_details_doc.rejected_by = user
+#             cart_details_doc.hod_approval_status = "Rejected"
+#             cart_details_doc.reason_for_rejection = rejection_reason
+#         else:
+#             frappe.throw(_("Invalid request: either approve or reject must be set."))
 
-        cart_details_doc.save(ignore_permissions=True)
-        frappe.db.commit()
+#         cart_details_doc.save(ignore_permissions=True)
+#         frappe.db.commit()
 
-        return {
-            "status": "success",
-            "message": "Cart details updated successfully.",
-            "cart_details": cart_details,
-        }
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error updating cart details")
-        return {
-            "status": "error",
-            "message": "Failed to update cart details.",
-            "error": str(e),
-        }
+#         return {
+#             "status": "success",
+#             "message": "Cart details updated successfully.",
+#             "cart_details": cart_details,
+#         }
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Error updating cart details")
+#         return {
+#             "status": "error",
+#             "message": "Failed to update cart details.",
+#             "error": str(e),
+#         }
 
 
 @frappe.whitelist(allow_guest=True)
@@ -127,7 +127,7 @@ def purchase_approval_check(data):
 			"error": str(e),
 		}
 
-
+# Email for Second Stage Approval 
 @frappe.whitelist(allow_guest=False)
 def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=None):
     try:
@@ -145,8 +145,8 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 
         if email_id:
             # Create approval and reject URLs
-            approve_url = f"{http_server}api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=approve"
-            reject_url = f"{http_server}api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=reject"
+            approve_url = f"{http_server}/api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=approve"
+            reject_url = f"{http_server}/api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=reject"
 
             table_html = """
                 <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
@@ -184,6 +184,7 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
             hod_message = f"""
                 <p>Dear {second_stage_name if second_stage_name else 'user'},</p>		
                 <p>A new cart details submission has been made by <b>{employee_name if employee_name else 'user'}</b> which is approved by Purchase Team.</p>
+                <p>and it is sent to you Second stage for further approval.</p>
                 <p>Please review the details and take necessary actions.</p>
                 <p><b>Cart ID:</b> {doc.name}</p>
                 <p><b>Cart Date:</b> {doc.cart_date}</p>
