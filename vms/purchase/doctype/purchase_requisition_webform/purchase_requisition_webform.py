@@ -126,7 +126,7 @@ class PurchaseRequisitionWebform(Document):
 def send_pur_req_email(doc, method=None):
 	if doc.requisitioner and not doc.rejected:
 		if not doc.hod_approved and not doc.mail_sent_to_hod:
-			send_mail_hod_pt(doc, method=None)
+			send_mail_hod_purchase_team(doc, method=None)
 			print("send_mail_hod @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		elif doc.hod_approved and not doc.purchase_head_approved and not doc.mail_sent_to_purchase_head:
 			send_mail_purchase_head(doc, method=None)
@@ -140,7 +140,7 @@ def send_pur_req_email(doc, method=None):
 		pass
 
 
-def send_mail_hod_pt(doc, method=None):
+def send_mail_hod_purchase_team(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "reports_to")
