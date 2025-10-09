@@ -202,7 +202,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Material Code",
-   "options": "Material Master"
+   "options": "Material Code"
   },
   {
    "fieldname": "account_assignment_category_head",
@@ -510,7 +510,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-25 15:34:45.249143",
+ "modified": "2025-10-09 14:52:16.958969",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform Table",
