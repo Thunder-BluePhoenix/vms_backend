@@ -43,7 +43,12 @@
   "ack_mail_to_user",
   "rejected",
   "purchase_requisition_json_section",
-  "purchase_requisition_json_fields"
+  "purchase_requisition_json_fields",
+  "sap_response_tab",
+  "sap_status",
+  "zmsg",
+  "column_break_qbnu",
+  "sap_summary"
  ],
  "fields": [
   {
@@ -269,12 +274,37 @@
    "fieldname": "purchase_team_approval",
    "fieldtype": "Data",
    "label": "Purchase Team Approval"
+  },
+  {
+   "fieldname": "sap_response_tab",
+   "fieldtype": "Tab Break",
+   "label": "SAP Response"
+  },
+  {
+   "fieldname": "sap_status",
+   "fieldtype": "Data",
+   "label": "SAP Status"
+  },
+  {
+   "fieldname": "zmsg",
+   "fieldtype": "Code",
+   "label": "Zmsg",
+   "max_height": "150px"
+  },
+  {
+   "fieldname": "column_break_qbnu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sap_summary",
+   "fieldtype": "Code",
+   "label": "SAP Summary"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-09 11:40:09.366871",
+ "modified": "2025-10-09 17:14:32.669229",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",
