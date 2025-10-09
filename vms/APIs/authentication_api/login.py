@@ -310,7 +310,8 @@ def build_user_response(user, api_credentials):
         # Get basic employee details
         employee_details = {
             "designation": employee_doc.designation,
-            "company_email": employee_doc.company_email
+            "company_email": employee_doc.company_email,
+            "vms_action": employee_doc.vendor_reg_action
         }
         
         # Get all company details from the table field
@@ -368,6 +369,7 @@ def build_user_response(user, api_credentials):
             "id": employee_id,
             "designation": employee_details.get("designation"),
             "company_email": employee_details.get("company_email"),
+            "vms_action": employee_details.get("vms_action")
         },
         "sidebar": sidebar,
         "company": companies_list,
