@@ -7,6 +7,7 @@ from frappe.utils import now, get_datetime, date_diff, getdate, nowdate
 import json
 
 
+
 class VendorAgingTracker(Document):
 	"""
 	Vendor Aging Tracker DocType Controller
@@ -24,11 +25,7 @@ class VendorAgingTracker(Document):
 		"""Before save calculations"""
 		self.update_vendor_status()
 		
-	# def on_update(self):
-	# 	"""On update actions"""
-	# 	self.calculate_vendor_aging_duration()
-		
-	
+
 
 	
 
@@ -286,107 +283,93 @@ def create_or_update_aging_tracker_from_vendor_onboarding(vendor_onboarding_name
 
 @frappe.whitelist()
 def create_or_update_aging_tracker_from_sap_log(sap_log_name):
-	"""
-	Create or update Vendor Aging Tracker when VMS SAP Log is created
-	Parses JSON to extract vendor_code
-	Called from VMS SAP Logs after_insert hook
-	"""
 	try:
 		sap_log = frappe.get_doc("VMS SAP Logs", sap_log_name)
 		
-		# Check if status is Success
-		if sap_log.status != "Success":
-			return
-		
-		# If linked to vendor onboarding, use that method instead
-		# if sap_log.vendor_onboarding_link:
-		# 	create_or_update_aging_tracker_from_vendor_onboarding(sap_log.vendor_onboarding_link)
-		# 	return
-		
-		# Parse total_transaction JSON to extract vendor_code
-		if not sap_log.total_transaction:
+		# Early exit if not successful or no data
+		if sap_log.status != "Success" or not sap_log.total_transaction:
 			return
 		
 		transaction_data = json.loads(sap_log.total_transaction)
-		
-		# Extract vendor code from transaction_summary
-		vendor_code = transaction_data.get("transaction_summary", {}).get("vendor_code")
-		if not vendor_code:
-			# Try response_details as fallback
-			vendor_code = transaction_data.get("response_details", {}).get("vendor_code")
+		vendor_code = (
+			transaction_data.get("transaction_summary", {}).get("vendor_code")
+			or transaction_data.get("response_details", {}).get("vendor_code")
+		)
 		
 		if not vendor_code:
 			frappe.log_error("No vendor code found in SAP log total_transaction", "Vendor Aging Tracker")
 			return
 		
-		# Check if aging tracker already exists with this vendor code
-		# Since we now have one tracker per onboarding, we need to check if this code exists
-		# Check if Vendor Aging Tracker exists with the vendor_onboarding_link name
-		if frappe.db.exists("Vendor Aging Tracker", sap_log.vendor_onboarding_link):
-			# Get existing tracker
-			aging_doc = frappe.get_doc("Vendor Aging Tracker", sap_log.vendor_onboarding_link)
-		else:
-			# Create new aging tracker
-			aging_doc = frappe.new_doc("Vendor Aging Tracker")
-			aging_doc.vendor_onboarding_link = sap_log.vendor_onboarding_link
-		
-		# Update fields from transaction data
-		transaction_summary = transaction_data.get("transaction_summary", {})
 		request_details = transaction_data.get("request_details", {})
 		payload = request_details.get("payload", {})
+		doc_name = sap_log.vendor_onboarding_link
 		
-		aging_doc.vendor_name = payload.get("Name1", "")
-		aging_doc.primary_vendor_code = vendor_code
-		aging_doc.company_code = request_details.get("company_name", "")
-		aging_doc.sap_client_code = request_details.get("sap_client_code", "")
-		aging_doc.gst_number = request_details.get("gst_number", "")
-		aging_doc.vendor_ref_no = request_details.get("vendor_ref_no", "")
-		
-		# Set creation date from timestamp
-		if aging_doc.vendor_creation_date_sap is None:
-			aging_doc.vendor_creation_date_sap = get_datetime(sap_log.creation)
-		
-		
-		# Link to SAP log
-		aging_doc.sap_log_reference = sap_log_name
-		aging_doc.vendor_status = "Active"
-		
-		# Add vendor code to child table if not already exists
-		code_exists = False
-		row_to_update = None
-
-		for code_row in aging_doc.vendor_codes_by_company:
-			# Check if GST number and SAP client code match
-			if (code_row.gst_number == request_details.get("gst_number", "") and 
-				code_row.sap_client_code == request_details.get("sap_client_code", "") and
-				code_row.company_code == request_details.get("company_name", "")):
-				# If match found, mark for updating vendor code
-				row_to_update = code_row
-				code_exists = True
-				break
-
-		if code_exists and row_to_update:
-			# Update existing row with vendor code
-			row_to_update.vendor_code = vendor_code
-			row_to_update.vendor_code_generation_time = get_datetime(sap_log.creation)
-			row_to_update.vms_sap_log = sap_log.name
+		# ✅ Get or create document
+		if frappe.db.exists("Vendor Aging Tracker", doc_name):
+			doc = frappe.get_doc("Vendor Aging Tracker", doc_name)
 		else:
-			# Append new row with all details
-			aging_doc.append("vendor_codes_by_company", {
-				"company_code": request_details.get("company_name", ""),
-				"vendor_code": vendor_code,
-				"gst_number": request_details.get("gst_number", ""),
-				"sap_client_code": request_details.get("sap_client_code", ""),
-                "vendor_code_generation_time": get_datetime(sap_log.creation),
-				"vms_sap_log":sap_log.name
+			doc = frappe.get_doc({
+				"doctype": "Vendor Aging Tracker",
+				"vendor_onboarding_link": doc_name
 			})
 		
-		aging_doc.save(ignore_permissions=True)
+		# ✅ Update parent fields
+		doc.vendor_name = payload.get("Name1", "")
+		doc.primary_vendor_code = vendor_code
+		doc.company_code = request_details.get("company_name", "")
+		doc.sap_client_code = request_details.get("sap_client_code", "")
+		doc.gst_number = request_details.get("gst_number", "")
+		doc.vendor_ref_no = request_details.get("vendor_ref_no", "")
+		doc.vendor_status = "Active"
+		doc.sap_log_reference = sap_log.name
+		
+		# Handle vendor_creation_date_sap if empty
+		if not doc.vendor_creation_date_sap:
+			doc.vendor_creation_date_sap = get_datetime(sap_log.creation)
+		
+		# ✅ Update or add child table row
+		child_doctype = "Vendor Aging Company Codes"
+		company_code = request_details.get("company_name", "")
+		gst_number = request_details.get("gst_number", "")
+		sap_client_code = request_details.get("sap_client_code", "")
+		
+		# Find existing child row
+		existing_row = None
+		for row in doc.get("vendor_codes_by_company", []):
+			if (row.company_code == company_code and 
+				row.gst_number == gst_number and 
+				row.sap_client_code == sap_client_code):
+				existing_row = row
+				break
+		
+		if existing_row:
+			# Update existing row
+			existing_row.vendor_code = vendor_code
+			existing_row.vendor_code_generation_time = get_datetime(sap_log.creation)
+			existing_row.vms_sap_log = sap_log.name
+		else:
+			# Add new row
+			doc.append("vendor_codes_by_company", {
+				"company_code": company_code,
+				"gst_number": gst_number,
+				"sap_client_code": sap_client_code,
+				"vendor_code": vendor_code,
+				"vendor_code_generation_time": get_datetime(sap_log.creation),
+				"vms_sap_log": sap_log.name
+			})
+		
+		# ✅ Save document - this will trigger validate() and before_save()
+		doc.flags.ignore_permissions = True
+		doc.save()
+		
 		frappe.db.commit()
 		
 	except Exception as e:
-		frappe.log_error(f"Error creating/updating Vendor Aging Tracker from SAP log: {str(e)}", 
-						"Vendor Aging Tracker Error")
+		frappe.log_error(
+			f"Error creating/updating Vendor Aging Tracker from SAP log: {frappe.get_traceback()}",
+			"Vendor Aging Tracker Error"
+		)
+		frappe.db.rollback()
 
 
 @frappe.whitelist()
