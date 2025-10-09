@@ -227,7 +227,7 @@
    "fieldname": "form_status",
    "fieldtype": "Select",
    "label": "Form Status",
-   "options": "Pending\nSubmitted"
+   "options": "Pending\nSubmitted\nSAP Error\nPR Created"
   },
   {
    "default": "Today",
@@ -253,7 +253,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-08 16:11:37.067503",
+ "modified": "2025-10-08 17:49:48.886353",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",
