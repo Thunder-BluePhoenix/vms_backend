@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:material_group_name",
+ "autoname": "format:{material_group_name}-{material_group_company}",
  "creation": "2025-06-13 12:40:29.901463",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -22,8 +22,7 @@
   {
    "fieldname": "material_group_name",
    "fieldtype": "Data",
-   "label": "Material Group Name",
-   "unique": 1
+   "label": "Material Group Name"
   },
   {
    "fieldname": "material_group_long_description",
@@ -49,11 +48,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 10:42:39.808623",
+ "modified": "2025-10-09 12:48:29.460267",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Group Master",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
