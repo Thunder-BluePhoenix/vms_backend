@@ -247,5 +247,35 @@
     "role": "Employee"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-10-09 14:38:00.826623",
+  "name": "Material User",
+  "role_profile": "Material User",
+  "roles": [
+   {
+    "parent": "Material User",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Material User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-10-09 14:38:16.568884",
+  "name": "Material CP",
+  "role_profile": "Material CP",
+  "roles": [
+   {
+    "parent": "Material CP",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Material CP"
+   }
+  ]
  }
 ]
