@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:material_code",
+ "autoname": "format:format:MM-{requestor_ref_no}",
  "creation": "2025-05-23 13:37:41.576013",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -98,13 +98,17 @@
   {
    "fieldname": "material_code",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Material Code",
+   "reqd": 1,
    "unique": 1
   },
   {
    "fieldname": "material_name",
    "fieldtype": "Data",
-   "label": "Material Name"
+   "in_list_view": 1,
+   "label": "Material Name",
+   "reqd": 1
   },
   {
    "fieldname": "material_category",
@@ -182,7 +186,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Naming Series",
-   "options": "MAT-ITEM-.YYYY.-"
+   "options": "MM-\nMAT-ITEM-.YYYY.-"
   },
   {
    "fieldname": "column_break_jwsm",
@@ -448,11 +452,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-08 12:20:24.497179",
+ "modified": "2025-10-08 16:51:28.263521",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Master",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

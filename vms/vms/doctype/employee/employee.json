@@ -38,6 +38,7 @@
   "team",
   "subhead",
   "show_all_purchase_groups",
+  "vendor_reg_action",
   "section_break_zufu",
   "multiple_purchase_heads",
   "column_break_zlmb",
@@ -341,12 +342,18 @@
    "fieldtype": "Table",
    "label": "Purchase Heads",
    "options": "Multiple Purchase Head"
+  },
+  {
+   "fieldname": "vendor_reg_action",
+   "fieldtype": "Select",
+   "label": "Vendor Reg Action",
+   "options": "\nCan Register\nCan Approve\nCan Both Register and Approve"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-25 17:36:23.217571",
+ "modified": "2025-10-09 10:03:08.162682",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",

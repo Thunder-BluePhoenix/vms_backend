@@ -67,7 +67,11 @@
   "section_break_iwzm",
   "is_approval",
   "mailed_to_alternate_purchase_team",
-  "mailed_to_purchase_head"
+  "mailed_to_purchase_head",
+  "column_break_oqet",
+  "first_escalation_time",
+  "second_escalation_time",
+  "escalation_status"
  ],
  "fields": [
   {
@@ -416,12 +420,38 @@
    "fieldtype": "Link",
    "label": "GL Account",
    "options": "GL Account"
+  },
+  {
+   "fieldname": "column_break_oqet",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Time when first escalation email will be sent to alternate purchase team",
+   "fieldname": "first_escalation_time",
+   "fieldtype": "Datetime",
+   "label": "First Escalation Time",
+   "read_only": 1
+  },
+  {
+   "description": "Time when second escalation email will be sent to purchase HOD",
+   "fieldname": "second_escalation_time",
+   "fieldtype": "Datetime",
+   "label": "Second Escalation Time",
+   "read_only": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "escalation_status",
+   "fieldtype": "Select",
+   "label": "Escalation Status",
+   "options": "Pending\nFirst Escalation Sent\nSecond Escalation Sent\nCompleted",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-07 17:14:54.866389",
+ "modified": "2025-10-08 17:53:56.534597",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",

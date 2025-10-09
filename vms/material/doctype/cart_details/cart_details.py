@@ -7,77 +7,159 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 import json
 from vms.utils.custom_send_mail import custom_sendmail
+from datetime import datetime, timedelta
+from frappe.utils import now_datetime, add_to_date, get_datetime
+
+
+
 
 
 class CartDetails(Document):
-	def after_insert(self):
+	# def after_insert(self):
 		
-		exp_doc = frappe.get_doc("Cart Ageing Settings") or None
+	# 	exp_doc = frappe.get_doc("Cart Ageing Settings") or None
 
-		if exp_doc != None:
-			exp_t_sec = float(exp_doc.cart_check_duration)
+	# 	if exp_doc != None:
+	# 		exp_t_sec = float(exp_doc.cart_check_duration)
 			
+	# 	else:
+	# 		exp_t_sec = 10800
+			
+	# 	# Enqueue a background job to handle vendor onboarding expiration
+	# 	exp_d_sec = exp_t_sec + 800
+	# 	frappe.enqueue(
+	# 		method=self.alternate_pt,
+	# 		queue='default',
+	# 		timeout=exp_d_sec,
+	# 		now=False,
+	# 		job_name=f'cart_expiration_{self.name}',
+	# 		# enqueue_after_commit = False
+	# 	)
+		
+	# 	# sent_asa_form_link(self, method=None)
+
+
+	# def alternate_pt(self):
+	# 	exp_doc = frappe.get_doc("Cart Ageing Settings") or None
+
+	# 	if exp_doc != None:
+	# 		exp_t_sec = float(exp_doc.cart_check_duration)
+			
+	# 	else:
+	# 		exp_t_sec = 10800
+
+	# 	exp_d_sec = exp_t_sec + 800
+	# 	time.sleep(exp_t_sec)
+	# 	if self.purchase_team_acknowledgement == 0 or self.asked_to_modify == 0:
+	# 		send_mail_alternate_purchase(self, method=None)
+
+	# 		frappe.enqueue(
+	# 		method=self.alternate_pt_ph,
+	# 		queue='default',
+	# 		timeout=exp_d_sec,
+	# 		now=False,
+	# 		job_name=f'cart_expiration_{self.name}',
+	# 		# enqueue_after_commit = False
+	# 	)
+			
+	# def alternate_pt_ph(self):
+	# 	exp_doc = frappe.get_doc("Cart Ageing Settings") or None
+
+	# 	if exp_doc != None:
+	# 		exp_t_sec = float(exp_doc.cart_check_duration)
+			
+	# 	else:
+	# 		exp_t_sec = 10800
+
+		
+	# 	time.sleep(exp_t_sec)
+	# 	if self.purchase_team_acknowledgement == 0 or self.asked_to_modify == 0:
+	# 		send_mail_purchase_hod(self, method=None)
+
+	# 	else:
+	# 		pass
+
+	# 	# exp_d_sec = exp_t_sec + 300
+	# 	frappe.db.commit()
+	def before_insert(self):
+		exp_doc = frappe.get_doc("Cart Ageing Settings") or None
+		
+		if exp_doc:
+			exp_t_sec = float(exp_doc.cart_check_duration)
 		else:
 			exp_t_sec = 10800
-			
-		# Enqueue a background job to handle vendor onboarding expiration
-		exp_d_sec = exp_t_sec + 800
-		frappe.enqueue(
-			method=self.alternate_pt,
-			queue='default',
-			timeout=exp_d_sec,
-			now=False,
-			job_name=f'cart_expiration_{self.name}',
-			# enqueue_after_commit = False
-		)
 		
-		# sent_asa_form_link(self, method=None)
-
-
-	def alternate_pt(self):
-		exp_doc = frappe.get_doc("Cart Ageing Settings") or None
-
-		if exp_doc != None:
-			exp_t_sec = float(exp_doc.cart_check_duration)
-			
-		else:
-			exp_t_sec = 10800
-
-		exp_d_sec = exp_t_sec + 800
-		time.sleep(exp_t_sec)
-		if self.purchase_team_acknowledgement == 0 or self.asked_to_modify == 0:
-			send_mail_alternate_purchase(self, method=None)
-
-			frappe.enqueue(
-			method=self.alternate_pt_ph,
-			queue='default',
-			timeout=exp_d_sec,
-			now=False,
-			job_name=f'cart_expiration_{self.name}',
-			# enqueue_after_commit = False
-		)
-			
-	def alternate_pt_ph(self):
-		exp_doc = frappe.get_doc("Cart Ageing Settings") or None
-
-		if exp_doc != None:
-			exp_t_sec = float(exp_doc.cart_check_duration)
-			
-		else:
-			exp_t_sec = 10800
-
+		current_time = now_datetime()
+		first_check_time = add_to_date(current_time, seconds=exp_t_sec)
+		second_check_time = add_to_date(first_check_time, seconds=exp_t_sec)
 		
-		time.sleep(exp_t_sec)
-		if self.purchase_team_acknowledgement == 0 or self.asked_to_modify == 0:
-			send_mail_purchase_hod(self, method=None)
+		self.first_escalation_time = first_check_time
+		self.second_escalation_time = second_check_time
+		self.escalation_status = "Pending"
 
-		else:
-			pass
-
-		# exp_d_sec = exp_t_sec + 300
-		frappe.db.commit()
 	def on_update(self):
 		send_purchase_inquiry_email(self, method=None)
+		
+
+
+
+@frappe.whitelist()
+def process_cart_escalations():
+    current_time = now_datetime()
+    
+    carts_for_first_escalation = frappe.get_all(
+        "Cart",
+        filters={
+            "first_escalation_time": ["<=", current_time],
+            "escalation_status": "Pending",
+            "purchase_team_acknowledgement": 0,
+            "asked_to_modify": 0
+        },
+        fields=["name"]
+    )
+    
+    for cart in carts_for_first_escalation:
+        try:
+            cart_doc = frappe.get_doc("Cart", cart.name)
+            send_mail_alternate_purchase(cart_doc, method=None)
+            cart_doc.escalation_status = "First Escalation Sent"
+            cart_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception as e:
+            frappe.log_error(f"First escalation failed for {cart.name}: {str(e)}", "Cart Escalation Error")
+    
+    carts_for_second_escalation = frappe.get_all(
+        "Cart",
+        filters={
+            "second_escalation_time": ["<=", current_time],
+            "escalation_status": "First Escalation Sent",
+            "purchase_team_acknowledgement": 0,
+            "asked_to_modify": 0
+        },
+        fields=["name"]
+    )
+    
+    for cart in carts_for_second_escalation:
+        try:
+            cart_doc = frappe.get_doc("Cart", cart.name)
+            send_mail_purchase_hod(cart_doc, method=None)
+            cart_doc.escalation_status = "Second Escalation Sent"
+            cart_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception as e:
+            frappe.log_error(f"Second escalation failed for {cart.name}: {str(e)}", "Cart Escalation Error")
+    
+    return {
+        "first_escalation_count": len(carts_for_first_escalation),
+        "second_escalation_count": len(carts_for_second_escalation)
+    }
+
+
+
+
+
+
+	
 
 
 def send_purchase_inquiry_email(doc, method=None):
