@@ -74,6 +74,7 @@ def purchase_approval_check(data):
 		if is_approved:
 			cart_details_doc.purchase_team_approved = 1
 			cart_details_doc.purchase_team_approval_status = "Approved"
+			cart_details_doc.purchase_team_approval = user
 			cart_details_doc.purchase_team_approval_remarks = comments
 
 			# Clear old child rows
@@ -140,8 +141,12 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
         requestor_name = frappe.session.user
         if email_id:
             employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
-            second_stage_user = frappe.get_value("User", {"email": email_id})
+
+            second_stage_user = frappe.get_value("User", {"email": email_id}, "name")
             second_stage_name = frappe.get_value("User", second_stage_user, "full_name")
+
+            hod_approval = frappe.get_value("User", doc.hod_approval, "full_name")
+            purchase_team_approval = frappe.get_value("User", doc.purchase_team_approval, "full_name")
 
         if email_id:
             # Create approval and reject URLs
@@ -178,12 +183,12 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 
             table_html += "</table>"
 
-            subject = f"Purchase Team Approved Cart Details Submitted by {employee_name if employee_name else 'user'} - {doc.name}"
+            subject = f"Approval of Cart Details Submitted by {employee_name if employee_name else 'user'} - {doc.name}"
 
-            # Message for HOD with buttons
+            # Message for HOD with buttons Additional Approver
             hod_message = f"""
                 <p>Dear {second_stage_name if second_stage_name else 'user'},</p>		
-                <p>A new cart details submission has been made by <b>{employee_name if employee_name else 'user'}</b> which is approved by Purchase Team.</p>
+                <p>A new cart details submission has been made by <b>{employee_name if employee_name else 'user'}</b> which is approved by {purchase_team_approval if purchase_team_approval else 'user'}(Purchase Team) and also by {hod_approval if hod_approval else 'user'}(HOD)</p>
                 <p>and it is sent to you Second stage for further approval.</p>
                 <p>Please review the details and take necessary actions.</p>
                 <p><b>Cart ID:</b> {doc.name}</p>

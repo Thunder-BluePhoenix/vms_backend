@@ -140,7 +140,7 @@ def create_purchase_inquiry(data):
 			doc = frappe.new_doc("Cart Details")
 
 		# Top-level fields
-		top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type"]
+		top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type", "cost_center", "gl_account"]
 
 		for field in top_fields:
 			if field in data:
@@ -958,7 +958,7 @@ def get_plants_and_purchase_group(comp):
             cost_centers = frappe.get_all(
                 "Cost Center",
                 filters={"company_code": comp},
-                fields=["name", "cost_center_name", "description"]
+                fields=["name", "cost_center_name", "cost_center_code", "description"]
             )
             response["cost_centers"] = cost_centers
 
@@ -1086,7 +1086,7 @@ def submit_purchase_inquiry(data):
         doc = frappe.get_doc("Cart Details", purchase_inquiry_id)
         
         # Update top-level fields
-        top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type"]
+        top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type", "cost_center", "gl_account"]
         
         for field in top_fields:
             if field in data:

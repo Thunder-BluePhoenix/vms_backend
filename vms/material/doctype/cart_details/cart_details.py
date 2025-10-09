@@ -82,7 +82,7 @@ class CartDetails(Document):
 
 def send_purchase_inquiry_email(doc, method=None):
 	if doc.user and not doc.rejected:
-		if not doc.purchase_team_approved and not doc.mail_sent_to_purchase_team:
+		if doc.is_submited and not doc.purchase_team_approved and not doc.mail_sent_to_purchase_team:
 			send_mail_purchase(doc, method=None)
 			# print("send_mail_purchase @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		elif doc.purchase_team_approved and not doc.hod_approved and not doc.mail_sent_to_hod:
@@ -452,6 +452,7 @@ def hod_approval_check():
 		if action == "approve":
 			doc.hod_approved = 1
 			doc.hod_approval_status = "Approved"
+			doc.hod_approval = user
 			doc.hod_approval_remarks = "Approved by HOD"
 		elif action == "reject":
 			doc.rejected = 1

@@ -32,22 +32,26 @@
   "cart_product",
   "approval_status_section",
   "hod_approval_status",
+  "hod_approval",
   "hod_approval_remarks",
   "purchase_team_approval_status",
+  "purchase_team_approval",
   "purchase_team_approval_remarks",
   "second_stage_approval_status",
-  "second_stage_approval_remark",
   "second_stage_approval_by",
+  "second_stage_approval_remark",
   "column_break_arbr",
   "rejected_by",
   "reason_for_rejection",
   "rejected",
+  "mail_sent_status",
   "mail_sent_to_purchase_team",
   "mail_sent_to_hod",
   "ack_mail_to_user",
   "asked_to_modify",
   "mail_sent_to_second_stage_approval",
   "is_requested_second_stage_approval",
+  "approval_status",
   "purchase_team_approved",
   "hod_approved",
   "purchase_team_acknowledgement",
@@ -297,7 +301,7 @@
   {
    "fieldname": "acknowledged_date",
    "fieldtype": "Date",
-   "label": "Expected Delivery Date"
+   "label": "Acknowledged Date"
   },
   {
    "default": "0",
@@ -416,12 +420,32 @@
    "fieldtype": "Link",
    "label": "GL Account",
    "options": "GL Account"
+  },
+  {
+   "fieldname": "hod_approval",
+   "fieldtype": "Data",
+   "label": "HOD Approval"
+  },
+  {
+   "fieldname": "purchase_team_approval",
+   "fieldtype": "Data",
+   "label": "Purchase Team Approval"
+  },
+  {
+   "fieldname": "mail_sent_status",
+   "fieldtype": "Heading",
+   "label": "Mail Sent Status"
+  },
+  {
+   "fieldname": "approval_status",
+   "fieldtype": "Heading",
+   "label": "Approval Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-07 17:14:54.866389",
+ "modified": "2025-10-09 10:08:11.649315",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
