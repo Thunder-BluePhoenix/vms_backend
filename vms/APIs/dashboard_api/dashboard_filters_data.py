@@ -418,10 +418,27 @@ def approved_vendor_details(page_no=None, page_length=None, company=None, refno=
 
         onboarding_docs = result.get("total_vendor_onboarding", [])
 
-        # Enrich with company vendor codes
+        # Enrich with company vendor codes and approval age
         for doc in onboarding_docs:
             ref_no = doc.get("ref_no")
             main_company = doc.get("company_name")
+            doc_name = doc.get("name")  # Get the onboarding document name
+
+            # Fetch approval age from Vendor Aging Tracker
+            approval_time = ""
+            if doc_name:
+                try:
+                    approval_time = frappe.db.get_value(
+                        "Vendor Aging Tracker",
+                        {"vendor_onboarding_link": doc_name},
+                        "vendor_onboard_to_approval_time"
+                    ) or ""
+                except:
+                    pass
+
+            
+            # Assign approval age (will be None if not found or if value is null)
+            doc["approval_age"] = approval_time
 
             # Fetch all company vendor codes for this ref_no
             company_vendor = frappe.get_all(
@@ -1357,10 +1374,26 @@ def approved_vendor_details_by_accounts(page_no=None, page_length=None, company=
 
         onboarding_docs = result.get("total_vendor_onboarding", [])
 
-        # Enrich with company vendor codes
+        # Enrich with company vendor codes and approval age
         for doc in onboarding_docs:
             ref_no = doc.get("ref_no")
             main_company = doc.get("company_name")
+            doc_name = doc.get("name")  # Get the onboarding document name
+
+            # Fetch approval age from Vendor Aging Tracker
+            approval_time = ""
+            if doc_name:
+                try:
+                    approval_time = frappe.db.get_value(
+                        "Vendor Aging Tracker",
+                        {"vendor_onboarding_link": doc_name},
+                        "vendor_onboard_to_approval_time"
+                    ) or ""
+                except:
+                    pass
+            
+            # Assign approval age (will be None if not found or if value is null)
+            doc["approval_age"] = approval_time
 
             # Fetch all company vendor codes for this ref_no
             company_vendor = frappe.get_all(
@@ -1405,7 +1438,6 @@ def approved_vendor_details_by_accounts(page_no=None, page_length=None, company=
             "error": str(e),
             "vendor_onboarding": []
         }
-
 
 @frappe.whitelist(allow_guest=False)
 def rejected_vendor_details_by_accounts(page_no=None, page_length=None, company=None, refno=None, usr=None, vendor_name=None):
