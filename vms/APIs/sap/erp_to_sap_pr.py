@@ -1956,7 +1956,7 @@ def safe_get(obj, list_name, index, attr, default=""):
 
 
 def onupdate_pr(doc, method = None):
-    if not doc.sent_to_sap:
+    if not doc.sent_to_sap and doc.pr_approved:
         erp_to_sap_pr(doc.name, method=None)
         print("on update run")
 

@@ -509,6 +509,7 @@ def rejection_mail_to_user(doc, method=None):
 @frappe.whitelist(allow_guest=True)
 def hod_approval_check():
 	try:
+		session_user = frappe.session.user
 		cart_id = frappe.form_dict.get("cart_id")
 		user = frappe.form_dict.get("user")
 		action = frappe.form_dict.get("action")
@@ -534,11 +535,11 @@ def hod_approval_check():
 		if action == "approve":
 			doc.hod_approved = 1
 			doc.hod_approval_status = "Approved"
-			doc.hod_approval = user
+			doc.hod_approval = session_user
 			doc.hod_approval_remarks = "Approved by HOD"
 		elif action == "reject":
 			doc.rejected = 1
-			doc.rejected_by = user
+			doc.rejected_by = session_user
 			doc.hod_approval_status = "Rejected"
 			doc.reason_for_rejection = reason_for_rejection
 		else:
