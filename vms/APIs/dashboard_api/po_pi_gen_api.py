@@ -1453,3 +1453,101 @@ def get_pr_w_details(pr_w_name):
     except Exception:
         frappe.log_error(frappe.get_traceback(), "get_pr_w_details Error")
         frappe.throw(_("An unexpected error occurred while fetching Purchase Requisition details."))
+
+
+
+# Purchase Requisition Form Dashboard
+@frappe.whitelist(allow_guest=True)
+def get_purchase_requisition_form(page_no=None, page_length=None):
+    try:
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 20
+
+        user = frappe.session.user
+        user_roles = frappe.get_roles(user)
+
+        emp_data = frappe.get_value("Employee", {"user_id": user}, ["team", "designation"])
+        if not emp_data:
+            return {
+                "status": "error",
+                "message": "Employee record not found for the current user.",
+                "error": "No employee found with user_id: {}".format(user),
+                "data": [],
+                "total_count": 0,
+                "page_no": page_no,
+                "page_length": page_length,
+                "total_pages": 0
+            }
+
+        team, designation = emp_data
+
+        start = (page_no - 1) * page_length
+
+        # Enquirer Role ---
+        if "Enquirer" in user_roles or designation == "Enquirer":
+            total_count = frappe.db.count("Purchase Requisition Form", 
+                                          filters={"requisitioner": user})
+            
+            total_pages = (total_count + page_length - 1) // page_length
+            
+            pr_w = frappe.get_all("Purchase Requisition Form", 
+                                  filters={"requisitioner": user},
+                                  fields="*", 
+                                  order_by="modified desc",
+                                  start=start,
+                                  page_length=page_length)
+
+        # Other Roles
+        else:
+            pur_grp = frappe.get_all("Purchase Group Master", 
+                                     filters={"team": team}, 
+                                     fields=["name"])
+
+            pur_grp_names = [grp.name for grp in pur_grp]
+
+            if not pur_grp_names:
+                return {
+                    "status": "success",
+                    "message": "No purchase groups found for the user's team.",
+                    "data": [],
+                    "total_count": 0,
+                    "page_no": page_no,
+                    "page_length": page_length,
+                    "total_pages": 0
+                }
+
+            total_count = frappe.db.count("Purchase Requisition Form", 
+                                          filters={"purchase_group": ["in", pur_grp_names]})
+
+            total_pages = (total_count + page_length - 1) // page_length
+
+            pr_w = frappe.get_all("Purchase Requisition Form", 
+                                  filters={"purchase_group": ["in", pur_grp_names]},
+                                  fields="*", 
+                                  order_by="modified desc",
+                                  start=start,
+                                  page_length=page_length)
+
+        # --- Return response ---
+        return {
+            "status": "success",
+            "message": "Purchase Requisitions fetched successfully.",
+            "data": pr_w,
+            "total_count": total_count,
+            "page_no": page_no,
+            "page_length": page_length,
+            "total_pages": total_pages
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_pr_w Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch Purchase Requisitions.",
+            "error": str(e),
+            "data": [],
+            "total_count": 0,
+            "page_no": page_no if page_no else 1,
+            "page_length": page_length if page_length else 20,
+            "total_pages": 0
+        }
