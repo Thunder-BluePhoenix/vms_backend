@@ -20,8 +20,10 @@
   "purchase_requisition_form_table",
   "approval_status_section",
   "hod_approval_status",
+  "hod_approval",
   "hod_approval_remarks",
   "purchase_team_status",
+  "purchase_team_approval",
   "purchase_team_approval_remarks",
   "purchase_head_status",
   "purchase_head_approval_remarks",
@@ -109,33 +111,35 @@
   {
    "fieldname": "hod_approval_status",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "HOD Approval Status"
   },
   {
    "fieldname": "hod_approval_remarks",
    "fieldtype": "Small Text",
+   "hidden": 1,
    "label": "HOD Approval Remarks"
   },
   {
    "fieldname": "purchase_team_status",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Purchase Team Status"
   },
   {
    "fieldname": "purchase_team_approval_remarks",
    "fieldtype": "Small Text",
-   "hidden": 1,
    "label": "Purchase Team Approval Remarks"
   },
   {
    "fieldname": "purchase_head_status",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Purchase Head Status"
   },
   {
    "fieldname": "purchase_head_approval_remarks",
    "fieldtype": "Small Text",
+   "hidden": 1,
    "label": "Purchase Head Approval Remarks"
   },
   {
@@ -145,11 +149,13 @@
   {
    "fieldname": "rejected_by",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Rejected By"
   },
   {
    "fieldname": "reason_for_rejection",
    "fieldtype": "Small Text",
+   "hidden": 1,
    "label": "Reason for Rejection"
   },
   {
@@ -162,6 +168,7 @@
    "default": "0",
    "fieldname": "hod_approved",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "HOD Approved"
   },
   {
@@ -174,12 +181,14 @@
    "default": "0",
    "fieldname": "purchase_head_approved",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Purchase Head Approved"
   },
   {
    "default": "0",
    "fieldname": "mail_sent_to_hod",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Mail Sent to HOD"
   },
   {
@@ -192,6 +201,7 @@
    "default": "0",
    "fieldname": "mail_sent_to_purchase_head",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Mail Sent to Purchase Head"
   },
   {
@@ -248,12 +258,23 @@
    "label": "Approval Status",
    "max_height": "10px",
    "width": "10px"
+  },
+  {
+   "fieldname": "hod_approval",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "HOD Approval"
+  },
+  {
+   "fieldname": "purchase_team_approval",
+   "fieldtype": "Data",
+   "label": "Purchase Team Approval"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-08 17:49:48.886353",
+ "modified": "2025-10-09 11:40:09.366871",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",

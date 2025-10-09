@@ -122,7 +122,7 @@ class PurchaseRequisitionWebform(Document):
 			self.db_set("purchase_requisition_form_link", pur_req_form.name)
 
 
-
+# Not in Used
 def send_pur_req_email(doc, method=None):
 	if doc.requisitioner and not doc.rejected:
 		if not doc.hod_approved and not doc.mail_sent_to_hod:
