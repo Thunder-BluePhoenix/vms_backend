@@ -606,6 +606,7 @@ def get_pur_req_table_data(name):
 			"Cart ID": doc.cart_details_id,
 			"Form Status": doc.form_status,
 			"form_is_submitted": doc.form_is_submitted,
+			"sap_error": doc.zmsg,
 			"data": list(grouped_data.values())
 		}
 
