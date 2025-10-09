@@ -971,7 +971,7 @@ def erp_to_sap_pr(doc_name, method=None):
                             doc.sap_pr_code = pr_code
                             if not doc.prf_name_for_sap:
                                 doc.prf_name_for_sap = name_for_sap
-                            doc.db_update()
+                            # doc.db_update()
                             print(f"📝 Document updated successfully with PR code: {pr_code}")
                             
                             # **CREATE VMS SAP LOG FOR SUCCESS**
@@ -1086,7 +1086,7 @@ def build_pr_payload(doc, name_for_sap):
                 
                 data = {
                     "Bnfpo": item.item_number_of_purchase_requisition_head or "",
-                    "Matnr": item.material_code_head or "",
+                    "Matnr": frappe.db.get_value("Material Code", item.material_code_head, "material_code") or "",
                     "Txz01": item.short_text_head or "",
                     "Menge": item.quantity_head or "",
                     "Meins": item.uom_head or "",
@@ -1102,8 +1102,8 @@ def build_pr_payload(doc, name_for_sap):
                     "Anln2": item.asset_subnumber_head or "",
                     "Knttp": item.account_assignment_category_head or "",
                     "Pstyp": item.item_category_head or "",
-                    "Sakto": item.gl_account_number_head or "",
-                    "Kostl": item.cost_center_head or "",
+                    "Sakto": frappe.db.get_value("GL Account", item.gl_account_number_head, "gl_account_code") or "",
+                    "Kostl": frappe.db.get_value("Cost Center", item.cost_center_head, "cost_center_code") or "",
                     "Preis": item.final_price_by_purchase_team_head or "",
                     "Zvmsprno": doc.prf_name_for_sap or name_for_sap
                 }
@@ -1142,7 +1142,7 @@ def build_pr_payload(doc, name_for_sap):
                 
                 data = {
                     "Bnfpo": first_item.item_number_of_purchase_requisition_head or "",
-                    "Matnr": first_item.material_code_head or "",
+                    "Matnr": frappe.db.get_value("Material Code", first_item.material_code_head, "material_code") or "",
                     "Txz01": first_item.short_text_head or "",
                     "Menge": first_item.quantity_head or "",
                     "Meins": first_item.uom_head or "",
@@ -1158,8 +1158,8 @@ def build_pr_payload(doc, name_for_sap):
                     "Anln2": first_item.asset_subnumber_head or "",
                     "Knttp": first_item.account_assignment_category_head or "",
                     "Pstyp": first_item.item_category_head or "",
-                    "Sakto": first_item.gl_account_number_head or "",
-                    "Kostl": first_item.cost_center_head or "",
+                    "Sakto": frappe.db.get_value("GL Account", first_item.gl_account_number_head, "gl_account_code") or "",
+                    "Kostl": frappe.db.get_value("Cost Center", first_item.cost_center_head, "cost_center_code") or "",
                     "Preis": first_item.final_price_by_purchase_team_head or "",
                     "Zvmsprno": doc.prf_name_for_sap or name_for_sap,
                     "Packno": str(packno_counter)
@@ -1192,8 +1192,8 @@ def build_pr_payload(doc, name_for_sap):
                             "Meins": item.uom_subhead or "",
                             "Brtwr": item.gross_price_subhead or "",
                             "Zebkn": "",
-                            "Kostl": item.cost_center_subhead or "",
-                            "Sakto": item.gl_account_number_subhead or ""
+                            "Kostl": frappe.db.get_value("Cost Center", item.cost_center_head, "cost_center_code") or "",
+                            "Sakto": frappe.db.get_value("GL Account", item.gl_account_number_head, "gl_account_code") or ""
                         }
                         service_items.append(subdata)
                         print(f"         ✅ Service item {service_counter} added to collection")
@@ -1827,6 +1827,11 @@ def create_pr_sap_log(doc, request_data, response_data, transaction_status, erro
         
         sap_log = frappe.new_doc("PR SAP Logs")
         sap_log.purchase_requisition_link = doc.name
+        pr_sap_code = response_data.json()
+        pr_code = ""
+                # Extract PR code (Banfn)
+        if pr_sap_code and 'd' in pr_sap_code and 'Banfn' in pr_sap_code['d']:
+            pr_code = pr_sap_code['d']['Banfn']
         
         # Store request data (payload) since erp_to_sap_data is JSON field
         sap_log.erp_to_sap_data = request_data if request_data else {"error": "No request data available"}
@@ -1862,7 +1867,7 @@ def create_pr_sap_log(doc, request_data, response_data, transaction_status, erro
             },
             "transaction_summary": {
                 "status": transaction_status,
-                "pr_code": "",
+                "pr_code": pr_code,
                 "error_details": error_details,
                 "timestamp": frappe.utils.now(),
                 "sap_client_code": sap_client_code,
