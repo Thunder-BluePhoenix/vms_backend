@@ -61,6 +61,7 @@
   "mail_sent_for_cr",
   "made_changes_by_pt",
   "change_requested_by",
+  "change_requested_by_designation",
   "column_break_eife",
   "cr_description",
   "tables_section",
@@ -727,12 +728,12 @@
    "default": "0",
    "fieldname": "change_request_by_at",
    "fieldtype": "Check",
-   "label": "Change Request by AT"
+   "label": "Change Request by Team"
   },
   {
    "fieldname": "section_break_ireg",
    "fieldtype": "Section Break",
-   "label": "CR By Accounts Team"
+   "label": "CR By Team"
   },
   {
    "default": "0",
@@ -777,12 +778,18 @@
    "hidden": 1,
    "label": "Version History",
    "options": "Vendor Onboarding History"
+  },
+  {
+   "fieldname": "change_requested_by_designation",
+   "fieldtype": "Link",
+   "label": "Change Requested By Designation",
+   "options": "Designation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-07 01:42:01.896296",
+ "modified": "2025-10-08 14:44:05.872514",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

@@ -261,9 +261,9 @@ scheduler_events = {
         "0 */2 * * *": [  # Every 2 hours - cleanup stuck SAP status
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.cleanup_stuck_sap_status"
         ],
-        # "*/5 * * * *": [
-        #     "vms.vms.doctype.otp_verification.otp_verification.expire_otps"
-        # ],
+        "*/5 * * * *": [
+            "vms.material.doctype.cart_details.cart_details.process_cart_escalations"
+        ],
         "*/10 * * * *": [
             "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_background_jobs",
             "vms.vms.doctype.otp_verification.otp_verification.delete_expired_otps"
