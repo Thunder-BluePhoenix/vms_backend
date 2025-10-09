@@ -103,6 +103,9 @@ class PurchaseRequisitionWebform(Document):
 		else:
 			pur_req_form = frappe.get_doc("Purchase Requisition Form", self.purchase_requisition_form_link)
 
+		if self.purchase_team_approved == 1:
+			pur_req_form.pr_approved = 1
+		
 		# Update main fields
 		for field in field_map:
 			if hasattr(pur_req_form, field):

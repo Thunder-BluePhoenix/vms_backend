@@ -58,6 +58,7 @@ def purchase_approval_check(data):
 		if isinstance(data, str):
 			data = json.loads(data)
 
+		session_user = frappe.session.user
 		cart_id = data.get("cart_id")
 		user = data.get("user")
 		is_approved = int(data.get("approve"))
@@ -74,7 +75,7 @@ def purchase_approval_check(data):
 		if is_approved:
 			cart_details_doc.purchase_team_approved = 1
 			cart_details_doc.purchase_team_approval_status = "Approved"
-			cart_details_doc.purchase_team_approval = user
+			cart_details_doc.purchase_team_approval = session_user
 			cart_details_doc.purchase_team_approval_remarks = comments
 
 			# Clear old child rows
@@ -105,7 +106,7 @@ def purchase_approval_check(data):
 					
 		elif is_rejected:
 			cart_details_doc.rejected = 1
-			cart_details_doc.rejected_by = user
+			cart_details_doc.rejected_by = session_user
 			cart_details_doc.purchase_team_approval_status = "Rejected"
 			cart_details_doc.reason_for_rejection = rejection_reason
 
@@ -262,6 +263,7 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 @frappe.whitelist(allow_guest=True)
 def second_stage_approval_check():
     try:
+        session_user = frappe.session.user
         cart_id = frappe.form_dict.get("cart_id")
         user = frappe.form_dict.get("email")
         action = frappe.form_dict.get("action")
@@ -280,10 +282,10 @@ def second_stage_approval_check():
             cart_details_doc.second_stage_approved = 1
             cart_details_doc.second_stage_approval_status = "Approved"
             cart_details_doc.second_stage_approval_remark = "Approved by " + user
-            cart_details_doc.second_stage_approval_by = user
+            cart_details_doc.second_stage_approval_by = session_user
         elif action == "reject":
             cart_details_doc.rejected = 1
-            cart_details_doc.rejected_by = user
+            cart_details_doc.rejected_by = session_user
             cart_details_doc.hod_approval_status = "Rejected"
             cart_details_doc.reason_for_rejection = reason_for_rejection
         else:

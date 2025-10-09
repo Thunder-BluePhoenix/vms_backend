@@ -563,22 +563,21 @@ def vendor_data_for_purchase(usr, user_roles):
         cart_count = frappe.db.sql(cart_query, (usr,))[0][0]
         
 
-        user_cart_count = frappe.db.count("Cart Details",
+        user_cart_count = frappe.db.count("Cart Details",      # those cart which created by own
                                     filters= {"user":usr })
         
-        user_pr_count = frappe.db.count("Purchase Requisition Webform",
+        user_pr_count = frappe.db.count("Purchase Requisition Webform",      # those pr which created by own
                                     filters= {"requisitioner":usr })
         
-        # pr_count = frappe.db.count("Purchase Requisition Webform")
         pr_count = 0
         
-
+        pur_grp_names = frappe.get_all("Purchase Group Master", {"team": team}, pluck="name")
 
         if employee.show_all_purchase_groups == 1:
             pr_count = frappe.db.count("Purchase Requisition Webform")
         else:
-            pr_count = frappe.db.count("Purchase Requisition Webform",
-                                    filters= {"purchase_group": ["in", pur_grp]})
+            pr_count = frappe.db.count("Purchase Requisition Webform", filters={"purchase_group": ["in", pur_grp_names]})
+            
         # cart_count = len(all_cart)
 
         # Count of Vendor Master records created by users from the same team.requisitioner
