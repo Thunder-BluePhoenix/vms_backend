@@ -1485,30 +1485,29 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
         
         # **FIX: Update Multiple Company Data in Vendor Master**
         # Find and update the corresponding multiple_company_data row
-        mcd_updated = False
+        # mcd_updated = False
         
-        if hasattr(ref_vm, 'multiple_company_data') and ref_vm.multiple_company_data:
-            for mcd_row in ref_vm.multiple_company_data:
-                # Match by SAP client code or company name
-                if (getattr(mcd_row, 'sap_client_code', '') == sap_code or 
-                    getattr(mcd_row, 'company_name', '') == company_name):
-                    mcd_row.company_vendor_code = cvc.name
-                    mcd_updated = True
-                    print(f"✅ Updated existing multiple_company_data row with CVC: {cvc.name}")
-                    break
+        # if hasattr(ref_vm, 'multiple_company_data') and ref_vm.multiple_company_data:
+        #     for mcd_row in ref_vm.multiple_company_data:
+        #         # Match by SAP client code or company name
+        #         if (getattr(mcd_row, 'company_name', '') == company_name):
+        #             mcd_row.company_vendor_code = cvc.name
+        #             mcd_updated = True
+        #             print(f"✅ Updated existing multiple_company_data row with CVC: {cvc.name}")
+        #             break
         
-        # If no matching multiple_company_data row found, create new one
-        if not mcd_updated:
-            ref_vm.append("multiple_company_data", {
-                "company_name": company_name,
-                "sap_client_code": sap_code,
-                "company_vendor_code": cvc.name
-            })
-            print(f"✅ Added new multiple_company_data row with CVC: {cvc.name}")
+        # # If no matching multiple_company_data row found, create new one
+        # if not mcd_updated:
+        #     ref_vm.append("multiple_company_data", {
+        #         "company_name": company_name,
+        #         "sap_client_code": sap_code,
+        #         "company_vendor_code": cvc.name
+        #     })
+        #     print(f"✅ Added new multiple_company_data row with CVC: {cvc.name}")
         
-        # Save vendor master document
-        ref_vm.save(ignore_permissions=True)
-        print(f"✅ Updated Vendor Master: {ref_vm.name}")
+        # # Save vendor master document
+        # ref_vm.save(ignore_permissions=True)
+        # print(f"✅ Updated Vendor Master: {ref_vm.name}")
         
         # Update onboarding document
         # onb_doc = frappe.get_doc("Vendor Onboarding", onb)
