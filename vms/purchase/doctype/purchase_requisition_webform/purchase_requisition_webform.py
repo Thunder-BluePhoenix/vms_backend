@@ -105,6 +105,8 @@ class PurchaseRequisitionWebform(Document):
 
 		if self.purchase_team_approved == 1:
 			pur_req_form.pr_approved = 1
+		else:
+			pur_req_form.pr_approved = 0
 		
 		# Update main fields
 		for field in field_map:
