@@ -946,8 +946,9 @@ def erp_to_sap_pr(doc_name, method=None):
                     # Extract PR code from response
                     pr_code = result.get('d', {}).get('Banfn', '') if 'd' in result else result.get('Banfn', '')
                     zmsg = result.get('d', {}).get('Message', '') if 'd' in result else result.get('Message', '')
+                    ztype = result.get('d', {}).get('Ztype', '') if 'd' in result else result.get('Ztype', '')
                     
-                    if pr_code == 'E' or pr_code == '' or not pr_code:
+                    if ztype == 'E' or ztype == '' or not ztype:
                         error_msg = f"SAP returned error or empty PR code. Banfn: '{pr_code}', Message: '{zmsg}'"
                         print(f"❌ SAP PR Error: {error_msg}")
                         
