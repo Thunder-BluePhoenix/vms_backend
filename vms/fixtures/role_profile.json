@@ -277,5 +277,20 @@
     "role": "Material CP"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-10-10 12:56:00.158319",
+  "name": "SAP Team",
+  "role_profile": "SAP Team",
+  "roles": [
+   {
+    "parent": "SAP Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "SAP Team"
+   }
+  ]
  }
 ]
