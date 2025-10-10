@@ -36,7 +36,7 @@ def get_approval_users_by_role(doctype: str, docname: str,current_role) -> list[
     roles = ["QA Team","QA Head"]
     ven_onb_role = ["Purchase Team","Purchase Head","Accounts Team","Accounts Head"]
 
-    if doctype in ["Vendor Onboarding", "Supplier QMS Assessment Form"]:
+    if doctype in ["Vendor Onboarding", "Supplier QMS Assessment Form","Cart Details"]:
         all_users = frappe.get_all("User", 
             filters=[["Has Role", "role", "in", current_role]], 
             pluck="name"

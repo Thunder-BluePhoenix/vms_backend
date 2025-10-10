@@ -5,12 +5,126 @@ from vms.utils.get_employee_for_cur_user import get_employee_name_for_cur_user
 
 
 def get_approval_employee(role_short, company_list, filters={}, fields=["*"], doc=None, stage=None):
-
-    
+    """
+    Main entry point for getting approval employees based on doctype
+    """
     if doc and doc.get("doctype") == "Vendor Onboarding":
         return get_vendor_onboarding_approval_employee(role_short, company_list, doc, filters, fields, stage)
     
+    if doc and doc.get("doctype") == "Cart Details":
+        return get_card_details_approval_employee(role_short, doc, filters, fields, stage)
+    
     return get_standard_approval_employee(role_short, company_list, filters, fields)
+
+def get_card_details_approval_employee(role_short, doc, filters={}, fields=["*"], stage=None):
+   
+    try:
+        # Get category type and purchase group from the document
+        category_type = doc.get("category_type")
+        purchase_group = doc.get("purchase_group")
+        
+        if not category_type or not purchase_group:
+            frappe.log_error(
+                f"Missing category_type or purchase_group in Cart Details: {doc.name}",
+                "Cart Details Approval Employee Error"
+            )
+            return None
+        
+
+        current_user = frappe.session.user
+        
+        
+        # Step 1: Validate category type - Check if current user is authorized for this category
+        category_type_doc = frappe.get_doc("Category Master", category_type)
+        
+        
+        purchase_team_user = category_type_doc.get("purchase_team_user")
+        alternative_purchase_team = category_type_doc.get("alternative_purchase_team")
+        
+        # Check if current user matches the category type's authorized users
+        is_category_authorized = (
+            current_user == purchase_team_user or 
+            current_user == alternative_purchase_team
+        )
+        
+        
+        if not is_category_authorized:
+            frappe.log_error(
+                f"Current user {current_user} is not authorized for category_type: {category_type}. "
+                f"Authorized users: {purchase_team_user}, {alternative_purchase_team}",
+                "Cart Details Approval Employee Error"
+            )
+            return None
+        
+        
+        purchase_group_doc = frappe.get_doc("Purchase Group Master", purchase_group)
+        required_team = purchase_group_doc.get("team")
+        
+        
+        if not required_team:
+            frappe.log_error(
+                f"No team found in Purchase Group Master: {purchase_group}",
+                "Cart Details Approval Employee Error"
+            )
+            return None
+        
+        # Step 3: Get users who have the required role
+        users_with_role = frappe.get_all(
+            "Has Role",
+            filters={"role": role_short},
+            fields=["parent"]
+        )
+        
+        if not users_with_role:
+            frappe.log_error(
+                f"No users found with role: {role_short}",
+                "Cart Details Approval Employee Error"
+            )
+            return None
+        
+        user_ids_with_role = [user.parent for user in users_with_role]
+        
+        
+        # Step 4: Build filters for employee search
+        # Match: required role + matching team + active status
+        final_filters = {
+            **filters,
+            "user_id": ("in", user_ids_with_role),
+            "team": required_team,
+            "status": "Active"
+        }
+        
+        # Get matching employees
+        employee_list = frappe.get_all(
+            "Employee",
+            filters=final_filters,
+            fields=fields,
+            limit=1
+        )
+        
+        if not employee_list:
+            frappe.log_error(
+                f"No active employees found with role: {role_short} and team: {required_team}",
+                "Cart Details Approval Employee Error"
+            )
+            return None
+        
+        
+        return employee_list[0]
+        
+    except frappe.DoesNotExistError as e:
+        frappe.log_error(
+            f"Master not found - Category Type: {category_type} or Purchase Group: {purchase_group}. Error: {str(e)}",
+            "Cart Details Approval Employee Error"
+        )
+        return None
+        
+    except Exception as e:
+        frappe.log_error(
+            f"Error in get_card_details_approval_employee: {str(e)}\n{frappe.get_traceback()}",
+            "Cart Details Approval Employee Error"
+        )
+        return None
 
 def get_vendor_onboarding_approval_employee(role_short, company_list, doc, filters={}, fields=["*"], stage=None):
 
@@ -21,11 +135,9 @@ def get_vendor_onboarding_approval_employee(role_short, company_list, doc, filte
     company_wise = stage.get("company_wise", 0) if stage else 0
     
     if team_wise and company_wise:
-        
         return get_team_and_company_wise_approval_employee(role_short, company_list, doc, filters, fields)
     
     elif team_wise:
-        
         return get_team_wise_approval_employee_for_vendor_onboarding(role_short, doc, filters, fields)
     
     elif company_wise:
@@ -307,19 +419,57 @@ def get_approval_employee_by_state_for_rdm(
 
 
 def get_user_for_role_short(name, role_short, depth=0, check_cur_user=False):
-    frappe.logger("get_user_for_role_short").error([name, role_short, depth])
-    # Check if maximum depth reached or employee not found
+   
+    frappe.logger("get_user_for_role_short").debug([name, role_short, depth])
+    
+    
     if depth > 5 or not name:
         return None
 
-    employee = frappe.get_doc("Employee", name)
-
-    if (check_cur_user or depth > 0) and employee.get("role_short") == role_short:
-        return employee
-
-    return get_user_for_role_short(
-        employee.get("reporting_head", None), role_short, depth + 1
-    )
+    try:
+        employee = frappe.get_doc("Employee", name)
+        
+        if not employee:
+            return None
+        
+        
+        user_id = employee.get("user_id")
+        
+        if not user_id:
+            
+            return get_user_for_role_short(
+                employee.get("reports_to", None), 
+                role_short, 
+                depth + 1
+            )
+        
+        
+        if check_cur_user or depth > 0:
+            
+            user_roles = frappe.get_roles(user_id)
+            
+        
+            if role_short in user_roles:
+                return {
+                    "name": employee.name,
+                    "user_id": user_id,
+                    "employee_name": employee.get("employee_name"),
+                    "status": employee.get("status"),
+                }
+        
+        
+        return get_user_for_role_short(
+            employee.get("reports_to", None), 
+            role_short, 
+            depth + 1
+        )
+        
+    except Exception as e:
+        frappe.log_error(
+            f"Error in get_user_for_role_short: {str(e)}\n{frappe.get_traceback()}",
+            "Get User For Role Short Error"
+        )
+        return None
 
 
 def get_fd_for_cur_user():
