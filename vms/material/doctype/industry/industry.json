@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:industry_code",
  "creation": "2025-09-25 15:56:28.443287",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,7 +14,8 @@
   {
    "fieldname": "industry_code",
    "fieldtype": "Data",
-   "label": "Industry Code"
+   "label": "Industry Code",
+   "unique": 1
   },
   {
    "fieldname": "industry_name",
@@ -29,10 +31,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 15:57:23.834837",
+ "modified": "2025-10-10 13:00:52.167487",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Industry",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -49,7 +52,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "industry_name"
 }
