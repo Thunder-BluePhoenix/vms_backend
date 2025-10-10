@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:class_type",
  "creation": "2025-09-25 15:35:12.540329",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,7 +14,8 @@
   {
    "fieldname": "class_type",
    "fieldtype": "Data",
-   "label": "Class Type"
+   "label": "Class Type",
+   "unique": 1
   },
   {
    "fieldname": "class_number",
@@ -29,10 +31,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 15:35:53.032399",
+ "modified": "2025-10-10 13:08:48.529750",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Class Type",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -49,7 +52,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "class_type"
 }

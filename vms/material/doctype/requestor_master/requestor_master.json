@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:REQ-{###}",
+ "autoname": "format:REQ-{####}",
  "creation": "2025-05-19 10:57:31.824286",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -190,7 +190,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-08 14:56:01.473746",
+ "modified": "2025-10-10 12:48:47.238768",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Requestor Master",
