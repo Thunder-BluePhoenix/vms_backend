@@ -1189,7 +1189,7 @@ def submit_pr_form(name):
 					now=True
 				)
 				
-				doc.mail_sent_to_hod = 1
+				doc.mail_sent_to_purchase_team = 1
 
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()

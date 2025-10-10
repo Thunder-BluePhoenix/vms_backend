@@ -192,6 +192,15 @@ def send_mail_hod(doc, method=None):
 		http_server = frappe.conf.get("backend_http")
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
+			
 		if hod:
 			hod_email = frappe.get_value("Employee", hod, "user_id")
 			hod_name = frappe.get_value("Employee", hod, "full_name")
@@ -229,7 +238,7 @@ def send_mail_hod(doc, method=None):
 
 				table_html += "</table>"
 
-				subject = f"Purchase Team Approved Cart Details Submitted by {employee_name}"
+				subject = f"Approval of Cart Details Submitted by {employee_name}"
 
 				# Message for HOD with buttons
 				hod_message = f"""
@@ -237,7 +246,7 @@ def send_mail_hod(doc, method=None):
 					<p>A new cart details submission has been made by <b>{employee_name}</b> which is approved by Purchase Team.</p>
 					<p>Please review the details and take necessary actions.</p>
 					<p><b>Cart ID:</b> {doc.name}</p>
-					<p><b>Cart Date:</b> {doc.cart_date}</p>
+					<p><b>Cart Date:</b> {cart_date_formatted}</p>
 					<p><b>Cart Products:</b></p>
 					{table_html}
 					<br>
@@ -257,7 +266,7 @@ def send_mail_hod(doc, method=None):
 					<p>Dear {employee_name},</p>
 					<p>Your cart has been approved by Purchase Team and sent to your HOD <b>{hod_name}</b> for further approval.</p>
 					<p><b>Cart ID:</b> {doc.name}</p>
-					<p><b>Cart Date:</b> {doc.cart_date}</p>
+					<p><b>Cart Date:</b> {cart_date_formatted}</p>
 					<p><b>Cart Products:</b></p>
 					{table_html}
 					<p>Thank you!</p>
@@ -306,6 +315,14 @@ def send_mail_purchase(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		purchase_team_email = frappe.get_value("Category Master", doc.category_type, "purchase_team_user")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
 		
 		if purchase_team_email:
 				table_html = """
@@ -340,9 +357,9 @@ def send_mail_purchase(doc, method=None):
 				message = f"""
 					<p>Dear Purchase Team,</p>		
 					<p>A new cart details submission has been made by <b>{employee_name}</b>.</p>
-					<p> please review the details and take necessary actions.</p>
+					<p> Please review the details and take necessary actions.</p>
 					<p><b>Cart ID:</b> {doc.name}</p>
-					<p><b>Cart Date:</b> {doc.cart_date}</p>
+					<p><b>Cart Date:</b> {cart_date_formatted}</p>
 					<p><b>Cart Products:</b></p>
 					{table_html}
 					<p>Thank you!</p>
@@ -374,6 +391,15 @@ def send_mail_user(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
+
 		if hod:
 			hod_email = frappe.get_value("Employee", hod, "user_id")
 
@@ -410,7 +436,7 @@ def send_mail_user(doc, method=None):
 			<p>Dear {employee_name},</p>		
 			<p>Your cart details has been approved by HOD</b>.</p>
 			<p><b>Cart ID:</b> {doc.name}</p>
-			<p><b>Cart Date:</b> {doc.cart_date}</p>
+			<p><b>Cart Date:</b> {cart_date_formatted}</p>
 			<p><b>Cart Products:</b></p>Your cart details has been approved by HOD0
 			{table_html}
 			<p>Thank you!</p>
@@ -442,6 +468,14 @@ def rejection_mail_to_user(doc, method=None):
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
 		
 		rejected_by = frappe.get_value("Employee", {"user_id": doc.rejected_by}, "full_name")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
 		
 		hod_email = None 
 		if hod:
@@ -480,7 +514,7 @@ def rejection_mail_to_user(doc, method=None):
 			<p>Dear {employee_name},</p>		
 			<p>Your cart details has been rejected by {rejected_by}</b>.</p>
 			<p><b>Cart ID:</b> {doc.name}</p>
-			<p><b>Cart Date:</b> {doc.cart_date}</p>
+			<p><b>Cart Date:</b> {cart_date_formatted}</p>
 			<p><b>Cart Products:</b></p>
 			{table_html}
 			<p>Thank you!</p>
@@ -575,6 +609,14 @@ def send_mail_alternate_purchase(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		purchase_team_email = frappe.get_value("Category Master", doc.category_type, "alternative_purchase_team")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
 		
 		if purchase_team_email:
 				table_html = """
@@ -611,7 +653,7 @@ def send_mail_alternate_purchase(doc, method=None):
 					<p>A new cart details submission has been made by <b>{employee_name}</b>.</p>
 					<p> please review the details and take necessary actions.</p>
 					<p><b>Cart ID:</b> {doc.name}</p>
-					<p><b>Cart Date:</b> {doc.cart_date}</p>
+					<p><b>Cart Date:</b> {cart_date_formatted}</p>
 					<p><b>Cart Products:</b></p>
 					{table_html}
 					<p>Thank you!</p>
@@ -647,6 +689,14 @@ def send_mail_purchase_hod(doc, method=None):
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		purchase_team_email = frappe.get_value("Category Master", doc.category_type, "purchase_team_user")
 		pur_team = frappe.get_value("Employee", {"user_id": purchase_team_email}, "team")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
 		
 		if purchase_team_email and pur_team:
 			# Fetch all employees with same team and Purchase Head designation
@@ -713,7 +763,7 @@ def send_mail_purchase_hod(doc, method=None):
 				<p>The purchase team has not yet reviewed this cart, so it has been escalated to you for further action.</p>
 				<p>Please review the cart details below and take necessary actions:</p>
 				<p><b>Cart ID:</b> {doc.name}</p>
-				<p><b>Cart Date:</b> {doc.cart_date}</p>
+				<p><b>Cart Date:</b> {cart_date_formatted}</p>
 				<p><b>Submitted by:</b> {employee_name}</p>
 				<p><b>Team:</b> {pur_team}</p>
 				<p><b>Cart Products:</b></p>

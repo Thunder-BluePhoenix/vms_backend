@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:{material_group_name}-{material_group_company}",
  "creation": "2025-06-13 12:40:29.901463",
@@ -48,7 +49,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-09 14:57:18.269806",
+ "modified": "2025-10-10 11:09:53.424290",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Group Master",

@@ -1317,6 +1317,7 @@ def get_pi_details(pi_name):
 #             "total_pages": 0
 #         }
     
+# Purchase Requisition Webform Dashboard
 @frappe.whitelist(allow_guest=True)
 def get_pr_w(page_no=None, page_length=None):
     try:
@@ -1525,7 +1526,7 @@ def get_purchase_requisition_form(page_no=None, page_length=None, pur_req_type=N
                 }
 
             pur_grp_names = [grp["name"] for grp in pur_grp]
-            
+
             filters["purchase_group"] = ["in", pur_grp_names]
 
             total_count = frappe.db.count("Purchase Requisition Form", filters=filters)
