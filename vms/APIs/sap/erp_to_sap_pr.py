@@ -1355,9 +1355,10 @@ def send_pr_detail(csrf_token, data_list, session_cookies, doc, sap_code, name_f
                 # Extract PR code (Banfn)
                 pr_code = pr_sap_code['d']['Banfn']
                 zmsg = pr_sap_code['d'].get('Message', '')
+                ztype = pr_sap_code['d'].get('Ztype', '')
                 
                 # Check if PR code indicates error or is empty
-                if pr_code == 'E' or pr_code == '' or not pr_code:
+                if ztype == 'E' or ztype == '' or not ztype:
                     transaction_status = "SAP Error"
                     error_details = f"SAP returned error PR code. Banfn: '{pr_code}', Message: '{zmsg}'"
                     print(f"❌ SAP PR Error: {error_details}")
