@@ -23,6 +23,7 @@ class PRSAPLogs(Document):
 			
 			if self.status != "Success":
 				pr_doc.form_is_submitted = 0
+				pr_doc.purchase_team_approved = 0
 				pr_doc.form_status = "SAP Error"
 				pr_doc.sap_status = self.status
 				pr_doc.zmsg = ztext or transaction_summary.get("error_details", "Unknown Error")

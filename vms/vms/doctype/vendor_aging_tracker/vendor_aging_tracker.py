@@ -196,14 +196,6 @@ def create_or_update_aging_tracker_from_vendor_onboarding(vendor_onboarding_name
 	try:
 		onboarding_doc = frappe.get_doc("Vendor Onboarding", vendor_onboarding_name)
 		
-		# # Check if data_sent_to_sap is checked (vendor created in SAP)
-		# if not onboarding_doc.data_sent_to_sap:
-		#     return
-		
-		# # Check if vendor company details exist
-		# if not onboarding_doc.vendor_company_details:
-		#     frappe.log_error("No vendor company details found", "Vendor Aging Tracker")
-		#     return
 		
 		# Check if aging tracker already exists for this vendor onboarding
 		existing = frappe.db.exists("Vendor Aging Tracker", {"vendor_onboarding_link": vendor_onboarding_name})
