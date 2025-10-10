@@ -2,6 +2,7 @@ import frappe
 import json
 from frappe import _
 from vms.utils.custom_send_mail import custom_sendmail
+from datetime import datetime, timedelta
 
 
 # @frappe.whitelist(allow_guest=True)
@@ -138,6 +139,14 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
         # Get purchase enquiry document
         doc = frappe.get_doc("Cart Details", purchase_enquiry_id)
 
+        if doc.cart_date:
+            try:
+                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except Exception:
+                cart_date_formatted = doc.cart_date
+        else:
+            cart_date_formatted = "N/A"
+
         # Get requestor details
         requestor_name = frappe.session.user
         if email_id:
@@ -184,7 +193,7 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 
             table_html += "</table>"
 
-            subject = f"Approval of Cart Details Submitted by {employee_name if employee_name else 'user'} - {doc.name}"
+            subject = f"Additional Approval of Cart Details Submitted by {employee_name if employee_name else 'user'} - {doc.name}"
 
             # Message for HOD with buttons Additional Approver
             hod_message = f"""
@@ -193,7 +202,7 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
                 <p>and it is sent to you Second stage for further approval.</p>
                 <p>Please review the details and take necessary actions.</p>
                 <p><b>Cart ID:</b> {doc.name}</p>
-                <p><b>Cart Date:</b> {doc.cart_date}</p>
+                <p><b>Cart Date:</b> {cart_date_formatted}</p>
                 <p><b>Cart Products:</b></p>
                 {table_html}
                 <br>
@@ -213,7 +222,7 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
                 <p>Dear {employee_name if employee_name else 'user'},</p>
                 <p>Your cart has been approved by Purchase Team and sent to your Second stage <b>{second_stage_name if second_stage_name else 'user'}</b> for further approval.</p>
                 <p><b>Cart ID:</b> {doc.name}</p>
-                <p><b>Cart Date:</b> {doc.cart_date}</p>
+                <p><b>Cart Date:</b> {cart_date_formatted}</p>
                 <p><b>Cart Products:</b></p>
                 {table_html}
                 <p>Thank you!</p>

@@ -4,6 +4,7 @@ from frappe.utils import now_datetime
 from frappe import _
 from vms.utils.custom_send_mail import custom_sendmail
 import json
+from datetime import datetime, timedelta
 
 
 # cart details masters
@@ -635,6 +636,15 @@ def get_full_data_pur_inquiry(pur_inq):
 def modified_peq(data):
     try:
         doc = frappe.get_doc("Cart Details", data.get("cart_id"))
+
+        if doc.cart_date:
+            try:
+                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except Exception:
+                cart_date_formatted = doc.cart_date
+        else:
+            cart_date_formatted = "N/A"
+                  
         if doc:
             doc.asked_to_modify = 1
             doc.append("modification_info", {
@@ -687,7 +697,7 @@ def modified_peq(data):
                 <p>A modification request has been submitted for the following <strong>Cart Details</strong>:</p>
 
                 <p><strong>Cart ID:</strong> {doc.name}<br>
-                <strong>Cart Date:</strong> {doc.cart_date}</p>
+                <strong>Cart Date:</strong> {cart_date_formatted}</p>
 
                 {table_html}
 
@@ -723,6 +733,25 @@ def acknowledge_purchase_inquiry(data):
             data = json.loads(data)
 
         doc = frappe.get_doc("Cart Details", data.get("cart_id"))
+
+        # format cart date
+        if doc.cart_date:
+            try:
+                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except Exception:
+                cart_date_formatted = doc.cart_date
+        else:
+            cart_date_formatted = "N/A"
+
+        # format acknowledge date
+        if doc.acknowledged_date:
+            try:
+                acknowledged_date_formatted = datetime.strptime(doc.acknowledged_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except Exception:
+                acknowledged_date_formatted = doc.acknowledged_date
+        else:
+            acknowledged_date_formatted = "N/A"
+                  
         if doc:
             doc.purchase_team_acknowledgement = 1
             doc.acknowledged_date = data.get("acknowledged_date")
@@ -771,8 +800,8 @@ def acknowledge_purchase_inquiry(data):
                 <p>Your cart details have been <b>acknowledged</b>.</p>
 
                 <p><b>Cart ID:</b> {doc.name}</p>
-                <p><b>Cart Date:</b> {doc.cart_date}</p>
-                <p><b>Acknowledged Date:</b> {doc.acknowledged_date}</p>
+                <p><b>Cart Date:</b> {cart_date_formatted}</p>
+                <p><b>Acknowledged Date:</b> {acknowledged_date_formatted}</p>
                 <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks}</p>
 
                 {table_html}
