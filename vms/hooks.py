@@ -269,7 +269,8 @@ scheduler_events = {
             "vms.vms.doctype.otp_verification.otp_verification.delete_expired_otps"
         ],
         "*/30 * * * *": [
-            "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_queued_records"
+            "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_queued_records",
+            "vms.vms.doctype.vendor_aging_tracker.aging_track_history_rec.scheduled_batch_processor"
         ]
     }    
 	# "hourly": [
