@@ -1827,6 +1827,7 @@ def create_pr_sap_log(doc, request_data, response_data, transaction_status, erro
         
         sap_log = frappe.new_doc("PR SAP Logs")
         sap_log.purchase_requisition_link = doc.name
+        sap_log.status = transaction_status
         pr_sap_code = response_data.json()
         pr_code = ""
                 # Extract PR code (Banfn)
