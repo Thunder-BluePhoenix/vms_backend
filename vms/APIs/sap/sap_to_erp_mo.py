@@ -261,12 +261,12 @@ def send_email_from_sap(requestor_doc, matnr, maktx, zmsg, ztext):
         cc_emails = []
         
         reporting_to_id = requestor_doc.immediate_reporting_head
-        user_name = frappe.get_value("Employee Master", filters={"name": requestor_doc.requested_by}, fieldname=["full_name"])
+        user_name = frappe.get_value("Employee", filters={"name": requestor_doc.requested_by}, fieldname=["full_name"])
         
         if reporting_to_id:
-            employee_doc = frappe.get_doc("Employee Master", reporting_to_id)
+            employee_doc = frappe.get_doc("Employee", reporting_to_id)
             if employee_doc.email:
-                cc_emails.append(employee_doc.email)
+                cc_emails.append(employee_doc.company_email)
         
        
 

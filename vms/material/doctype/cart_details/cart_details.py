@@ -108,7 +108,7 @@ def process_cart_escalations():
     current_time = now_datetime()
     
     carts_for_first_escalation = frappe.get_all(
-        "Cart",
+        "Cart Details",
         filters={
             "first_escalation_time": ["<=", current_time],
             "escalation_status": "Pending",
@@ -120,7 +120,7 @@ def process_cart_escalations():
     
     for cart in carts_for_first_escalation:
         try:
-            cart_doc = frappe.get_doc("Cart", cart.name)
+            cart_doc = frappe.get_doc("Cart Details", cart.name)
             send_mail_alternate_purchase(cart_doc, method=None)
             cart_doc.escalation_status = "First Escalation Sent"
             cart_doc.save(ignore_permissions=True)
@@ -129,7 +129,7 @@ def process_cart_escalations():
             frappe.log_error(f"First escalation failed for {cart.name}: {str(e)}", "Cart Escalation Error")
     
     carts_for_second_escalation = frappe.get_all(
-        "Cart",
+        "Cart Details",
         filters={
             "second_escalation_time": ["<=", current_time],
             "escalation_status": "First Escalation Sent",
@@ -141,7 +141,7 @@ def process_cart_escalations():
     
     for cart in carts_for_second_escalation:
         try:
-            cart_doc = frappe.get_doc("Cart", cart.name)
+            cart_doc = frappe.get_doc("Cart Details", cart.name)
             send_mail_purchase_hod(cart_doc, method=None)
             cart_doc.escalation_status = "Second Escalation Sent"
             cart_doc.save(ignore_permissions=True)

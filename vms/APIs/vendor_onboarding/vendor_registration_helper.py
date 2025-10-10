@@ -78,6 +78,9 @@ def populate_vendor_data_from_existing_onboarding(vendor_master_name, office_ema
         # Step 7: Populate data for all related documents
         populated_docs = []
         
+
+
+        
         # Populate Legal Documents
         if source_onboarding.document_details and new_onboarding.document_details:
             result = populate_legal_documents(
@@ -122,6 +125,36 @@ def populate_vendor_data_from_existing_onboarding(vendor_master_name, office_ema
                 new_vendor_master.name
             )
             populated_docs.append(f"Company Details: {result}")
+
+        # Populate contact details
+        if source_onboarding.contact_details:
+            # Clear existing contact details in the new onboarding (if any)
+            # frappe.db.delete("Contact Details", {"parent": new_onboarding.name})
+            
+            # Copy each contact detail row from source to new onboarding
+            for src_row in source_onboarding.contact_details:
+                fields_to_copy = [
+                    "first_name", "last_name", "designation", "department_name", 
+                    "contact_number", "email"
+                ]
+                
+                # Prepare data for new child row
+                child_data = {
+                    "doctype": "Contact Details",
+                    "parent": new_onboarding.name,
+                    "parenttype": "Vendor Onboarding",
+                    "parentfield": "contact_details"
+                }
+                
+                # Copy fields from source to child data
+                for field in fields_to_copy:
+                    if hasattr(src_row, field):
+                        child_data[field] = src_row.get(field)
+                
+                # Insert the child row
+                frappe.get_doc(child_data).db_insert()
+            
+            populated_docs.append("Contact Details: Success")
         
         frappe.db.commit()
         
@@ -488,8 +521,8 @@ def populate_vendor_onboarding_company_details(source_doc_name, target_vendor_on
         
         # Fields to copy
         fields_to_copy = [
-            "vendor_name", "office_email_primary", "telephone_number", "established_year", "gst", "company_pan_number", "cin_date", "type_of_business", "nature_of_company"
-            "nature_of_business", "corporate_identification_number", "address_line_1", "website", "size_of_company", "registered_office_number", "office_email_secondary"
+            "vendor_name", "office_email_primary", "telephone_number", "established_year", "gst", "company_pan_number", "cin_date", "type_of_business", "nature_of_company",
+            "nature_of_business", "corporate_identification_number", "address_line_1", "website", "size_of_company", "registered_office_number", "office_email_secondary",
             "address_line_2", "city", "district", "state", "country", "pincode", "whatsapp_number", "corporate_identification_number", 
             "same_as_above", "manufacturing_address_line_1", "manufacturing_address_line_2", "international_city", "international_country",
             "manufacturing_city", "manufacturing_district", "manufacturing_state", "international_state", "international_zipcode",
