@@ -20,8 +20,7 @@
   {
    "fieldname": "plant_code",
    "fieldtype": "Data",
-   "label": "Plant Code",
-   "unique": 1
+   "label": "Plant Code"
   },
   {
    "fieldname": "plant_name",
@@ -66,7 +65,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-11 12:30:24.551363",
+ "modified": "2025-10-11 12:33:47.622560",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Plant Master",
