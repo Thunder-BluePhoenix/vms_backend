@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:distribution_channel_code",
  "creation": "2025-09-25 15:32:56.308939",
@@ -38,7 +39,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-10 13:58:30.113774",
+ "modified": "2025-10-11 10:14:35.809500",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Distribution Channel",

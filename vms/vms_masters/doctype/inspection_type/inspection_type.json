@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:inspection_type_code",
  "creation": "2025-09-26 15:31:13.613186",
@@ -31,7 +32,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-10 12:59:55.486535",
+ "modified": "2025-10-11 10:13:46.771129",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Inspection Type",
