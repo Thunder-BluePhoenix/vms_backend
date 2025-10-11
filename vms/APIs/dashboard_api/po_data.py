@@ -2,10 +2,153 @@ import frappe
 import json
 
 
-@frappe.whitelist(allow_guest = True)
-def get_po():
-    all_po = frappe.get_all("Purchase Order", fields ="*", order_by = "modified desc")
-    return all_po
+# @frappe.whitelist(allow_guest = True)
+# def get_po():
+#     all_po = frappe.get_all("Purchase Order", fields ="*", order_by = "modified desc")
+#     return all_po
+
+
+@frappe.whitelist(allow_guest=True)
+def get_po(page_no=None, page_length=None):
+    try:
+        # Set default pagination
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 20
+        start = (page_no - 1) * page_length
+
+        user = frappe.session.user
+        user_roles = frappe.get_roles(user)
+
+        # VENDOR FLOW
+        if "Vendor" in user_roles:
+            # Get Vendor Master entries where user's email matches primary or secondary email
+            ref_no = frappe.get_all("Vendor Master", filters={"office_email_primary": user}, pluck="name")
+
+            if ref_no:
+                company_vendor_codes = frappe.get_all(
+                    "Company Vendor Code",
+                    filters={"vendor_ref_no": ["in", ref_no]},
+                    pluck="name"
+                )
+
+                if company_vendor_codes:
+                    vendor_codes_set = set()
+                    for code_name in company_vendor_codes:
+                        doc = frappe.get_doc("Company Vendor Code", code_name)
+                        if doc.vendor_code:
+                            for row in doc.vendor_code:
+                                vendor_codes_set.add(row.vendor_code)
+
+                    vendor_codes = list(vendor_codes_set)
+
+                    if vendor_codes:
+                        total_count = frappe.db.count("Purchase Order", {
+                            "vendor_code": ["in", vendor_codes],
+                            "sent_to_vendor": 1
+                        })
+
+                        total_pages = (total_count + page_length - 1) // page_length
+
+                        all_po = frappe.get_all(
+                            "Purchase Order",
+                            filters={
+                                "vendor_code": ["in", vendor_codes],
+                                "sent_to_vendor": 1
+                            },
+                            fields="*",
+                            order_by="modified desc",
+                            start=start,
+                            page_length=page_length
+                        )
+
+                        return {
+                            "status": "success",
+                            "message": "Purchase Orders fetched successfully.",
+                            "data": all_po,
+                            "total_count": total_count,
+                            "page_no": page_no,
+                            "page_length": page_length,
+                            "total_pages": total_pages
+                        }
+
+            # No Vendor Master or Vendor Codes
+            return {
+                "status": "success",
+                "message": "No Purchase Orders found for vendor.",
+                "data": [],
+                "total_count": 0,
+                "page_no": page_no,
+                "page_length": page_length,
+                "total_pages": 0
+            }
+
+        # NON-VENDOR FLOW
+        else:
+            emp_data = frappe.get_value("Employee", {"user_id": user}, ["team", "designation"])
+
+            if not emp_data:
+                return {
+                    "status": "error",
+                    "message": "Employee record not found for the current user.",
+                    "error": f"No employee found with user_id: {user}",
+                    "data": [],
+                    "total_count": 0,
+                    "page_no": page_no,
+                    "page_length": page_length,
+                    "total_pages": 0
+                }
+
+            team, designation = emp_data
+
+            pur_grp_codes = frappe.get_all(
+                "Purchase Group Master",
+                filters={"team": team},
+                pluck="purchase_group_code"
+            )
+
+            if not pur_grp_codes:
+                return {
+                    "status": "success",
+                    "message": "No purchase groups found for the user's team.",
+                    "data": [],
+                    "total_count": 0,
+                    "page_no": page_no,
+                    "page_length": page_length,
+                    "total_pages": 0
+                }
+
+            # Fetch purchase orders where purchase_group matches these codes
+            total_count = frappe.db.count("Purchase Order", {
+                "purchase_group": ["in", pur_grp_codes],
+                "sent_to_vendor": 1
+            })
+
+            total_pages = (total_count + page_length - 1) // page_length
+
+            all_po = frappe.get_all("Purchase Order",
+                                    filters={
+                                        "purchase_group": ["in", pur_grp_codes],
+                                        "sent_to_vendor": 1
+                                    },
+                                    fields="*",
+                                    order_by="modified desc",
+                                    start=start,
+                                    page_length=page_length)
+
+            return {
+                "status": "success",
+                "message": "Purchase Orders fetched successfully.",
+                "data": all_po,
+                "total_count": total_count,
+                "page_no": page_no,
+                "page_length": page_length,
+                "total_pages": total_pages
+            }
+
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_po error")
+        frappe.throw(f"Error while fetching purchase orders: {str(e)}")
 
 
 
