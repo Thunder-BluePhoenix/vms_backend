@@ -209,6 +209,7 @@ def create_or_update_aging_tracker_from_vendor_onboarding(vendor_onboarding_name
 			# Create new aging tracker
 			aging_doc = frappe.new_doc("Vendor Aging Tracker")
 			aging_doc.vendor_onboarding_link = vendor_onboarding_name
+			aging_doc.ag_id = vendor_onboarding_name
 		
 		# Extract vendor information from onboarding document
 		aging_doc.vendor_name = onboarding_doc.vendor_name or ""
@@ -302,6 +303,7 @@ def create_or_update_aging_tracker_from_sap_log(sap_log_name):
 		else:
 			doc = frappe.get_doc({
 				"doctype": "Vendor Aging Tracker",
+				"ag_id": doc_name,
 				"vendor_onboarding_link": doc_name
 			})
 		

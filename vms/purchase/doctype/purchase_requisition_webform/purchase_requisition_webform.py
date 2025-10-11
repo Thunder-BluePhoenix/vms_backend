@@ -8,6 +8,15 @@ from vms.utils.custom_send_mail import custom_sendmail
 
 
 class PurchaseRequisitionWebform(Document):
+
+	def validate(self):
+		if self.cart_details_id:
+			cart_details = frappe.get_doc("Cart Details", self.cart_details_id)
+			if cart_details.purchase_requisition_form_created and cart_details.purchase_requisition_form != self.name:
+				frappe.throw("Purchase Requisition Form is already created for this cart details.")
+
+
+				
 	def before_save(self):
 		set_unique_id(self, method=None)
 		# pass

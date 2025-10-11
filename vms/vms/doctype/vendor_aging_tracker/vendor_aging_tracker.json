@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:vendor_onboarding_link",
+ "autoname": "field:ag_id",
  "creation": "2025-10-06 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -11,6 +11,7 @@
   "vendor_name",
   "vendor_ref_no",
   "gst_number",
+  "ag_id",
   "column_break_1",
   "primary_vendor_code",
   "company_code",
@@ -263,12 +264,18 @@
    "label": "Oldest PO",
    "options": "Purchase Order",
    "read_only": 1
+  },
+  {
+   "fieldname": "ag_id",
+   "fieldtype": "Data",
+   "label": "AG ID",
+   "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-06 17:24:42.067606",
+ "modified": "2025-10-11 11:12:19.016264",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Vendor Aging Tracker",

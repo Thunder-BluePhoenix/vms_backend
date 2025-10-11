@@ -445,7 +445,7 @@
    "fieldtype": "Heading",
    "label": "Approval Status"
   },
-   {
+  {
    "fieldname": "column_break_oqet",
    "fieldtype": "Column Break"
   },
@@ -468,14 +468,14 @@
    "fieldname": "escalation_status",
    "fieldtype": "Select",
    "label": "Escalation Status",
-   "options": "Pending\nFirst Escalation Sent\nSecond Escalation Sent\nCompleted",
+   "options": "\nPending\nFirst Escalation Sent\nSecond Escalation Sent\nCompleted",
    "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-09 10:08:11.649315",
+ "modified": "2025-10-11 12:07:35.245458",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
