@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:{port_code} - {port_name}",
  "creation": "2025-05-23 13:09:58.294726",
@@ -73,7 +74,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-29 13:13:49.281682",
+ "modified": "2025-10-11 10:17:37.986570",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Port Master",

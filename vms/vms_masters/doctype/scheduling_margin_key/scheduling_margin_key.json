@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:smk_code",
  "creation": "2025-09-25 15:38:26.984458",
@@ -25,7 +26,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-10 13:02:46.570006",
+ "modified": "2025-10-11 10:15:25.803638",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Scheduling Margin Key",

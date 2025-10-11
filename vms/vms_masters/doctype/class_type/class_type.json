@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:class_type",
  "creation": "2025-09-25 15:35:12.540329",
@@ -31,7 +32,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-10 13:08:48.529750",
+ "modified": "2025-10-11 10:14:01.956336",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Class Type",
