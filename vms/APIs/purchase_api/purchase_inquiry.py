@@ -937,18 +937,25 @@ def get_company_for_pe_detailed(usr):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_plants_and_purchase_group(comp):
+def get_plants_and_purchase_group(comp, page=1, page_size=20, search_term=None, 
+                                   entity_type=None, sort_by=None, sort_order="asc"):
     """
-    Get plant and purchase group data for a given company
+    Get plant and purchase group data for a given company with pagination and filters
     
     Args:
         comp (str): Company name to filter records
+        page (int): Page number (default: 1)
+        page_size (int): Number of records per page (default: 20, max: 100)
+        search_term (str): Search term to filter across name and description fields
+        entity_type (str): Filter by specific entity type ('plants', 'purchase_groups', 'cost_centers', 'gl_accounts', or 'all')
+        sort_by (str): Field to sort by
+        sort_order (str): Sort order ('asc' or 'desc')
         
     Returns:
-        dict: Dictionary containing plant and purchase group data
+        dict: Dictionary containing paginated plant and purchase group data
     """
     try:
-        # Validate input parameter
+        # Validate and sanitize input parameters
         if not comp:
             frappe.throw(_("Company is required"), frappe.ValidationError)
         
@@ -956,105 +963,270 @@ def get_plants_and_purchase_group(comp):
         if not frappe.db.exists("Company", comp) and not frappe.db.exists("Company Master", comp):
             frappe.throw(_("Company '{0}' not found").format(comp), frappe.DoesNotExistError)
         
+        # Validate pagination parameters
+        try:
+            page = int(page) if page else 1
+            page_size = int(page_size) if page_size else 20
+        except (ValueError, TypeError):
+            frappe.throw(_("Invalid pagination parameters"), frappe.ValidationError)
+        
+        # Enforce pagination limits
+        if page < 1:
+            page = 1
+        if page_size < 1:
+            page_size = 20
+        if page_size > 100:
+            page_size = 100
+        
+        # Validate sort order
+        sort_order = sort_order.lower() if sort_order else "asc"
+        if sort_order not in ["asc", "desc"]:
+            sort_order = "asc"
+        
+        # Calculate offset
+        start = (page - 1) * page_size
+        
+        # Determine which entities to fetch
+        fetch_all = not entity_type or entity_type == "all"
+        fetch_plants = fetch_all or entity_type == "plants"
+        fetch_purchase_groups = fetch_all or entity_type == "purchase_groups"
+        fetch_cost_centers = fetch_all or entity_type == "cost_centers"
+        fetch_gl_accounts = fetch_all or entity_type == "gl_accounts"
+        
         response = {
             "success": True,
             "company": comp,
-            "plants": [],
-            "purchase_groups": [],
-            "cost_centers": [],
-            "gl_accounts": [],
+            "page": page,
+            "page_size": page_size,
+            "search_term": search_term,
+            "entity_type": entity_type or "all",
+            "plants": {"data": [], "total": 0},
+            "purchase_groups": {"data": [], "total": 0},
+            "cost_centers": {"data": [], "total": 0},
+            "gl_accounts": {"data": [], "total": 0},
             "errors": []
         }
         
         # Get Plant Master data
-        try:
-            plants = frappe.get_all(
-                "Plant Master",
-                filters={"company": comp},
-                fields=["name", "plant_name", "description"]
-            )
-            response["plants"] = plants
-
-            
-        except frappe.PermissionError:
-            frappe.log_error(f"Permission denied for Plant Master - Company: {comp}")
-            response["errors"].append("Permission denied for Plant Master")
-        except Exception as e:
-            frappe.log_error(f"Error fetching Plant Master for company {comp}: {str(e)}")
-            response["errors"].append("Error fetching Plant Master data")
-
-        try:
-            cost_centers = frappe.get_all(
-                "Cost Center",
-                filters={"company_code": comp},
-                fields=["name", "cost_center_name", "cost_center_code", "description"]
-            )
-            response["cost_centers"] = cost_centers
-
-           
-
-            
-        except frappe.PermissionError:
-            frappe.log_error(f"Permission denied for Cost Centers - Company: {comp}")
-            response["errors"].append("Permission denied for Cost Centers")
-        except Exception as e:
-            frappe.log_error(f"Error fetching Cost Centers for company {comp}: {str(e)}")
-            response["errors"].append("Error fetching Cost centers data")
+        if fetch_plants:
+            try:
+                plants_data = get_entity_data(
+                    doctype="Plant Master",
+                    company_field="company",
+                    company=comp,
+                    search_term=search_term,
+                    search_fields=["name", "plant_name", "description"],
+                    fields=["name", "plant_name", "description"],
+                    sort_by=sort_by or "name",
+                    sort_order=sort_order,
+                    start=start,
+                    page_size=page_size
+                )
+                response["plants"] = plants_data
+                
+            except frappe.PermissionError:
+                frappe.log_error(f"Permission denied for Plant Master - Company: {comp}")
+                response["errors"].append("Permission denied for Plant Master")
+            except Exception as e:
+                frappe.log_error(f"Error fetching Plant Master for company {comp}: {str(e)}")
+                response["errors"].append("Error fetching Plant Master data")
         
-        try:
-            gl_accounts = frappe.get_all(
-                "GL Account",
-                filters={"company": comp},
-                fields=["name", "gl_account_name", "description"]
-            )
-            response["gl_accounts"] = gl_accounts
-
-            
-        except frappe.PermissionError:
-            frappe.log_error(f"Permission denied for GL Accounts- Company: {comp}")
-            response["errors"].append("Permission denied for GL Accounts")
-        except Exception as e:
-            frappe.log_error(f"Error fetching GL Accounts for company {comp}: {str(e)}")
-            response["errors"].append("Error fetching GL Accounts data")
+        # Get Cost Center data
+        if fetch_cost_centers:
+            try:
+                cost_centers_data = get_entity_data(
+                    doctype="Cost Center",
+                    company_field="company_code",
+                    company=comp,
+                    search_term=search_term,
+                    search_fields=["name", "cost_center_name", "cost_center_code", "description","company_code"],
+                    fields=["name", "cost_center_name", "cost_center_code", "description"],
+                    sort_by=sort_by or "name",
+                    sort_order=sort_order,
+                    start=start,
+                    page_size=page_size
+                )
+                response["cost_centers"] = cost_centers_data
+                
+            except frappe.PermissionError:
+                frappe.log_error(f"Permission denied for Cost Centers - Company: {comp}")
+                response["errors"].append("Permission denied for Cost Centers")
+            except Exception as e:
+                frappe.log_error(f"Error fetching Cost Centers for company {comp}: {str(e)}")
+                response["errors"].append("Error fetching Cost Centers data")
+        
+        # Get GL Account data
+        if fetch_gl_accounts:
+            try:
+                gl_accounts_data = get_entity_data(
+                    doctype="GL Account",
+                    company_field="company",
+                    company=comp,
+                    search_term=search_term,
+                    search_fields=["name", "gl_account_name", "description"],
+                    fields=["name", "gl_account_name", "description"],
+                    sort_by=sort_by or "name",
+                    sort_order=sort_order,
+                    start=start,
+                    page_size=page_size
+                )
+                response["gl_accounts"] = gl_accounts_data
+                
+            except frappe.PermissionError:
+                frappe.log_error(f"Permission denied for GL Accounts - Company: {comp}")
+                response["errors"].append("Permission denied for GL Accounts")
+            except Exception as e:
+                frappe.log_error(f"Error fetching GL Accounts for company {comp}: {str(e)}")
+                response["errors"].append("Error fetching GL Accounts data")
         
         # Get Purchase Group Master data
-        try:
-            purchase_groups = frappe.get_all(
-                "Purchase Group Master",
-                filters={"company": comp},
-                fields=["name", "purchase_group_code", "team", "purchase_group_name", "description"]
-            )
-            response["purchase_groups"] = purchase_groups
-            
-        except frappe.PermissionError:
-            frappe.log_error(f"Permission denied for Purchase Group Master - Company: {comp}")
-            response["errors"].append("Permission denied for Purchase Group Master")
-        except Exception as e:
-            frappe.log_error(f"Error fetching Purchase Group Master for company {comp}: {str(e)}")
-            response["errors"].append("Error fetching Purchase Group Master data")
+        if fetch_purchase_groups:
+            try:
+                purchase_groups_data = get_entity_data(
+                    doctype="Purchase Group Master",
+                    company_field="company",
+                    company=comp,
+                    search_term=search_term,
+                    search_fields=["name", "purchase_group_code", "team", "purchase_group_name", "description"],
+                    fields=["name", "purchase_group_code", "team", "purchase_group_name", "description"],
+                    sort_by=sort_by or "name",
+                    sort_order=sort_order,
+                    start=start,
+                    page_size=page_size
+                )
+                response["purchase_groups"] = purchase_groups_data
+                
+            except frappe.PermissionError:
+                frappe.log_error(f"Permission denied for Purchase Group Master - Company: {comp}")
+                response["errors"].append("Permission denied for Purchase Group Master")
+            except Exception as e:
+                frappe.log_error(f"Error fetching Purchase Group Master for company {comp}: {str(e)}")
+                response["errors"].append("Error fetching Purchase Group Master data")
+        
+        # Calculate total records
+        total_records = (
+            response["plants"]["total"] +
+            response["purchase_groups"]["total"] +
+            response["cost_centers"]["total"] +
+            response["gl_accounts"]["total"]
+        )
+        
+        response["total_records"] = total_records
+        response["total_pages"] = (total_records + page_size - 1) // page_size if page_size > 0 else 0
         
         # Check if any data was retrieved
-        if not response["plants"] and not response["purchase_groups"] and not response["errors"] and not response["cost_centers"] and not response["gl_accounts"]:
-            response["errors"].append("No plant or purchase group data found for the specified company")
+        if total_records == 0 and not response["errors"]:
+            response["errors"].append("No data found for the specified company and filters")
         
         return response
         
     except frappe.ValidationError:
-        # Re-raise validation errors as they contain user-friendly messages
         raise
     except frappe.DoesNotExistError:
-        # Re-raise DoesNotExist errors as they contain user-friendly messages
         raise
     except frappe.PermissionError:
         frappe.throw(_("Insufficient permissions to access the requested data"), frappe.PermissionError)
     except Exception as e:
-        # Log unexpected errors and return generic message
         frappe.log_error(f"Unexpected error in get_plants_and_purchase_group: {str(e)}")
         frappe.throw(_("An unexpected error occurred. Please try again later."), frappe.ValidationError)
 
 
+def get_entity_data(doctype, company_field, company, search_term, search_fields, 
+                    fields, sort_by, sort_order, start, page_size):
+   
+    filters = {company_field: company}
     
+    # Build OR filters for search term
+    or_filters = None
+    if search_term:
+        or_filters = []
+        for field in search_fields:
+            or_filters.append([doctype, field, "like", f"%{search_term}%"])
+    
+    # Validate sort_by field
+    if sort_by and sort_by not in fields:
+        sort_by = "name"
+    
+    # Get paginated data
+    data = frappe.get_all(
+        doctype,
+        filters=filters,
+        or_filters=or_filters,
+        fields=fields,
+        order_by=f"{sort_by} {sort_order}",
+        start=start,
+        page_length=page_size
+    )
+    
+    # Get total count - frappe.db.count doesn't support or_filters
+    # So we use get_all without pagination to count
+    if search_term and or_filters:
+        # Count with search filters using get_all
+        total = len(frappe.get_all(
+            doctype,
+            filters=filters,
+            or_filters=or_filters,
+            fields=["name"],
+            limit_page_length=0  # Get all records to count
+        ))
+    else:
+        # Simple count without search
+        total = frappe.db.count(doctype, filters=filters)
+    
+    return {
+        "data": data,
+        "total": total
+    }
 
+
+@frappe.whitelist(allow_guest=True)
+def get_entity_counts(comp):
+   
+    try:
+        if not comp:
+            frappe.throw(_("Company is required"), frappe.ValidationError)
+        
+        counts = {
+            "success": True,
+            "company": comp,
+            "counts": {
+                "plants": 0,
+                "purchase_groups": 0,
+                "cost_centers": 0,
+                "gl_accounts": 0
+            },
+            "errors": []
+        }
+        
+        # Count each entity type
+        try:
+            counts["counts"]["plants"] = frappe.db.count("Plant Master", {"company": comp})
+        except Exception as e:
+            counts["errors"].append(f"Error counting plants: {str(e)}")
+        
+        try:
+            counts["counts"]["cost_centers"] = frappe.db.count("Cost Center", {"company_code": comp})
+        except Exception as e:
+            counts["errors"].append(f"Error counting cost centers: {str(e)}")
+        
+        try:
+            counts["counts"]["gl_accounts"] = frappe.db.count("GL Account", {"company": comp})
+        except Exception as e:
+            counts["errors"].append(f"Error counting GL accounts: {str(e)}")
+        
+        try:
+            counts["counts"]["purchase_groups"] = frappe.db.count("Purchase Group Master", {"company": comp})
+        except Exception as e:
+            counts["errors"].append(f"Error counting purchase groups: {str(e)}")
+        
+        counts["total"] = sum(counts["counts"].values())
+        
+        return counts
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_entity_counts: {str(e)}")
+        frappe.throw(_("An error occurred while fetching counts"), frappe.ValidationError)
+    
 # @frappe.whitelist(allow_guest=True)
 # def get_purchase_type():
 #      pt = frappe.get_all(
