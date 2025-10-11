@@ -518,10 +518,7 @@ def vendor_data_for_purchase(usr, user_roles):
         )
 
 
-        purchase_order_count = frappe.db.count(
-            "Purchase Order",
-            filters={"purchase_group": ["in", pur_grp]}
-        )
+    
 
         # Pending vendor count with role-based logic
         pending_filters = {**base_filters, "onboarding_form_status": "Pending"}
@@ -552,7 +549,8 @@ def vendor_data_for_purchase(usr, user_roles):
                 "creation": ["between", [start_date, end_date]]
             }
         )
-        # cart_count = frappe.db.count("Cart Details")
+
+        # cart details Count
         cart_query = """
             SELECT COUNT(*)
             FROM `tabCart Details` cd
@@ -566,17 +564,46 @@ def vendor_data_for_purchase(usr, user_roles):
         user_cart_count = frappe.db.count("Cart Details",      # those cart which created by own
                                     filters= {"user":usr })
         
+        # Purchase Reqisition Count
+
         user_pr_count = frappe.db.count("Purchase Requisition Webform",      # those pr which created by own
                                     filters= {"requisitioner":usr })
         
+        pur_groups = frappe.get_all(
+            "Purchase Group Master",
+            filters={"team": team},
+            fields=["name", "purchase_group_code"]
+        )
+
+        # Extract only the names for filtering PRs
+        pur_grp_names = [d["name"] for d in pur_groups]
+
         pr_count = 0
-        
-        pur_grp_names = frappe.get_all("Purchase Group Master", {"team": team}, pluck="name")
 
         if employee.show_all_purchase_groups == 1:
             pr_count = frappe.db.count("Purchase Requisition Webform")
         else:
             pr_count = frappe.db.count("Purchase Requisition Webform", filters={"purchase_group": ["in", pur_grp_names]})
+
+
+        # Purchase order Count
+
+        # Extract only the pur_grp_codes for filtering POs
+        pur_grp_codes = [d["purchase_group_code"] for d in pur_groups]
+
+        purchase_order_count = 0
+
+        if employee.show_all_purchase_groups == 1:
+            purchase_order_count = frappe.db.count(
+                "Purchase Order",
+                filters={"sent_to_vendor": 1}
+            )
+        else:
+            purchase_order_count = frappe.db.count(
+                "Purchase Order",
+                filters={"purchase_group": ["in", pur_grp_codes], "sent_to_vendor": 1}
+            )
+
             
         # cart_count = len(all_cart)
 
