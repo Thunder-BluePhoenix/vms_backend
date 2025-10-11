@@ -213,68 +213,50 @@ def verify_approver_n_get_info(user, stage, doc, next_stage=None):
     
     return get_next_approver(stage, doc, next_stage)
 
-
 def send_approval_notification(linked_user, doc, is_approved=True, current_stage=None):
-    """Send approval notification email"""
+    """Send approval notification - calls your existing email functions"""
     try:
+        # Import your existing email functions
+        from vms.material.doctype.cart_details.cart_details import (
+            send_mail_purchase,
+            send_mail_hod,
+            send_mail_user
+        )
+        
         if not linked_user:
             frappe.log_error("No next approver found - skipping notification")
             return
         
-        to_user = frappe.get_doc("User", linked_user)
-        current_approver = frappe.get_doc("User", frappe.session.user)
-        current_stage_name = current_stage.get("approval_stage_name", "Unknown Stage") if current_stage else "Unknown Stage"
+        # Your existing logic to determine which email to send
+        # This will be called based on approval matrix stages
+        stage_name = current_stage.get("approval_stage_name", "") if current_stage else ""
         
-        subject = f"Cart Details Approval Required - {doc.get('name', 'N/A')}"
-        
-        email_body = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #2c3e50;">Cart Details Approval Required</h2>
-            <p>Dear {to_user.full_name or to_user.first_name or 'User'},</p>
-            <p>Please review this Cart Details document and provide your approval.</p>
-            <p><strong>Document:</strong> {doc.get('name', 'N/A')}</p>
-            <p><strong>Status:</strong> {doc.get('approval_status', 'Pending')}</p>
-            <p><strong>Last Action By:</strong> {current_approver.full_name or current_approver.first_name} ({current_stage_name})</p>
-        </div>
-        """
-        
-        frappe.custom_sendmail(
-            recipients=[to_user.name],
-            cc=[current_approver.email] if current_approver else None,
-            subject=subject,
-            message=email_body,
-            now=True
-        )
+        # Determine which email function to call based on stage
+        if "Purchase Team" in stage_name:
+            send_mail_purchase(doc, method=None)
+        elif "Purchase Head" in stage_name or "HOD" in stage_name:
+            send_mail_hod(doc, method=None)
+        elif "Final" in stage_name or not linked_user:
+            send_mail_user(doc, method=None)
         
     except Exception as e:
         frappe.log_error(f"Error sending approval notification: {str(e)}")
 
 
 def send_rejection_notification(linked_user, doc, rejected_by_user, remark, current_stage):
-    """Send notification when document is rejected"""
+    """Send rejection notification - calls your existing rejection email"""
     try:
-        to_user = frappe.get_doc("User", doc.owner)
-        rejector = frappe.get_doc("User", rejected_by_user)
-        stage_name = current_stage.get("approval_stage_name", "Unknown Stage") if current_stage else "Unknown Stage"
+        # Import your existing rejection email function
+        from vms.material.doctype.cart_details.cart_details import rejection_mail_to_user
         
-        subject = f"Cart Details Rejected - {doc.get('name', 'N/A')}"
+        # Set rejection fields
+        doc.rejected = 1
+        doc.rejected_by = rejected_by_user
+        doc.reason_for_rejection = remark
+        doc.save(ignore_permissions=True)
         
-        email_body = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #721c24;">Cart Details Rejected</h2>
-            <p>Dear {to_user.full_name or to_user.first_name},</p>
-            <p>Your Cart Details has been rejected.</p>
-            <p><strong>Rejected By:</strong> {rejector.full_name or rejector.first_name} ({stage_name})</p>
-            <p><strong>Remarks:</strong> {remark or 'No remarks provided'}</p>
-        </div>
-        """
-        
-        frappe.custom_sendmail(
-            recipients=[to_user.name],
-            subject=subject,
-            message=email_body,
-            now=True
-        )
+        # Call your existing rejection email
+        rejection_mail_to_user(doc, method=None)
         
     except Exception as e:
         frappe.log_error(f"Error sending rejection notification: {str(e)}")
@@ -351,19 +333,14 @@ def approve_purchase_enquiry(purchase_enquiry_id, action, remark="", required_op
 
        
         if not is_approved:
-            
-            # linked_user = ""
             next_stage = None
-            pass
-            
-            # send_rejection_notification(linked_user, qms, current_user, remark, cur_stage)
+            send_rejection_notification(linked_user, purchase_enquiry, current_user, remark, cur_stage)
         else:
-            pass
-            
-            # if linked_user:  
-            #     send_approval_notification(linked_user, qms, is_approved, cur_stage)
-            # else:  
-            #     send_approval_notification(None, qms, is_approved, cur_stage)
+            if linked_user:
+                send_approval_notification(linked_user, purchase_enquiry, is_approved, next_stage)
+            else:
+                # Final approval - send user notification
+                send_approval_notification(None, purchase_enquiry, is_approved, cur_stage)
 
         add_approval_entry(
             "Cart Details",
