@@ -118,6 +118,7 @@ def create_aging_tracker_with_sap_data(vendor_onboarding_name, onboarding_status
         # Initialize aging tracker data
         aging_data = {
             "doctype": "Vendor Aging Tracker",
+            "ag_id": vendor_onboarding_name,
             "vendor_onboarding_link": vendor_onboarding_name,
             "vendor_name": onboarding_doc.vendor_name or "",
             "vendor_ref_no": onboarding_doc.ref_no or "",

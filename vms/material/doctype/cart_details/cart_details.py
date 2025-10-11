@@ -122,8 +122,8 @@ def process_cart_escalations():
         try:
             cart_doc = frappe.get_doc("Cart Details", cart.name)
             send_mail_alternate_purchase(cart_doc, method=None)
-            cart_doc.escalation_status = "First Escalation Sent"
-            cart_doc.save(ignore_permissions=True)
+            # cart_doc.escalation_status = "First Escalation Sent"
+            # cart_doc.save(ignore_permissions=True)
             frappe.db.commit()
         except Exception as e:
             frappe.log_error(f"First escalation failed for {cart.name}: {str(e)}", "Cart Escalation Error")
@@ -143,8 +143,8 @@ def process_cart_escalations():
         try:
             cart_doc = frappe.get_doc("Cart Details", cart.name)
             send_mail_purchase_hod(cart_doc, method=None)
-            cart_doc.escalation_status = "Second Escalation Sent"
-            cart_doc.save(ignore_permissions=True)
+            # cart_doc.escalation_status = "Second Escalation Sent"
+            # cart_doc.save(ignore_permissions=True)
             frappe.db.commit()
         except Exception as e:
             frappe.log_error(f"Second escalation failed for {cart.name}: {str(e)}", "Cart Escalation Error")
@@ -661,7 +661,11 @@ def send_mail_alternate_purchase(doc, method=None):
 				frappe.custom_sendmail(recipients=[purchase_team_email], subject=subject, message=message, now=True)
 
 				# doc.mail_sent_to_purchase_team = 1
-				frappe.db.set_value("Cart Details", doc.name, "mailed_to_alternate_purchase_team", 1)
+				doc.db_set({
+								"mailed_to_alternate_purchase_team": 1,
+								"escalation_status": "First Escalation Sent"
+							}, commit=False)
+				# frappe.db.set_value("Cart Details", doc.name, "mailed_to_alternate_purchase_team", 1)
 				
 				return {
 					"status": "success",
@@ -781,7 +785,12 @@ def send_mail_purchase_hod(doc, method=None):
 			)
 
 			# Update the document to mark email as sent
-			frappe.db.set_value("Cart Details", doc.name, "mailed_to_purchase_head", 1)
+
+			doc.db_set({
+							"mail_sent_to_hod": 1,
+							"escalation_status": "Second Escalation Sent"
+						}, commit=False)
+			# frappe.db.set_value("Cart Details", doc.name, "mailed_to_purchase_head", 1)
 			
 			return {
 				"status": "success",
