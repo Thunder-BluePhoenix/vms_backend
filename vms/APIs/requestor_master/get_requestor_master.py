@@ -218,9 +218,9 @@ def get_requestor_master_list(filters=None, fields=None, limit=20, offset=0, ord
 
 
 
-#vms.APIs.requestor_master.get_requestor_master.get_requestor__statistics
+#vms.APIs.requestor_master.get_requestor_master.get_requestor_statistics
 @frappe.whitelist()
-def get_requestor__statistics(filters=None):
+def get_requestor_statistics(filters=None):
     try:
         # Check permission
         if not frappe.has_permission("Requestor Master", "read"):
