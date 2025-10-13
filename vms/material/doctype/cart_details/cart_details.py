@@ -9,7 +9,7 @@ import json
 from vms.utils.custom_send_mail import custom_sendmail
 from datetime import datetime, timedelta
 from frappe.utils import now_datetime, add_to_date, get_datetime
-
+import time
 
 
 
@@ -17,6 +17,10 @@ from frappe.utils import now_datetime, add_to_date, get_datetime
 class CartDetails(Document):
 	def after_insert(self):
 		"""Create Cart Aging Track record when cart is created"""
+		# if self.is_new():
+		# Ensure cart document is fully committed
+		# print("####################################after save called###################################################")
+
 		try:
 			from vms.purchase.doctype.cart_aging_track.cart_aging_track import create_or_update_cart_aging_track
 			create_or_update_cart_aging_track(self.name)
@@ -25,6 +29,9 @@ class CartDetails(Document):
 				title=f"Error creating Cart Aging Track for {self.name}",
 				message=frappe.get_traceback()
 			)
+
+		# else:
+		# 	pass
 
 	
 
@@ -136,20 +143,31 @@ class CartDetails(Document):
 
 	def on_update(self):
 		send_purchase_inquiry_email(self, method=None)
-		if self.has_value_changed('hod_approved') or \
-		   self.has_value_changed('second_stage_approved') or \
-		   self.has_value_changed('is_requested_second_stage_approval'):
-			
-			# Check if cart is now approved
-			if self.is_cart_approved():
-				try:
-					from vms.purchase.doctype.cart_aging_track.cart_aging_track import update_aging_track_on_cart_approval
-					update_aging_track_on_cart_approval(self.name)
-				except Exception as e:
-					frappe.log_error(
-						title=f"Error updating Cart Aging Track on approval for {self.name}",
-						message=frappe.get_traceback()
-					)
+		# if self.is_new():
+		# try:
+		# 	from vms.purchase.doctype.cart_aging_track.cart_aging_track import create_or_update_cart_aging_track
+		# 	cart_id = self.name
+		# 	create_or_update_cart_aging_track(cart_id = cart_id)
+		# except Exception as e:
+		# 	frappe.log_error(
+		# 		title=f"Error creating Cart Aging Track for {self.name}",
+		# 		message=frappe.get_traceback()
+		# 	)
+		if not self.is_new():
+			if self.has_value_changed('hod_approved') or \
+			self.has_value_changed('second_stage_approved') or \
+			self.has_value_changed('is_requested_second_stage_approval'):
+				
+				# Check if cart is now approved
+				if self.is_cart_approved():
+					try:
+						from vms.purchase.doctype.cart_aging_track.cart_aging_track import update_aging_track_on_cart_approval
+						update_aging_track_on_cart_approval(self.name)
+					except Exception as e:
+						frappe.log_error(
+							title=f"Error updating Cart Aging Track on approval for {self.name}",
+							message=frappe.get_traceback()
+						)
 		
 
 

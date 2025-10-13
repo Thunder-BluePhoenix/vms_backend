@@ -32,7 +32,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Cart ID",
-   "options": "Cart Aging Track",
+   "options": "Cart Details",
    "reqd": 1
   },
   {
@@ -129,7 +129,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-11 16:55:38.784175",
+ "modified": "2025-10-13 17:10:59.749177",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Cart Aging Track",
