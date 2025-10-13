@@ -313,7 +313,12 @@ class VendorImportStaging(Document):
                     self.vendor_code,
                     self.c_code,
                     self.state,
-                    self.gstn_no
+                    self.gstn_no,
+                    self.city,
+                    self.address01,
+                    self.address02,
+                    self.pincode,
+                    self.country
                 )
                 
                 if company_code_result.get("warnings"):
@@ -339,7 +344,7 @@ class VendorImportStaging(Document):
             frappe.log_error(f"{error_msg}\nStaging Record: {self.name}", "Vendor Import Staging Error")
             return None
 
-    def handle_company_vendor_code(self, vendor_ref_no, vendor_code, company_code, state, gst_no):
+    def handle_company_vendor_code(self, vendor_ref_no, vendor_code, company_code, state, gst_no, city = None, add1 = None, add2=None, zip=None, country=None):
         """Enhanced handling of Company Vendor Code with proper duplicate logic + Vendor Master sync"""
         
         result = {
@@ -385,7 +390,12 @@ class VendorImportStaging(Document):
                     cvc_doc.append("vendor_code", {
                         "vendor_code": vendor_code,
                         "state": state,
-                        "gst_no": gst_no
+                        "gst_no": gst_no,
+                        "city": city,
+                        "address_line1": add1,
+                        "address_line2": add2,
+                        "zip_code": zip,
+                        "country": country
                     })
                     result["company_code_action"] = "updated"
             
