@@ -20,8 +20,11 @@
   "company_address_section",
   "street_1",
   "street_2",
+  "contact_no",
+  "column_break_avrd",
   "city",
   "pincode",
+  "state",
   "section_break_vaek",
   "inactive"
  ],
@@ -80,27 +83,29 @@
   {
    "fieldname": "company_address_section",
    "fieldtype": "Section Break",
-   "label": "Company Address"
+   "label": "Company Address & Contact"
   },
   {
    "fieldname": "street_1",
    "fieldtype": "Data",
-   "label": "Street 1"
+   "label": "Address 1"
   },
   {
    "fieldname": "street_2",
    "fieldtype": "Data",
-   "label": "Street 2"
+   "label": "Address 2"
   },
   {
    "fieldname": "city",
-   "fieldtype": "Data",
-   "label": "City"
+   "fieldtype": "Link",
+   "label": "City",
+   "options": "City Master"
   },
   {
    "fieldname": "pincode",
-   "fieldtype": "Data",
-   "label": "Pincode"
+   "fieldtype": "Link",
+   "label": "Pincode",
+   "options": "Pincode Master"
   },
   {
    "fieldname": "section_break_vaek",
@@ -117,12 +122,27 @@
    "fieldname": "qms_required",
    "fieldtype": "Check",
    "label": "QMS Required"
+  },
+  {
+   "fieldname": "column_break_avrd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Link",
+   "label": "State",
+   "options": "State Master"
+  },
+  {
+   "fieldname": "contact_no",
+   "fieldtype": "Data",
+   "label": "Contact No"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-07 11:26:41.829959",
+ "modified": "2025-10-14 01:43:56.972815",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Company Master",
