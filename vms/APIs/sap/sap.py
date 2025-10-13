@@ -1479,11 +1479,11 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
                     vc.gst_no = gst
                     vc.state = state
                     vc.city = city
-                    vc.address_line1 = add1
-                    vc.address_line2 = add2
-                    vc.district = dist
-                    vc.zip_code = zip
-                    vc.country = country
+                    vc.address_line1 = add1 or ""
+                    vc.address_line2 = add2 or ""
+                    vc.district = dist or ""
+                    vc.zip_code = zip or ""
+                    vc.country = country or ""
                     found_existing = True
                     print(f"✅ Updated existing vendor code row: GST={gst}, State={state}, Vendor Code={vendor_code}")
                     break
@@ -1493,7 +1493,13 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
             new_vendor_code_row = {
                 "vendor_code": vendor_code,
                 "gst_no": gst,
-                "state": state
+                "state": state,
+                "city": city,
+                "address_line1": add1 or "",
+                "address_line2": add2 or "",    
+                "district": dist or "",
+                "zip_code": zip or "",
+                "country": country or ""
             }
             cvc.append("vendor_code", new_vendor_code_row)
             print(f"✅ Added new vendor code row: GST={gst}, State={state}, Vendor Code={vendor_code}")
