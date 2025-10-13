@@ -196,7 +196,8 @@ def get_requestor_master_list(filters=None, fields=None, limit=20, offset=0, ord
 
         return {
             "message": "Success",
-            "data": documents,
+            "data": requestor_master_list,
+
             "pagination": {
                 "total_count": total_count,
                 "limit": limit,
