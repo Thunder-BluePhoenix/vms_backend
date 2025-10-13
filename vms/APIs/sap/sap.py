@@ -325,8 +325,15 @@ def erp_to_sap_vendor_data(onb_ref):
                 vcd_state = safe_get_doc("State Master", getattr(vcd, "state", None))
                 Zuawa = "001"
                 
+                
                 # **DOMESTIC VENDOR PROCESSING (India)**
                 if onb.vendor_country == "India":
+                    add1 = vcd.address_line_1 or ""
+                    add2 = vcd.address_line_2 or ""
+                    dist = vcd.district or ""
+                    pin = vcd.pincode or ""
+                    vcd_city = vcd.city or ""
+                    country = "India"
                     print(f"   📋 Company: {vcd.company_name}")
                     print(f"   📋 SAP Client Code: {sap_client_code}")
                     print(f"   📋 GST Tables to process: {len(vcd.comp_gst_table)}")
@@ -505,7 +512,7 @@ def erp_to_sap_vendor_data(onb_ref):
                                     try:
                                         update_result = update_vendor_master(
                                             onb.ref_no, vcd.company_name, sap_client_code, 
-                                            vedno, gst_num, gst_state, onb.name
+                                            vedno, gst_num, gst_state, onb.name, add1, add2, dist, pin, vcd_city, country
                                         )
                                         print(f"      📝 Vendor Master Update for Duplicate: {update_result['status']}")
                                         
@@ -558,7 +565,7 @@ def erp_to_sap_vendor_data(onb_ref):
                                     try:
                                         update_result = update_vendor_master(
                                             onb.ref_no, vcd.company_name, sap_client_code, 
-                                            vedno, gst_num, gst_state, onb.name
+                                            vedno, gst_num, gst_state, onb.name, add1, add2, dist, pin, vcd_city, country
                                         )
                                         print(f"      📝 Vendor Master Update: {update_result['status']}")
                                     except Exception as update_err:
@@ -591,6 +598,12 @@ def erp_to_sap_vendor_data(onb_ref):
 
                 # **INTERNATIONAL VENDOR PROCESSING (Non-India)**
                 elif onb.vendor_country != "India":
+                    city = vcd.international_city or ""
+                    state = vcd.international_state or ""
+                    zip = vcd.international_zipcode or ""
+                    country = vcd.international_country or ""
+                    add1 = vcd.address_line_1 or ""
+                    add2 = vcd.address_line_2 or ""
                     total_gst_rows_processed += 1  # Count international as 1 entry
                     
                     print(f"   📋 Company: {vcd.company_name}")
@@ -757,7 +770,7 @@ def erp_to_sap_vendor_data(onb_ref):
                                     # **STEP 1: POPULATE VENDOR CODE FIRST**
                                     update_result = update_vendor_master(
                                         onb.ref_no, vcd.company_name, sap_client_code, 
-                                        vedno, gst_num, vcc_state, onb.name
+                                        vedno, gst_num, vcc_state, onb.name, add1, add2, "", zip, city, country
                                     )
                                     print(f"      📝 Vendor Master Update for International Duplicate: {update_result['status']}")
                                     
@@ -810,7 +823,7 @@ def erp_to_sap_vendor_data(onb_ref):
                                     vcc_state = f"International-{gst_state}-{gst_city}"
                                     update_result = update_vendor_master(
                                         onb.ref_no, vcd.company_name, sap_client_code, 
-                                        vedno, gst_num, vcc_state, onb.name
+                                        vedno, gst_num, vcc_state, onb.name, add1, add2, "", zip, city, country
                                     )
                                     print(f"      📝 Vendor Master Update: {update_result['status']}")
                                 except Exception as update_err:
@@ -1427,13 +1440,14 @@ def get_vendor_details_for_email(onb_doc):
         }
 
 
-def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, onb):
+def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, onb, add1, add2, dist, zip, city, country):
     """
     Fixed function to properly handle multiple vendor code rows for a single company
     """
     try:
         # Get vendor master document
         ref_vm = frappe.get_doc("Vendor Master", name)
+        
         
         # Look for existing Company Vendor Code document
         cvc_name = frappe.db.exists("Company Vendor Code", {
@@ -1464,6 +1478,12 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
                     vc.vendor_code = vendor_code
                     vc.gst_no = gst
                     vc.state = state
+                    vc.city = city
+                    vc.address_line1 = add1
+                    vc.address_line2 = add2
+                    vc.district = dist
+                    vc.zip_code = zip
+                    vc.country = country
                     found_existing = True
                     print(f"✅ Updated existing vendor code row: GST={gst}, State={state}, Vendor Code={vendor_code}")
                     break
