@@ -395,8 +395,13 @@ def get_po_details_withformat(po_name, po_format_name=None):
         po_dict["sign_url1"] = None
         po_dict["sign_url2"] = None
         po_dict["sign_url3"] = None
+        po_dict["company_logo"] = None
         
         pr_no = po.get("ref_pr_no")
+        bill_to_comapny = po.get("bill_to_company")
+        
+        
+            
         
         if pr_no:
             pr_form_name = frappe.db.get_value("Purchase Requisition Form", {"sap_pr_code": pr_no}, "name")
@@ -471,6 +476,18 @@ def get_po_details_withformat(po_name, po_format_name=None):
             
         if po.sign_of_approval3:
             po_dict["sign_url3"] = get_file_data_with_base64(po.sign_of_approval3)
+
+
+        if bill_to_comapny:
+            company_details = frappe.db.get_value(
+                "Company Master",
+                bill_to_comapny,
+                ["company_logo"],
+                as_dict=True
+            )
+            
+            if company_details and company_details.get("company_logo"):
+                po_dict["company_logo"] = get_file_data_with_base64(company_details.get("company_logo"))
         
         # Success response
         frappe.response["http_status_code"] = 200
