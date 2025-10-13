@@ -161,8 +161,18 @@ def get_po_details(po_name):
       
         po_dict["requisitioner_email"] = None
         po_dict["requisitioner_name"] = None
+        po_dict["bill_to_company_details"] = None
+
         
         pr_no = po.get("ref_pr_no")
+        bill_to_comapny = po.get("bill_to_company")
+
+        if bill_to_comapny:
+            bill_to_comapny_details = frappe.db.get_value("Company Master", bill_to_comapny,
+            ["name","company_name", "gstin_number", "dl_number","ssi_region_number"],
+            as_dict = True)
+            if bill_to_comapny_details:
+                po_dict["bill_to_company_details"] = bill_to_comapny_details
         
         if pr_no:
             
