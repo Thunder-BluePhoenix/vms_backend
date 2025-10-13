@@ -15,6 +15,43 @@ from frappe.utils import now_datetime, add_to_date, get_datetime
 
 
 class CartDetails(Document):
+	def after_insert(self):
+		"""Create Cart Aging Track record when cart is created"""
+		try:
+			from vms.purchase.doctype.cart_aging_track.cart_aging_track import create_or_update_cart_aging_track
+			create_or_update_cart_aging_track(self.name)
+		except Exception as e:
+			frappe.log_error(
+				title=f"Error creating Cart Aging Track for {self.name}",
+				message=frappe.get_traceback()
+			)
+
+	
+
+	def is_cart_approved(self):
+		"""
+		Check if cart is approved based on approval logic:
+		1. If hod_approved == 1 and is_requested_second_stage_approval != 1 -> Approved
+		2. If hod_approved == 1 and is_requested_second_stage_approval == 1 -> Check second_stage_approved == 1
+		
+		Returns:
+			bool: True if cart is approved, False otherwise
+		"""
+		hod_approved = self.hod_approved or 0
+		is_requested_second_stage = self.is_requested_second_stage_approval or 0
+		second_stage_approved = self.second_stage_approved or 0
+		
+		# Case 1: HOD approved and no second stage requested
+		if hod_approved == 1 and is_requested_second_stage != 1:
+			return True
+		
+		# Case 2: HOD approved, second stage requested, and second stage approved
+		if hod_approved == 1 and is_requested_second_stage == 1 and second_stage_approved == 1:
+			return True
+		
+		return False
+
+
 	# def after_insert(self):
 		
 	# 	exp_doc = frappe.get_doc("Cart Ageing Settings") or None
@@ -99,6 +136,20 @@ class CartDetails(Document):
 
 	def on_update(self):
 		send_purchase_inquiry_email(self, method=None)
+		if self.has_value_changed('hod_approved') or \
+		   self.has_value_changed('second_stage_approved') or \
+		   self.has_value_changed('is_requested_second_stage_approval'):
+			
+			# Check if cart is now approved
+			if self.is_cart_approved():
+				try:
+					from vms.purchase.doctype.cart_aging_track.cart_aging_track import update_aging_track_on_cart_approval
+					update_aging_track_on_cart_approval(self.name)
+				except Exception as e:
+					frappe.log_error(
+						title=f"Error updating Cart Aging Track on approval for {self.name}",
+						message=frappe.get_traceback()
+					)
 		
 
 
