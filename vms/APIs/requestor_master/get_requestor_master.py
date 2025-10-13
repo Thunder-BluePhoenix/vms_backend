@@ -215,3 +215,86 @@ def get_requestor_master_list(filters=None, fields=None, limit=20, offset=0, ord
         frappe.response.http_status_code = 500
         frappe.log_error(frappe.get_traceback(), "Requestor Master List Error")
         return {"message": "Failed", "error": str(e)}
+
+
+
+#vms.APIs.requestor_master.get_requestor_master.get_requestor__statistics
+@frappe.whitelist()
+def get_requestor__statistics(filters=None):
+    try:
+        # Check permission
+        if not frappe.has_permission("Requestor Master", "read"):
+            frappe.response.http_status_code = 403
+            return {"message": "Failed", "error": "You don't have permission to view Requestor Master statistics"}
+
+        # Parse filters if JSON string
+        if isinstance(filters, str):
+            filters = json.loads(filters) if filters else {}
+        elif filters is None:
+            filters = {}
+
+        # Build WHERE clause from filters
+        where_conditions = []
+        sql_params = {}
+        
+        if filters:
+            for key, value in filters.items():
+                where_conditions.append(f"`{key}` = %({key})s")
+                sql_params[key] = value
+        
+        where_clause = ""
+        if where_conditions:
+            where_clause = "WHERE " + " AND ".join(where_conditions)
+
+        # Initialize response data
+        data = {}
+
+        # Get total count
+        total_count = frappe.db.count("Requestor Master", filters)
+        data["total_count"] = total_count
+
+        # Get status-wise counts (approved vs pending)
+        status_counts_sql = f"""
+            SELECT 
+                CASE 
+                    WHEN approval_status = 'Approved' THEN 'approved'
+                    ELSE 'pending'
+                END as status_type,
+                COUNT(*) as count
+            FROM 
+                `tabRequestor Master`
+            {where_clause}
+            GROUP BY 
+                status_type
+        """
+        
+        status_counts = frappe.db.sql(
+            status_counts_sql,
+            sql_params,
+            as_dict=True
+        )
+        
+        # Convert to dictionary for easy lookup
+        status_count_dict = {item["status_type"]: item["count"] for item in status_counts}
+
+        # Add approved and pending counts
+        data["approved"] = status_count_dict.get("approved", 0)
+        data["pending"] = status_count_dict.get("pending", 0)
+
+        return {
+            "message": "Success",
+            "data": data
+        }
+
+    except json.JSONDecodeError:
+        frappe.response.http_status_code = 400
+        return {"message": "Failed", "error": "Invalid JSON in filters"}
+    
+    except frappe.PermissionError:
+        frappe.response.http_status_code = 403
+        return {"message": "Failed", "error": "Permission denied"}
+    
+    except Exception as e:
+        frappe.response.http_status_code = 500
+        frappe.log_error(frappe.get_traceback(), "Requestor Master Statistics Error")
+        return {"message": "Failed", "error": str(e)}
