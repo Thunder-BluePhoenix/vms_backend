@@ -10,6 +10,23 @@ from datetime import datetime
 
 
 class PurchaseRequisitionForm(Document):
+	def after_insert(self):
+		try:
+			# Find PR Webform that links to this SAP PR
+			pr_webform_name = frappe.db.get_value(
+				"Purchase Requisition Webform",
+				{"purchase_requisition_form_link": self.name},
+				"name"
+			)
+			
+			if pr_webform_name:
+				from vms.purchase.doctype.cart_aging_track.cart_aging_track import update_aging_track_on_sap_pr_creation
+				update_aging_track_on_sap_pr_creation(pr_webform_name, self.name)
+		except Exception as e:
+			frappe.log_error(
+				title=f"Error updating Cart Aging Track on SAP PR creation for {self.name}",
+				message=frappe.get_traceback()
+			)
 	def before_save(doc, method=None):
 	# Get current date or use doc date (you can also use doc.transaction_date or any other date field)
 		if doc.prf_name_for_sap == None or doc.prf_name_for_sap == "":
