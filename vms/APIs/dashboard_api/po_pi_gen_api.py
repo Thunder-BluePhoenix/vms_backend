@@ -601,7 +601,7 @@ def vendor_data_for_purchase(usr, user_roles):
         else:
             purchase_order_count = frappe.db.count(
                 "Purchase Order",
-                filters={"purchase_group": ["in", pur_grp_codes], "sent_to_vendor": 1}
+                filters={"purchase_group": ["in", pur_grp_codes]}
             )
 
             
