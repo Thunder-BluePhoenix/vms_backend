@@ -5,7 +5,7 @@ import json
 @frappe.whitelist()
 def get_employee_details(user=None):
     try:
-    
+        
         if not user:
             user = frappe.session.user
             
@@ -47,6 +47,27 @@ def get_employee_details(user=None):
 
         
         employee_data = employee_doc.as_dict()
+
+        
+        if employee_data.get("company"):
+            enhanced_company_list = []
+            
+            for row in employee_data.get("company", []):
+                if row.get("company_name"):
+                    # Fetch company details
+                    company_details = frappe.db.get_value(
+                        "Company Master",
+                        row.get("company_name"),
+                        ["company_name", "company_code", "company_short_form"],
+                        as_dict=True
+                    )
+                    
+                    if company_details:
+                        
+                        enhanced_company_list.append(company_details)
+            
+            
+            employee_data["company"] = enhanced_company_list
 
         
         fields_to_remove = [
