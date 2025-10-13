@@ -5,13 +5,17 @@ import json
 @frappe.whitelist()
 def get_employee_details(user=None):
     try:
-        # Check if user parameter is provided
+    
         if not user:
-            frappe.response.http_status_code = 400
-            return {
-                "message": "Failed",
-                "error": "User ID is required"
-            }
+            user = frappe.session.user
+            
+            
+            if not user or user == "Guest":
+                frappe.response.http_status_code = 401
+                return {
+                    "message": "Failed",
+                    "error": "Authentication required. Please login to continue."
+                }
 
         # Check permission
         if not frappe.has_permission("Employee", "read"):
