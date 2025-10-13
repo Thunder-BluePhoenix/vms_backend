@@ -8,6 +8,16 @@ from vms.utils.custom_send_mail import custom_sendmail
 
 
 class PurchaseRequisitionWebform(Document):
+	def after_insert(self):
+		if self.cart_details_id:
+			try:
+				from vms.purchase.doctype.cart_aging_track.cart_aging_track import update_aging_track_on_pr_creation
+				update_aging_track_on_pr_creation(self.name, self.cart_details_id)
+			except Exception as e:
+				frappe.log_error(
+					title=f"Error updating Cart Aging Track on PR creation for {self.name}",
+					message=frappe.get_traceback()
+				)
 
 	def validate(self):
 		if self.cart_details_id:

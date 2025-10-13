@@ -299,7 +299,7 @@ def update_cart_aging_track_from_cart(track_doc, cart_id):
 				track_doc.pr_creation_datetime = pr_erp_doc.creation
 			
 			# Get SAP PR link from Purchase Requisition Webform
-			if hasattr(pr_erp_doc, 'purchase_requisition_form_link') and pr_erp_doc.purchase_requisition_form_link:
+			if pr_erp_doc.form_status == "PR Created" and hasattr(pr_erp_doc, 'purchase_requisition_form_link') and pr_erp_doc.purchase_requisition_form_link:
 				track_doc.pr_sap_link = pr_erp_doc.purchase_requisition_form_link
 				
 				# Get SAP PR creation datetime
