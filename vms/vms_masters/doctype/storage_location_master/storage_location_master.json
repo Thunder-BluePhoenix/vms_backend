@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:storage_name",
  "creation": "2025-07-04 12:25:58.150430",
@@ -62,7 +63,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:31.109953",
+ "modified": "2025-10-13 14:21:12.471485",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Storage Location Master",
