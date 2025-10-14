@@ -514,7 +514,8 @@ def get_po_details_withformat(po_name, po_format_name=None):
                 file_doc = frappe.get_doc("File", {"file_url": file_url})
                 
                 # Get the full file path
-                file_path = frappe.get_site_path() + file_doc.file_url
+                # file_path = frappe.get_site_path() + file_doc.file_url
+                file_path = file_doc.get_full_path()
                 
                 # Initialize base64 data
                 base64_data = None
