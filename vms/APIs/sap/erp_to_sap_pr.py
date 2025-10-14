@@ -890,7 +890,8 @@ def erp_to_sap_pr(doc_name, method=None):
             print(f"❌ PAYLOAD ERROR: {error_msg}")
             
             # **CREATE VMS SAP LOG FOR PAYLOAD BUILD FAILURE**
-            create_pr_sap_log(doc, None, None, "Payload Build Failed", error_msg, sap_client_code, name_for_sap)
+            sap_stat = "Payload Build Failed" 
+            create_pr_sap_log(doc, None, None, sap_stat, error_msg, sap_client_code, name_for_sap)
             
             # Send failure notification
             send_pr_failure_notification(
@@ -931,7 +932,8 @@ def erp_to_sap_pr(doc_name, method=None):
                     print(f"❌ SAP PR API Call Failed: {error_msg}")
                     
                     # **CREATE VMS SAP LOG FOR API CALL FAILURE**
-                    create_pr_sap_log(doc, data_list, None, "API Call Failed", error_msg, sap_client_code, name_for_sap)
+                    sap_stat = "API Call Failed"
+                    create_pr_sap_log(doc, data_list, None, sap_stat, error_msg, sap_client_code, name_for_sap)
                     
                     # Send failure notification
                     send_pr_failure_notification(
@@ -953,7 +955,8 @@ def erp_to_sap_pr(doc_name, method=None):
                         print(f"❌ SAP PR Error: {error_msg}")
                         
                         # **CREATE VMS SAP LOG FOR SAP ERROR**
-                        create_pr_sap_log(doc, data_list, result, "SAP Error", error_msg, sap_client_code, name_for_sap)
+                        sap_stat = "SAP Error"
+                        create_pr_sap_log(doc, data_list, result, sap_stat, error_msg, sap_client_code, name_for_sap)
                         
                         # Send failure notification
                         send_pr_failure_notification(
@@ -976,7 +979,8 @@ def erp_to_sap_pr(doc_name, method=None):
                             print(f"📝 Document updated successfully with PR code: {pr_code}")
                             
                             # **CREATE VMS SAP LOG FOR SUCCESS**
-                            create_pr_sap_log(doc, data_list, result, "Success", f"PR Code: {pr_code}", sap_client_code, name_for_sap)
+                            sap_stat = "Success"
+                            create_pr_sap_log(doc, data_list, result, sap_stat, f"PR Code: {pr_code}", sap_client_code, name_for_sap)
                             
                             # Send success notification
                             send_pr_success_notification(
@@ -992,7 +996,8 @@ def erp_to_sap_pr(doc_name, method=None):
                             frappe.log_error(error_msg, "PR Document Update Error")
                             
                             # **CREATE VMS SAP LOG FOR UPDATE FAILURE**
-                            create_pr_sap_log(doc, data_list, result, "Document Update Failed", error_msg, sap_client_code, name_for_sap)
+                            sap_stat = "Document Update Failed"
+                            create_pr_sap_log(doc, data_list, result, sap_stat, error_msg, sap_client_code, name_for_sap)
                             
                             # Send notification for update failure
                             send_pr_failure_notification(
@@ -1015,7 +1020,8 @@ def erp_to_sap_pr(doc_name, method=None):
                 frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "Send PR Detail Error")
                 
                 # **CREATE VMS SAP LOG FOR SEND DETAIL ERROR**
-                create_pr_sap_log(doc, data_list, None, "Send Detail Error", error_msg, sap_client_code, name_for_sap)
+                sap_stat = "Send Detail Error"
+                create_pr_sap_log(doc, data_list, None, sap_stat, error_msg, sap_client_code, name_for_sap)
                 
                 # Send failure notification
                 send_pr_failure_notification(
@@ -1030,7 +1036,8 @@ def erp_to_sap_pr(doc_name, method=None):
             print(f"❌ CSRF TOKEN ERROR: {error_msg}")
             
             # **CREATE VMS SAP LOG FOR CSRF TOKEN FAILURE**
-            create_pr_sap_log(doc, data_list, None, "CSRF Token Failed", error_msg, sap_client_code, name_for_sap)
+            sap_stat = "CSRF Token Failed"
+            create_pr_sap_log(doc, data_list, None, sap_stat, error_msg, sap_client_code, name_for_sap)
             
             # Send failure notification
             send_pr_failure_notification(
@@ -1049,7 +1056,8 @@ def erp_to_sap_pr(doc_name, method=None):
         # **CREATE VMS SAP LOG FOR MAIN ERROR**
         try:
             doc = frappe.get_doc("Purchase Requisition Form", doc_name)
-            create_pr_sap_log(doc, None, None, "Main Function Error", error_msg, doc.sap_client_code if hasattr(doc, 'sap_client_code') else "Unknown", "")
+            sap_stat = "Main Function Error"
+            create_pr_sap_log(doc, None, None, sap_stat, error_msg, doc.sap_client_code if hasattr(doc, 'sap_client_code') else "Unknown", "")
         except Exception as log_err:
             print(f"❌ Failed to create VMS SAP Log for main error: {str(log_err)}")
         
