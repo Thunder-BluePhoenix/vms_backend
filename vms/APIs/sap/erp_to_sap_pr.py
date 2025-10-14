@@ -1830,32 +1830,48 @@ def send_pr_success_notification(doc_name, pr_code, name_for_sap, pr_type):
         frappe.log_error(error_msg)
 
 
-def create_pr_sap_log(doc, request_data, response_data, transaction_status, error_details, sap_client_code, name_for_sap):
+def create_pr_sap_log(doc, request_data=None, response_data=None, transaction_status=None, error_details=None, sap_client_code=None, name_for_sap=None):
     """Create VMS SAP Log entry for PR transactions - Always creates log like vendor function"""
     try:
-        print(f"📝 Creating VMS SAP Log for transaction status: {transaction_status}")
+        print(f"📝 Creating VMS SAP Log for transaction status: {transaction_status or 'Unknown'}")
+        
+        # Handle None doc
+        if not doc:
+            print("❌ No document provided to create_pr_sap_log")
+            return {"status": "error", "message": "Document is required"}
         
         sap_log = frappe.new_doc("PR SAP Logs")
         sap_log.purchase_requisition_link = doc.name
-        sap_log.status = transaction_status
-        pr_sap_code = response_data.json()
+        sap_log.status = transaction_status or "Unknown"
+        
+        # Extract PR code (Banfn) with None handling
         pr_code = ""
-                # Extract PR code (Banfn)
-        if pr_sap_code and 'd' in pr_sap_code and 'Banfn' in pr_sap_code['d']:
-            pr_code = pr_sap_code['d']['Banfn']
+        try:
+            if response_data and hasattr(response_data, 'json'):
+                pr_sap_code = response_data.json()
+                if pr_sap_code and isinstance(pr_sap_code, dict):
+                    pr_code = pr_sap_code.get('d', {}).get('Banfn', '')
+        except Exception as pr_extract_err:
+            print(f"⚠️ Could not extract PR code: {str(pr_extract_err)}")
         
-        # Store request data (payload) since erp_to_sap_data is JSON field
-        sap_log.erp_to_sap_data = request_data if request_data else {"error": "No request data available"}
+        # Store request data (payload) - handle None
+        sap_log.erp_to_sap_data = request_data if request_data is not None else {"error": "No request data available"}
         
-        # Store response data since sap_response is JSON field  
-        if response_data:
+        # Store response data - handle None and various types
+        if response_data is not None:
             try:
                 if isinstance(response_data, str):
                     # Try to parse string response as JSON
                     try:
                         sap_log.sap_response = json.loads(response_data)
-                    except JSONDecodeError:
+                    except (json.JSONDecodeError, ValueError):
                         sap_log.sap_response = {"raw_response": response_data, "parse_error": "Could not parse as JSON"}
+                elif hasattr(response_data, 'json'):
+                    # Handle response objects with json() method
+                    try:
+                        sap_log.sap_response = response_data.json()
+                    except Exception:
+                        sap_log.sap_response = {"raw_response": str(response_data), "parse_error": "Could not call json() method"}
                 else:
                     sap_log.sap_response = response_data
             except Exception as parse_err:
@@ -1863,29 +1879,32 @@ def create_pr_sap_log(doc, request_data, response_data, transaction_status, erro
         else:
             sap_log.sap_response = {"error": error_details or "No response data available"}
         
+        # Get PR type safely
+        pr_type = getattr(doc, 'purchase_requisition_type', None) or "Unknown"
+        
         # Create comprehensive transaction log for Code field (same structure as vendor function)
         total_transaction_data = {
             "request_details": {
-                "url": f"SAP PR API - Client {sap_client_code}",
+                "url": f"SAP PR API - Client {sap_client_code or 'Unknown'}",
                 "method": "POST",
-                "payload": request_data if request_data else "No payload available",
-                "pr_document": doc.name,
-                "pr_type": doc.purchase_requisition_type if hasattr(doc, 'purchase_requisition_type') else "Unknown"
+                "payload": request_data if request_data is not None else "No payload available",
+                "pr_document": doc.name if doc else "Unknown",
+                "pr_type": pr_type
             },
             "response_details": {
-                "status_code": "N/A - Error before API call" if not response_data else "201",
-                "body": response_data if response_data else "No response received"
+                "status_code": "N/A - Error before API call" if response_data is None else "201",
+                "body": response_data if response_data is not None else "No response received"
             },
             "transaction_summary": {
-                "status": transaction_status,
-                "pr_code": pr_code,
-                "error_details": error_details,
+                "status": transaction_status or "Unknown",
+                "pr_code": pr_code or "",
+                "error_details": error_details or "",
                 "timestamp": frappe.utils.now(),
-                "sap_client_code": sap_client_code,
-                "pr_doc_name": doc.name,
-                "pr_type": doc.purchase_requisition_type if hasattr(doc, 'purchase_requisition_type') else "Unknown",
+                "sap_client_code": sap_client_code or "Unknown",
+                "pr_doc_name": doc.name if doc else "Unknown",
+                "pr_type": pr_type,
                 "name_for_sap": name_for_sap or "",
-                "failure_stage": transaction_status
+                "failure_stage": transaction_status or "Unknown"
             }
         }
         
@@ -1899,14 +1918,19 @@ def create_pr_sap_log(doc, request_data, response_data, transaction_status, erro
                 # Create success log
                 success_log = frappe.new_doc("Error Log")
                 success_log.method = "erp_to_sap_pr"
-                success_log.error = f"SAP PR Integration SUCCESS - PR Doc: {doc.name}\nPR Type: {doc.purchase_requisition_type if hasattr(doc, 'purchase_requisition_type') else 'Unknown'}\nSAP Client: {sap_client_code}"
+                success_log.error = (
+                    f"SAP PR Integration SUCCESS - PR Doc: {doc.name if doc else 'Unknown'}\n"
+                    f"PR Type: {pr_type}\n"
+                    f"SAP Client: {sap_client_code or 'Unknown'}"
+                )
                 success_log.save(ignore_permissions=True)
                 print(f"📝 Success Error Log created: {success_log.name}")
             else:
                 # Create error log for failures
                 error_log = frappe.new_doc("Error Log")
+                error_details_str = str(error_details) if error_details else "No error details provided"
                 error_log.method = "erp_to_sap_pr"
-                error_log.error = f"SAP PR Integration Error - {transaction_status}: {error_details[:1000]}"  # Truncate
+                error_log.error = f"SAP PR Integration Error - {transaction_status or 'Unknown'}: {error_details_str[:1000]}"  # Truncate
                 error_log.save(ignore_permissions=True)
                 print(f"📝 Failure Error Log created: {error_log.name}")
         except Exception as err_log_err:
@@ -1921,16 +1945,20 @@ def create_pr_sap_log(doc, request_data, response_data, transaction_status, erro
         
         # Create a minimal log entry using Frappe's error log as fallback
         try:
+            doc_name = doc.name if doc and hasattr(doc, 'name') else 'Unknown'
             frappe.log_error(
-                title=f"SAP PR Integration - {transaction_status}",
-                message=f"PR Doc: {doc.name if doc else 'Unknown'}\nStatus: {transaction_status}\nError: {error_details}"
+                title=f"SAP PR Integration - {transaction_status or 'Unknown'}",
+                message=(
+                    f"PR Doc: {doc_name}\n"
+                    f"Status: {transaction_status or 'Unknown'}\n"
+                    f"Error: {error_details or 'No error details'}"
+                )
             )
             print("📝 Fallback error log created")
         except Exception as fallback_err:
             print(f"❌ Even fallback logging failed: {str(fallback_err)}")
         
         return {"status": "error", "message": log_error_msg}
-
 
 def get_pr_details_for_email(pr_doc):
     """Extract PR details for email notification"""
