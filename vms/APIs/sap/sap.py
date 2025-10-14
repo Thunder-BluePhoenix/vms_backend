@@ -1440,7 +1440,7 @@ def get_vendor_details_for_email(onb_doc):
         }
 
 
-def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, onb, add1, add2, dist, zip, city, country):
+def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, onb, add1=None, add2=None, dist=None, zip=None, city=None, country=None):
     """
     Fixed function to properly handle multiple vendor code rows for a single company
     """
@@ -1479,8 +1479,8 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
                     vc.gst_no = gst
                     vc.state = state
                     vc.city = city
-                    vc.address_line1 = add1 or ""
-                    vc.address_line2 = add2 or ""
+                    vc.address_line_1 = add1 or ""
+                    vc.address_line_2 = add2 or ""
                     vc.district = dist or ""
                     vc.zip_code = zip or ""
                     vc.country = country or ""
@@ -1495,8 +1495,8 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
                 "gst_no": gst,
                 "state": state,
                 "city": city,
-                "address_line1": add1 or "",
-                "address_line2": add2 or "",    
+                "address_line_1": add1 or "",
+                "address_line_2": add2 or "",   
                 "district": dist or "",
                 "zip_code": zip or "",
                 "country": country or ""
