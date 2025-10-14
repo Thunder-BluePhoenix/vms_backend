@@ -162,17 +162,36 @@ def get_po_details(po_name):
         po_dict["requisitioner_email"] = None
         po_dict["requisitioner_name"] = None
         po_dict["bill_to_company_details"] = None
+        po_dict["ship_to_company_details"] = None
+        po_dict["vendor_address_details"] = None
 
         
         pr_no = po.get("ref_pr_no")
         bill_to_comapny = po.get("bill_to_company")
+        ship_to_company = po.get("ship_to_company")
+        vendor_code = po.get("vendor_code")
+        company_code = po.get("company_code")
 
         if bill_to_comapny:
             bill_to_comapny_details = frappe.db.get_value("Company Master", bill_to_comapny,
-            ["name","company_name", "gstin_number", "dl_number","ssi_region_number"],
+            ["name","sap_client_code", "company_code", "company_name", "company_short_form", "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
             as_dict = True)
             if bill_to_comapny_details:
                 po_dict["bill_to_company_details"] = bill_to_comapny_details
+
+        if ship_to_company:
+            ship_to_comapny_details = frappe.db.get_value("Company Master", ship_to_company,
+            ["name","sap_client_code", "company_code", "company_name", "company_short_form", "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
+            as_dict = True)
+            if ship_to_comapny_details:
+                po_dict["ship_to_company_details"] = ship_to_comapny_details
+
+        if vendor_code and company_code:
+            vendor_address = get_vendor_address_details(vendor_code, company_code)
+            if vendor_address:
+                po_dict["vendor_address_details"] = vendor_address
+
+
         
         if pr_no:
             
@@ -198,6 +217,44 @@ def get_po_details(po_name):
         frappe.log_error(f"Error in get_po_details: {str(e)}")
         frappe.throw(f"An error occurred while fetching PO details: {str(e)}")
 
+
+
+def get_vendor_address_details(vendor_code, company_code):
+    
+    try:
+        
+        company_vendor_codes = frappe.get_all(
+            "Company Vendor Code",
+            filters={"company_code": company_code},
+            fields=["name", "vendor_ref_no"]
+        )
+    
+        
+        if not company_vendor_codes:
+            return None
+        
+        
+        for cvc in company_vendor_codes:
+            
+            vendor_code_entries = frappe.get_all(
+                "Vendor Code",
+                filters={
+                    "parent": cvc.name,
+                    "vendor_code": vendor_code
+                },
+                fields=["vendor_code","state","gst_no","address_line_1","address_line_2","zip_code","city","district","country"]
+            )
+            
+            
+            if vendor_code_entries:
+                
+                return vendor_code_entries[0]
+        
+        return None
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_vendor_address_details: {str(e)}")
+        return None
 
 @frappe.whitelist(allow_guest = True)
 def filtering_data(data):
@@ -406,9 +463,35 @@ def get_po_details_withformat(po_name, po_format_name=None):
         po_dict["sign_url2"] = None
         po_dict["sign_url3"] = None
         po_dict["company_logo"] = None
-        
-        pr_no = po.get("ref_pr_no")
+        po_dict["bill_to_company_details"] = None
+        po_dict["ship_to_company_details"] = None
+        po_dict["vendor_address_details"] = None
+
+
         bill_to_comapny = po.get("bill_to_company")
+        ship_to_company = po.get("ship_to_company")
+        vendor_code = po.get("vendor_code")
+        company_code = po.get("company_code")
+        pr_no = po.get("ref_pr_no")
+
+        if bill_to_comapny:
+            bill_to_comapny_details = frappe.db.get_value("Company Master", bill_to_comapny,
+            ["name","sap_client_code", "company_code", "company_name", "company_short_form", "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
+            as_dict = True)
+            if bill_to_comapny_details:
+                po_dict["bill_to_company_details"] = bill_to_comapny_details
+
+        if ship_to_company:
+            ship_to_comapny_details = frappe.db.get_value("Company Master", ship_to_company,
+            ["name","sap_client_code", "company_code", "company_name", "company_short_form", "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
+            as_dict = True)
+            if ship_to_comapny_details:
+                po_dict["ship_to_company_details"] = ship_to_comapny_details
+
+        if vendor_code and company_code:
+            vendor_address = get_vendor_address_details(vendor_code, company_code)
+            if vendor_address:
+                po_dict["vendor_address_details"] = vendor_address
         
         
             
@@ -453,7 +536,9 @@ def get_po_details_withformat(po_name, po_format_name=None):
                             '.jpg': 'image/jpeg',
                             '.jpeg': 'image/jpeg',
                             '.gif': 'image/gif',
-                            '.pdf': 'application/pdf'
+                            '.pdf': 'application/pdf',
+                            '.svg': 'image/svg+xml',
+                            '.webp': 'image/webp',
                         }
                         mime_type = mime_type_map.get(file_ext, 'application/octet-stream')
                 
