@@ -227,7 +227,7 @@ def get_company_details_with_state(company_name):
            
             company_details["state_code"] = state_code
             
-            company_details["state_full"] = f"{company_details.get('state')}-{state_code}" if state_code else company_details.get('state')
+            company_details["state_full"] = f"{state_code}-{company_details.get('state')}" if state_code else company_details.get('state')
         
         return company_details
         
