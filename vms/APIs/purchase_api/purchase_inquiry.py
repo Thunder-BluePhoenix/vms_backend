@@ -960,7 +960,7 @@ def get_plants_and_purchase_group(comp, page=1, page_size=20, search_term=None,
             frappe.throw(_("Company is required"), frappe.ValidationError)
         
         # Check if company exists
-        if not frappe.db.exists("Company", comp) and not frappe.db.exists("Company Master", comp):
+        if not frappe.db.exists("Company Master", comp) and not frappe.db.exists("Company Master", comp):
             frappe.throw(_("Company '{0}' not found").format(comp), frappe.DoesNotExistError)
         
         # Validate pagination parameters
