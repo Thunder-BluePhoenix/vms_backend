@@ -32,7 +32,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:36.108135",
+ "modified": "2025-10-14 12:03:20.428497",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "UOM Master",
@@ -48,6 +48,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
