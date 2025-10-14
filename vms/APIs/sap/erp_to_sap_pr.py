@@ -1519,54 +1519,57 @@ def send_pr_detail(csrf_token, data_list, session_cookies, doc, sap_code, name_f
             print(f"⚠️ Failed to send notification: {str(notif_err)}")
 
     # **COMPREHENSIVE LOGGING - Same as vendor function**
-    try:
-        sap_log = frappe.new_doc("PR SAP Logs")
-        sap_log.purchase_requisition_link = doc.name
+    # try:
+    #     sap_log = frappe.new_doc("PR SAP Logs")
+    #     sap_log.purchase_requisition_link = doc.name
         
-        # Store full data since erp_to_sap_data is JSON field
-        sap_log.erp_to_sap_data = data_list
+    #     # Store full data since erp_to_sap_data is JSON field
+    #     sap_log.erp_to_sap_data = data_list
         
-        # Store full response since sap_response is JSON field  
-        if response and response.text.strip():
-            try:
-                sap_log.sap_response = response.json()
-            except JSONDecodeError:
-                sap_log.sap_response = {"raw_response": response.text, "parse_error": "Could not parse as JSON"}
-        else:
-            sap_log.sap_response = {"error": sap_response_text}
+    #     # Store full response since sap_response is JSON field  
+    #     if response and response.text.strip():
+    #         try:
+    #             sap_log.sap_response = response.json()
+    #         except JSONDecodeError:
+    #             sap_log.sap_response = {"raw_response": response.text, "parse_error": "Could not parse as JSON"}
+    #     else:
+    #         sap_log.sap_response = {"error": sap_response_text}
         
-        # Create comprehensive transaction log for Code field
-        total_transaction_data = {
-            "request_details": {
-                "url": url,
-                "headers": {k: v for k, v in headers.items() if k != 'Authorization'},
-                "auth_user": user,
-                "payload": data_list
-            },
-            "response_details": {
-                "status_code": response.status_code if response else "No Response",
-                "headers": dict(response.headers) if response else {},
-                "body": response.json() if response and response.text.strip() else sap_response_text
-            },
-            "transaction_summary": {
-                "status": transaction_status,
-                "pr_code": pr_code,
-                "error_details": error_details,
-                "timestamp": frappe.utils.now(),
-                "sap_client_code": sap_code,
-                "pr_doc_name": doc.name,
-                "pr_type": doc.purchase_requisition_type,
-                "name_for_sap": name_for_sap
-            }
-        }
+    #     # Create comprehensive transaction log for Code field
+    #     total_transaction_data = {
+    #         "request_details": {
+    #             "url": url,
+    #             "headers": {k: v for k, v in headers.items() if k != 'Authorization'},
+    #             "auth_user": user,
+    #             "payload": data_list
+    #         },
+    #         "response_details": {
+    #             "status_code": response.status_code if response else "No Response",
+    #             "headers": dict(response.headers) if response else {},
+    #             "body": response.json() if response and response.text.strip() else sap_response_text
+    #         },
+    #         "transaction_summary": {
+    #             "status": transaction_status,
+    #             "pr_code": pr_code,
+    #             "error_details": error_details,
+    #             "timestamp": frappe.utils.now(),
+    #             "sap_client_code": sap_code,
+    #             "pr_doc_name": doc.name,
+    #             "pr_type": doc.purchase_requisition_type,
+    #             "name_for_sap": name_for_sap
+    #         }
+    #     }
         
-        sap_log.total_transaction = json.dumps(total_transaction_data, indent=2, default=str)
-        sap_log.save(ignore_permissions=True)
-        print(f"📝 SAP PR Log created with name: {sap_log.name}")
+    #     sap_log.total_transaction = json.dumps(total_transaction_data, indent=2, default=str)
+    #     sap_log.save(ignore_permissions=True)
+    #     print(f"📝 SAP PR Log created with name: {sap_log.name}")
         
-    except Exception as log_err:
-        log_error_msg = f"Failed to create SAP PR log: {str(log_err)}"
-        print(f"❌ Log creation error: {log_error_msg}")
+    # except Exception as log_err:
+    #     log_error_msg = f"Failed to create SAP PR log: {str(log_err)}"
+    #     print(f"❌ Log creation error: {log_error_msg}")
+        
+
+
         
         # Create a minimal log entry using Frappe's error log
         try:
