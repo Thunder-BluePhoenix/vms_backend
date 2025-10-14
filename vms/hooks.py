@@ -251,6 +251,9 @@ scheduler_events = {
         "0 2 * * *": [  # Run at 2 AM daily
             "vms.chat_vms.maintenance.cleanup_deleted_files"
         ],
+        "0 3 * * *": [
+            "vms.vms_masters.doctype.company_vendor_code.corn_system_vendor_code.sync_vendor_code_addresses_from_sources"
+        ],
         "*/15 * * * *": [  # Every 15 minutes
             "vms.chat_vms.maintenance.update_user_online_status",
             "vms.purchase.doctype.purchase_order.purchase_order.send_dispatch_notifications"
