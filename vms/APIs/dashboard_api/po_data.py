@@ -240,7 +240,7 @@ def get_company_details_with_state(company_name):
 def get_vendor_address_details(vendor_code, company_code):
     
     try:
-       
+    
         company_vendor_codes = frappe.get_all(
             "Company Vendor Code",
             filters={"company_code": company_code},
@@ -252,7 +252,7 @@ def get_vendor_address_details(vendor_code, company_code):
         
         
         for cvc in company_vendor_codes:
-            
+        
             vendor_code_entries = frappe.get_all(
                 "Vendor Code",
                 filters={
@@ -267,8 +267,22 @@ def get_vendor_address_details(vendor_code, company_code):
                
                 result = vendor_code_entries[0]
                 
-                
+              
                 result["vendor_name"] = cvc.get("vendor_name")
+                
+                
+                if result.get("state"):
+                    state_name = result.get("state")
+                    state_code = frappe.db.get_value("State Master", state_name, "custom_gst_state_code")
+                    
+                    
+                    result["state_code"] = state_code
+                    result["state_name"] = state_name
+                    
+                    result["state_full"] = f"{state_code}-{state_name}" if state_code else state_name
+                else:
+                    result["state_code"] = None
+                    result["state_name"] = None
                 
                 return result
         
