@@ -317,6 +317,7 @@ class VendorImportStaging(Document):
                     self.city,
                     self.address01,
                     self.address02,
+                    self.address03,
                     self.pincode,
                     self.country
                 )
@@ -344,7 +345,7 @@ class VendorImportStaging(Document):
             frappe.log_error(f"{error_msg}\nStaging Record: {self.name}", "Vendor Import Staging Error")
             return None
 
-    def handle_company_vendor_code(self, vendor_ref_no, vendor_code, company_code, state, gst_no, city = None, add1 = None, add2=None, zip=None, country=None):
+    def handle_company_vendor_code(self, vendor_ref_no, vendor_code, company_code, state, gst_no, city = None, add1 = None, add2=None, add3 = None, zip=None, country=None):
         """Enhanced handling of Company Vendor Code with proper duplicate logic + Vendor Master sync"""
         
         result = {
@@ -392,8 +393,9 @@ class VendorImportStaging(Document):
                         "state": state,
                         "gst_no": gst_no,
                         "city": city,
-                        "address_line1": add1,
-                        "address_line2": add2,
+                        "address_line_1": add1,
+                        "address_line_2": add2,
+                        "address_line_3": add3,
                         "zip_code": zip,
                         "country": country
                     })
@@ -409,7 +411,13 @@ class VendorImportStaging(Document):
                 cvc_doc.append("vendor_code", {
                     "vendor_code": vendor_code,
                     "state": state,
-                    "gst_no": gst_no
+                    "gst_no": gst_no,
+                    "city": city,
+                    "address_line_1": add1,
+                    "address_line_2": add2,
+                    "address_line_3": add3,
+                    "zip_code": zip,
+                    "country": country
                 })
                 result["company_code_action"] = "created"
             

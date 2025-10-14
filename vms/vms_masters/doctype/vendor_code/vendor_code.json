@@ -11,6 +11,7 @@
   "vendor_code",
   "address_line_1",
   "address_line_2",
+  "address_line_3",
   "column_break_ctjy",
   "zip_code",
   "city",
@@ -69,13 +70,18 @@
    "fieldname": "zip_code",
    "fieldtype": "Data",
    "label": "Pincode"
+  },
+  {
+   "fieldname": "address_line_3",
+   "fieldtype": "Data",
+   "label": "Address Line 3"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-14 02:31:23.728898",
+ "modified": "2025-10-14 10:49:39.581246",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Code",
