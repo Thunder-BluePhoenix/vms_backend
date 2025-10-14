@@ -30,9 +30,9 @@ class PRSAPLogs(Document):
 					"form_is_submitted": 0,
 					"purchase_team_approved": 0,
 					"form_status": "SAP Error",
-					"sap_status": self.status,
+					"sap_status": "Failed",
 					"zmsg": ztext or transaction_summary.get("error_details", "Unknown Error"),
-					"sap_summary": f"""Status: {self.status}
+					"sap_summary": f"""Status: Failed
 Error Type: {ztype}
 Error Message: {ztext}
 PR Code: {banfn}
@@ -43,9 +43,9 @@ Failure Stage: {transaction_summary.get("failure_stage")}"""
 			else:  # Success case
 				pr_doc.db_set({
 					"form_status": "PR Created",
-					"sap_status": self.status,
+					"sap_status": "Success",
 					"zmsg": f"PR Created Successfully - {banfn}" if banfn else "PR Created Successfully",
-					"sap_summary": f"""Status: {self.status}
+					"sap_summary": f"""Status: Success
 PR Number: {banfn}
 SAP Client: {transaction_summary.get("sap_client_code")}
 Timestamp: {transaction_summary.get("timestamp")}
