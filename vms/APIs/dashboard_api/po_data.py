@@ -158,43 +158,35 @@ def get_po_details(po_name):
         po = frappe.get_doc("Purchase Order", po_name)
         po_dict = po.as_dict()
         
-      
         po_dict["requisitioner_email"] = None
         po_dict["requisitioner_name"] = None
         po_dict["bill_to_company_details"] = None
         po_dict["ship_to_company_details"] = None
         po_dict["vendor_address_details"] = None
 
-        
         pr_no = po.get("ref_pr_no")
-        bill_to_comapny = po.get("bill_to_company")
+        bill_to_company = po.get("bill_to_company")
         ship_to_company = po.get("ship_to_company")
         vendor_code = po.get("vendor_code")
         company_code = po.get("company_code")
 
-        if bill_to_comapny:
-            bill_to_comapny_details = frappe.db.get_value("Company Master", bill_to_comapny,
-            ["name","sap_client_code", "company_code", "company_name", "company_short_form", "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
-            as_dict = True)
-            if bill_to_comapny_details:
-                po_dict["bill_to_company_details"] = bill_to_comapny_details
+        if bill_to_company:
+            bill_to_company_details = get_company_details_with_state(bill_to_company)
+            
+            if bill_to_company_details:
+                po_dict["bill_to_company_details"] = bill_to_company_details
 
         if ship_to_company:
-            ship_to_comapny_details = frappe.db.get_value("Company Master", ship_to_company,
-            ["name","sap_client_code", "company_code", "company_name", "company_short_form", "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
-            as_dict = True)
-            if ship_to_comapny_details:
-                po_dict["ship_to_company_details"] = ship_to_comapny_details
+            ship_to_company_details = get_company_details_with_state(ship_to_company)
+            if ship_to_company_details:
+                po_dict["ship_to_company_details"] = ship_to_company_details
 
         if vendor_code and company_code:
             vendor_address = get_vendor_address_details(vendor_code, company_code)
             if vendor_address:
                 po_dict["vendor_address_details"] = vendor_address
 
-
-        
         if pr_no:
-            
             pr_form_name = frappe.db.get_value("Purchase Requisition Form", {"sap_pr_code": pr_no}, "name")
             
             if pr_form_name:
@@ -202,9 +194,7 @@ def get_po_details(po_name):
                 purchase_requisitioner = pr_doc.get("requisitioner")
                 
                 if purchase_requisitioner:
-                    
                     po_dict["requisitioner_email"] = purchase_requisitioner
-                    
                     
                     requisitioner_name = frappe.get_value("User", purchase_requisitioner, "first_name") or frappe.get_value("User", purchase_requisitioner, "full_name")
                     po_dict["requisitioner_name"] = requisitioner_name
@@ -218,17 +208,44 @@ def get_po_details(po_name):
         frappe.throw(f"An error occurred while fetching PO details: {str(e)}")
 
 
+def get_company_details_with_state(company_name):
+   
+    try:
+        company_details = frappe.db.get_value(
+            "Company Master", 
+            company_name,
+            ["name", "sap_client_code", "company_code", "company_name", "company_short_form", 
+             "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", 
+             "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
+            as_dict=True
+        )
+        
+        if company_details and company_details.get("state"):
+          
+            state_code = frappe.db.get_value("State Master", company_details.get("state"), "custom_gst_state_code")
+            
+           
+            company_details["state_code"] = state_code
+            
+            company_details["state_full"] = f"{company_details.get('state')}-{state_code}" if state_code else company_details.get('state')
+        
+        return company_details
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_company_details_with_state: {str(e)}")
+        return None
+
+
 
 def get_vendor_address_details(vendor_code, company_code):
     
     try:
-        
+       
         company_vendor_codes = frappe.get_all(
             "Company Vendor Code",
             filters={"company_code": company_code},
-            fields=["name", "vendor_ref_no"]
+            fields=["name", "vendor_ref_no", "vendor_name"]  
         )
-    
         
         if not company_vendor_codes:
             return None
@@ -242,13 +259,18 @@ def get_vendor_address_details(vendor_code, company_code):
                     "parent": cvc.name,
                     "vendor_code": vendor_code
                 },
-                fields=["vendor_code","state","gst_no","address_line_1","address_line_2","zip_code","city","district","country"]
+                fields=["vendor_code", "state", "gst_no", "address_line_1", 
+                        "address_line_2", "zip_code", "city", "district", "country"]
             )
             
-            
             if vendor_code_entries:
+               
+                result = vendor_code_entries[0]
                 
-                return vendor_code_entries[0]
+                
+                result["vendor_name"] = cvc.get("vendor_name")
+                
+                return result
         
         return None
         
@@ -468,25 +490,24 @@ def get_po_details_withformat(po_name, po_format_name=None):
         po_dict["vendor_address_details"] = None
 
 
-        bill_to_comapny = po.get("bill_to_company")
+        bill_to_company = po.get("bill_to_company")
+        
         ship_to_company = po.get("ship_to_company")
         vendor_code = po.get("vendor_code")
         company_code = po.get("company_code")
         pr_no = po.get("ref_pr_no")
 
-        if bill_to_comapny:
-            bill_to_comapny_details = frappe.db.get_value("Company Master", bill_to_comapny,
-            ["name","sap_client_code", "company_code", "company_name", "company_short_form", "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
-            as_dict = True)
-            if bill_to_comapny_details:
-                po_dict["bill_to_company_details"] = bill_to_comapny_details
+        if bill_to_company:
+            
+            bill_to_company_details = get_company_details_with_state(bill_to_company)
+            
+            if bill_to_company_details:
+                po_dict["bill_to_company_details"] = bill_to_company_details
 
         if ship_to_company:
-            ship_to_comapny_details = frappe.db.get_value("Company Master", ship_to_company,
-            ["name","sap_client_code", "company_code", "company_name", "company_short_form", "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
-            as_dict = True)
-            if ship_to_comapny_details:
-                po_dict["ship_to_company_details"] = ship_to_comapny_details
+            ship_to_company_details = get_company_details_with_state(ship_to_company)
+            if ship_to_company_details:
+                po_dict["ship_to_company_details"] = ship_to_company_details
 
         if vendor_code and company_code:
             vendor_address = get_vendor_address_details(vendor_code, company_code)
@@ -574,10 +595,10 @@ def get_po_details_withformat(po_name, po_format_name=None):
             po_dict["sign_url3"] = get_file_data_with_base64(po.sign_of_approval3)
 
 
-        if bill_to_comapny:
+        if bill_to_company:
             company_details = frappe.db.get_value(
                 "Company Master",
-                bill_to_comapny,
+                bill_to_company,
                 ["company_logo"],
                 as_dict=True
             )
