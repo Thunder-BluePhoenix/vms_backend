@@ -9,7 +9,7 @@ import json
 
 
 @frappe.whitelist(allow_guest=True)
-def get_po(page_no=None, page_length=None):
+def get_po(page_no=None, page_length=None, vendor_code_invalid=None):
     try:
         # Set default pagination
         page_no = int(page_no) if page_no else 1
@@ -84,9 +84,9 @@ def get_po(page_no=None, page_length=None):
 
         # NON-VENDOR FLOW
         else:
-            emp_data = frappe.get_value("Employee", {"user_id": user}, ["team", "designation"])
+            emp_doc = frappe.get_doc("Employee", {"user_id": user})
 
-            if not emp_data:
+            if not emp_doc:
                 return {
                     "status": "error",
                     "message": "Employee record not found for the current user.",
@@ -98,18 +98,16 @@ def get_po(page_no=None, page_length=None):
                     "total_pages": 0
                 }
 
-            team, designation = emp_data
+            team = emp_doc.team
+            
+            employee_companies = []
+            if emp_doc.company:
+                employee_companies = [row.company_name for row in emp_doc.company if row.company_name]
 
-            pur_grp_codes = frappe.get_all(
-                "Purchase Group Master",
-                filters={"team": team},
-                pluck="purchase_group_code"
-            )
-
-            if not pur_grp_codes:
+            if not employee_companies:
                 return {
                     "status": "success",
-                    "message": "No purchase groups found for the user's team.",
+                    "message": "No companies found for the employee.",
                     "data": [],
                     "total_count": 0,
                     "page_no": page_no,
@@ -117,19 +115,42 @@ def get_po(page_no=None, page_length=None):
                     "total_pages": 0
                 }
 
-            # Fetch purchase orders where purchase_group matches these codes
-            total_count = frappe.db.count("Purchase Order", {
+            pur_grp_codes = frappe.get_all(
+                "Purchase Group Master",
+                filters={
+                    "team": team,
+                    "company": ["in", employee_companies]
+                },
+                pluck="purchase_group_code"
+            )
+
+            if not pur_grp_codes:
+                return {
+                    "status": "success",
+                    "message": "No purchase groups found for the user's team and companies.",
+                    "data": [],
+                    "total_count": 0,
+                    "page_no": page_no,
+                    "page_length": page_length,
+                    "total_pages": 0
+                }
+
+            po_filters = {
                 "purchase_group": ["in", pur_grp_codes],
+                "company_code": ["in", employee_companies],
                 "sent_to_vendor": 1
-            })
+            }
+
+            if vendor_code_invalid is not None and vendor_code_invalid != "":
+                vendor_code_invalid_value = int(vendor_code_invalid)
+                po_filters["vendor_code_invalid"] = vendor_code_invalid_value
+
+            total_count = frappe.db.count("Purchase Order", po_filters)
 
             total_pages = (total_count + page_length - 1) // page_length
 
             all_po = frappe.get_all("Purchase Order",
-                                    filters={
-                                        "purchase_group": ["in", pur_grp_codes],
-                                        "sent_to_vendor": 1
-                                    },
+                                    filters=po_filters,
                                     fields="*",
                                     order_by="modified desc",
                                     start=start,
@@ -149,7 +170,6 @@ def get_po(page_no=None, page_length=None):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "get_po error")
         frappe.throw(f"Error while fetching purchase orders: {str(e)}")
-
 
 
 @frappe.whitelist(allow_guest = True)

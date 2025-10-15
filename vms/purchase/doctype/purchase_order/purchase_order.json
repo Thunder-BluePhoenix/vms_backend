@@ -101,6 +101,7 @@
   "reason_for_rejection",
   "approved_from_vendor",
   "sent_to_vendor",
+  "vendor_code_invalid",
   "column_break_brva",
   "approved_by",
   "approved_by_name",
@@ -856,12 +857,18 @@
    "fieldname": "scheduled_notification_time",
    "fieldtype": "Datetime",
    "label": "Scheduled Notification Time"
+  },
+  {
+   "default": "0",
+   "fieldname": "vendor_code_invalid",
+   "fieldtype": "Check",
+   "label": "Vendor Code Invalid"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-08 14:09:44.055980",
+ "modified": "2025-10-14 18:00:37.098213",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",
