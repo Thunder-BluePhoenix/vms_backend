@@ -265,6 +265,9 @@ scheduler_events = {
         "0 */2 * * *": [  # Every 2 hours - cleanup stuck SAP status
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.cleanup_stuck_sap_status"
         ],
+        "30 */2 * * *": [  # Every 2 hours at minute 30 - sync vendor documents
+            "vms.purchase.doctype.purchase_order.po_vm_validation_corn.enqueue_bulk_validate_vendor_codes"
+        ],
         "*/5 * * * *": [
             "vms.material.doctype.cart_details.cart_details.process_cart_escalations"
         ],
