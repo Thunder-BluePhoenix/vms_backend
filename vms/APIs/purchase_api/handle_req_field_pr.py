@@ -37,6 +37,7 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "uom_head": "Non Compulsory",
                 "gl_account_number_head": "Compulsory",
                 "cost_center_head": "Compulsory",
+                "main_asset_no_head": "Compulsory",
                 # "requisitioner": "Compulsory"
             } 
         elif company == "900" and pur_type == "NB" and acct_cate == "A":
@@ -83,6 +84,7 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "uom_head": "Non Compulsory",
                 "gl_account_number_head": "Compulsory",
                 "cost_center_head": "Compulsory",
+                "main_asset_no_head": "Compulsory",
                 # "requisitioner": "Compulsory"
             }
         elif company == "700" and pur_type == "NB":
@@ -159,6 +161,7 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "uom_head": "Non Compulsory",
                 "gl_account_number_head": "Compulsory",
                 "cost_center_head": "Compulsory",
+                "main_asset_no_head": "Compulsory",
                 # "requisitioner": "Compulsory"
             }
         elif company == "100" and pur_type == "NB" and acct_cate == "A":
@@ -180,6 +183,7 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "uom_head": "Non Compulsory",
                 "gl_account_number_head": "Compulsory",
                 "cost_center_head": "Compulsory",
+                "main_asset_no_head": "Compulsory",
                 # "requisitioner": "Compulsory"
             }
         else:
