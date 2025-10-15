@@ -240,82 +240,189 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
         print("BUILDING MATERIAL PAYLOAD")
         print("=" * 80)
         
-        # Get first material request item (you can modify to loop through all if needed)
-        material_item = None
-        if requestor_doc.material_request and len(requestor_doc.material_request) > 0:
-            material_item = requestor_doc.material_request[0]
+        # Use the documents passed as parameters instead of fetching again
+        requestor = requestor_doc
+        material_master = material_master_doc
+        onboarding = onboarding_doc
+        
+        # Get SAP Settings
+        sap_settings = safe_get_doc("SAP Settings", "SAP Settings")
+        
+        # Initialize variables
+        sap_client_code = ""
+        material_items = []
+        
+        # Process material request items
+        for item in safe_get(requestor, "material_request", []):
+            material_items.append({
+                "material_name_description": safe_get(item, "material_name_description"),
+                "material_code_revised": safe_get(item, "material_code_revised"),
+                "company_code": safe_get(item, "company_name"),
+                "plant_name": safe_get(item, "plant"),
+                "material_category": safe_get(item, "material_category"),
+                "material_type": safe_get(item, "material_type"),
+                "base_unit_of_measure": safe_get(item, "base_unit_of_measure"),
+                "comment_by_user": safe_get(item, "comment_by_user"),
+                "material_specifications": safe_get(item, "material_specifications")
+            })
+            
+            # Get SAP client code from first item's company
+            if not sap_client_code and safe_get(item, "company_name"):
+                company_doc = safe_get_doc("Company Master", safe_get(item, "company_name"))
+                if company_doc:
+                    sap_client_code = safe_get(company_doc, "sap_client_code")
+        
+        print("SAP CLIENT CODE--->", sap_client_code)
+        
+        # Get company code from first material request item
+        company_code = safe_get_child(requestor, "material_request", 0, "company_name")
+        
+        if not company_code:
+            frappe.throw("Company Code is missing from material request item.")
+        
+        # Get first material item for reference
+        first_item = material_items[0] if material_items else {}
+        
+        # Build field values with safe gets
+        bukrs = company_code
+        batch_value = safe_get(material_master, "batch_requirements_yn")
+        batch_management_indicator = "X" if batch_value == "Yes" else ""
+        
+        inspection_1 = safe_get(onboarding, "inspection_require")
+        inspection_sap = "X" if inspection_1 == "Yes" else ""
+        inspection_01 = "X" if safe_get(onboarding, "incoming_inspection_01") else ""
+        inspection_09 = "X" if safe_get(onboarding, "incoming_inspection_09") else ""
+        
+        serial_number_profile = safe_get(material_master, "serial_number_profile")
+        serial_number = "" if serial_number_profile == "No" else serial_number_profile
+        
+        # Get codes from master tables using safe_get_value
+        material_type_code = safe_get_value("Material Type Master", 
+            {"name": first_item.get("material_type")}, "material_type") if first_item.get("material_type") else ""
+        
+        plant_code = safe_get_value("Plant Master", 
+            {"name": first_item.get("plant_name")}, "plant_code") if first_item.get("plant_name") else ""
+        
+        category_code = safe_get_value("Material Category Master", 
+            {"name": first_item.get("material_category")}, "material_category_name") if first_item.get("material_category") else ""
+        
+        storage_code = safe_get_value("Storage Location Master", 
+            {"name": safe_get(material_master, "storage_location")}, "storage_location") if safe_get(material_master, "storage_location") else ""
+        
+        purchase_group_code = safe_get_value("Purchase Group Master", 
+            {"name": safe_get(material_master, "purchasing_group")}, "purchase_group_code") if safe_get(material_master, "purchasing_group") else ""
+        
+        division_code = safe_get_value("Division Master", 
+            {"name": safe_get(material_master, "division")}, "division_code") if safe_get(material_master, "division") else ""
+        
+        material_group_code = safe_get_value("Material Group", 
+            {"name": safe_get(material_master, "material_group")}, "material_group_name") if safe_get(material_master, "material_group") else ""
+        
+        mrp_code = safe_get_value("MRP Type Master", 
+            {"name": safe_get(material_master, "mrp_type")}, "mrp_code") if safe_get(material_master, "mrp_type") else ""
+        
+        valuation_class_code = safe_get_value("Valuation Class Master", 
+            {"name": safe_get(onboarding, "valuation_class")}, "valuation_class_code") if safe_get(onboarding, "valuation_class") else ""
+        
+        material_code = safe_get(material_master, "material_code_revised")
+        
+        mrp_controller_name = safe_get_value("MRP Controller Master", 
+            {"name": safe_get(material_master, "mrp_controller_revised")}, "mrp_controller") if safe_get(material_master, "mrp_controller_revised") else ""
         
         # Build the main data structure
         data = {
-            "Reqno": safe_get(requestor_doc, "request_id", ""),
-            "Matnr": safe_get(material_master_doc, "material_code_revised", ""),
-            "Maktx": safe_get(material_master_doc, "material_name", ""),
-            "Mtart": safe_get(material_item, "material_type_code", "") if material_item else "",
-            "Meins": safe_get(material_item, "base_unit_of_measure", "") if material_item else "",
-            "Matkl": safe_get(material_master_doc, "material_group", ""),
-            "Spart": safe_get(material_master_doc, "division_code", ""),
-            "Werks": safe_get(material_item, "plant_name", "") if material_item else "",
-            "Lgort": safe_get(material_master_doc, "storage_location_code", ""),
-            "Bklas": safe_get(material_master_doc, "valuation_class_code", ""),
-            "Vprsv": safe_get(material_master_doc, "price_control", ""),
-            # "Peinh": safe_get(material_master_doc, "price_unit", ""),
-            # "Waers": safe_get(material_master_doc, "currency", ""),
-            "Ekgrp": safe_get(material_master_doc, "purchasing_group", ""),
-            "Dismm": safe_get(material_master_doc, "mrp_type", ""),
-            "Dispo": safe_get(material_master_doc, "mrp_controller_revised", ""),
-            "Beskz": safe_get(material_master_doc, "procurement_type", ""),
-            # "Sobsl": safe_get(material_master_doc, "scheduling_margin_key", ""),
-            # "Maabc": safe_get(onboarding_doc, "intended_usage_application", ""),
-            "Xchpf": "X" if safe_get(material_master_doc, "batch_requirements_yn", "") else "",
-            # "Ladgr": safe_get(material_master_doc, "storage_location", ""),
-            # "Raube": safe_get(material_master_doc, "brand_make", ""),
-            "Mtvfp": safe_get(material_master_doc, "availability_check", ""),
-            # "Serail": safe_get(material_master_doc, "serialization_level", ""),
-            "Klart": safe_get(material_master_doc, "class_number", ""),
-            "Class": safe_get(material_master_doc, "class_type", ""),
-            # "Serpr": safe_get(material_master_doc, "serial_number_profile", ""),
-            "Webaz": safe_get(material_master_doc, "gr_processing_time", ""),
-            "Bstme": safe_get(material_master_doc, "purchase_uom", ""),
-            "Plifz": safe_get(material_master_doc, "lead_time", ""),
-            # "Estkz": safe_get(material_master_doc, "purchasing_value_key", ""),
-            # "Bstmi": safe_get(material_master_doc, "min_lot_size", ""),
-            # "Ekotx": safe_get(material_master_doc, "purchase_order_text", ""),
-            "Umrez": safe_get(material_master_doc, "numerator_for_conversion", ""),
-            "Umren": safe_get(material_master_doc, "denominator_for_conversion", ""),
-            "Disls": safe_get(material_master_doc, "lot_size_key", ""),
-            "Mabst": safe_get(onboarding_doc, "minimum_remaining_shell_life", ""),
-            "Mhdhb": safe_get(onboarding_doc, "total_shell_life", ""),
-            "Mhdrz": safe_get(onboarding_doc, "expiration_date", ""),
-            # "Insmk": "X" if safe_get(onboarding_doc, "inspection_require", "") else "",
-            # "Ssqss": safe_get(onboarding_doc, "inspection_interval", ""),
-            "Qmatv": "X" if safe_get(onboarding_doc, "incoming_inspection_01", "") else "",
-            # "Qssys": "X" if safe_get(onboarding_doc, "incoming_inspection_09", "") else "",
-            # "Stawn": safe_get(onboarding_doc, "hsn_code", ""),
-            # "Profitcent": safe_get(onboarding_doc, "profit_center", ""),
-            # "Lifnr": safe_get(material_master_doc, "default_material_manufacturer", ""),
-            "Disgr": safe_get(material_master_doc, "mrp_group", ""),
+            "Reqno": safe_get(requestor, "request_id"),
+            "Bukrs": bukrs,
+            "Matnr": material_code,
+            "Adrnr": "",
+            "Matkey": "",
+            "Mat": category_code,
+            "Mtart": material_type_code,
+            "Mbrsh": "P",
+            "Werks": plant_code,
+            "Lgort": storage_code,
+            "Maktx": first_item.get("material_name_description", ""),
+            "Meins": first_item.get("base_unit_of_measure", ""),
+            "Matkl": material_group_code,
+            "Spart": division_code,
+            "Brgew": "",
+            "Ntgew": "",
+            "Gewei": "",
+            "Bmatnr": "",
+            "Xchpf": batch_management_indicator,
+            "Mtvfp": safe_get(material_master, "availability_check"),
+            "Ekgrp": purchase_group_code,
+            "Bstme": safe_get(material_master, "purchase_uom"),
+            "Umrez": safe_get(material_master, "numerator_purchase_uom"),
+            "Umren": safe_get(material_master, "denominator_purchase_uom"),
+            "Webaz": safe_get(material_master, "gr_processing_time"),
+            "Dismm": mrp_code,
+            "Dispo": "",
+            # "Dispo": mrp_controller_name,
+            # "Disls": safe_get(material_master, "lot_size_key"),
+            "Disls": "",
+            "Bstma": "",
+            "Mabst": "",
+            "Beskz": safe_get(material_master, "procurement_type"),
+            "Lgortep": "",
+            "Plifz": safe_get(material_master, "lead_time"),
+            "Fhori": safe_get(material_master, "scheduling_margin_key"),
+            "Eisbe": "",
+            "Mhdrz": safe_get(onboarding, "minimum_remaining_shell_life"),
+            "Mhdhb": safe_get(onboarding, "total_shell_life"),
+            "Iprkz": safe_get(onboarding, "expiration_date"),
+            "Prctr": safe_get(onboarding, "profit_center"),
+            "Ausme": safe_get(material_master, "issue_unit"),
+            "Umren1": safe_get(material_master, "numerator_issue_uom"),
+            "Umrez1": safe_get(material_master, "denominator_issue_uom"),
+            "Qmatv": "",
+            "Qminst": "",
+            "Qminst1": "",
+            "Prfrq": "",
+            "Bklas": valuation_class_code,
+            "Vprsv": safe_get(onboarding, "price_control"),
+            "Ncost": safe_get(onboarding, "do_not_cost"),
+            "Ekalr": "X",
+            "Hkmat": "X",
+            "Oldmat": "",
+            "Sernp": "",
+            "Taxim": "1",
+            "Steuc": "",
+            "Aedat": "",
+            "Aezet": "",
+            "Aenam": "",
+            "Emailid": "",
+            "Storecom": safe_get(onboarding, "comment_by_store"),
+            "Purcom": safe_get(material_master, "purchase_order_text"),
+            "Taxcom": "",
+            "Div": "",
+            "Ygroup": "",
+            "Sgroup": "",
+            "Tcode": "", 
+            "Ekwsl": safe_get(material_master, "purchasing_value_key"),
+            "Mstcom": "",
+            "Qacom": "",
+            "Class": safe_get(material_master, "class_type"),
+            "Klart": safe_get(material_master, "class_number"),
+            "Disgr": "",
             "Lgpro": "",
             "Serlv": ""
         }
         
-        # Wrap in ZMATSet structure if required by SAP
-        payload = {
-            "ZMATSet": [data]
-        }
-        
-        print(f"✅ Payload built successfully")
-        print(f"📦 Material Code: {data.get('Matnr', 'N/A')}")
-        print(f"📦 Material Name: {data.get('Maktx', 'N/A')}")
-        print(f"📦 Request ID: {data.get('Reqno', 'N/A')}")
-        print("=" * 80)
-        
-        return payload
+        return data
         
     except Exception as e:
-        error_msg = f"Error building material payload: {str(e)}"
-        frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "Material Payload Build Error")
-        print(f"❌ PAYLOAD BUILD ERROR: {error_msg}")
-        return None
+        frappe.log_error(f"Error building material payload: {str(e)}", "Material Payload Error")
+        raise
+
+
+def safe_get_value(doctype, filters, fieldname):
+    """Safely get a value from database"""
+    try:
+        return frappe.get_value(doctype, filters, fieldname) or ""
+    except Exception as e:
+        print(f"❌ Error getting value from {doctype}: {str(e)}")
+        return ""
 
 
 # =====================================================================================

@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:mat_id",
  "creation": "2025-10-15 16:36:55.097341",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -14,13 +15,17 @@
   "section_break_ilkk",
   "sap_mo_log_creation",
   "column_break_gfxc",
-  "mat_to_sap_duration"
+  "mat_onboard_duration",
+  "column_break_agqs",
+  "days_since_creation",
+  "aging_status"
  ],
  "fields": [
   {
    "fieldname": "mat_id",
    "fieldtype": "Data",
-   "label": "MAT ID"
+   "label": "MAT ID",
+   "unique": 1
   },
   {
    "fieldname": "material_master_id",
@@ -62,18 +67,34 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "mat_to_sap_duration",
+   "fieldname": "mat_onboard_duration",
    "fieldtype": "Duration",
-   "label": "MAT to SAP Duration"
+   "label": " MAT Onboard Duration"
+  },
+  {
+   "fieldname": "column_break_agqs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "days_since_creation",
+   "fieldtype": "Int",
+   "label": "Days Since Creation"
+  },
+  {
+   "fieldname": "aging_status",
+   "fieldtype": "Select",
+   "label": "Aging Status",
+   "options": "New (0-30 days)\nRecent (31-90 days)\nEstablished (91-180 days)\nLong Term (180+ days)"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-15 16:44:51.894030",
+ "modified": "2025-10-15 17:04:40.532593",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Aging Track",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
