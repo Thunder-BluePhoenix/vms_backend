@@ -137,8 +137,8 @@ def get_po(page_no=None, page_length=None, vendor_code_invalid=None):
 
             po_filters = {
                 "purchase_group": ["in", pur_grp_codes],
-                "company_code": ["in", employee_companies],
-                "sent_to_vendor": 1
+                "company_code": ["in", employee_companies]
+                # "sent_to_vendor": 1
             }
 
             if vendor_code_invalid is not None and vendor_code_invalid != "":
