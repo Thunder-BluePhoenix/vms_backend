@@ -11,6 +11,7 @@ from frappe.utils import now_datetime, get_datetime, add_to_date
 import datetime
 import time
 from vms.utils.custom_send_mail import custom_sendmail
+from vms.purchase.doctype.purchase_order.po_vm_validation import get_vendor_validation
 
 
 class PurchaseOrder(Document):
@@ -27,12 +28,28 @@ class PurchaseOrder(Document):
 
 
 	def validate(self):
+
+		if self.sent_to_vendor == 1:
+			pass
+		else:
+			validity = get_vendor_validation(self)
+			# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", validity)
+			if validity.get("status") != "success":
+				self.vendor_code_invalid = 1
+			else:
+				if validity.get("vendor_data", {}).get("is_blocked") == 1 or validity.get("vendor_data", {}).get("validity_status") != "Valid":
+					self.vendor_code_invalid = 1
+				else:
+					self.vendor_code_invalid = 0
+
+
 		for item in self.po_items:
 			it_qty = item.quantity or "0"
 			it_rate = item.rate or "0"
 			qty = float(it_qty)
 			rate = float(it_rate)
-			item.price = float(qty*rate)
+			if float(item.price) != float(qty*rate):
+				item.price = float(qty*rate)
 
 	def on_update(self):
 		update_dispatch_qty(self, method=None)
