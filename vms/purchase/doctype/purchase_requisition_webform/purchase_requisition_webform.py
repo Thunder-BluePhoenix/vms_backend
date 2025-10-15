@@ -23,7 +23,8 @@ class PurchaseRequisitionWebform(Document):
 		if self.cart_details_id:
 			cart_details = frappe.get_doc("Cart Details", self.cart_details_id)
 			if cart_details.purchase_requisition_form_created and cart_details.purchase_requisition_form != self.name:
-				frappe.throw("Purchase Requisition Form is already created for this cart details.")
+				# frappe.throw("Purchase Requisition Form is already created for this cart details.")
+				pass
 
 
 				
