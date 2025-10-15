@@ -1,0 +1,96 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-15 16:36:55.097341",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "mat_id",
+  "material_master_id",
+  "requestor_id",
+  "column_break_tgrr",
+  "material_master_creation_dt",
+  "requestor_creation_dt",
+  "section_break_ilkk",
+  "sap_mo_log_creation",
+  "column_break_gfxc",
+  "mat_to_sap_duration"
+ ],
+ "fields": [
+  {
+   "fieldname": "mat_id",
+   "fieldtype": "Data",
+   "label": "MAT ID"
+  },
+  {
+   "fieldname": "material_master_id",
+   "fieldtype": "Link",
+   "label": "Material Master ID",
+   "options": "Material Master"
+  },
+  {
+   "fieldname": "requestor_id",
+   "fieldtype": "Link",
+   "label": "Requestor ID",
+   "options": "Requestor Master"
+  },
+  {
+   "fieldname": "column_break_tgrr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "material_master_creation_dt",
+   "fieldtype": "Datetime",
+   "label": "Material Master Creation DT"
+  },
+  {
+   "fieldname": "requestor_creation_dt",
+   "fieldtype": "Datetime",
+   "label": "Requestor Creation DT"
+  },
+  {
+   "fieldname": "section_break_ilkk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "sap_mo_log_creation",
+   "fieldtype": "Datetime",
+   "label": "Sap MO Log Creation"
+  },
+  {
+   "fieldname": "column_break_gfxc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mat_to_sap_duration",
+   "fieldtype": "Duration",
+   "label": "MAT to SAP Duration"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-15 16:44:51.894030",
+ "modified_by": "Administrator",
+ "module": "Material",
+ "name": "Material Aging Track",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
