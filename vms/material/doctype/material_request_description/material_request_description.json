@@ -8,6 +8,7 @@
  "field_order": [
   "company_name",
   "material_type",
+  "material_type_code",
   "column_break_ccey",
   "material_category",
   "required_by",
@@ -165,13 +166,20 @@
    "fieldname": "comment_by_user",
    "fieldtype": "Small Text",
    "label": "Comment By User"
+  },
+  {
+   "fetch_from": "material_type.material_type",
+   "fieldname": "material_type_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material Type Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-26 16:45:07.404312",
+ "modified": "2025-10-15 14:54:32.219749",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Request Description",

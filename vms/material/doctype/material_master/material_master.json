@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:MM-{requestor_ref_no}",
+ "autoname": "format:{MM}-{requestor_ref_no}",
  "creation": "2025-05-23 13:37:41.576013",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -11,12 +11,15 @@
   "old_material_code",
   "column_break_jwsm",
   "division",
+  "division_code",
   "storage_location",
+  "storage_location_code",
   "inactive",
   "section_break_subr",
   "company",
   "plant",
   "valuation_class",
+  "valuation_class_code",
   "price_control",
   "column_break_ovrh",
   "valuation_type",
@@ -293,6 +296,7 @@
    "options": "Class Type"
   },
   {
+   "fetch_from": "class_type.class_number",
    "fieldname": "class_number",
    "fieldtype": "Data",
    "label": "Class Number"
@@ -447,12 +451,30 @@
    "fieldname": "mrp_data_section",
    "fieldtype": "Section Break",
    "label": "MRP Data"
+  },
+  {
+   "fetch_from": "division.division_code",
+   "fieldname": "division_code",
+   "fieldtype": "Data",
+   "label": "Division Code"
+  },
+  {
+   "fetch_from": "storage_location.storage_location",
+   "fieldname": "storage_location_code",
+   "fieldtype": "Data",
+   "label": "Storage Location Code"
+  },
+  {
+   "fetch_from": "valuation_class.valuation_class_code",
+   "fieldname": "valuation_class_code",
+   "fieldtype": "Data",
+   "label": "Valuation Class Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-13 10:59:32.281872",
+ "modified": "2025-10-15 15:48:38.096899",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Master",
