@@ -357,10 +357,8 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
             "Umren": safe_get(material_master, "denominator_purchase_uom"),
             "Webaz": safe_get(material_master, "gr_processing_time"),
             "Dismm": mrp_code,
-            "Dispo": "",
-            # "Dispo": mrp_controller_name,
-            # "Disls": safe_get(material_master, "lot_size_key"),
-            "Disls": "",
+            "Dispo": mrp_controller_name,
+            "Disls": safe_get(material_master, "lot_size_key"),
             "Bstma": "",
             "Mabst": "",
             "Beskz": safe_get(material_master, "procurement_type"),
@@ -375,17 +373,17 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
             "Ausme": safe_get(material_master, "issue_unit"),
             "Umren1": safe_get(material_master, "numerator_issue_uom"),
             "Umrez1": safe_get(material_master, "denominator_issue_uom"),
-            "Qmatv": "",
-            "Qminst": "",
-            "Qminst1": "",
-            "Prfrq": "",
+            "Qmatv": inspection_sap,
+            "Qminst": inspection_01,
+            "Qminst1": inspection_09,
+            "Prfrq": safe_get(onboarding, "inspection_interval"),
             "Bklas": valuation_class_code,
             "Vprsv": safe_get(onboarding, "price_control"),
             "Ncost": safe_get(onboarding, "do_not_cost"),
             "Ekalr": "X",
             "Hkmat": "X",
-            "Oldmat": "",
-            "Sernp": "",
+            "Oldmat": safe_get(material_master, "old_material_code"),
+            "Sernp": serial_number,
             "Taxim": "1",
             "Steuc": "",
             "Aedat": "",
@@ -404,16 +402,29 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
             "Qacom": "",
             "Class": safe_get(material_master, "class_type"),
             "Klart": safe_get(material_master, "class_number"),
-            "Disgr": "",
+            "Disgr": safe_get(material_master, "mrp_group"),
             "Lgpro": "",
             "Serlv": ""
         }
         
-        return data
+        payload = {
+            "ZMATSet": [data]
+        }
+        
+        print(f"✅ Payload built successfully")
+        print(f"📦 Material Code: {data.get('Matnr', 'N/A')}")
+        print(f"📦 Material Name: {data.get('Maktx', 'N/A')}")
+        print(f"📦 Request ID: {data.get('Reqno', 'N/A')}")
+        print("=" * 80)
+        
+        return payload
         
     except Exception as e:
-        frappe.log_error(f"Error building material payload: {str(e)}", "Material Payload Error")
-        raise
+        error_msg = f"Error building material payload: {str(e)}"
+        frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "Material Payload Build Error")
+        print(f"❌ PAYLOAD BUILD ERROR: {error_msg}")
+        return None
+
 
 
 def safe_get_value(doctype, filters, fieldname):
@@ -423,7 +434,8 @@ def safe_get_value(doctype, filters, fieldname):
     except Exception as e:
         print(f"❌ Error getting value from {doctype}: {str(e)}")
         return ""
-
+        # Wrap in ZMATSet structure if required by SAP
+        
 
 # =====================================================================================
 # SAP LOG CREATION
