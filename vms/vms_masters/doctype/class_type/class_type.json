@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:class_type",
+ "autoname": "format:{class_type}",
  "creation": "2025-09-25 15:35:12.540329",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -32,11 +32,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-11 10:14:01.956336",
+ "modified": "2025-10-15 15:07:59.051179",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Class Type",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
