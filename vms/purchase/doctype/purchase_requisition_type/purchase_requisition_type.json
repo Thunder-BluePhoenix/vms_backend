@@ -9,7 +9,10 @@
   "purchase_requisition_type_code",
   "purchase_requisition_type_name",
   "company",
-  "description"
+  "column_break_nibk",
+  "description",
+  "required_fields_for_pr_section",
+  "required_fields"
  ],
  "fields": [
   {
@@ -34,12 +37,27 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company Master"
+  },
+  {
+   "fieldname": "column_break_nibk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "required_fields_for_pr_section",
+   "fieldtype": "Section Break",
+   "label": "Required fields for PR"
+  },
+  {
+   "fieldname": "required_fields",
+   "fieldtype": "Table",
+   "label": "Required Fields",
+   "options": "Required Fields for PR"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:01.169647",
+ "modified": "2025-10-15 12:44:54.953846",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Type",
