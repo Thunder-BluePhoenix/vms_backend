@@ -1,0 +1,236 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-10-14 16:26:46.254647",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "company_name",
+  "to",
+  "column_break_wwsr",
+  "sr_no",
+  "date",
+  "section_break_yhds",
+  "favoring_of",
+  "currency",
+  "amount",
+  "payable_at",
+  "payment_by",
+  "bank_charges_born_by",
+  "column_break_lwuu",
+  "po_no",
+  "type_of_material",
+  "invoice_no",
+  "other_payment_support_details",
+  "special_remarks",
+  "name_sign_tab",
+  "signature_section",
+  "prepared_by",
+  "column_break_czbj",
+  "prepared_by_signature",
+  "section_break_dwvf",
+  "checked_by",
+  "column_break_nxhz",
+  "checked_by_signature",
+  "section_break_qnbj",
+  "approved_by",
+  "column_break_wvan",
+  "approved_by_signature"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company Name",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "sr_no",
+   "fieldtype": "Data",
+   "label": "SR No."
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date"
+  },
+  {
+   "fieldname": "to",
+   "fieldtype": "Data",
+   "label": "To"
+  },
+  {
+   "bold": 1,
+   "fieldname": "favoring_of",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Favoring Of",
+   "options": "Vendor Master"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency Master"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Data",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "payable_at",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Payable At",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "payment_by",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Payment By"
+  },
+  {
+   "default": "Meril",
+   "fieldname": "bank_charges_born_by",
+   "fieldtype": "Data",
+   "label": "Bank Charges Born By"
+  },
+  {
+   "fieldname": "column_break_wwsr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_yhds",
+   "fieldtype": "Section Break",
+   "label": "Payment Details"
+  },
+  {
+   "fieldname": "column_break_lwuu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "po_no",
+   "fieldtype": "Data",
+   "label": "P.O. / W.O. No."
+  },
+  {
+   "fieldname": "type_of_material",
+   "fieldtype": "Data",
+   "label": "Type Of Material"
+  },
+  {
+   "fieldname": "invoice_no",
+   "fieldtype": "Data",
+   "label": "Invoice No."
+  },
+  {
+   "fieldname": "other_payment_support_details",
+   "fieldtype": "Data",
+   "label": "Other Payment Support Details"
+  },
+  {
+   "fieldname": "special_remarks",
+   "fieldtype": "Small Text",
+   "label": "Special Remarks"
+  },
+  {
+   "fieldname": "signature_section",
+   "fieldtype": "Section Break",
+   "label": "Name & Signature"
+  },
+  {
+   "fieldname": "prepared_by",
+   "fieldtype": "Data",
+   "label": "Prepared By"
+  },
+  {
+   "fieldname": "column_break_czbj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "prepared_by_signature",
+   "fieldtype": "Signature",
+   "label": "Prepared By Signature"
+  },
+  {
+   "fieldname": "name_sign_tab",
+   "fieldtype": "Tab Break",
+   "label": "Name & Signature"
+  },
+  {
+   "fieldname": "section_break_dwvf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "checked_by",
+   "fieldtype": "Data",
+   "label": "Checked By"
+  },
+  {
+   "fieldname": "column_break_nxhz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "checked_by_signature",
+   "fieldtype": "Signature",
+   "label": "Checked By Signature"
+  },
+  {
+   "fieldname": "section_break_qnbj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Data",
+   "label": "Approved By"
+  },
+  {
+   "fieldname": "column_break_wvan",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approved_by_signature",
+   "fieldtype": "Signature",
+   "label": "Approved By Signature"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Naming Series",
+   "options": "PAY-REQ-.YYYY.-"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-15 10:29:51.198210",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Payment Requisition Form",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
