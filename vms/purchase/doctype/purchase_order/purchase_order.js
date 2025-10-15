@@ -2,6 +2,11 @@
 frappe.ui.form.on('Purchase Order', {
     refresh: function(frm) {
         generate_universal_scrollable_version_history(frm);
+        if (!frm.is_new()) {
+            frm.add_custom_button(__('Check Vendor Validity'), function() {
+                check_vendor_validity(frm);
+            });
+        }
     },
     version_history_on_form_rendered: function(frm) {
         setTimeout(() => generate_universal_scrollable_version_history(frm), 100);
@@ -403,4 +408,91 @@ function generateUniversalScrollableVersionCard(entry, versionNumber) {
     cardHtml += '</div></div>';
     
     return cardHtml;
+}
+
+
+
+
+
+function check_vendor_validity(frm) {
+    frappe.call({
+        method: 'vms.purchase.doctype.purchase_order.po_vm_validation.validate_single_po',
+        args: {
+            po_name: frm.doc.name
+        },
+        freeze: true,
+        freeze_message: __('Validating Vendor Code...'),
+        callback: function(r) {
+            if (r.message) {
+                let response = r.message;
+                
+                if (response.status === 'success') {
+                    // Build the message
+                    let message = `<div style="margin-bottom: 15px;">
+                        <strong>Validation Result:</strong> ${response.message}
+                    </div>`;
+                    
+                    // Add vendor details
+                    if (response.details) {
+                        message += `<div style="margin-bottom: 10px;">
+                            <strong>Vendor Details:</strong><br>
+                            <table style="width: 100%; margin-top: 5px;">
+                                <tr><td style="padding: 3px;"><strong>Vendor Code:</strong></td><td>${response.details.vendor_code || 'N/A'}</td></tr>
+                                <tr><td style="padding: 3px;"><strong>Company Code:</strong></td><td>${response.details.company_code || 'N/A'}</td></tr>
+                                <tr><td style="padding: 3px;"><strong>Vendor Master:</strong></td><td>${response.details.vendor_master || 'N/A'}</td></tr>
+                                <tr><td style="padding: 3px;"><strong>Vendor Email:</strong></td><td>${response.details.vendor_email || 'N/A'}</td></tr>
+                                <tr><td style="padding: 3px;"><strong>Validity Status:</strong></td><td>${response.details.validity_status || 'N/A'}</td></tr>
+                                <tr><td style="padding: 3px;"><strong>Is Blocked:</strong></td><td>${response.details.is_blocked == 1 ? 'Yes' : 'No'}</td></tr>
+                            </table>
+                        </div>`;
+                    }
+                    
+                    // Add issues if any
+                    if (response.issues && response.issues.length > 0) {
+                        message += `<div style="margin-top: 10px; padding: 10px; background-color: #fff3cd; border-left: 4px solid #ffc107;">
+                            <strong>Issues Found:</strong>
+                            <ul style="margin: 5px 0; padding-left: 20px;">`;
+                        response.issues.forEach(issue => {
+                            message += `<li>${issue}</li>`;
+                        });
+                        message += `</ul></div>`;
+                    }
+                    
+                    // Add status update info
+                    if (response.status_updated) {
+                        message += `<div style="margin-top: 10px; padding: 10px; background-color: #d1ecf1; border-left: 4px solid #17a2b8;">
+                            <strong>Status Updated:</strong> vendor_code_invalid changed from ${response.details.previous_status} to ${response.details.current_status}
+                        </div>`;
+                    }
+                    
+                    // Show dialog
+                    frappe.msgprint({
+                        title: response.is_valid ? __('Vendor Code Valid') : __('Vendor Code Invalid'),
+                        indicator: response.is_valid ? 'green' : 'red',
+                        message: message
+                    });
+                    
+                    // Refresh the form if status was updated
+                    if (response.status_updated) {
+                        frm.reload_doc();
+                    }
+                    
+                } else {
+                    // Error case
+                    frappe.msgprint({
+                        title: __('Error'),
+                        indicator: 'red',
+                        message: response.message
+                    });
+                }
+            }
+        },
+        error: function(r) {
+            frappe.msgprint({
+                title: __('Error'),
+                indicator: 'red',
+                message: __('An error occurred while validating the vendor code.')
+            });
+        }
+    });
 }
