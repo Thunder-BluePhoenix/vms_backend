@@ -137,3 +137,113 @@ def update_aging_tracker_on_sap_sync(sap_id):
 		
 
 	
+
+
+
+
+
+def update_all_mo_aging_tracks():
+	"""
+	Main scheduler function - enqueues background job
+	"""
+	frappe.enqueue(
+		"vms.material.doctype.material_aging_track.material_aging_track.process_mo_aging_tracks_background",
+		queue="long",  # Use 'long' queue for long-running jobs
+		timeout=7200,  # 2 hour timeout
+		is_async=True,
+		job_name="update_mo_aging_tracks"
+	)
+	
+	return {
+		"status": "queued",
+		"message": "Cart Aging Track update job has been queued"
+	}
+
+
+def process_mo_aging_tracks_background():
+	"""
+	Background job to process all records in batches
+	"""
+	batch_size = 1000
+	offset = 0
+	total_updated = 0
+	total_errors = 0
+	
+	total_records = frappe.db.count("Material Aging Track")
+	
+	frappe.publish_realtime(
+		"mo_aging_update_progress",
+		{"progress": 0, "total": total_records, "status": "started"},
+		user=frappe.session.user
+	)
+	
+	while offset < total_records:
+		try:
+			tracks = frappe.get_all(
+				"Material Aging Track",
+				fields=["name", "requestor_id"],
+				limit_start=offset,
+				limit_page_length=batch_size
+			)
+			
+			if not tracks:
+				break
+			
+			for track in tracks:
+				try:
+					track_doc = frappe.get_doc("Material Aging Track", track.name)
+					
+					if track.requestor_id:
+						create_or_update_aging_tracker_from_requestor(track.requestor_id)
+					
+					track_doc.save(ignore_permissions=True)
+					total_updated += 1
+					
+				except Exception as e:
+					total_errors += 1
+					frappe.log_error(
+						title=f"Error updating MO Aging Track {track.name}",
+						message=frappe.get_traceback()
+					)
+			
+			frappe.db.commit()
+			offset += batch_size
+			
+			# Publish progress
+			progress = (offset / total_records) * 100
+			frappe.publish_realtime(
+				"mo_aging_update_progress",
+				{
+					"progress": progress,
+					"updated": total_updated,
+					"errors": total_errors,
+					"total": total_records
+				},
+				user=frappe.session.user
+			)
+			
+		except Exception as batch_error:
+			frappe.log_error(
+				title=f"Error processing batch at offset {offset}",
+				message=frappe.get_traceback()
+			)
+			offset += batch_size
+	
+	frappe.publish_realtime(
+		"mo_aging_update_progress",
+		{
+			"progress": 100,
+			"status": "completed",
+			"updated": total_updated,
+			"errors": total_errors,
+			"total": total_records
+		},
+		user=frappe.session.user
+	)
+	
+	return {
+		"status": "success",
+		"updated": total_updated,
+		"errors": total_errors,
+		"total": total_records
+	}
