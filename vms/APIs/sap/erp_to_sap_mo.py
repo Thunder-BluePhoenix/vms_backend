@@ -270,7 +270,7 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
                 "plant_name": safe_get(item, "plant"),
                 "material_category": safe_get(item, "material_category"),
                 "material_type": safe_get(item, "material_type"),
-                "base_unit_of_measure": safe_get(item, "unit_of_measure"),
+                "unit_of_measure": safe_get(item, "unit_of_measure"),
                 "comment_by_user": safe_get(item, "comment_by_user"),
                 "material_specifications": safe_get(item, "material_specifications")
             })
