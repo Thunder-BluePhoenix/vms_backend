@@ -236,7 +236,8 @@ scheduler_events = {
         "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.cleanup_user_status_cache",  # New
         "vms.vms.doctype.otp_verification.otp_verification.cleanup_old_otps",
         "vms.vms.doctype.vendor_aging_tracker.vendor_aging_tracker.refresh_all_aging_trackers",
-        "vms.purchase.doctype.cart_aging_track.cart_aging_track.update_all_cart_aging_tracks"
+        "vms.purchase.doctype.cart_aging_track.cart_aging_track.update_all_cart_aging_tracks",
+        "vms.material.doctype.material_aging_track.material_aging_track.update_all_mo_aging_tracks",
     ],
     "cron": {
         "0 0 * * *": [

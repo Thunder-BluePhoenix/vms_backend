@@ -22,6 +22,7 @@
   "aging_status",
   "column_break_gfxc",
   "mat_onboard_duration",
+  "req_to_mat_duration",
   "column_break_yuec",
   "mat_onboard_duration_e_s",
   "mat_onboard_duration_s_e"
@@ -122,12 +123,17 @@
    "fieldname": "mat_onboard_duration_s_e",
    "fieldtype": "Duration",
    "label": " MAT Onboard Duration(SAP to ERP)"
+  },
+  {
+   "fieldname": "req_to_mat_duration",
+   "fieldtype": "Duration",
+   "label": "REQ to MAT Duration"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-16 11:49:28.748869",
+ "modified": "2025-10-16 15:49:57.905458",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Aging Track",

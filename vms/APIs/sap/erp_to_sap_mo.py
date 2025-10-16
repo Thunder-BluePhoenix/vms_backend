@@ -293,9 +293,10 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
         first_item = material_items[0] if material_items else {}
         
         # Build field values with safe gets
+        availability_check = safe_get(material_master, "availability_check")
         bukrs = company_code
         batch_value = safe_get(material_master, "batch_requirements_yn")
-        batch_management_indicator = "X" if batch_value == "Yes" else ""
+        batch_management_indicator = "X" if batch_value == "Yes" and availability_check == "CH" else ""
         
         inspection_1 = safe_get(onboarding, "inspection_require")
         inspection_sap = "X" if inspection_1 == "Yes" else ""

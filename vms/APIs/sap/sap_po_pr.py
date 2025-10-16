@@ -581,6 +581,9 @@ def get_po():
                 update_sap_log_failure(log_id, error_msg, None)
                 frappe.throw(error_msg)
 
+            po_id = po_doc.name
+            po_creation_send_mail(po_id)
+
             response = {
                 "status": "success",
                 "message": "Purchase Order Created Successfully.",
@@ -602,6 +605,7 @@ def get_po():
         else:
             po_doc.save()
             po_id = po_doc.name
+            po_update_send_mail(po_id)
 
             if sap_status == "REVOKED":
                 po_doc.sent_to_vendor = 0
