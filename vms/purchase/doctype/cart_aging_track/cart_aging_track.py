@@ -463,53 +463,53 @@ def update_aging_track_on_cart_approval(cart_id):
 # SCHEDULED JOBS / BULK UPDATE FUNCTIONS
 # ============================================================================
 
-def update_all_cart_aging_tracks():
-	"""
-	Scheduled job to update all Cart Aging Track records
-	Run this daily to keep aging metrics up to date
-	"""
-	try:
-		all_tracks = frappe.get_all("Cart Aging Track", fields=["name", "cart_id"])
+# def update_all_cart_aging_tracks():
+# 	"""
+# 	Scheduled job to update all Cart Aging Track records
+# 	Run this daily to keep aging metrics up to date
+# 	"""
+# 	try:
+# 		all_tracks = frappe.get_all("Cart Aging Track", fields=["name", "cart_id"])
 		
-		updated_count = 0
-		error_count = 0
+# 		updated_count = 0
+# 		error_count = 0
 		
-		for track in all_tracks:
-			try:
-				track_doc = frappe.get_doc("Cart Aging Track", track.name)
+# 		for track in all_tracks:
+# 			try:
+# 				track_doc = frappe.get_doc("Cart Aging Track", track.name)
 				
-				# Update from cart if cart_id exists
-				if track.cart_id:
-					update_cart_aging_track_from_cart(track_doc, track.cart_id)
+# 				# Update from cart if cart_id exists
+# 				if track.cart_id:
+# 					update_cart_aging_track_from_cart(track_doc, track.cart_id)
 				
-				track_doc.save(ignore_permissions=True)
-				updated_count += 1
+# 				track_doc.save(ignore_permissions=True)
+# 				updated_count += 1
 				
-			except Exception as e:
-				error_count += 1
-				frappe.log_error(
-					title=f"Error updating Cart Aging Track {track.name}",
-					message=frappe.get_traceback()
-				)
+# 			except Exception as e:
+# 				error_count += 1
+# 				frappe.log_error(
+# 					title=f"Error updating Cart Aging Track {track.name}",
+# 					message=frappe.get_traceback()
+# 				)
 		
-		frappe.db.commit()
+# 		frappe.db.commit()
 		
-		return {
-			"status": "success",
-			"message": f"Updated {updated_count} records, {error_count} errors",
-			"updated": updated_count,
-			"errors": error_count
-		}
+# 		return {
+# 			"status": "success",
+# 			"message": f"Updated {updated_count} records, {error_count} errors",
+# 			"updated": updated_count,
+# 			"errors": error_count
+# 		}
 		
-	except Exception as e:
-		frappe.log_error(
-			title="Error in bulk Cart Aging Track update",
-			message=frappe.get_traceback()
-		)
-		return {
-			"status": "error",
-			"message": str(e)
-		}
+# 	except Exception as e:
+# 		frappe.log_error(
+# 			title="Error in bulk Cart Aging Track update",
+# 			message=frappe.get_traceback()
+# 		)
+# 		return {
+# 			"status": "error",
+# 			"message": str(e)
+# 		}
 
 
 def create_missing_cart_aging_tracks():
@@ -565,3 +565,111 @@ def create_missing_cart_aging_tracks():
 			"status": "error",
 			"message": str(e)
 		}
+	
+
+
+def update_all_cart_aging_tracks():
+	"""
+	Main scheduler function - enqueues background job
+	"""
+	frappe.enqueue(
+		"vms.purchase.doctype.cart_aging_track.cart_aging_track.process_cart_aging_tracks_background",
+		queue="long",  # Use 'long' queue for long-running jobs
+		timeout=3600,  # 1 hour timeout
+		is_async=True,
+		job_name="update_cart_aging_tracks"
+	)
+	
+	return {
+		"status": "queued",
+		"message": "Cart Aging Track update job has been queued"
+	}
+
+
+def process_cart_aging_tracks_background():
+	"""
+	Background job to process all records in batches
+	"""
+	batch_size = 1000
+	offset = 0
+	total_updated = 0
+	total_errors = 0
+	
+	total_records = frappe.db.count("Cart Aging Track")
+	
+	frappe.publish_realtime(
+		"cart_aging_update_progress",
+		{"progress": 0, "total": total_records, "status": "started"},
+		user=frappe.session.user
+	)
+	
+	while offset < total_records:
+		try:
+			tracks = frappe.get_all(
+				"Cart Aging Track",
+				fields=["name", "cart_id"],
+				limit_start=offset,
+				limit_page_length=batch_size
+			)
+			
+			if not tracks:
+				break
+			
+			for track in tracks:
+				try:
+					track_doc = frappe.get_doc("Cart Aging Track", track.name)
+					
+					if track.cart_id:
+						update_cart_aging_track_from_cart(track_doc, track.cart_id)
+					
+					track_doc.save(ignore_permissions=True)
+					total_updated += 1
+					
+				except Exception as e:
+					total_errors += 1
+					frappe.log_error(
+						title=f"Error updating Cart Aging Track {track.name}",
+						message=frappe.get_traceback()
+					)
+			
+			frappe.db.commit()
+			offset += batch_size
+			
+			# Publish progress
+			progress = (offset / total_records) * 100
+			frappe.publish_realtime(
+				"cart_aging_update_progress",
+				{
+					"progress": progress,
+					"updated": total_updated,
+					"errors": total_errors,
+					"total": total_records
+				},
+				user=frappe.session.user
+			)
+			
+		except Exception as batch_error:
+			frappe.log_error(
+				title=f"Error processing batch at offset {offset}",
+				message=frappe.get_traceback()
+			)
+			offset += batch_size
+	
+	frappe.publish_realtime(
+		"cart_aging_update_progress",
+		{
+			"progress": 100,
+			"status": "completed",
+			"updated": total_updated,
+			"errors": total_errors,
+			"total": total_records
+		},
+		user=frappe.session.user
+	)
+	
+	return {
+		"status": "success",
+		"updated": total_updated,
+		"errors": total_errors,
+		"total": total_records
+	}
