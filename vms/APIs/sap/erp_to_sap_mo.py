@@ -50,7 +50,16 @@ def safe_get_child(obj, list_name, index, attr, default=""):
         return getattr(getattr(obj, list_name)[index], attr) or default
     except (AttributeError, IndexError, TypeError):
         return default
+    
 
+def safe_get_value(doctype, filters, fieldname):
+    """Safely get a value from database"""
+    try:
+        return frappe.get_value(doctype, filters, fieldname) or ""
+    except Exception as e:
+        print(f"❌ Error getting value from {doctype}: {str(e)}")
+        return ""
+        
 
 # =====================================================================================
 # SESSION-BASED SAP INTEGRATION CLASS
@@ -261,7 +270,7 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
                 "plant_name": safe_get(item, "plant"),
                 "material_category": safe_get(item, "material_category"),
                 "material_type": safe_get(item, "material_type"),
-                "base_unit_of_measure": safe_get(item, "base_unit_of_measure"),
+                "base_unit_of_measure": safe_get(item, "unit_of_measure"),
                 "comment_by_user": safe_get(item, "comment_by_user"),
                 "material_specifications": safe_get(item, "material_specifications")
             })
@@ -304,7 +313,7 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
             {"name": first_item.get("plant_name")}, "plant_code") if first_item.get("plant_name") else ""
         
         category_code = safe_get_value("Material Category Master", 
-            {"name": first_item.get("material_category")}, "material_category_name") if first_item.get("material_category") else ""
+            {"name": first_item.get("material_category")}, "material_category_code") if first_item.get("material_category") else ""
         
         storage_code = safe_get_value("Storage Location Master", 
             {"name": safe_get(material_master, "storage_location")}, "storage_location") if safe_get(material_master, "storage_location") else ""
@@ -427,14 +436,7 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
 
 
 
-def safe_get_value(doctype, filters, fieldname):
-    """Safely get a value from database"""
-    try:
-        return frappe.get_value(doctype, filters, fieldname) or ""
-    except Exception as e:
-        print(f"❌ Error getting value from {doctype}: {str(e)}")
-        return ""
-        # Wrap in ZMATSet structure if required by SAP
+
         
 
 # =====================================================================================

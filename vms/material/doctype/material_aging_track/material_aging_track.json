@@ -9,6 +9,8 @@
   "mat_id",
   "material_master_id",
   "requestor_id",
+  "erp_to_sap_mo_log",
+  "sap_to_erp_mo_log",
   "column_break_tgrr",
   "material_master_creation_dt",
   "requestor_creation_dt",
@@ -85,12 +87,24 @@
    "fieldtype": "Select",
    "label": "Aging Status",
    "options": "New (0-30 days)\nRecent (31-90 days)\nEstablished (91-180 days)\nLong Term (180+ days)"
+  },
+  {
+   "fieldname": "erp_to_sap_mo_log",
+   "fieldtype": "Link",
+   "label": "ERP to SAP MO log",
+   "options": "MO SAP Logs"
+  },
+  {
+   "fieldname": "sap_to_erp_mo_log",
+   "fieldtype": "Link",
+   "label": "SAP to ERP MO log",
+   "options": "MO SAP Logs"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-15 17:04:40.532593",
+ "modified": "2025-10-16 11:25:03.575155",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Aging Track",
