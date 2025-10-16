@@ -49,6 +49,7 @@
   {
    "fieldname": "company",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Company",
    "options": "Company Master"
   },
@@ -61,6 +62,7 @@
   {
    "fieldname": "storage_location",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Storage Location",
    "options": "Storage Location Master"
   },
@@ -92,7 +94,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-11 10:24:26.656325",
+ "modified": "2025-10-16 17:21:06.982755",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Type Master",

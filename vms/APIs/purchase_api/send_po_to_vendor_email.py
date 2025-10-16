@@ -4,7 +4,7 @@ from frappe import _
 from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist()
-def send_po_to_pr(data=None):
+def send_po_to_pr(data=None, po_name=None):
     try:
         content_type = frappe.request.headers.get('Content-Type', '')
         
@@ -191,8 +191,14 @@ def send_po_to_pr(data=None):
             email_params["cc"] = cc_list
         
         frappe.custom_sendmail(**email_params)
+
+        if po_name:
+            purchase_order = frappe.get_doc("Purchase Order", po_name)
+            purchase_order.sent_to_vendor = 1
+            purchase_order.save(ignore_permission=True)
         
-        
+
+           
         frappe.logger().info(f"Purchase Order email sent successfully to {', '.join(to_emails)}")
         
         return {

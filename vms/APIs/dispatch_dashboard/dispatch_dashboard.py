@@ -4,7 +4,7 @@ from frappe.utils import cint
 import json
 
 @frappe.whitelist(allow_guest=True)
-def dispatch_dashboard(page_no=None, page_length=None, status=None):
+def dispatch_dashboard(page_no=None, page_length=None, status=None, vendor_code=None):
 	try:
 		user = frappe.session.user
 		roles = frappe.get_roles(user)
@@ -123,6 +123,10 @@ def dispatch_dashboard(page_no=None, page_length=None, status=None):
 
 			if status:
 				filters["status"] = status
+
+			if vendor_code:
+				filters["vendor_code"] = vendor_code
+
 			filters["owner"] = user
 
 			total_count = frappe.db.count("Dispatch Item", filters=filters)

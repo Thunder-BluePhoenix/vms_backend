@@ -452,6 +452,10 @@ def update_vendor_onboarding_gst_details(data):
 			for entry in linked_docs:
 				doc = frappe.get_doc("Legal Documents", entry.name)
 
+				if doc.vendor_onboarding:
+					vendor_onboarding_doc = frappe.get_doc("Vendor Onboarding", doc.vendor_onboarding)
+					company_name = getattr(vendor_onboarding_doc, "company_name", "") or ""
+
 				for row in data["gst_table"]:
 					row_name = row.get("name")
 					gst_state = (row.get("gst_state") or "").strip()
@@ -459,7 +463,8 @@ def update_vendor_onboarding_gst_details(data):
 					gst_registration_date = (row.get("gst_registration_date") or "").strip()
 					gst_ven_type = (row.get("gst_ven_type") or "").strip()
 					pincode = (row.get("pincode") or "").strip()
-					company = (row.get("company") or "").strip()
+					# company = (row.get("company") or "").strip()
+					company = company_name
 
 					if row_name:
 						# Update existing row by name (row ID).pincode

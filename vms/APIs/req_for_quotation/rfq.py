@@ -1209,13 +1209,13 @@ def send_revised_rfq(data):
 
 
 @frappe.whitelist(allow_guest=False)
-def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_type=None, status=None):
+def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_type=None, status=None, vendor_code=None):
 	try:
 		usr = frappe.session.user
 		user_roles = frappe.get_roles(usr)
 
 		if "Vendor" in user_roles:
-			return vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr)
+			return vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr, vendor_code)
 
 		if "Purchase Team" in user_roles:
 			# team = frappe.get_value("Employee", filters={"user_id": usr}, fields=["team"])
@@ -1238,7 +1238,7 @@ def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_ty
 
 
 # Dashboard for Vendors
-def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr):
+def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr, vendor_code):
 	try:
 		page_no = int(page_no) if page_no else 1
 		page_length = int(page_length) if page_length else 5
@@ -1266,11 +1266,17 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 		condition_clause = " AND ".join(conditions)
 		condition_clause = f"WHERE {condition_clause}" if condition_clause else ""
 
-		# Filter RFQs by vendor email
-		rfq_names = [r[0] for r in frappe.db.sql("""
-			SELECT parent FROM `tabVendor Details`
-			WHERE office_email_primary = %s
-		""", usr)]
+		if vendor_code:
+			rfq_names = [r[0] for r in frappe.db.sql("""
+				SELECT parent FROM `tabVendor Details`
+				WHERE office_email_primary = %(email)s
+				AND FIND_IN_SET(%(vendor_code)s, REPLACE(vendor_code, ' ', '')) > 0
+			""", {"email": usr, "vendor_code": vendor_code})]
+		else:
+			rfq_names = [r[0] for r in frappe.db.sql("""
+				SELECT parent FROM `tabVendor Details`
+				WHERE office_email_primary = %s
+			""", usr)]
 
 		if not rfq_names:
 			return {

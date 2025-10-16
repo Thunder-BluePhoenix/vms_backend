@@ -87,15 +87,15 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "main_asset_no_head": "Compulsory",
                 # "requisitioner": "Compulsory"
             }
-        elif company == "700" and pur_type == "NB":
-            return {
-                # "status": "success",
-                "material_code_head": "Compulsory",
-                # "plant": "Compulsory",
-                "quantity_head": "Compulsory",
-                # "purchase_group": "Non Compulsory",
-                # "requisitioner": "Compulsory",
-            }
+        # elif company == "700" and pur_type == "NB":
+        #     return {
+        #         # "status": "success",
+        #         "material_code_head": "Compulsory",
+        #         # "plant": "Compulsory",
+        #         "quantity_head": "Compulsory",
+        #         # "purchase_group": "Non Compulsory",
+        #         # "requisitioner": "Compulsory",
+        #     }
         elif company == "700" and pur_type == "NB" and acct_cate == "A":
             return {
                 # "status": "success",
@@ -106,13 +106,13 @@ def filter_req_fields(company, pur_type, acct_cate):
                 # "purchase_group": "Non Compulsory",
                 # "requisitioner": "Compulsory"
             }
-        elif company == "300" and pur_type == "NB":
-            return{
-                "material_code_head": "Compulsory",
-                # "plant": "Compulsory",
-                "quantity_head": "Compulsory",
-                # "requisitioner": "Compulsory"
-            }
+        # elif company == "300" and pur_type == "NB":
+        #     return{
+        #         "material_code_head": "Compulsory",
+        #         # "plant": "Compulsory",
+        #         "quantity_head": "Compulsory",
+        #         # "requisitioner": "Compulsory"
+        #     }
         elif company == "300" and pur_type == "NB" and acct_cate == "A":
             return{
                 "material_code_head": "Compulsory",
@@ -134,14 +134,14 @@ def filter_req_fields(company, pur_type, acct_cate):
                 "cost_center_head": "Compulsory",
                 # "requisitioner": "Compulsory"
         }
-        elif company == "200" and pur_type == "NB":    
-            return{
-                "material_code_head": "Compulsory",
-                # "plant": "Compulsory",
-                "quantity_head": "Compulsory",
-                # "requisitioner": "Compulsory",
-                # "purchase_group": "Non Compulsory"
-            }
+        # elif company == "200" and pur_type == "NB":    
+        #     return{
+        #         "material_code_head": "Compulsory",
+        #         # "plant": "Compulsory",
+        #         "quantity_head": "Compulsory",
+        #         # "requisitioner": "Compulsory",
+        #         # "purchase_group": "Non Compulsory"
+        #     }
         elif company == "200" and pur_type == "NB" and acct_cate == "A":
             return{
                 "material_code_head": "Compulsory",
@@ -233,7 +233,7 @@ def return_acc_ass_category_list(pur_req_type, company):
                                     "account_assignment_category_name": getattr(category_doc, "account_assignment_category_name", ""),
                                     "description": getattr(category_doc, "description", "")
                                 })
-                                
+
                             except frappe.DoesNotExistError:
                                 frappe.log_error(f"Account Assignment Category '{cat}' not found", "Return Acc Ass Category List")
 

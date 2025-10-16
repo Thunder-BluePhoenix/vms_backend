@@ -831,7 +831,7 @@ def validate_required_fields(company, requisition_type, category, row, is_update
 
     if company == "900" and requisition_type == "SB" and category in ["K", "A"]:
         required_fields = [
-            "account_assignment_category_head", "short_text_head", "quantity_head",
+            "account_assignment_category_head", "short_text_head", "quantity_head", "item_category_head"
             "material_group_head", "uom_head", "gl_account_number_head", "cost_center_head"
         ]
 
@@ -861,11 +861,11 @@ def validate_required_fields(company, requisition_type, category, row, is_update
             "cost_center_head"
         ]
 
-    elif company == "700" and requisition_type == "NB":
-        required_fields = [
-            "account_assignment_category_head", "material_code_head",
-            "quantity_head"
-        ]
+    # elif company == "700" and requisition_type == "NB":
+    #     required_fields = [
+    #         "account_assignment_category_head", "material_code_head",
+    #         "quantity_head"
+    #     ]
 
     elif company == "700" and requisition_type == "NB" and category == "A":
         required_fields = [
@@ -873,11 +873,11 @@ def validate_required_fields(company, requisition_type, category, row, is_update
             "quantity_head", "main_asset_no_head"
         ]
 
-    elif company == "300" and requisition_type == "NB":
-        required_fields = [
-            "account_assignment_category_head", "material_code_head",
-            "quantity_head"
-        ]
+    # elif company == "300" and requisition_type == "NB":
+    #     required_fields = [
+    #         "account_assignment_category_head", "material_code_head",
+    #         "quantity_head"
+    #     ]
 
     elif company == "300" and requisition_type == "NB" and category == "A":
         required_fields = [
@@ -892,11 +892,11 @@ def validate_required_fields(company, requisition_type, category, row, is_update
             "cost_center_head"
         ]
 
-    elif company == "200" and requisition_type == "NB":
-        required_fields = [
-            "account_assignment_category_head", "material_code_head",
-            "quantity_head"
-        ]
+    # elif company == "200" and requisition_type == "NB":
+    #     required_fields = [
+    #         "account_assignment_category_head", "material_code_head",
+    #         "quantity_head"
+    #     ]
 
     elif company == "200" and requisition_type == "NB" and category == "A":
         required_fields = [
