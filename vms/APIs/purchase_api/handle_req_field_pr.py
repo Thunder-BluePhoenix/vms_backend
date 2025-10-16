@@ -203,3 +203,79 @@ def filter_req_fields(company, pur_type, acct_cate):
         }          
 
 
+# Return Account Assignment category acc to Pur Req Type and company
+@frappe.whitelist(allow_guest=True)
+def return_acc_ass_category_list(pur_req_type, company):
+    try:
+        if not pur_req_type or not company:
+            frappe.local.response["http_status_code"] = 400
+            return {
+                "status": "error",
+                "message": "Both 'pur_req_type' and 'company' are required."
+            }
+
+        purchase_requisition_type = frappe.get_doc("Purchase Requisition Type", pur_req_type)
+
+        if purchase_requisition_type.required_fields:
+            for row in purchase_requisition_type.required_fields:
+                if row.company == company:
+
+                    # Process account_assignment_category
+                    account_assignment_category_head = []
+                    if row.account_assignment_category:
+                        categories = [cat.strip() for cat in row.account_assignment_category.split(",")]
+                        for cat in categories:
+                            try:
+                                category_doc = frappe.get_doc("Account Assignment Category", cat)
+                                account_assignment_category_head.append({
+                                    "name": category_doc.name,
+                                    "account_assignment_category_code": getattr(category_doc, "account_assignment_category_code", ""),
+                                    "account_assignment_category_name": getattr(category_doc, "account_assignment_category_name", ""),
+                                    "description": getattr(category_doc, "description", "")
+                                })
+                                
+                            except frappe.DoesNotExistError:
+                                frappe.log_error(f"Account Assignment Category '{cat}' not found", "Return Acc Ass Category List")
+
+                    # Process item_category
+                    item_category_head = []
+                    if row.item_category:
+                        try:
+                            item_cat_doc = frappe.get_doc("Item Category Master", row.item_category)
+                            item_category_head.append({
+                                "name": item_cat_doc.name,
+                                "item_code": getattr(item_cat_doc, "item_code", ""),
+                                "item_name": getattr(item_cat_doc, "item_name", ""),
+                                "description": getattr(item_cat_doc, "description", "")
+                            })
+
+                        except frappe.DoesNotExistError:
+                            frappe.log_error(f"Item Category Master '{row.item_category}' not found", "Return Acc Ass Category List")
+
+                    frappe.local.response["http_status_code"] = 200
+                    return {
+                        "account_assignment_category_head": account_assignment_category_head,
+                        "item_category_head": item_category_head
+                    }
+
+        frappe.local.response["http_status_code"] = 404
+        return {
+            "status": "error",
+            "message": f"No matching required fields found for company '{company}'."
+        }
+
+    except frappe.DoesNotExistError:
+        frappe.local.response["http_status_code"] = 404
+        return {
+            "status": "error",
+            "message": f"Purchase Requisition Type '{pur_req_type}' does not exist."
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Filter Request Fields API Error")
+        frappe.local.response["http_status_code"] = 500
+        return {
+            "status": "error",
+            "message": "Failed to retrieve filter request fields.",
+            "error": str(e)
+        }
