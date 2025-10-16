@@ -299,8 +299,8 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
         
         inspection_1 = safe_get(onboarding, "inspection_require")
         inspection_sap = "X" if inspection_1 == "Yes" else ""
-        inspection_01 = "X" if safe_get(onboarding, "incoming_inspection_01") else ""
-        inspection_09 = "X" if safe_get(onboarding, "incoming_inspection_09") else ""
+        inspection_01 = "01" if safe_get(onboarding, "incoming_inspection_01") else ""
+        inspection_09 = "09" if safe_get(onboarding, "incoming_inspection_09") else ""
         
         serial_number_profile = safe_get(material_master, "serial_number_profile")
         serial_number = "" if serial_number_profile == "No" else serial_number_profile

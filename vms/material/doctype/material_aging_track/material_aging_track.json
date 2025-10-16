@@ -14,13 +14,17 @@
   "column_break_tgrr",
   "material_master_creation_dt",
   "requestor_creation_dt",
+  "sap_mo_log_creation_e_s",
+  "sap_mo_log_creation_s_e",
   "section_break_ilkk",
-  "sap_mo_log_creation",
-  "column_break_gfxc",
-  "mat_onboard_duration",
   "column_break_agqs",
   "days_since_creation",
-  "aging_status"
+  "aging_status",
+  "column_break_gfxc",
+  "mat_onboard_duration",
+  "column_break_yuec",
+  "mat_onboard_duration_e_s",
+  "mat_onboard_duration_s_e"
  ],
  "fields": [
   {
@@ -60,11 +64,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "sap_mo_log_creation",
-   "fieldtype": "Datetime",
-   "label": "Sap MO Log Creation"
-  },
-  {
    "fieldname": "column_break_gfxc",
    "fieldtype": "Column Break"
   },
@@ -99,12 +98,36 @@
    "fieldtype": "Link",
    "label": "SAP to ERP MO log",
    "options": "MO SAP Logs"
+  },
+  {
+   "fieldname": "sap_mo_log_creation_e_s",
+   "fieldtype": "Datetime",
+   "label": "ERP to Sap MO Log Creation"
+  },
+  {
+   "fieldname": "sap_mo_log_creation_s_e",
+   "fieldtype": "Datetime",
+   "label": "SAP to ERP MO Log Creation"
+  },
+  {
+   "fieldname": "column_break_yuec",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mat_onboard_duration_e_s",
+   "fieldtype": "Duration",
+   "label": " MAT Onboard Duration(ERP to SAP)"
+  },
+  {
+   "fieldname": "mat_onboard_duration_s_e",
+   "fieldtype": "Duration",
+   "label": " MAT Onboard Duration(SAP to ERP)"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-16 11:25:03.575155",
+ "modified": "2025-10-16 11:49:28.748869",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Aging Track",
