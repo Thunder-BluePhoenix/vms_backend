@@ -351,7 +351,7 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
             "Werks": plant_code,
             "Lgort": storage_code,
             "Maktx": first_item.get("material_name_description", ""),
-            "Meins": first_item.get("base_unit_of_measure", ""),
+            "Meins": first_item.get("unit_of_measure", ""),
             "Matkl": material_group_code,
             "Spart": division_code,
             "Brgew": "",
