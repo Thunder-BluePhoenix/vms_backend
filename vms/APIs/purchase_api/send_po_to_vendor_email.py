@@ -192,8 +192,12 @@ def send_po_to_pr(data=None, po_name=None):
         
         frappe.custom_sendmail(**email_params)
 
-        purchase_order = frappe.get_doc("Purchase Order", po_name)
-        purchase_order.sent_to_vendor = 1
+        if po_name:
+            purchase_order = frappe.get_doc("Purchase Order", po_name)
+            purchase_order.sent_to_vendor = 1
+            purchase_order.save(ignore_permission=True)
+        
+
            
         frappe.logger().info(f"Purchase Order email sent successfully to {', '.join(to_emails)}")
         
