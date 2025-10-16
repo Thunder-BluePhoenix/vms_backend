@@ -324,7 +324,7 @@ def build_material_payload(requestor_doc, material_master_doc, onboarding_doc):
         division_code = safe_get_value("Division Master", 
             {"name": safe_get(material_master, "division")}, "division_code") if safe_get(material_master, "division") else ""
         
-        material_group_code = safe_get_value("Material Group", 
+        material_group_code = safe_get_value("Material Group Master", 
             {"name": safe_get(material_master, "material_group")}, "material_group_name") if safe_get(material_master, "material_group") else ""
         
         mrp_code = safe_get_value("MRP Type Master", 
