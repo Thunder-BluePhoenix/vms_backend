@@ -4,7 +4,7 @@ from frappe import _
 from vms.utils.custom_send_mail import custom_sendmail
 
 @frappe.whitelist()
-def send_po_to_pr(data=None, po_name=None):
+def send_po_to_vendor_email(data=None, po_name=None):
     try:
         content_type = frappe.request.headers.get('Content-Type', '')
         
@@ -194,8 +194,8 @@ def send_po_to_pr(data=None, po_name=None):
 
         if po_name:
             purchase_order = frappe.get_doc("Purchase Order", po_name)
-            purchase_order.sent_to_vendor = 1
-            purchase_order.save(ignore_permission=True)
+            purchase_order.db_set({"sent_to_vendor" : 1})
+            
         
 
            
