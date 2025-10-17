@@ -226,6 +226,8 @@ def update_grn_log_success(log_id, response, grn_doc_name, data, is_new=True):
         log_doc.grn_link = grn_doc_name
         
         # Update total transaction with complete details
+        processed_date = ensure_datetime(log_doc.processed_date)
+        transaction_date = ensure_datetime(log_doc.transaction_date)
         total_transaction_data = {
             "request_details": {
                 "url": frappe.request.url,
@@ -245,8 +247,12 @@ def update_grn_log_success(log_id, response, grn_doc_name, data, is_new=True):
                 "grn_doc_name": grn_doc_name,
                 "operation": "Created" if is_new else "Updated",
                 "total_items": len(data.get("items", [])) if data else 0,
-                "processing_time_seconds": (datetime.strptime(log_doc.processed_date, "%Y-%m-%d %H:%M:%S.%f") - 
-                                          datetime.strptime(log_doc.transaction_date, "%Y-%m-%d %H:%M:%S.%f")).total_seconds() if log_doc.processed_date and log_doc.transaction_date else 0
+                "processing_time_seconds": (
+                                                (processed_date - transaction_date).total_seconds()
+                                                if processed_date and transaction_date
+                                                else 0
+                                            )
+
             }
         }
         
@@ -270,6 +276,16 @@ def update_grn_log_success(log_id, response, grn_doc_name, data, is_new=True):
             title="Failed to update GRN SAP log with success",
             message=f"Log ID: {log_id}\nError: {str(e)}\n{frappe.get_traceback()}"
         )
+
+def ensure_datetime(value):
+    if isinstance(value, str):
+        try:
+            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+        except ValueError:
+            # fallback if microseconds are missing
+            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+    return value
+
 
 
 def update_grn_log_failure(log_id, error_message, traceback):
