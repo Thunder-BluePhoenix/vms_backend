@@ -92,7 +92,7 @@ websocket_events = {
 # 	"Role": "home_page"QMS Inspection Reports
 # }
 fixtures = [
-    # {"dt": "SAP Mapper PR"},
+    {"dt": "SAP Mapper PR"},
     {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab", "Super Head", "Accounts Head", "ASA", "IT Head","Nirav","Earth Upload Railway","Earth Upload International Air","Earth Upload Domestic Air","Earth Upload Bus","Earth Upload Hotel", "Material CP", "Material User", "SAP Team"]]}},
     {"dt": "Role Profile", "filters": {"name" :["in", ["Accounts Head", "Super Head", "Accounts Team", "Enquirer", "Purchase Head", "Purchase Team", "Vendor", "QA Team", "QA Head","Handover Person","Store", "Material CP", "Material User", "SAP Team"]]}},
     {"dt": "Module Profile", "filters": {"name": ["in", ["Vendor"]]}},
