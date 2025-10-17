@@ -2,54 +2,55 @@ import frappe
 import json
 from frappe import _
 from vms.utils.custom_send_mail import custom_sendmail
+from datetime import datetime, timedelta
 
 
-@frappe.whitelist(allow_guest=True)
-def hod_approval_check(data):
-    try:
-        if isinstance(data, str):
-            data = json.loads(data)
+# @frappe.whitelist(allow_guest=True)
+# def hod_approval_check(data):
+#     try:
+#         if isinstance(data, str):
+#             data = json.loads(data)
 
-        cart_details = data.get("cart_id")
-        user = data.get("user")
-        is_approved = int(data.get("approve"))
-        is_rejected = int(data.get("reject"))
-        rejection_reason = data.get("rejected_reason")
-        comments = data.get("comments")
+#         cart_details = data.get("cart_id")
+#         user = data.get("user")
+#         is_approved = int(data.get("approve"))
+#         is_rejected = int(data.get("reject"))
+#         rejection_reason = data.get("rejected_reason")
+#         comments = data.get("comments")
 
-        if is_approved and is_rejected:
-            frappe.throw(_("Cannot approve and reject at the same time."))
+#         if is_approved and is_rejected:
+#             frappe.throw(_("Cannot approve and reject at the same time."))
 
-        # Fetch cart details document
-        cart_details_doc = frappe.get_doc("Cart Details", cart_details)
+#         # Fetch cart details document
+#         cart_details_doc = frappe.get_doc("Cart Details", cart_details)
         
-        if is_approved:
-            cart_details_doc.hod_approved = 1
-            cart_details_doc.hod_approval_status = "Approved"
-            cart_details_doc.hod_approval_remarks = comments
-        elif is_rejected:
-            cart_details_doc.rejected = 1
-            cart_details_doc.rejected_by = user
-            cart_details_doc.hod_approval_status = "Rejected"
-            cart_details_doc.reason_for_rejection = rejection_reason
-        else:
-            frappe.throw(_("Invalid request: either approve or reject must be set."))
+#         if is_approved:
+#             cart_details_doc.hod_approved = 1
+#             cart_details_doc.hod_approval_status = "Approved"
+#             cart_details_doc.hod_approval_remarks = comments
+#         elif is_rejected:
+#             cart_details_doc.rejected = 1
+#             cart_details_doc.rejected_by = user
+#             cart_details_doc.hod_approval_status = "Rejected"
+#             cart_details_doc.reason_for_rejection = rejection_reason
+#         else:
+#             frappe.throw(_("Invalid request: either approve or reject must be set."))
 
-        cart_details_doc.save(ignore_permissions=True)
-        frappe.db.commit()
+#         cart_details_doc.save(ignore_permissions=True)
+#         frappe.db.commit()
 
-        return {
-            "status": "success",
-            "message": "Cart details updated successfully.",
-            "cart_details": cart_details,
-        }
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error updating cart details")
-        return {
-            "status": "error",
-            "message": "Failed to update cart details.",
-            "error": str(e),
-        }
+#         return {
+#             "status": "success",
+#             "message": "Cart details updated successfully.",
+#             "cart_details": cart_details,
+#         }
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Error updating cart details")
+#         return {
+#             "status": "error",
+#             "message": "Failed to update cart details.",
+#             "error": str(e),
+#         }
 
 
 @frappe.whitelist(allow_guest=True)
@@ -58,6 +59,7 @@ def purchase_approval_check(data):
 		if isinstance(data, str):
 			data = json.loads(data)
 
+		session_user = frappe.session.user
 		cart_id = data.get("cart_id")
 		user = data.get("user")
 		is_approved = int(data.get("approve"))
@@ -74,6 +76,7 @@ def purchase_approval_check(data):
 		if is_approved:
 			cart_details_doc.purchase_team_approved = 1
 			cart_details_doc.purchase_team_approval_status = "Approved"
+			cart_details_doc.purchase_team_approval = session_user
 			cart_details_doc.purchase_team_approval_remarks = comments
 
 			# Clear old child rows
@@ -104,7 +107,7 @@ def purchase_approval_check(data):
 					
 		elif is_rejected:
 			cart_details_doc.rejected = 1
-			cart_details_doc.rejected_by = user
+			cart_details_doc.rejected_by = session_user
 			cart_details_doc.purchase_team_approval_status = "Rejected"
 			cart_details_doc.reason_for_rejection = rejection_reason
 
@@ -127,7 +130,7 @@ def purchase_approval_check(data):
 			"error": str(e),
 		}
 
-
+# Email for Second Stage Approval 
 @frappe.whitelist(allow_guest=False)
 def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=None):
     try:
@@ -136,17 +139,29 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
         # Get purchase enquiry document
         doc = frappe.get_doc("Cart Details", purchase_enquiry_id)
 
+        if doc.cart_date:
+            try:
+                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except Exception:
+                cart_date_formatted = doc.cart_date
+        else:
+            cart_date_formatted = "N/A"
+
         # Get requestor details
         requestor_name = frappe.session.user
         if email_id:
             employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
-            second_stage_user = frappe.get_value("User", {"email": email_id})
+
+            second_stage_user = frappe.get_value("User", {"email": email_id}, "name")
             second_stage_name = frappe.get_value("User", second_stage_user, "full_name")
+
+            hod_approval = frappe.get_value("User", doc.hod_approval, "full_name")
+            purchase_team_approval = frappe.get_value("User", doc.purchase_team_approval, "full_name")
 
         if email_id:
             # Create approval and reject URLs
-            approve_url = f"{http_server}api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=approve"
-            reject_url = f"{http_server}api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=reject"
+            approve_url = f"{http_server}/api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=approve"
+            reject_url = f"{http_server}/api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=reject"
 
             table_html = """
                 <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
@@ -178,15 +193,16 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 
             table_html += "</table>"
 
-            subject = f"Purchase Team Approved Cart Details Submitted by {employee_name if employee_name else 'user'} - {doc.name}"
+            subject = f"Additional Approval of Cart Details Submitted by {employee_name if employee_name else 'user'} - {doc.name}"
 
-            # Message for HOD with buttons
+            # Message for HOD with buttons Additional Approver
             hod_message = f"""
                 <p>Dear {second_stage_name if second_stage_name else 'user'},</p>		
-                <p>A new cart details submission has been made by <b>{employee_name if employee_name else 'user'}</b> which is approved by Purchase Team.</p>
+                <p>A new cart details submission has been made by <b>{employee_name if employee_name else 'user'}</b> which is approved by {purchase_team_approval if purchase_team_approval else 'user'}(Purchase Team) and also by {hod_approval if hod_approval else 'user'}(HOD)</p>
+                <p>and it is sent to you Second stage for further approval.</p>
                 <p>Please review the details and take necessary actions.</p>
                 <p><b>Cart ID:</b> {doc.name}</p>
-                <p><b>Cart Date:</b> {doc.cart_date}</p>
+                <p><b>Cart Date:</b> {cart_date_formatted}</p>
                 <p><b>Cart Products:</b></p>
                 {table_html}
                 <br>
@@ -206,7 +222,7 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
                 <p>Dear {employee_name if employee_name else 'user'},</p>
                 <p>Your cart has been approved by Purchase Team and sent to your Second stage <b>{second_stage_name if second_stage_name else 'user'}</b> for further approval.</p>
                 <p><b>Cart ID:</b> {doc.name}</p>
-                <p><b>Cart Date:</b> {doc.cart_date}</p>
+                <p><b>Cart Date:</b> {cart_date_formatted}</p>
                 <p><b>Cart Products:</b></p>
                 {table_html}
                 <p>Thank you!</p>
@@ -256,6 +272,7 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 @frappe.whitelist(allow_guest=True)
 def second_stage_approval_check():
     try:
+        session_user = frappe.session.user
         cart_id = frappe.form_dict.get("cart_id")
         user = frappe.form_dict.get("email")
         action = frappe.form_dict.get("action")
@@ -274,10 +291,10 @@ def second_stage_approval_check():
             cart_details_doc.second_stage_approved = 1
             cart_details_doc.second_stage_approval_status = "Approved"
             cart_details_doc.second_stage_approval_remark = "Approved by " + user
-            cart_details_doc.second_stage_approval_by = user
+            cart_details_doc.second_stage_approval_by = session_user
         elif action == "reject":
             cart_details_doc.rejected = 1
-            cart_details_doc.rejected_by = user
+            cart_details_doc.rejected_by = session_user
             cart_details_doc.hod_approval_status = "Rejected"
             cart_details_doc.reason_for_rejection = reason_for_rejection
         else:

@@ -409,6 +409,7 @@ def get_full_rfq_data(unique_id):
 			cutoff_date = current_rfq.get("rfq_cutoff_date_logistic") or current_rfq.get("quotation_deadline")
 
 			vendor_data = []
+			# Process onboarded vendors
 			for row in current_rfq.vendor_details:
 				try:
 					parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
@@ -423,6 +424,26 @@ def get_full_rfq_data(unique_id):
 						"office_email_primary": row.office_email_primary,
 						"mobile_number": row.mobile_number,
 						"service_provider_type": row.service_provider_type,
+						"country": row.country,
+						"bid_won": row.bid_won,
+						"bid_loss": row.bid_loss,
+						"quotations": parsed_json
+					})
+
+			# Process non-onboarded vendors
+			for row in current_rfq.non_onboarded_vendor_details:
+				try:
+					parsed_json = frappe.parse_json(row.json_field) if row.json_field else []
+				except Exception:
+					parsed_json = []
+				
+				if parsed_json:
+					vendor_data.append({
+						"vendor_name": row.vendor_name,
+						"vendor_code": [],
+						"office_email_primary": row.office_email_primary,
+						"mobile_number": row.mobile_number,
+						"service_provider_type": "",
 						"country": row.country,
 						"bid_won": row.bid_won,
 						"bid_loss": row.bid_loss,
@@ -1188,13 +1209,13 @@ def send_revised_rfq(data):
 
 
 @frappe.whitelist(allow_guest=False)
-def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_type=None, status=None):
+def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_type=None, status=None, vendor_code=None):
 	try:
 		usr = frappe.session.user
 		user_roles = frappe.get_roles(usr)
 
 		if "Vendor" in user_roles:
-			return vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr)
+			return vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr, vendor_code)
 
 		if "Purchase Team" in user_roles:
 			# team = frappe.get_value("Employee", filters={"user_id": usr}, fields=["team"])
@@ -1217,7 +1238,7 @@ def rfq_dashboard(company_name=None, name=None, page_no=1, page_length=5, rfq_ty
 
 
 # Dashboard for Vendors
-def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr):
+def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, status, usr, vendor_code):
 	try:
 		page_no = int(page_no) if page_no else 1
 		page_length = int(page_length) if page_length else 5
@@ -1245,21 +1266,39 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 		condition_clause = " AND ".join(conditions)
 		condition_clause = f"WHERE {condition_clause}" if condition_clause else ""
 
-		# Filter RFQs by vendor email
-		rfq_names = [r[0] for r in frappe.db.sql("""
-			SELECT parent FROM `tabVendor Details`
+		rfq_names_with_emails = [r[0] for r in frappe.db.sql("""
+			SELECT DISTINCT parent FROM `tabVendor Details`
 			WHERE office_email_primary = %s
 		""", usr)]
 
-		if not rfq_names:
+		if not rfq_names_with_emails:
 			return {
 				"status": "success",
 				"message": "No RFQs found for vendor",
 				"data": [],
 				"total_count": 0
 			}
+		
+		if vendor_code:
+			vendor_code = vendor_code.strip()
 
-		values["rfq_names"] = tuple(rfq_names)
+			rfq_names_with_code = [r[0] for r in frappe.db.sql("""
+				SELECT DISTINCT parent FROM `tabVendor Details`
+				WHERE parent IN %(rfq_names)s
+				AND FIND_IN_SET(%(vendor_code)s, REPLACE(vendor_code, ' ', '')) > 0
+			""", {"rfq_names": tuple(rfq_names_with_emails), "vendor_code": vendor_code})]
+
+			if not rfq_names_with_code:
+				return {
+					"status": "success",
+					"message": "No RFQs found for vendor with the specified vendor code",
+					"data": [],
+					"total_count": 0
+				}
+
+			rfq_names_with_emails = rfq_names_with_code
+
+		values["rfq_names"] = tuple(rfq_names_with_emails)
 
 		# Total count
 		total_count = frappe.db.sql(f"""

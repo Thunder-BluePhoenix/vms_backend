@@ -70,6 +70,8 @@ frappe.ui.form.on('Vendor Master', {
                 'font-weight': 'bold'
             });
         }, 300);
+
+    vendor_code_doc_sync(frm);
     }
 });
 
@@ -159,3 +161,105 @@ window.restore_from_onboarding = function(onboarding_id) {
         }
     );
 };
+
+
+
+
+
+// File: vms/vms/doctype/vendor_master/vendor_master.js.....vms.vms_masters.doctype.company_vendor_code.corn_system_vendor_code.py
+function vendor_code_doc_sync(frm) {
+        // Add button to sync addresses for this vendor only
+        if (!frm.is_new()) {
+            frm.add_custom_button(__('Sync Vendor Code Addresses'), function() {
+                frappe.confirm(
+                    __('This will update address fields in all vendor codes for this vendor from their respective sources (Vendor Import Staging or Vendor Onboarding). Continue?'),
+                    function() {
+                        // Show progress indicator
+                        frappe.show_alert({
+                            message: __('Syncing addresses...'),
+                            indicator: 'blue'
+                        }, 3);
+                        
+                        frappe.call({
+                            method: 'vms.vms_masters.doctype.company_vendor_code.corn_system_vendor_code.sync_single_vendor_addresses',
+                            args: {
+                                vendor_master_name: frm.doc.name
+                            },
+                            callback: function(r) {
+                                if (r.message) {
+                                    if (r.message.status === 'success') {
+                                        frappe.show_alert({
+                                            message: __(r.message.message),
+                                            indicator: 'green'
+                                        }, 5);
+                                        
+                                        // Show detailed message with companies updated
+                                        if (r.message.companies && r.message.companies.length > 0) {
+                                            frappe.msgprint({
+                                                title: __('Address Sync Completed'),
+                                                message: __('Updated addresses for the following companies:') + 
+                                                         '<br><br><ul><li>' + 
+                                                         r.message.companies.join('</li><li>') + 
+                                                         '</li></ul>',
+                                                indicator: 'green'
+                                            });
+                                        }
+                                        
+                                        // Reload the form to show updated data
+                                        frm.reload_doc();
+                                    } else if (r.message.status === 'info') {
+                                        frappe.msgprint({
+                                            title: __('Info'),
+                                            message: __(r.message.message),
+                                            indicator: 'blue'
+                                        });
+                                    } else {
+                                        frappe.msgprint({
+                                            title: __('Error'),
+                                            message: __(r.message.message),
+                                            indicator: 'red'
+                                        });
+                                    }
+                                }
+                            },
+                            error: function(r) {
+                                frappe.msgprint({
+                                    title: __('Error'),
+                                    message: __('Failed to sync addresses. Please check error logs.'),
+                                    indicator: 'red'
+                                });
+                            }
+                        });
+                    }
+                );
+            }, __('Vendor Documents'));
+            
+            // Add button to trigger global sync for all vendors
+            if (frappe.user.has_role(['System Manager', 'Administrator'])) {
+                frm.add_custom_button(__('Sync All Vendors'), function() {
+                    frappe.confirm(
+                        __('This will sync addresses for ALL vendors in the system. This may take several minutes. Continue?'),
+                        function() {
+                            frappe.call({
+                                method: 'vms.vms_masters.doctype.company_vendor_code.corn_system_vendor_code.trigger_address_sync',
+                                callback: function(r) {
+                                    if (r.message && r.message.status === 'success') {
+                                        frappe.show_alert({
+                                            message: __(r.message.message),
+                                            indicator: 'green'
+                                        }, 5);
+                                        
+                                        frappe.msgprint({
+                                            title: __('Job Queued'),
+                                            message: __('The address sync job has been queued and will run in the background. You will be notified once it completes. You can check the progress in the background jobs list.'),
+                                            indicator: 'blue'
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    );
+                }, __('Vendor Documents'));
+            }
+        }
+    };

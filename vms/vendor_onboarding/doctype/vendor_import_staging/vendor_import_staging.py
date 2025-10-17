@@ -46,6 +46,9 @@ class VendorImportStaging(Document):
             
             if not self.c_code:
                 errors.append("Company Code is required")
+
+            if not self.primary_email:
+                errors.append("Primary Email is required")
             
             # === FORMAT VALIDATIONS ===
             # GST validation
@@ -310,7 +313,13 @@ class VendorImportStaging(Document):
                     self.vendor_code,
                     self.c_code,
                     self.state,
-                    self.gstn_no
+                    self.gstn_no,
+                    self.city,
+                    self.address01,
+                    self.address02,
+                    self.address03,
+                    self.pincode,
+                    self.country
                 )
                 
                 if company_code_result.get("warnings"):
@@ -336,7 +345,7 @@ class VendorImportStaging(Document):
             frappe.log_error(f"{error_msg}\nStaging Record: {self.name}", "Vendor Import Staging Error")
             return None
 
-    def handle_company_vendor_code(self, vendor_ref_no, vendor_code, company_code, state, gst_no):
+    def handle_company_vendor_code(self, vendor_ref_no, vendor_code, company_code, state, gst_no, city = None, add1 = None, add2=None, add3 = None, zip=None, country=None):
         """Enhanced handling of Company Vendor Code with proper duplicate logic + Vendor Master sync"""
         
         result = {
@@ -382,7 +391,13 @@ class VendorImportStaging(Document):
                     cvc_doc.append("vendor_code", {
                         "vendor_code": vendor_code,
                         "state": state,
-                        "gst_no": gst_no
+                        "gst_no": gst_no,
+                        "city": city,
+                        "address_line_1": add1,
+                        "address_line_2": add2,
+                        "address_line_3": add3,
+                        "zip_code": zip,
+                        "country": country
                     })
                     result["company_code_action"] = "updated"
             
@@ -396,7 +411,13 @@ class VendorImportStaging(Document):
                 cvc_doc.append("vendor_code", {
                     "vendor_code": vendor_code,
                     "state": state,
-                    "gst_no": gst_no
+                    "gst_no": gst_no,
+                    "city": city,
+                    "address_line_1": add1,
+                    "address_line_2": add2,
+                    "address_line_3": add3,
+                    "zip_code": zip,
+                    "country": country
                 })
                 result["company_code_action"] = "created"
             
@@ -700,6 +721,11 @@ def get_batch_statistics(batch_id):
 
 
 
+
+
+
+
+
 @frappe.whitelist()
 def export_single_record_data(docname):
     """Export single record data to Excel"""
@@ -841,6 +867,131 @@ def revalidate_staging_record(docname):
     except Exception as e:
         frappe.log_error(f"Error revalidating staging record: {str(e)}", "Staging Revalidation Error")
         return {"status": "error", "error": str(e)}
+
+
+
+@frappe.whitelist()
+def bulk_revalidate_staging_records(docnames=None, filters=None):
+    """Enqueue bulk revalidation job for multiple staging records"""
+    
+    if docnames:
+        # If specific docnames provided
+        if isinstance(docnames, str):
+            import json
+            docnames = json.loads(docnames)
+    else:
+        # Fetch all eligible records based on import_status
+        docnames = frappe.get_all(
+            "Vendor Import Staging",
+            filters={
+                "import_status": ["not in", ["Queued", "Processing", "Completed"]]
+            },
+            pluck="name"
+        )
+    
+    if not docnames:
+        frappe.msgprint(
+            "No eligible records found for revalidation. Only records that are not Queued, Processing, or Completed can be revalidated.",
+            indicator="orange",
+            alert=True
+        )
+        return {"status": "error", "error": "No eligible documents found"}
+    
+    # Enqueue the background job
+    frappe.enqueue(
+        method="vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_bulk_revalidation",
+        queue="long",
+        timeout=3000,
+        job_name=f"Bulk Revalidate Staging Records",
+        docnames=docnames,
+        now=frappe.flags.in_test
+    )
+    
+    frappe.msgprint(
+        f"Bulk revalidation started for {len(docnames)} record(s). You will be notified once complete.",
+        indicator="blue",
+        alert=True
+    )
+    
+    return {"status": "success", "message": f"Job enqueued for {len(docnames)} records"}
+
+
+def process_bulk_revalidation(docnames):
+    """Background job to process bulk revalidation"""
+    
+    total = len(docnames)
+    success_count = 0
+    error_count = 0
+    skipped_count = 0
+    errors = []
+    
+    for idx, docname in enumerate(docnames, 1):
+        try:
+            # Update progress
+            frappe.publish_progress(
+                percent=(idx / total) * 100,
+                title="Revalidating Staging Records",
+                description=f"Processing {idx} of {total}"
+            )
+            
+            # Get the document
+            staging_doc = frappe.get_doc("Vendor Import Staging", docname)
+            
+            # Double-check import_status before revalidating
+            if staging_doc.import_status in ["Queued", "Processing", "Completed"]:
+                skipped_count += 1
+                continue
+            
+            # Revalidate the record
+            staging_doc.set_validation_status()
+            staging_doc.save()
+            
+            success_count += 1
+            
+        except Exception as e:
+            error_count += 1
+            error_msg = f"{docname}: {str(e)}"
+            errors.append(error_msg)
+            frappe.log_error(
+                f"Error revalidating {docname}: {str(e)}", 
+                "Bulk Staging Revalidation Error"
+            )
+        
+        # Commit every 20 records to avoid long transactions
+        if idx % 20 == 0:
+            frappe.db.commit()
+    
+    # Final commit
+    frappe.db.commit()
+    
+    # Send notification to user
+    message = f"""
+    <b>Bulk Revalidation Complete</b><br><br>
+    Total Records: {total}<br>
+    Success: {success_count}<br>
+    Skipped: {skipped_count}<br>
+    Failed: {error_count}
+    """
+    
+    if errors:
+        message += f"<br><br><b>Errors:</b><br>{'<br>'.join(errors[:10])}"
+        if len(errors) > 10:
+            message += f"<br>... and {len(errors) - 10} more errors"
+    
+    frappe.publish_realtime(
+        event="msgprint",
+        message=message,
+        user=frappe.session.user
+    )
+    
+    return {
+        "total": total,
+        "success": success_count,
+        "skipped": skipped_count,
+        "failed": error_count,
+        "errors": errors
+    }
+
 
 
 @frappe.whitelist()
@@ -2809,6 +2960,8 @@ def perform_comprehensive_validation_check():
                 record_errors.append(f"Record {record.name}: Vendor Code is required")
             if not record.c_code:
                 record_errors.append(f"Record {record.name}: Company Code is required")
+            if not record.primary_email:
+                record_errors.append(f"Record {record.name}: Primary Email is required")
             
             # === FORMAT VALIDATIONS ===
             # GST validation
@@ -2854,7 +3007,7 @@ def perform_comprehensive_validation_check():
                         record_warnings.append(f"Record {record.name}: City Master not found: {record.city}")
                         missing_master_counts.setdefault("City Master", set()).add(record.city)
                 
-                if record.state:
+                if record.state and record.country == "India":
                     state_exists = frappe.db.exists("State Master", str(record.state).strip())
                     if not state_exists:
                         record_warnings.append(f"Record {record.name}: State Master not found: {record.state}")
@@ -3343,6 +3496,92 @@ def get_master_creation_template(doctype):
     }
     
     return templates.get(doctype, {"required_fields": [], "optional_fields": [], "field_types": {}})
+
+
+@frappe.whitelist()
+def process_single_staging_record_from_doc(docname):
+    """
+    IMPROVED: Process a single staging record to vendor master with better error handling
+    
+    This version:
+    - Validates before processing
+    - Uses create_vendor_master_from_staging (the correct function)
+    - Better error handling and logging
+    - Updates status properly
+    """
+    
+    try:
+        # Get staging document
+        staging_doc = frappe.get_doc("Vendor Import Staging", docname)
+        
+        # Check validation status
+        if staging_doc.validation_status == "Invalid":
+            return {
+                "status": "error",
+                "error": "Cannot process invalid record. Please fix validation errors first.",
+                "error_log": staging_doc.error_log
+            }
+        
+        # Update status to Processing
+        staging_doc.db_set("import_status", "Processing", update_modified=False)
+        frappe.db.commit()
+        
+        # Use the correct processing function
+        result = create_vendor_master_from_staging(staging_doc)
+        
+        if result["status"] == "success":
+            # Update staging record to Completed
+            staging_doc.db_set("import_status", "Completed", update_modified=False)
+            staging_doc.db_set("processed_records", 1, update_modified=False)
+            staging_doc.db_set("processing_progress", 100, update_modified=False)
+            staging_doc.db_set("last_processed", now_datetime(), update_modified=False)
+            
+            # Clear any old error logs
+            staging_doc.db_set("error_log", "", update_modified=False)
+            
+            frappe.db.commit()
+            
+            return {
+                "status": "success",
+                "vendor_name": result.get("vendor_name"),
+                "message": f"Vendor Master {result.get('vendor_name')} created/updated successfully",
+                "details": result.get("details", {})
+            }
+        else:
+            # Update staging record to Failed
+            staging_doc.db_set("import_status", "Failed", update_modified=False)
+            staging_doc.db_set("failed_records", 1, update_modified=False)
+            staging_doc.db_set("error_log", result.get("error", "Unknown error"), update_modified=False)
+            staging_doc.db_set("import_attempts", (staging_doc.import_attempts or 0) + 1, update_modified=False)
+            
+            frappe.db.commit()
+            
+            return {
+                "status": "error",
+                "error": result.get("error", "Failed to create vendor master"),
+                "error_log": result.get("error", "")
+            }
+            
+    except Exception as e:
+        error_message = f"Error processing single staging record: {str(e)}"
+        frappe.log_error(error_message, "Single Staging Processing Error")
+        
+        # Update status to Failed
+        try:
+            frappe.db.set_value("Vendor Import Staging", docname, {
+                "import_status": "Failed",
+                "error_log": error_message,
+                "failed_records": 1,
+                "import_attempts": frappe.db.get_value("Vendor Import Staging", docname, "import_attempts") + 1 or 1
+            })
+            frappe.db.commit()
+        except:
+            pass
+        
+        return {
+            "status": "error",
+            "error": error_message
+        }
 
 
 # @frappe.whitelist()

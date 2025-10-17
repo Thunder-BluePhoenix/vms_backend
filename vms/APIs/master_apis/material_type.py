@@ -20,7 +20,7 @@ def get_material_type_master_details(name):
             valuation_class_description = ""
             if row.valuation_class:
                 valuation_class_description = frappe.get_value(
-                    "Valuation Class Master",
+                    "Valuation Class",
                     row.valuation_class,
                     "valuation_class_name"
                 ) or ""
@@ -28,7 +28,7 @@ def get_material_type_master_details(name):
             profit_center_description = ""
             if row.profit_center:
                 profit_center_description = frappe.get_value(
-                    "Profit Center Master",
+                    "Profit Center",
                     row.profit_center,
                     "description"
                 ) or ""
@@ -61,14 +61,14 @@ def get_material_type_master_details(name):
         company_rows = []
         for row in doc.multiple_company:
             company_name = ""
-            if row.code_of_company:
+            if row.company_name:
                 company_name = frappe.get_value(
                     "Company Master",
-                    row.code_of_company,
+                    row.company_name,
                     "company_name"
                 ) or ""
             company_rows.append({
-                "company": row.code_of_company,
+                "company": row.company_name,
                 "company_name": company_name,
             })
 
@@ -217,7 +217,7 @@ def get_material_type_master_list(
                     valuation_class_description = ""
                     if row.valuation_class:
                         valuation_class_description = frappe.get_value(
-                            "Valuation Class Master",
+                            "Valuation Class",
                             row.valuation_class,
                             "valuation_class_name"
                         ) or ""
@@ -225,7 +225,7 @@ def get_material_type_master_list(
                     profit_center_description = ""
                     if row.profit_center:
                         profit_center_description = frappe.get_value(
-                            "Profit Center Master",
+                            "Profit Center",
                             row.profit_center,
                             "description"
                         ) or ""
@@ -258,14 +258,14 @@ def get_material_type_master_list(
                 company_rows = []
                 for row in doc.multiple_company:
                     company_name = ""
-                    if row.code_of_company:
+                    if row.company_name:
                         company_name = frappe.get_value(
                             "Company Master",
-                            row.code_of_company,
+                            row.company_name,
                             "company_name"
                         ) or ""
                     company_rows.append({
-                        "company": row.code_of_company,
+                        "company": row.company_name,
                         "company_name": company_name,
                     })
 
@@ -287,9 +287,9 @@ def get_material_type_master_list(
                 result.append({
                     "name": doc.name,
                     "material_type_name": doc.material_type_name,
-                    "description": doc.description,
-                    "company": doc.company,
                     "material_category_type": doc.material_category_type,
+                    "description": doc.description,
+                    "plant_code": doc.plant_code,
                     "valuation_and_profit": valuation_rows,
                     "multiple_company": company_rows,
                     "storage_location_table": storage_rows,

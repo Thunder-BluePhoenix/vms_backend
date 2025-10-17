@@ -12,8 +12,9 @@
   "purchase_group",
   "purchase_requisition_name",
   "plant",
-  "sent_to_sap",
   "prf_name_for_sap",
+  "sent_to_sap",
+  "pr_approved",
   "column_break_wrlo",
   "account_category",
   "gl_account",
@@ -132,12 +133,18 @@
    "fieldname": "requisitioner_first_name",
    "fieldtype": "Data",
    "label": "Requisitioner First Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "pr_approved",
+   "fieldtype": "Check",
+   "label": "Purchase Requisition Approved"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:37:55.831324",
+ "modified": "2025-10-09 15:42:40.338258",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Form",

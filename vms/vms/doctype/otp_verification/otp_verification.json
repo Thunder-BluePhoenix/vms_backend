@@ -10,7 +10,9 @@
   "is_not_verified",
   "column_break_kpak",
   "otp",
-  "expired"
+  "expired",
+  "section_break_xajk",
+  "expiration_time"
  ],
  "fields": [
   {
@@ -44,12 +46,21 @@
    "fieldname": "expired",
    "fieldtype": "Check",
    "label": "Expired"
+  },
+  {
+   "fieldname": "section_break_xajk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "expiration_time",
+   "fieldtype": "Datetime",
+   "label": "Expiration Time"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:39:53.435323",
+ "modified": "2025-10-04 12:14:55.915515",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "OTP Verification",

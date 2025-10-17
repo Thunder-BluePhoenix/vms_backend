@@ -8,6 +8,26 @@ from vms.utils.custom_send_mail import custom_sendmail
 
 
 class PurchaseRequisitionWebform(Document):
+	def after_insert(self):
+		if self.cart_details_id:
+			try:
+				from vms.purchase.doctype.cart_aging_track.cart_aging_track import update_aging_track_on_pr_creation
+				update_aging_track_on_pr_creation(self.name, self.cart_details_id)
+			except Exception as e:
+				frappe.log_error(
+					title=f"Error updating Cart Aging Track on PR creation for {self.name}",
+					message=frappe.get_traceback()
+				)
+
+	def validate(self):
+		if self.cart_details_id:
+			cart_details = frappe.get_doc("Cart Details", self.cart_details_id)
+			if cart_details.purchase_requisition_form_created and cart_details.purchase_requisition_form != self.name:
+				# frappe.throw("Purchase Requisition Form is already created for this cart details.")
+				pass
+
+
+				
 	def before_save(self):
 		set_unique_id(self, method=None)
 		# pass
@@ -103,6 +123,11 @@ class PurchaseRequisitionWebform(Document):
 		else:
 			pur_req_form = frappe.get_doc("Purchase Requisition Form", self.purchase_requisition_form_link)
 
+		if self.purchase_team_approved == 1:
+			pur_req_form.pr_approved = 1
+		else:
+			pur_req_form.pr_approved = 0
+		
 		# Update main fields
 		for field in field_map:
 			if hasattr(pur_req_form, field):
@@ -122,11 +147,11 @@ class PurchaseRequisitionWebform(Document):
 			self.db_set("purchase_requisition_form_link", pur_req_form.name)
 
 
-
+# Not in Used
 def send_pur_req_email(doc, method=None):
 	if doc.requisitioner and not doc.rejected:
 		if not doc.hod_approved and not doc.mail_sent_to_hod:
-			send_mail_hod_pt(doc, method=None)
+			send_mail_hod_purchase_team(doc, method=None)
 			print("send_mail_hod @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		elif doc.hod_approved and not doc.purchase_head_approved and not doc.mail_sent_to_purchase_head:
 			send_mail_purchase_head(doc, method=None)
@@ -140,7 +165,7 @@ def send_pur_req_email(doc, method=None):
 		pass
 
 
-def send_mail_hod_pt(doc, method=None):
+def send_mail_hod_purchase_team(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "reports_to")

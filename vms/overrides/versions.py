@@ -82,31 +82,43 @@ from frappe import _
 
 
 
-
 @frappe.whitelist()
 def get_version_data_universal(self, method=None):
     """Universal version tracking for both RFQ and Quotation"""
     try:
-        # Map doctype to child table doctype
+        
         doctype_mapping = {
-            "Request For Quotation": "RFQ Item History",  # Your existing child table
-            "Quotation": "RFQ Item History",  # Your quotation child table
-            "Purchase Order": "Purchase Order History"
+            "Request For Quotation": "RFQ Item History",
+            "Quotation": "RFQ Item History",
+            "Purchase Order": "Purchase Order History",
+            "Vendor Onboarding": "Vendor Onboarding History"
         }
         
         if self.ref_doctype in doctype_mapping and self.docname:
             
-            # Parse the version data from current version
             version_data = frappe.parse_json(self.data)
             
             field_changes = version_data.get("changed", [])
             child_table_changes = version_data.get("row_changed", [])
             
-            # Filter meaningful changes (excluding version_history)
-            meaningful_changes = [c for c in field_changes if len(c) >= 2 and c[0] != "version_history"]
-            meaningful_row_changes = [c for c in child_table_changes if len(c) >= 2 and c[0] != "version_history"]
+            if self.ref_doctype == "Vendor Onboarding":
+                allowed_fields = [
+                    "company_name", "company", "purchase_organization", 
+                    "order_currency", "purchase_group", "terms_of_payment", 
+                    "account_group", "enterprise", "reconciliation_account", 
+                    "qa_team_remarks", "incoterms"
+                ]
+                
+                meaningful_changes = [
+                    c for c in field_changes 
+                    if len(c) >= 2 and c[0] in allowed_fields
+                ]
+                meaningful_row_changes = []
+            else:
+                meaningful_changes = [c for c in field_changes if len(c) >= 2 and c[0] != "version_history"]
+                meaningful_row_changes = [c for c in child_table_changes if len(c) >= 2 and c[0] != "version_history"]
             
-            # If no meaningful changes, don't create version history entry
+            
             if not meaningful_changes and not meaningful_row_changes:
                 return
             

@@ -20,8 +20,10 @@
   "purchase_requisition_form_table",
   "approval_status_section",
   "hod_approval_status",
+  "hod_approval",
   "hod_approval_remarks",
   "purchase_team_status",
+  "purchase_team_approval",
   "purchase_team_approval_remarks",
   "purchase_head_status",
   "purchase_head_approval_remarks",
@@ -30,16 +32,23 @@
   "reason_for_rejection",
   "form_is_submitted",
   "form_status",
-  "rejected",
-  "hod_approved",
-  "purchase_team_approved",
-  "purchase_head_approved",
-  "mail_sent_to_hod",
+  "mail_sending_status",
   "mail_sent_to_purchase_team",
   "mail_sent_to_purchase_head",
+  "mail_sent_to_hod",
+  "approval_status",
+  "purchase_team_approved",
+  "purchase_head_approved",
+  "hod_approved",
   "ack_mail_to_user",
+  "rejected",
   "purchase_requisition_json_section",
-  "purchase_requisition_json_fields"
+  "purchase_requisition_json_fields",
+  "sap_response_tab",
+  "sap_status",
+  "zmsg",
+  "column_break_qbnu",
+  "sap_summary"
  ],
  "fields": [
   {
@@ -107,33 +116,35 @@
   {
    "fieldname": "hod_approval_status",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "HOD Approval Status"
   },
   {
    "fieldname": "hod_approval_remarks",
    "fieldtype": "Small Text",
+   "hidden": 1,
    "label": "HOD Approval Remarks"
   },
   {
    "fieldname": "purchase_team_status",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Purchase Team Status"
   },
   {
    "fieldname": "purchase_team_approval_remarks",
    "fieldtype": "Small Text",
-   "hidden": 1,
    "label": "Purchase Team Approval Remarks"
   },
   {
    "fieldname": "purchase_head_status",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Purchase Head Status"
   },
   {
    "fieldname": "purchase_head_approval_remarks",
    "fieldtype": "Small Text",
+   "hidden": 1,
    "label": "Purchase Head Approval Remarks"
   },
   {
@@ -143,11 +154,13 @@
   {
    "fieldname": "rejected_by",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Rejected By"
   },
   {
    "fieldname": "reason_for_rejection",
    "fieldtype": "Small Text",
+   "hidden": 1,
    "label": "Reason for Rejection"
   },
   {
@@ -160,25 +173,27 @@
    "default": "0",
    "fieldname": "hod_approved",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "HOD Approved"
   },
   {
    "default": "0",
    "fieldname": "purchase_team_approved",
    "fieldtype": "Check",
-   "hidden": 1,
    "label": "Purchase Team Approved"
   },
   {
    "default": "0",
    "fieldname": "purchase_head_approved",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Purchase Head Approved"
   },
   {
    "default": "0",
    "fieldname": "mail_sent_to_hod",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Mail Sent to HOD"
   },
   {
@@ -191,6 +206,7 @@
    "default": "0",
    "fieldname": "mail_sent_to_purchase_head",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Mail Sent to Purchase Head"
   },
   {
@@ -226,19 +242,69 @@
    "fieldname": "form_status",
    "fieldtype": "Select",
    "label": "Form Status",
-   "options": "Pending\nSubmitted"
+   "options": "Pending\nSubmitted\nSAP Error\nPR Created"
   },
   {
    "default": "Today",
    "fieldname": "purchase_requisition_date",
    "fieldtype": "Date",
    "label": "Requisition Date"
+  },
+  {
+   "fieldname": "mail_sending_status",
+   "fieldtype": "Heading",
+   "label": "Mail Sending Status",
+   "max_height": "10px",
+   "width": "10px"
+  },
+  {
+   "fieldname": "approval_status",
+   "fieldtype": "Heading",
+   "label": "Approval Status",
+   "max_height": "10px",
+   "width": "10px"
+  },
+  {
+   "fieldname": "hod_approval",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "HOD Approval"
+  },
+  {
+   "fieldname": "purchase_team_approval",
+   "fieldtype": "Data",
+   "label": "Purchase Team Approval"
+  },
+  {
+   "fieldname": "sap_response_tab",
+   "fieldtype": "Tab Break",
+   "label": "SAP Response"
+  },
+  {
+   "fieldname": "sap_status",
+   "fieldtype": "Data",
+   "label": "SAP Status"
+  },
+  {
+   "fieldname": "zmsg",
+   "fieldtype": "Code",
+   "label": "Zmsg",
+   "max_height": "150px"
+  },
+  {
+   "fieldname": "column_break_qbnu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sap_summary",
+   "fieldtype": "Code",
+   "label": "SAP Summary"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:37:57.675513",
+ "modified": "2025-10-09 17:14:32.669229",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",

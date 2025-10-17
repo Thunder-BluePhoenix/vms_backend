@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-06 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "purchase_order",
+  "po_number",
+  "po_date",
+  "po_status",
+  "column_break_1",
+  "po_value",
+  "delivery_date",
+  "days_since_po",
+  "po_aging_status",
+  "po_creation_datetime"
+ ],
+ "fields": [
+  {
+   "fieldname": "purchase_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Purchase Order",
+   "options": "Purchase Order"
+  },
+  {
+   "fetch_from": "purchase_order.po_number",
+   "fieldname": "po_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PO Number",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "purchase_order.po_date",
+   "fieldname": "po_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "PO Date",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "purchase_order.vendor_status",
+   "fieldname": "po_status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PO Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "purchase_order.total_value_of_po__so",
+   "fieldname": "po_value",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "PO Value",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "purchase_order.delivery_date",
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "label": "Delivery Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "days_since_po",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Days Since PO",
+   "read_only": 1
+  },
+  {
+   "fieldname": "po_aging_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "PO Aging Status",
+   "options": "Fresh (0-7 days)\nRecent (8-15 days)\nModerate (16-30 days)\nOld (31-60 days)\nVery Old (60+ days)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "po_creation_datetime",
+   "fieldtype": "Datetime",
+   "label": "PO Creation DateTime"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-06 20:58:45.446022",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Vendor Aging PO Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

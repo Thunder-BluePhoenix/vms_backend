@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:{valuation_class_code} - {company}",
  "creation": "2025-07-04 12:17:32.595572",
@@ -31,7 +32,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:36:56.053076",
+ "modified": "2025-10-11 10:25:40.214644",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Valuation Class",

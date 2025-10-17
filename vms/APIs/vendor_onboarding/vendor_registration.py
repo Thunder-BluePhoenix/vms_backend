@@ -217,6 +217,21 @@ def vendor_registration_single(data):
         if isinstance(data, str):
             data = json.loads(data)
 
+
+        # Validate QMS requirement
+        if data.get("qms_required") == "Yes":
+            company_name = data.get("company_name")
+            if company_name:
+                # Check if company exists and has qms_required enabled
+                company_qms = frappe.db.get_value("Company Master", company_name, "qms_required")
+                
+                if company_qms != 1:
+                    return {
+                                "status": "error",
+                                "message": _(f"QMS is required for this vendor but Company '{company_name}' does not have QMS enabled. Please enable QMS in Company Master or change the QMS requirement."),
+                                "error_code": "QMS_VALIDATION_ERROR"
+                            }
+
         vendor_master = None
 
         # Check if vendor with the given email already exists
@@ -341,11 +356,25 @@ def vendor_registration_single(data):
         vendor_onboarding.ref_no = vendor_master.name
 
         for field in [
-            "qms_required","company_name", "purchase_organization", "account_group",
+            "qms_required", "company_name", "purchase_organization", "account_group",
             "purchase_group", "terms_of_payment", "order_currency", "incoterms", "reconciliation_account"
         ]:
             if field in data:
                 vendor_onboarding.set(field, data[field])
+
+        # # Validate QMS requirement
+        # if data.get("qms_required") == "Yes":
+        #     company_name = data.get("company_name")
+        #     if company_name:
+        #         # Check if company exists and has qms_required enabled
+        #         company_qms = frappe.db.get_value("Company Master", company_name, "qms_required")
+                
+        #         if company_qms != 1:
+        #             frappe.throw(
+        #                 f"QMS is required for this vendor but Company '{company_name}' does not have QMS enabled. "
+        #                 "Please enable QMS in Company Master or change the QMS requirement.",
+        #                 title="QMS Validation Error"
+        #             )
 
         vendor_onboarding.payee_in_document = 1
         vendor_onboarding.gr_based_inv_ver = 1
@@ -597,6 +626,35 @@ def vendor_registration_multi(data):
                 "message": _("Purchase details are required and must be a list"),
                 "error_code": "INVALID_PURCHASE_DETAILS"
             }
+
+        # Validate QMS requirement for each purchase detail
+        for purchase_detail in data.get("purchase_details", []):
+            if purchase_detail.get("qms_required") == "Yes":
+                company_name = purchase_detail.get("company_name")
+                
+                if not company_name:
+                    return {
+                        "status": "error",
+                        "message": _("Company name is required when QMS is enabled"),
+                        "error_code": "MISSING_COMPANY_NAME"
+                    }
+                
+                # Check if company exists and has qms_required enabled
+                company_qms = frappe.db.get_value("Company Master", company_name, "qms_required")
+                
+                if not company_qms:
+                    return {
+                        "status": "error",
+                        "message": _(f"Company '{company_name}' not found in Company Master"),
+                        "error_code": "COMPANY_NOT_FOUND"
+                    }
+                
+                if company_qms != 1:
+                    return {
+                        "status": "error",
+                        "message": _(f"QMS is required for this vendor but Company '{company_name}' does not have QMS enabled. Please enable QMS in Company Master or change the QMS requirement."),
+                        "error_code": "QMS_VALIDATION_ERROR"
+                    }
 
         # Check if vendor with the given email already exists
         vendor_master = None
@@ -1272,17 +1330,17 @@ def send_registration_email_link(vendor_onboarding, refno):
             for entry in linked_docs:
                 doc = frappe.get_doc("Vendor Onboarding", entry["name"])
                 # doc.sent_registration_email_link = 1
-                doc.db_set('sent_registration_email_link', doc.name, update_modified=False)
+                doc.db_set('sent_registration_email_link', 1, update_modified=False)
 
                 if doc.qms_required == "Yes":
                     # doc.sent_qms_form_link = 1
-                    doc.db_set('sent_qms_form_link', doc.name, update_modified=False)
+                    doc.db_set('sent_qms_form_link', 1, update_modified=False)
 
                 doc.save(ignore_permissions=True)
 
 
             if onboarding_doc.registered_for_multi_companies == 1:
-                onboarding_doc.db_set('head_target', onboarding_doc.name, update_modified=False)
+                onboarding_doc.db_set('head_target', 1, update_modified=False)
                 # onboarding_doc.head_target = 1
                 
                 vendor_master.db_set('onboarding_ref_no', onboarding_doc.name, update_modified=False)

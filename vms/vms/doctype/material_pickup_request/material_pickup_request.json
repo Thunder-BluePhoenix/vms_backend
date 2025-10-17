@@ -1,0 +1,216 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "MPR-.#####",
+ "creation": "2025-10-04 12:51:10.679945",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "po_number",
+  "no_of_boxe",
+  "type_of_cargo",
+  "dual_use_noc",
+  "mode_of_shipment",
+  "group_email",
+  "vendor",
+  "name_of_vendor",
+  "port_of_loading",
+  "billing_address",
+  "dimension_cm",
+  "column_break_zmnk",
+  "pi_number",
+  "pick_up_date_by",
+  "gross_weight",
+  "inco_terms",
+  "invoice_value",
+  "type_of_shipments",
+  "insurance_intimation",
+  "origin_country",
+  "port_of_destination",
+  "pickup_address",
+  "additional_email_id",
+  "remark",
+  "section_break_lbrc",
+  "attachment"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company Master"
+  },
+  {
+   "fieldname": "po_number",
+   "fieldtype": "Link",
+   "label": "Po Number",
+   "options": "Purchase Order"
+  },
+  {
+   "fieldname": "column_break_zmnk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pi_number",
+   "fieldtype": "Data",
+   "label": "PI Number"
+  },
+  {
+   "fieldname": "no_of_boxe",
+   "fieldtype": "Data",
+   "label": "No of Boxes"
+  },
+  {
+   "fieldname": "pick_up_date_by",
+   "fieldtype": "Date",
+   "label": "Pick Up Date By"
+  },
+  {
+   "fieldname": "gross_weight",
+   "fieldtype": "Data",
+   "label": "Gross Weight"
+  },
+  {
+   "fieldname": "type_of_cargo",
+   "fieldtype": "Select",
+   "label": "Type of Cargo",
+   "options": "\nGeneral Cargo"
+  },
+  {
+   "fieldname": "inco_terms",
+   "fieldtype": "Link",
+   "label": "Inco Terms",
+   "options": "Incoterm Master"
+  },
+  {
+   "fieldname": "dual_use_noc",
+   "fieldtype": "Select",
+   "label": "Dual Use NOC",
+   "options": "\nNOC-Yes\nNOC-No"
+  },
+  {
+   "fieldname": "invoice_value",
+   "fieldtype": "Data",
+   "label": "Invoice Value"
+  },
+  {
+   "fieldname": "mode_of_shipment",
+   "fieldtype": "Link",
+   "label": "Mode of Shipment",
+   "options": "Mode Of Shipment"
+  },
+  {
+   "fieldname": "type_of_shipments",
+   "fieldtype": "Select",
+   "label": "Type of Shipments",
+   "options": "\nGeneral"
+  },
+  {
+   "fieldname": "group_email",
+   "fieldtype": "Data",
+   "label": "Group Email"
+  },
+  {
+   "default": "0",
+   "description": "If selected email notification will sent to insurance team",
+   "fieldname": "insurance_intimation",
+   "fieldtype": "Check",
+   "label": "Insurance Intimation"
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Link",
+   "label": "Vendor",
+   "options": "Vendor Master"
+  },
+  {
+   "fetch_from": "vendor.vendor_name",
+   "fieldname": "name_of_vendor",
+   "fieldtype": "Data",
+   "label": "Name Of Vendor"
+  },
+  {
+   "fieldname": "origin_country",
+   "fieldtype": "Link",
+   "label": "Origin Country",
+   "options": "Country Master"
+  },
+  {
+   "fieldname": "port_of_loading",
+   "fieldtype": "Link",
+   "label": "Port Of Loading",
+   "link_filters": "[[\"Port Master\",\"port_of_loading\",\"=\",1]]",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "port_of_destination",
+   "fieldtype": "Link",
+   "label": "Port Of Destination",
+   "link_filters": "[[\"Port Master\",\"destination_port\",\"=\",1]]",
+   "options": "Port Master"
+  },
+  {
+   "fieldname": "billing_address",
+   "fieldtype": "Small Text",
+   "label": "Billing Address"
+  },
+  {
+   "fieldname": "pickup_address",
+   "fieldtype": "Small Text",
+   "label": "Pickup Address"
+  },
+  {
+   "fieldname": "additional_email_id",
+   "fieldtype": "Data",
+   "label": "Additional Email Id"
+  },
+  {
+   "fieldname": "dimension_cm",
+   "fieldtype": "Data",
+   "label": "Dimension (cm)"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Small Text",
+   "label": "Remark"
+  },
+  {
+   "fieldname": "section_break_lbrc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Table",
+   "label": "Attachment",
+   "options": "Multiple Attachment"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-04 16:11:57.145584",
+ "modified_by": "Administrator",
+ "module": "Vms",
+ "name": "Material Pickup Request",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

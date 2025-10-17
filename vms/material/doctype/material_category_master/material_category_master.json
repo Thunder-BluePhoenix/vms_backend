@@ -1,7 +1,8 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:material_category_name",
+ "autoname": "format:{material_category_code}",
  "creation": "2025-05-23 13:31:23.482744",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -17,8 +18,7 @@
   {
    "fieldname": "material_category_code",
    "fieldtype": "Data",
-   "label": "Material Category Code",
-   "unique": 1
+   "label": "Material Category Code"
   },
   {
    "fieldname": "material_category_name",
@@ -49,11 +49,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 15:54:03.263543",
+ "modified": "2025-10-15 15:00:44.118811",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Category Master",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

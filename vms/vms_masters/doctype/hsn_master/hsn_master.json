@@ -1,6 +1,8 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
+ "autoname": "field:hsn_code",
  "creation": "2025-09-26 15:35:50.072025",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -41,7 +43,8 @@
   {
    "fieldname": "hsn_code",
    "fieldtype": "Data",
-   "label": "HSN Code"
+   "label": "HSN Code",
+   "unique": 1
   },
   {
    "fieldname": "sgst",
@@ -52,10 +55,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-26 15:36:56.863330",
+ "modified": "2025-10-11 10:14:56.972661",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "HSN Master",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

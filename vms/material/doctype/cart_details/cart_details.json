@@ -16,6 +16,8 @@
   "sub_head_email",
   "purchase_requisition_form_created",
   "purchase_requisition_form",
+  "cost_center",
+  "gl_account",
   "column_break_jaqb",
   "new_transfer_email",
   "transfer_reason",
@@ -30,26 +32,30 @@
   "cart_product",
   "approval_status_section",
   "hod_approval_status",
+  "hod_approval",
   "hod_approval_remarks",
   "purchase_team_approval_status",
+  "purchase_team_approval",
   "purchase_team_approval_remarks",
   "second_stage_approval_status",
-  "second_stage_approval_remark",
   "second_stage_approval_by",
+  "second_stage_approval_remark",
   "column_break_arbr",
   "rejected_by",
   "reason_for_rejection",
   "rejected",
-  "hod_approved",
-  "purchase_team_approved",
-  "mail_sent_to_hod",
+  "mail_sent_status",
   "mail_sent_to_purchase_team",
+  "mail_sent_to_hod",
   "ack_mail_to_user",
   "asked_to_modify",
-  "purchase_team_acknowledgement",
-  "second_stage_approved",
   "mail_sent_to_second_stage_approval",
   "is_requested_second_stage_approval",
+  "approval_status",
+  "purchase_team_approved",
+  "hod_approved",
+  "purchase_team_acknowledgement",
+  "second_stage_approved",
   "is_submited",
   "status_workflow_section",
   "enquirer_status",
@@ -65,7 +71,11 @@
   "section_break_iwzm",
   "is_approval",
   "mailed_to_alternate_purchase_team",
-  "mailed_to_purchase_head"
+  "mailed_to_purchase_head",
+  "column_break_oqet",
+  "first_escalation_time",
+  "second_escalation_time",
+  "escalation_status"
  ],
  "fields": [
   {
@@ -402,12 +412,70 @@
    "fieldname": "is_submited",
    "fieldtype": "Check",
    "label": "Is Submited"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
+  },
+  {
+   "fieldname": "gl_account",
+   "fieldtype": "Link",
+   "label": "GL Account",
+   "options": "GL Account"
+  },
+  {
+   "fieldname": "hod_approval",
+   "fieldtype": "Data",
+   "label": "HOD Approval"
+  },
+  {
+   "fieldname": "purchase_team_approval",
+   "fieldtype": "Data",
+   "label": "Purchase Team Approval"
+  },
+  {
+   "fieldname": "mail_sent_status",
+   "fieldtype": "Heading",
+   "label": "Mail Sent Status"
+  },
+  {
+   "fieldname": "approval_status",
+   "fieldtype": "Heading",
+   "label": "Approval Status"
+  },
+  {
+   "fieldname": "column_break_oqet",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Time when first escalation email will be sent to alternate purchase team",
+   "fieldname": "first_escalation_time",
+   "fieldtype": "Datetime",
+   "label": "First Escalation Time",
+   "read_only": 1
+  },
+  {
+   "description": "Time when second escalation email will be sent to purchase HOD",
+   "fieldname": "second_escalation_time",
+   "fieldtype": "Datetime",
+   "label": "Second Escalation Time",
+   "read_only": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "escalation_status",
+   "fieldtype": "Select",
+   "label": "Escalation Status",
+   "options": "\nPending\nFirst Escalation Sent\nSecond Escalation Sent\nCompleted",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-09 17:00:42.779282",
+ "modified": "2025-10-11 12:07:35.245458",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",

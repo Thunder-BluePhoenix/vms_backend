@@ -1,6 +1,8 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
+ "autoname": "format:{availability_check}",
  "creation": "2025-09-26 15:34:48.960528",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,7 +14,8 @@
   {
    "fieldname": "availability_check",
    "fieldtype": "Data",
-   "label": "Availability Check"
+   "label": "Availability Check",
+   "unique": 1
   },
   {
    "fieldname": "description",
@@ -23,10 +26,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-26 15:35:11.064084",
+ "modified": "2025-10-15 15:10:21.206175",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Availability Checks",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

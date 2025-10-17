@@ -247,5 +247,95 @@
     "role": "Employee"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-10-09 14:38:00.826623",
+  "name": "Material User",
+  "role_profile": "Material User",
+  "roles": [
+   {
+    "parent": "Material User",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Material User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-10-09 14:38:16.568884",
+  "name": "Material CP",
+  "role_profile": "Material CP",
+  "roles": [
+   {
+    "parent": "Material CP",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Material CP"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-10-10 12:56:00.158319",
+  "name": "SAP Team",
+  "role_profile": "SAP Team",
+  "roles": [
+   {
+    "parent": "SAP Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "SAP Team"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-10-17 11:23:50.601011",
+  "name": "Treasury",
+  "role_profile": "Treasury",
+  "roles": [
+   {
+    "parent": "Treasury",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Treasury"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-10-17 11:27:19.191652",
+  "name": "Security",
+  "role_profile": "Security",
+  "roles": [
+   {
+    "parent": "Security",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Security"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-10-17 11:29:41.875187",
+  "name": "Store Manager",
+  "role_profile": "Store Manager",
+  "roles": [
+   {
+    "parent": "Store Manager",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Store Manager"
+   }
+  ]
  }
 ]

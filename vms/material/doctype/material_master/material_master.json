@@ -1,41 +1,83 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:material_code",
+ "autoname": "format:{MM}-{requestor_ref_no}",
  "creation": "2025-05-23 13:37:41.576013",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
-  "material_code",
-  "material_name",
-  "material_category",
+  "basic_data_ref_no",
+  "old_material_code",
   "column_break_jwsm",
-  "material_type",
-  "material_group",
+  "division",
+  "division_code",
+  "storage_location",
+  "storage_location_code",
   "inactive",
-  "description_section",
-  "description",
-  "column_break_tlnr",
-  "base_uom",
-  "material_image",
   "section_break_subr",
   "company",
   "plant",
-  "mrp_type",
   "valuation_class",
+  "valuation_class_code",
   "price_control",
   "column_break_ovrh",
   "valuation_type",
-  "purchasing_group",
   "price_unit",
   "currency",
   "more_information_section",
   "created_by",
-  "column_break_ysne",
-  "default_material_manufacturer",
   "store_tab",
-  "batch_requirements_yn"
+  "store_data_section",
+  "batch_requirements_yn",
+  "brand_make",
+  "availability_check",
+  "serialization_level",
+  "column_break_dpph",
+  "class_type",
+  "class_number",
+  "serial_number_profile",
+  "purchase_tab",
+  "purchase_data_section",
+  "purchasing_group",
+  "gr_processing_time",
+  "purchase_uom",
+  "lead_time",
+  "purchasing_value_key",
+  "min_lot_size",
+  "column_break_lvdc",
+  "purchase_order_text",
+  "numerator_for_conversion",
+  "denominator_for_conversion",
+  "mrp_tab",
+  "mrp_data_section",
+  "mrp_type",
+  "mrp_group",
+  "mrp_controller_revised",
+  "lot_size_key",
+  "procurement_type",
+  "column_break_kfqh",
+  "scheduling_margin_key",
+  "base_uom",
+  "numerator_issue_uom",
+  "denominator_issue_uom",
+  "reference_tab",
+  "material_code_section",
+  "requestor_ref_no",
+  "material_code",
+  "material_group",
+  "material_name",
+  "material_category",
+  "column_break_pxft",
+  "material_onboarding_ref_no",
+  "material_code_revised",
+  "material_type",
+  "material_image",
+  "description",
+  "material_information_section",
+  "industry",
+  "column_break_hagw",
+  "default_material_manufacturer"
  ],
  "fields": [
   {
@@ -59,13 +101,17 @@
   {
    "fieldname": "material_code",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Material Code",
+   "reqd": 1,
    "unique": 1
   },
   {
    "fieldname": "material_name",
    "fieldtype": "Data",
-   "label": "Material Name"
+   "in_list_view": 1,
+   "label": "Material Name",
+   "reqd": 1
   },
   {
    "fieldname": "material_category",
@@ -81,7 +127,7 @@
   {
    "fieldname": "base_uom",
    "fieldtype": "Link",
-   "label": "Base UOM",
+   "label": "Issue Unit",
    "options": "UOM Master"
   },
   {
@@ -143,7 +189,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Naming Series",
-   "options": "MAT-ITEM-.YYYY.-"
+   "options": "MM-\nMAT-ITEM-.YYYY.-"
   },
   {
    "fieldname": "column_break_jwsm",
@@ -154,15 +200,6 @@
    "fieldname": "inactive",
    "fieldtype": "Check",
    "label": "Inactive"
-  },
-  {
-   "fieldname": "description_section",
-   "fieldtype": "Section Break",
-   "label": "Description"
-  },
-  {
-   "fieldname": "column_break_tlnr",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "material_image",
@@ -179,10 +216,6 @@
    "label": "More Information"
   },
   {
-   "fieldname": "column_break_ysne",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "default_material_manufacturer",
    "fieldtype": "Data",
    "label": "Default Material Manufacturer"
@@ -197,16 +230,255 @@
    "fieldtype": "Select",
    "label": "Batch Requirements (Y/N)",
    "options": "Yes\nNo"
+  },
+  {
+   "fieldname": "purchase_tab",
+   "fieldtype": "Tab Break",
+   "label": "Purchase"
+  },
+  {
+   "fieldname": "mrp_tab",
+   "fieldtype": "Tab Break",
+   "label": "MRP"
+  },
+  {
+   "fieldname": "reference_tab",
+   "fieldtype": "Tab Break",
+   "label": "Reference"
+  },
+  {
+   "fieldname": "basic_data_ref_no",
+   "fieldtype": "Link",
+   "label": "Basic Data Ref. No.",
+   "options": "Requestor Master"
+  },
+  {
+   "fieldname": "old_material_code",
+   "fieldtype": "Data",
+   "label": "Old Material Code"
+  },
+  {
+   "fieldname": "division",
+   "fieldtype": "Link",
+   "label": "Division",
+   "options": "Division Master"
+  },
+  {
+   "fieldname": "storage_location",
+   "fieldtype": "Link",
+   "label": "Storage Location",
+   "options": "Storage Location Master"
+  },
+  {
+   "fieldname": "brand_make",
+   "fieldtype": "Data",
+   "label": "Brand / Make (if required)"
+  },
+  {
+   "fieldname": "availability_check",
+   "fieldtype": "Link",
+   "label": "Availability Check",
+   "options": "Availability Checks"
+  },
+  {
+   "fieldname": "serialization_level",
+   "fieldtype": "Data",
+   "label": "Serialization Level"
+  },
+  {
+   "fieldname": "column_break_dpph",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "class_type",
+   "fieldtype": "Link",
+   "label": "Class Type",
+   "options": "Class Type"
+  },
+  {
+   "fetch_from": "class_type.class_number",
+   "fieldname": "class_number",
+   "fieldtype": "Data",
+   "label": "Class Number"
+  },
+  {
+   "fieldname": "serial_number_profile",
+   "fieldtype": "Link",
+   "label": "Serial Number Profile",
+   "options": "Serial Number Profile"
+  },
+  {
+   "fieldname": "gr_processing_time",
+   "fieldtype": "Data",
+   "label": "GR Processing Time"
+  },
+  {
+   "fieldname": "purchase_uom",
+   "fieldtype": "Link",
+   "label": "Purchase UOM",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "lead_time",
+   "fieldtype": "Data",
+   "label": "Lead Time"
+  },
+  {
+   "fieldname": "purchasing_value_key",
+   "fieldtype": "Data",
+   "label": "Purchasing Value Key"
+  },
+  {
+   "fieldname": "min_lot_size",
+   "fieldtype": "Link",
+   "label": "Min Lot Size",
+   "options": "Lot Sizes"
+  },
+  {
+   "fieldname": "column_break_lvdc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "purchase_order_text",
+   "fieldtype": "Small Text",
+   "label": "Purchase Order Text"
+  },
+  {
+   "fieldname": "numerator_for_conversion",
+   "fieldtype": "Data",
+   "label": "Numerator for Conversion"
+  },
+  {
+   "fieldname": "denominator_for_conversion",
+   "fieldtype": "Data",
+   "label": "Denominator for Conversion"
+  },
+  {
+   "fieldname": "mrp_group",
+   "fieldtype": "Data",
+   "label": "MRP Group"
+  },
+  {
+   "fieldname": "mrp_controller_revised",
+   "fieldtype": "Link",
+   "label": "MRP Controller Revised",
+   "options": "MRP Controller Master"
+  },
+  {
+   "fieldname": "lot_size_key",
+   "fieldtype": "Link",
+   "label": "Lot Size Key",
+   "options": "Lot Sizes"
+  },
+  {
+   "fieldname": "procurement_type",
+   "fieldtype": "Link",
+   "label": "Procurement Type",
+   "options": "Procurement Type"
+  },
+  {
+   "fieldname": "column_break_kfqh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "scheduling_margin_key",
+   "fieldtype": "Link",
+   "label": "Scheduling Margin Key",
+   "options": "Scheduling Margin Key"
+  },
+  {
+   "fieldname": "numerator_issue_uom",
+   "fieldtype": "Data",
+   "label": "Numerator Issue UOM"
+  },
+  {
+   "fieldname": "denominator_issue_uom",
+   "fieldtype": "Data",
+   "label": "Denominator Issue UOM"
+  },
+  {
+   "fieldname": "material_code_section",
+   "fieldtype": "Section Break",
+   "label": "Material Code"
+  },
+  {
+   "fieldname": "column_break_pxft",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "requestor_ref_no",
+   "fieldtype": "Link",
+   "label": "Requestor Ref No",
+   "options": "Requestor Master"
+  },
+  {
+   "fieldname": "material_onboarding_ref_no",
+   "fieldtype": "Link",
+   "label": "Material Onboarding Ref No",
+   "options": "Material Onboarding"
+  },
+  {
+   "fieldname": "material_code_revised",
+   "fieldtype": "Data",
+   "label": "Material Code - Revised"
+  },
+  {
+   "fieldname": "material_information_section",
+   "fieldtype": "Section Break",
+   "label": "Material Information"
+  },
+  {
+   "fieldname": "industry",
+   "fieldtype": "Link",
+   "label": "Industry",
+   "options": "Industry"
+  },
+  {
+   "fieldname": "column_break_hagw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "store_data_section",
+   "fieldtype": "Section Break",
+   "label": "Store Data"
+  },
+  {
+   "fieldname": "purchase_data_section",
+   "fieldtype": "Section Break",
+   "label": "Purchase Data"
+  },
+  {
+   "fieldname": "mrp_data_section",
+   "fieldtype": "Section Break",
+   "label": "MRP Data"
+  },
+  {
+   "fetch_from": "division.division_code",
+   "fieldname": "division_code",
+   "fieldtype": "Data",
+   "label": "Division Code"
+  },
+  {
+   "fetch_from": "storage_location.storage_location",
+   "fieldname": "storage_location_code",
+   "fieldtype": "Data",
+   "label": "Storage Location Code"
+  },
+  {
+   "fetch_from": "valuation_class.valuation_class_code",
+   "fieldname": "valuation_class_code",
+   "fieldtype": "Data",
+   "label": "Valuation Class Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-26 16:42:02.752986",
+ "modified": "2025-10-15 15:48:38.096899",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Master",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

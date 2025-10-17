@@ -1,6 +1,8 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
+ "autoname": "field:procurement_type_code",
  "creation": "2025-09-25 15:36:56.127230",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,7 +15,8 @@
   {
    "fieldname": "procurement_type_code",
    "fieldtype": "Data",
-   "label": "Procurement Type Code"
+   "label": "Procurement Type Code",
+   "unique": 1
   },
   {
    "fieldname": "procurement_type_name",
@@ -29,10 +32,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 15:37:29.986011",
+ "modified": "2025-10-11 10:22:51.148357",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Procurement Type",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -49,7 +53,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "procurement_type_name"
 }

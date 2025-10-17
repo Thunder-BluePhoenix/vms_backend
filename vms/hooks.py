@@ -92,9 +92,9 @@ websocket_events = {
 # 	"Role": "home_page"QMS Inspection Reports
 # }
 fixtures = [
-    # {"dt": "SAP Mapper PR"},
-    {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab", "Super Head", "Accounts Head", "ASA", "IT Head","Nirav","Earth Upload Railway","Earth Upload International Air","Earth Upload Domestic Air","Earth Upload Bus","Earth Upload Hotel"]]}},
-    {"dt": "Role Profile", "filters": {"name" :["in", ["Accounts Head", "Super Head", "Accounts Team", "Enquirer", "Purchase Head", "Purchase Team", "Vendor", "QA Team", "QA Head","Handover Person","Store"]]}},
+    {"dt": "SAP Mapper PR"},
+    {"dt": "Role", "filters": {"name": ["in", ["Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Vendor", "Panjikar","Tyab", "Super Head", "Accounts Head", "ASA", "IT Head","Nirav","Earth Upload Railway","Earth Upload International Air","Store Manager", "Security", "Treasury", "Earth Upload Domestic Air","Earth Upload Bus","Earth Upload Hotel", "Material CP", "Material User", "SAP Team"]]}},
+    {"dt": "Role Profile", "filters": {"name" :["in", ["Accounts Head", "Super Head", "Accounts Team", "Enquirer", "Purchase Head", "Purchase Team", "Vendor", "QA Team", "QA Head","Handover Person","Store", "Material CP", "Material User", "SAP Team", "Store Manager", "Security", "Treasury"]]}},
     {"dt": "Module Profile", "filters": {"name": ["in", ["Vendor"]]}},
     {"dt": "QMS Quality Control System"},
     {"dt": "QMS Procedure Doc Name"},
@@ -233,31 +233,52 @@ scheduler_events = {
         "vms.APIs.req_for_quotation.rfq_reminder.send_reminder_notification",
         "vms.chat_vms.maintenance.cleanup_old_messages",
         "vms.chat_vms.maintenance.update_room_statistics",
-        "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.cleanup_user_status_cache"  # New
+        "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.cleanup_user_status_cache",  # New
+        "vms.vms.doctype.otp_verification.otp_verification.cleanup_old_otps",
+        "vms.vms.doctype.vendor_aging_tracker.vendor_aging_tracker.refresh_all_aging_trackers",
+        "vms.purchase.doctype.cart_aging_track.cart_aging_track.update_all_cart_aging_tracks",
+        "vms.material.doctype.material_aging_track.material_aging_track.update_all_mo_aging_tracks",
     ],
     "cron": {
         "0 0 * * *": [
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.handle_expirations",
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.check_and_resend_asa_forms"
         ],
-        "*/10 * * * *": [
+        "*/1 * * * *": [
             "vms.APIs.req_for_quotation.rfq_reminder.block_quotation_link",
-            "vms.APIs.sap.send_sap_error_email.uncheck_sap_error_email"  
+            "vms.APIs.sap.send_sap_error_email.uncheck_sap_error_email",
+            "vms.APIs.req_for_quotation.rfq_reminder.quotation_count_reminder_mail"
         ],
         "0 2 * * *": [  # Run at 2 AM daily
             "vms.chat_vms.maintenance.cleanup_deleted_files"
         ],
+        "0 3 * * *": [
+            "vms.vms_masters.doctype.company_vendor_code.corn_system_vendor_code.sync_vendor_code_addresses_from_sources"
+        ],
         "*/15 * * * *": [  # Every 15 minutes
-            "vms.chat_vms.maintenance.update_user_online_status"
+            "vms.chat_vms.maintenance.update_user_online_status",
+            "vms.purchase.doctype.purchase_order.purchase_order.send_dispatch_notifications"
         ],
         "*/1 * * * *": [  # Every minute - for real-time status updates
-            "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.update_user_activity_status"
+            "vms.APIs.notification_chatroom.chat_apis.realtime_enhanced.update_user_activity_status",
+            "vms.vms.doctype.otp_verification.otp_verification.expire_otps"
         ],
         "0 */2 * * *": [  # Every 2 hours - cleanup stuck SAP status
             "vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.cleanup_stuck_sap_status"
         ],
+        "30 */2 * * *": [  # Every 2 hours at minute 30 - sync vendor documents
+            "vms.purchase.doctype.purchase_order.po_vm_validation_corn.enqueue_bulk_validate_vendor_codes"
+        ],
         "*/5 * * * *": [
-            "vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.monitor_background_jobs"
+            "vms.material.doctype.cart_details.cart_details.process_cart_escalations"
+        ],
+        "*/10 * * * *": [
+            "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_background_jobs",
+            "vms.vms.doctype.otp_verification.otp_verification.delete_expired_otps"
+        ],
+        "*/30 * * * *": [
+            "vms.vendor_onboarding.doctype.vendor_import_staging.vis_stuck_data_handle.monitor_queued_records",
+            "vms.vms.doctype.vendor_aging_tracker.aging_track_history_rec.scheduled_batch_processor"
         ]
     }    
 	# "hourly": [

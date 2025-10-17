@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:cat_id",
+ "creation": "2025-10-11 12:54:54.304116",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "cat_id",
+  "cart_id",
+  "column_break_wsjh",
+  "pr_erp_link",
+  "pr_sap_link",
+  "section_break_nvtc",
+  "cart_creation_datetime",
+  "cart_approval_datetime",
+  "pr_creation_datetime",
+  "sap_pr_creation_datetime",
+  "column_break_tzcy",
+  "days_since_creation",
+  "aging_status",
+  "column_break_jouc",
+  "cart_approval_duration",
+  "cart_to_pr_creation",
+  "erp_to_sap_pr_creation",
+  "cart_creation_to_sap_pr_creation",
+  "approved_cart_to_sap_creation"
+ ],
+ "fields": [
+  {
+   "fieldname": "cart_id",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Cart ID",
+   "options": "Cart Details",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cat_id",
+   "fieldtype": "Data",
+   "label": "CAT ID",
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_wsjh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pr_erp_link",
+   "fieldtype": "Link",
+   "label": "PR erp Link",
+   "options": "Purchase Requisition Webform"
+  },
+  {
+   "fieldname": "pr_sap_link",
+   "fieldtype": "Link",
+   "label": "PR sap Link",
+   "options": "Purchase Requisition Form"
+  },
+  {
+   "fieldname": "section_break_nvtc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cart_creation_datetime",
+   "fieldtype": "Datetime",
+   "label": "Cart Creation DateTime"
+  },
+  {
+   "fieldname": "cart_approval_datetime",
+   "fieldtype": "Datetime",
+   "label": "Cart Approval DateTime"
+  },
+  {
+   "fieldname": "pr_creation_datetime",
+   "fieldtype": "Datetime",
+   "label": "PR Creation DateTime"
+  },
+  {
+   "fieldname": "sap_pr_creation_datetime",
+   "fieldtype": "Datetime",
+   "label": "SAP PR Creation DateTime"
+  },
+  {
+   "fieldname": "column_break_jouc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cart_approval_duration",
+   "fieldtype": "Duration",
+   "label": "Cart Approval Duration"
+  },
+  {
+   "fieldname": "cart_to_pr_creation",
+   "fieldtype": "Duration",
+   "label": "Cart To PR Creation"
+  },
+  {
+   "fieldname": "erp_to_sap_pr_creation",
+   "fieldtype": "Duration",
+   "label": "ERP to SAP PR Creation"
+  },
+  {
+   "fieldname": "cart_creation_to_sap_pr_creation",
+   "fieldtype": "Duration",
+   "label": "Cart Creation To SAP PR Creation"
+  },
+  {
+   "fieldname": "approved_cart_to_sap_creation",
+   "fieldtype": "Duration",
+   "label": "Approved Cart to SAP Creation"
+  },
+  {
+   "fieldname": "column_break_tzcy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "days_since_creation",
+   "fieldtype": "Int",
+   "label": "Days Since Creation"
+  },
+  {
+   "fieldname": "aging_status",
+   "fieldtype": "Select",
+   "label": "Aging Status",
+   "options": "New (0-30 days)\nRecent (31-90 days)\nEstablished (91-180 days)\nLong Term (180+ days)"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-13 17:10:59.749177",
+ "modified_by": "Administrator",
+ "module": "Purchase",
+ "name": "Cart Aging Track",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -30,6 +30,11 @@
   "pending_days",
   "account_doc_no",
   "ref_invoice_no",
+  "grn_doc_date",
+  "grn_goods_recipient",
+  "grn_item_text",
+  "collective_number",
+  "expected_delivery_date",
   "column_break_hfep",
   "grn_number",
   "grn_date",
@@ -53,7 +58,10 @@
   "vehicle_no",
   "gate_entry_description",
   "account_doc_year",
-  "invoice_doc"
+  "invoice_doc",
+  "number_of_bill_of_loading",
+  "store_location",
+  "user_code"
  ],
  "fields": [
   {
@@ -339,13 +347,53 @@
    "fieldname": "company_code_i",
    "fieldtype": "Data",
    "label": "Company Code"
+  },
+  {
+   "fieldname": "number_of_bill_of_loading",
+   "fieldtype": "Data",
+   "label": "Number of bill of loading"
+  },
+  {
+   "fieldname": "grn_doc_date",
+   "fieldtype": "Date",
+   "label": "GRN Doc Date"
+  },
+  {
+   "fieldname": "grn_goods_recipient",
+   "fieldtype": "Data",
+   "label": "GRN Goods Recipient"
+  },
+  {
+   "fieldname": "grn_item_text",
+   "fieldtype": "Data",
+   "label": "GRN Item Text"
+  },
+  {
+   "fieldname": "collective_number",
+   "fieldtype": "Data",
+   "label": "Collective Number"
+  },
+  {
+   "fieldname": "expected_delivery_date",
+   "fieldtype": "Data",
+   "label": "Expected Delivery Date"
+  },
+  {
+   "fieldname": "store_location",
+   "fieldtype": "Data",
+   "label": "Store Location"
+  },
+  {
+   "fieldname": "user_code",
+   "fieldtype": "Data",
+   "label": "User Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-05 12:46:08.540349",
+ "modified": "2025-10-17 10:59:19.654082",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GRN Items",

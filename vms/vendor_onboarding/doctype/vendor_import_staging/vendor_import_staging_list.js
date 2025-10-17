@@ -129,6 +129,84 @@ frappe.listview_settings['Vendor Import Staging'] = {
             show_master_data_validation();
         }, __('System Health'));
 
+        listview.page.add_inner_button(__('Bulk Revalidate'), function() {
+            
+            frappe.confirm(
+                'This will revalidate all records where import status is not "Queued", "Processing", or "Completed". Do you want to continue?',
+                function() {
+                    // User confirmed
+                    frappe.call({
+                        method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.bulk_revalidate_staging_records',
+                        args: {},
+                        freeze: true,
+                        freeze_message: __('Starting bulk revalidation...'),
+                        callback: function(r) {
+                            if (r.message && r.message.status === 'success') {
+                                listview.refresh();
+                            }
+                        }
+                    });
+                }
+            );
+            
+        }, __('Vendor Processing'));
+        
+        // Optional: Add button for selected records only
+        listview.page.add_inner_button(__('Revalidate Selected'), function() {
+            let selected = listview.get_checked_items();
+            
+            if (selected.length === 0) {
+                frappe.msgprint(__('Please select at least one record'));
+                return;
+            }
+            
+            // Filter selected items based on import_status
+            let eligible_docs = [];
+            let ineligible_count = 0;
+            
+            selected.forEach(item => {
+                if (!['Queued', 'Processing', 'Completed'].includes(item.import_status)) {
+                    eligible_docs.push(item.name);
+                } else {
+                    ineligible_count++;
+                }
+            });
+            
+            if (eligible_docs.length === 0) {
+                frappe.msgprint({
+                    message: 'None of the selected records are eligible for revalidation. Records with status "Queued", "Processing", or "Completed" cannot be revalidated.',
+                    indicator: 'orange'
+                });
+                return;
+            }
+            
+            let message = `Revalidate ${eligible_docs.length} selected record(s)?`;
+            if (ineligible_count > 0) {
+                message += `<br><br><small class="text-muted">${ineligible_count} record(s) will be skipped (Queued/Processing/Completed)</small>`;
+            }
+            
+            frappe.confirm(
+                message,
+                function() {
+                    frappe.call({
+                        method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.bulk_revalidate_staging_records',
+                        args: {
+                            docnames: eligible_docs
+                        },
+                        freeze: true,
+                        freeze_message: __('Starting revalidation...'),
+                        callback: function(r) {
+                            if (r.message && r.message.status === 'success') {
+                                listview.clear_checked_items();
+                                listview.refresh();
+                            }
+                        }
+                    });
+                }
+            );
+            
+        }, __('Vendor Processing'));
+
 
 
         // add_comprehensive_integrity_buttons(listview);

@@ -1,0 +1,152 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-10-07 15:14:42.726408",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "material_onboarding_link",
+  "requestor_ref",
+  "column_break_inpw",
+  "status",
+  "direction",
+  "section_break_tzmc",
+  "total_transaction",
+  "tab_2_tab",
+  "erp_to_sap_data",
+  "sap_response",
+  "column_break_mhud",
+  "sap_to_erp_data",
+  "erp_response"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "MO-SAP-DATA-.YYYY.-.MM.-"
+  },
+  {
+   "fieldname": "column_break_inpw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "section_break_tzmc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "erp_to_sap_data",
+   "fieldtype": "JSON",
+   "label": "ERP to SAP DATA"
+  },
+  {
+   "fieldname": "sap_response",
+   "fieldtype": "JSON",
+   "label": "SAP Respnse"
+  },
+  {
+   "fieldname": "total_transaction",
+   "fieldtype": "Code",
+   "label": "Total Transaction"
+  },
+  {
+   "fieldname": "material_onboarding_link",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_standard_filter": 1,
+   "label": "Material Onboarding Link",
+   "options": "Material Onboarding",
+   "read_only": 1
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "label": "Direction",
+   "options": "\nERP to SAP\nSAP to ERP"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "DATA And Response"
+  },
+  {
+   "fieldname": "column_break_mhud",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sap_to_erp_data",
+   "fieldtype": "Code",
+   "label": "SAP to ERP DATA"
+  },
+  {
+   "fieldname": "erp_response",
+   "fieldtype": "Code",
+   "label": "ERP Response"
+  },
+  {
+   "fieldname": "requestor_ref",
+   "fieldtype": "Link",
+   "label": "Requestor Ref",
+   "options": "Requestor Master"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-07 17:34:32.784732",
+ "modified_by": "Administrator",
+ "module": "SAP LOGs",
+ "name": "MO SAP Logs",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guest",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -7,82 +7,233 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 import json
 from vms.utils.custom_send_mail import custom_sendmail
+from datetime import datetime, timedelta
+from frappe.utils import now_datetime, add_to_date, get_datetime
+import time
+
+
 
 
 class CartDetails(Document):
 	def after_insert(self):
-		
-		exp_doc = frappe.get_doc("Cart Ageing Settings") or None
+		"""Create Cart Aging Track record when cart is created"""
+		# if self.is_new():
+		# Ensure cart document is fully committed
+		# print("####################################after save called###################################################")
 
-		if exp_doc != None:
-			exp_t_sec = float(exp_doc.cart_check_duration)
+		try:
+			from vms.purchase.doctype.cart_aging_track.cart_aging_track import create_or_update_cart_aging_track
+			create_or_update_cart_aging_track(self.name)
+		except Exception as e:
+			frappe.log_error(
+				title=f"Error creating Cart Aging Track for {self.name}",
+				message=frappe.get_traceback()
+			)
+
+		# else:
+		# 	pass
+
+	
+
+	def is_cart_approved(self):
+		"""
+		Check if cart is approved based on approval logic:
+		1. If hod_approved == 1 and is_requested_second_stage_approval != 1 -> Approved
+		2. If hod_approved == 1 and is_requested_second_stage_approval == 1 -> Check second_stage_approved == 1
+		
+		Returns:
+			bool: True if cart is approved, False otherwise
+		"""
+		hod_approved = self.hod_approved or 0
+		is_requested_second_stage = self.is_requested_second_stage_approval or 0
+		second_stage_approved = self.second_stage_approved or 0
+		
+		# Case 1: HOD approved and no second stage requested
+		if hod_approved == 1 and is_requested_second_stage != 1:
+			return True
+		
+		# Case 2: HOD approved, second stage requested, and second stage approved
+		if hod_approved == 1 and is_requested_second_stage == 1 and second_stage_approved == 1:
+			return True
+		
+		return False
+
+
+	# def after_insert(self):
+		
+	# 	exp_doc = frappe.get_doc("Cart Ageing Settings") or None
+
+	# 	if exp_doc != None:
+	# 		exp_t_sec = float(exp_doc.cart_check_duration)
 			
+	# 	else:
+	# 		exp_t_sec = 10800
+			
+	# 	# Enqueue a background job to handle vendor onboarding expiration
+	# 	exp_d_sec = exp_t_sec + 800
+	# 	frappe.enqueue(
+	# 		method=self.alternate_pt,
+	# 		queue='default',
+	# 		timeout=exp_d_sec,
+	# 		now=False,
+	# 		job_name=f'cart_expiration_{self.name}',
+	# 		# enqueue_after_commit = False
+	# 	)
+		
+	# 	# sent_asa_form_link(self, method=None)
+
+
+	# def alternate_pt(self):
+	# 	exp_doc = frappe.get_doc("Cart Ageing Settings") or None
+
+	# 	if exp_doc != None:
+	# 		exp_t_sec = float(exp_doc.cart_check_duration)
+			
+	# 	else:
+	# 		exp_t_sec = 10800
+
+	# 	exp_d_sec = exp_t_sec + 800
+	# 	time.sleep(exp_t_sec)
+	# 	if self.purchase_team_acknowledgement == 0 or self.asked_to_modify == 0:
+	# 		send_mail_alternate_purchase(self, method=None)
+
+	# 		frappe.enqueue(
+	# 		method=self.alternate_pt_ph,
+	# 		queue='default',
+	# 		timeout=exp_d_sec,
+	# 		now=False,
+	# 		job_name=f'cart_expiration_{self.name}',
+	# 		# enqueue_after_commit = False
+	# 	)
+			
+	# def alternate_pt_ph(self):
+	# 	exp_doc = frappe.get_doc("Cart Ageing Settings") or None
+
+	# 	if exp_doc != None:
+	# 		exp_t_sec = float(exp_doc.cart_check_duration)
+			
+	# 	else:
+	# 		exp_t_sec = 10800
+
+		
+	# 	time.sleep(exp_t_sec)
+	# 	if self.purchase_team_acknowledgement == 0 or self.asked_to_modify == 0:
+	# 		send_mail_purchase_hod(self, method=None)
+
+	# 	else:
+	# 		pass
+
+	# 	# exp_d_sec = exp_t_sec + 300
+	# 	frappe.db.commit()
+	def before_insert(self):
+		exp_doc = frappe.get_doc("Cart Ageing Settings") or None
+		
+		if exp_doc:
+			exp_t_sec = float(exp_doc.cart_check_duration)
 		else:
 			exp_t_sec = 10800
-			
-		# Enqueue a background job to handle vendor onboarding expiration
-		exp_d_sec = exp_t_sec + 800
-		frappe.enqueue(
-			method=self.alternate_pt,
-			queue='default',
-			timeout=exp_d_sec,
-			now=False,
-			job_name=f'cart_expiration_{self.name}',
-			# enqueue_after_commit = False
-		)
 		
-		# sent_asa_form_link(self, method=None)
-
-
-	def alternate_pt(self):
-		exp_doc = frappe.get_doc("Cart Ageing Settings") or None
-
-		if exp_doc != None:
-			exp_t_sec = float(exp_doc.cart_check_duration)
-			
-		else:
-			exp_t_sec = 10800
-
-		exp_d_sec = exp_t_sec + 800
-		time.sleep(exp_t_sec)
-		if self.purchase_team_acknowledgement == 0 or self.asked_to_modify == 0:
-			send_mail_alternate_purchase(self, method=None)
-
-			frappe.enqueue(
-			method=self.alternate_pt_ph,
-			queue='default',
-			timeout=exp_d_sec,
-			now=False,
-			job_name=f'cart_expiration_{self.name}',
-			# enqueue_after_commit = False
-		)
-			
-	def alternate_pt_ph(self):
-		exp_doc = frappe.get_doc("Cart Ageing Settings") or None
-
-		if exp_doc != None:
-			exp_t_sec = float(exp_doc.cart_check_duration)
-			
-		else:
-			exp_t_sec = 10800
-
+		current_time = now_datetime()
+		first_check_time = add_to_date(current_time, seconds=exp_t_sec)
+		second_check_time = add_to_date(first_check_time, seconds=exp_t_sec)
 		
-		time.sleep(exp_t_sec)
-		if self.purchase_team_acknowledgement == 0 or self.asked_to_modify == 0:
-			send_mail_purchase_hod(self, method=None)
+		self.first_escalation_time = first_check_time
+		self.second_escalation_time = second_check_time
+		self.escalation_status = "Pending"
 
-		else:
-			pass
-
-		# exp_d_sec = exp_t_sec + 300
-		frappe.db.commit()
 	def on_update(self):
 		send_purchase_inquiry_email(self, method=None)
+		# if self.is_new():
+		# try:
+		# 	from vms.purchase.doctype.cart_aging_track.cart_aging_track import create_or_update_cart_aging_track
+		# 	cart_id = self.name
+		# 	create_or_update_cart_aging_track(cart_id = cart_id)
+		# except Exception as e:
+		# 	frappe.log_error(
+		# 		title=f"Error creating Cart Aging Track for {self.name}",
+		# 		message=frappe.get_traceback()
+		# 	)
+		if not self.is_new():
+			if self.has_value_changed('hod_approved') or \
+			self.has_value_changed('second_stage_approved') or \
+			self.has_value_changed('is_requested_second_stage_approval'):
+				
+				# Check if cart is now approved
+				if self.is_cart_approved():
+					try:
+						from vms.purchase.doctype.cart_aging_track.cart_aging_track import update_aging_track_on_cart_approval
+						update_aging_track_on_cart_approval(self.name)
+					except Exception as e:
+						frappe.log_error(
+							title=f"Error updating Cart Aging Track on approval for {self.name}",
+							message=frappe.get_traceback()
+						)
+		
+
+
+
+@frappe.whitelist()
+def process_cart_escalations():
+    current_time = now_datetime()
+    
+    carts_for_first_escalation = frappe.get_all(
+        "Cart Details",
+        filters={
+            "first_escalation_time": ["<=", current_time],
+            "escalation_status": "Pending",
+            "purchase_team_acknowledgement": 0,
+            "asked_to_modify": 0
+        },
+        fields=["name"]
+    )
+    
+    for cart in carts_for_first_escalation:
+        try:
+            cart_doc = frappe.get_doc("Cart Details", cart.name)
+            send_mail_alternate_purchase(cart_doc, method=None)
+            # cart_doc.escalation_status = "First Escalation Sent"
+            # cart_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception as e:
+            frappe.log_error(f"First escalation failed for {cart.name}: {str(e)}", "Cart Escalation Error")
+    
+    carts_for_second_escalation = frappe.get_all(
+        "Cart Details",
+        filters={
+            "second_escalation_time": ["<=", current_time],
+            "escalation_status": "First Escalation Sent",
+            "purchase_team_acknowledgement": 0,
+            "asked_to_modify": 0
+        },
+        fields=["name"]
+    )
+    
+    for cart in carts_for_second_escalation:
+        try:
+            cart_doc = frappe.get_doc("Cart Details", cart.name)
+            send_mail_purchase_hod(cart_doc, method=None)
+            # cart_doc.escalation_status = "Second Escalation Sent"
+            # cart_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception as e:
+            frappe.log_error(f"Second escalation failed for {cart.name}: {str(e)}", "Cart Escalation Error")
+    
+    return {
+        "first_escalation_count": len(carts_for_first_escalation),
+        "second_escalation_count": len(carts_for_second_escalation)
+    }
+
+
+
+
+
+
+	
 
 
 def send_purchase_inquiry_email(doc, method=None):
 	if doc.user and not doc.rejected:
-		if not doc.purchase_team_approved and not doc.mail_sent_to_purchase_team:
+		if doc.is_submited and not doc.purchase_team_approved and not doc.mail_sent_to_purchase_team:
 			send_mail_purchase(doc, method=None)
 			# print("send_mail_purchase @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		elif doc.purchase_team_approved and not doc.hod_approved and not doc.mail_sent_to_hod:
@@ -110,6 +261,15 @@ def send_mail_hod(doc, method=None):
 		http_server = frappe.conf.get("backend_http")
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
+			
 		if hod:
 			hod_email = frappe.get_value("Employee", hod, "user_id")
 			hod_name = frappe.get_value("Employee", hod, "full_name")
@@ -147,7 +307,7 @@ def send_mail_hod(doc, method=None):
 
 				table_html += "</table>"
 
-				subject = f"Purchase Team Approved Cart Details Submitted by {employee_name}"
+				subject = f"Approval of Cart Details Submitted by {employee_name}"
 
 				# Message for HOD with buttons
 				hod_message = f"""
@@ -155,7 +315,7 @@ def send_mail_hod(doc, method=None):
 					<p>A new cart details submission has been made by <b>{employee_name}</b> which is approved by Purchase Team.</p>
 					<p>Please review the details and take necessary actions.</p>
 					<p><b>Cart ID:</b> {doc.name}</p>
-					<p><b>Cart Date:</b> {doc.cart_date}</p>
+					<p><b>Cart Date:</b> {cart_date_formatted}</p>
 					<p><b>Cart Products:</b></p>
 					{table_html}
 					<br>
@@ -175,7 +335,7 @@ def send_mail_hod(doc, method=None):
 					<p>Dear {employee_name},</p>
 					<p>Your cart has been approved by Purchase Team and sent to your HOD <b>{hod_name}</b> for further approval.</p>
 					<p><b>Cart ID:</b> {doc.name}</p>
-					<p><b>Cart Date:</b> {doc.cart_date}</p>
+					<p><b>Cart Date:</b> {cart_date_formatted}</p>
 					<p><b>Cart Products:</b></p>
 					{table_html}
 					<p>Thank you!</p>
@@ -224,6 +384,14 @@ def send_mail_purchase(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		purchase_team_email = frappe.get_value("Category Master", doc.category_type, "purchase_team_user")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
 		
 		if purchase_team_email:
 				table_html = """
@@ -258,9 +426,9 @@ def send_mail_purchase(doc, method=None):
 				message = f"""
 					<p>Dear Purchase Team,</p>		
 					<p>A new cart details submission has been made by <b>{employee_name}</b>.</p>
-					<p> please review the details and take necessary actions.</p>
+					<p> Please review the details and take necessary actions.</p>
 					<p><b>Cart ID:</b> {doc.name}</p>
-					<p><b>Cart Date:</b> {doc.cart_date}</p>
+					<p><b>Cart Date:</b> {cart_date_formatted}</p>
 					<p><b>Cart Products:</b></p>
 					{table_html}
 					<p>Thank you!</p>
@@ -292,6 +460,15 @@ def send_mail_user(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
+
 		if hod:
 			hod_email = frappe.get_value("Employee", hod, "user_id")
 
@@ -328,7 +505,7 @@ def send_mail_user(doc, method=None):
 			<p>Dear {employee_name},</p>		
 			<p>Your cart details has been approved by HOD</b>.</p>
 			<p><b>Cart ID:</b> {doc.name}</p>
-			<p><b>Cart Date:</b> {doc.cart_date}</p>
+			<p><b>Cart Date:</b> {cart_date_formatted}</p>
 			<p><b>Cart Products:</b></p>Your cart details has been approved by HOD0
 			{table_html}
 			<p>Thank you!</p>
@@ -358,9 +535,20 @@ def rejection_mail_to_user(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+		
+		rejected_by = frappe.get_value("Employee", {"user_id": doc.rejected_by}, "full_name")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
+		
+		hod_email = None 
 		if hod:
 			hod_email = frappe.get_value("Employee", hod, "user_id")
-			rejected_by = frappe.get_value("Employee", {"user_id": doc.rejected_by}, "full_name")
 
 		table_html = """
 			<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
@@ -395,14 +583,15 @@ def rejection_mail_to_user(doc, method=None):
 			<p>Dear {employee_name},</p>		
 			<p>Your cart details has been rejected by {rejected_by}</b>.</p>
 			<p><b>Cart ID:</b> {doc.name}</p>
-			<p><b>Cart Date:</b> {doc.cart_date}</p>
+			<p><b>Cart Date:</b> {cart_date_formatted}</p>
 			<p><b>Cart Products:</b></p>
 			{table_html}
 			<p>Thank you!</p>
 		"""
-		frappe.custom_sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
-
-		# doc.ack_mail_to_user = 1
+		
+		# Only include cc if hod_email exists
+		cc_list = [hod_email] if hod_email else []
+		frappe.custom_sendmail(recipients=[doc.user], cc=cc_list, subject=subject, message=message, now=True)
 		frappe.db.set_value("Cart Details", doc.name, "ack_mail_to_user", 1)
 		
 		return {
@@ -419,12 +608,11 @@ def rejection_mail_to_user(doc, method=None):
 		}
 
 
-
-
 # hod Approval Flow	
 @frappe.whitelist(allow_guest=True)
 def hod_approval_check():
 	try:
+		session_user = frappe.session.user
 		cart_id = frappe.form_dict.get("cart_id")
 		user = frappe.form_dict.get("user")
 		action = frappe.form_dict.get("action")
@@ -450,10 +638,11 @@ def hod_approval_check():
 		if action == "approve":
 			doc.hod_approved = 1
 			doc.hod_approval_status = "Approved"
+			doc.hod_approval = session_user
 			doc.hod_approval_remarks = "Approved by HOD"
 		elif action == "reject":
 			doc.rejected = 1
-			doc.rejected_by = user
+			doc.rejected_by = session_user
 			doc.hod_approval_status = "Rejected"
 			doc.reason_for_rejection = reason_for_rejection
 		else:
@@ -489,6 +678,14 @@ def send_mail_alternate_purchase(doc, method=None):
 	try:
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		purchase_team_email = frappe.get_value("Category Master", doc.category_type, "alternative_purchase_team")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
 		
 		if purchase_team_email:
 				table_html = """
@@ -525,7 +722,7 @@ def send_mail_alternate_purchase(doc, method=None):
 					<p>A new cart details submission has been made by <b>{employee_name}</b>.</p>
 					<p> please review the details and take necessary actions.</p>
 					<p><b>Cart ID:</b> {doc.name}</p>
-					<p><b>Cart Date:</b> {doc.cart_date}</p>
+					<p><b>Cart Date:</b> {cart_date_formatted}</p>
 					<p><b>Cart Products:</b></p>
 					{table_html}
 					<p>Thank you!</p>
@@ -533,7 +730,11 @@ def send_mail_alternate_purchase(doc, method=None):
 				frappe.custom_sendmail(recipients=[purchase_team_email], subject=subject, message=message, now=True)
 
 				# doc.mail_sent_to_purchase_team = 1
-				frappe.db.set_value("Cart Details", doc.name, "mailed_to_alternate_purchase_team", 1)
+				doc.db_set({
+								"mailed_to_alternate_purchase_team": 1,
+								"escalation_status": "First Escalation Sent"
+							}, commit=False)
+				# frappe.db.set_value("Cart Details", doc.name, "mailed_to_alternate_purchase_team", 1)
 				
 				return {
 					"status": "success",
@@ -561,6 +762,14 @@ def send_mail_purchase_hod(doc, method=None):
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		purchase_team_email = frappe.get_value("Category Master", doc.category_type, "purchase_team_user")
 		pur_team = frappe.get_value("Employee", {"user_id": purchase_team_email}, "team")
+
+		if doc.cart_date:
+			try:
+				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+			except Exception:
+				cart_date_formatted = doc.cart_date
+		else:
+			cart_date_formatted = "N/A"
 		
 		if purchase_team_email and pur_team:
 			# Fetch all employees with same team and Purchase Head designation
@@ -627,7 +836,7 @@ def send_mail_purchase_hod(doc, method=None):
 				<p>The purchase team has not yet reviewed this cart, so it has been escalated to you for further action.</p>
 				<p>Please review the cart details below and take necessary actions:</p>
 				<p><b>Cart ID:</b> {doc.name}</p>
-				<p><b>Cart Date:</b> {doc.cart_date}</p>
+				<p><b>Cart Date:</b> {cart_date_formatted}</p>
 				<p><b>Submitted by:</b> {employee_name}</p>
 				<p><b>Team:</b> {pur_team}</p>
 				<p><b>Cart Products:</b></p>
@@ -645,7 +854,12 @@ def send_mail_purchase_hod(doc, method=None):
 			)
 
 			# Update the document to mark email as sent
-			frappe.db.set_value("Cart Details", doc.name, "mailed_to_purchase_head", 1)
+
+			doc.db_set({
+							"mail_sent_to_hod": 1,
+							"escalation_status": "Second Escalation Sent"
+						}, commit=False)
+			# frappe.db.set_value("Cart Details", doc.name, "mailed_to_purchase_head", 1)
 			
 			return {
 				"status": "success",

@@ -391,7 +391,7 @@ function process_to_vendor_master(frm) {
         __('This will create/update a Vendor Master record and all related documents. Continue?'),
         function() {
             frappe.call({
-                method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_single_staging_record',
+                method: 'vms.vendor_onboarding.doctype.vendor_import_staging.vendor_import_staging.process_single_staging_record_from_doc',
                 args: {
                     docname: frm.doc.name
                 },

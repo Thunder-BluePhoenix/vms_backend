@@ -42,9 +42,9 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 15:00:23.694214",
+ "modified": "2025-10-10 13:57:08.763858",
  "modified_by": "Administrator",
- "module": "material",
+ "module": "Material",
  "name": "Expiration Date Master",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
@@ -62,7 +62,10 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "expiration_date_name"
 }

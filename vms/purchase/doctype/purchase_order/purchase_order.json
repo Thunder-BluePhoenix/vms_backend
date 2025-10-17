@@ -101,6 +101,7 @@
   "reason_for_rejection",
   "approved_from_vendor",
   "sent_to_vendor",
+  "vendor_code_invalid",
   "column_break_brva",
   "approved_by",
   "approved_by_name",
@@ -112,6 +113,7 @@
   "po_dispatch_status",
   "column_break_mxpr",
   "sent_notification_triggered",
+  "scheduled_notification_time",
   "column_break_ztfg",
   "dispatched",
   "section_break_tkov",
@@ -850,12 +852,23 @@
    "fieldname": "sign_of_approval3",
    "fieldtype": "Attach",
    "label": "Sign of Approval3"
+  },
+  {
+   "fieldname": "scheduled_notification_time",
+   "fieldtype": "Datetime",
+   "label": "Scheduled Notification Time"
+  },
+  {
+   "default": "0",
+   "fieldname": "vendor_code_invalid",
+   "fieldtype": "Check",
+   "label": "Vendor Code Invalid"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:37:53.589767",
+ "modified": "2025-10-14 18:00:37.098213",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Order",

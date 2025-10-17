@@ -1,6 +1,8 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
+ "autoname": "format:{mrp_controller}-{####}",
  "creation": "2025-09-25 11:55:03.266054",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -30,10 +32,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 11:56:00.210419",
+ "modified": "2025-10-11 10:22:23.591577",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "MRP Controller Master",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -50,7 +53,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "mrp_controller"
 }

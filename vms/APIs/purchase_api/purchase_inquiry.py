@@ -4,6 +4,7 @@ from frappe.utils import now_datetime
 from frappe import _
 from vms.utils.custom_send_mail import custom_sendmail
 import json
+from datetime import datetime, timedelta
 
 
 # cart details masters
@@ -79,6 +80,7 @@ def filter_subhead_email():
 def filter_purchase_group(company):
     try:
         if not company:
+            frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
                 "message": "Company is required"
@@ -90,12 +92,27 @@ def filter_purchase_group(company):
             fields=["name", "purchase_group_code", "purchase_group_name", "description"]
         )
 
+        cost_center = frappe.get_all(
+            "Cost Center",
+            filters={"company_code": company},
+            fields=["name", "cost_center_code", "cost_center_name", "description", "short_text"]
+        )
+
+        gl_account = frappe.get_all(
+            "GL Account",
+            filters={"company": company},
+            fields=["name", "gl_account_code", "gl_account_name", "account_group", "description"]
+        )
+
         return {
             "status": "success",
-            "pur_grp": pur_grp
+            "pur_grp": pur_grp,
+            "cost_center": cost_center,
+            "gl_account": gl_account
         }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 400
         frappe.log_error(frappe.get_traceback(), "Error filtering purchase group")
         return {
             "status": "error",
@@ -124,7 +141,7 @@ def create_purchase_inquiry(data):
 			doc = frappe.new_doc("Cart Details")
 
 		# Top-level fields
-		top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type"]
+		top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type", "cost_center", "gl_account"]
 
 		for field in top_fields:
 			if field in data:
@@ -184,6 +201,162 @@ def create_purchase_inquiry(data):
 		}
 
 
+# @frappe.whitelist(allow_guest=True)
+# def update_cart_products():
+# 	try:
+# 		# Get form data from the request
+# 		form_data = frappe.local.form_dict
+# 		files = frappe.request.files
+
+# 		# Get purchase inquiry ID
+# 		purchase_inquiry_id = form_data.get("purchase_inquiry_id")
+# 		if not purchase_inquiry_id:
+# 			return {
+# 				"status": "error",
+# 				"message": "Purchase Inquiry ID is required."
+# 			}
+
+# 		# Verify the document exists
+# 		try:
+# 			doc = frappe.get_doc("Cart Details", purchase_inquiry_id)
+# 		except frappe.DoesNotExistError:
+# 			return {
+# 				"status": "error",
+# 				"message": f"Purchase Inquiry with ID {purchase_inquiry_id} not found."
+# 			}
+
+# 		# Get product data from form fields
+# 		product_row = {}
+# 		product_fields = [
+# 			"assest_code", "product_name", "product_price", "uom",
+# 			"lead_time", "product_quantity", "user_specifications"
+# 		]
+
+# 		for field in product_fields:
+# 			if field in form_data:
+# 				value = form_data.get(field)
+# 				product_row[field] = value if value else ""
+
+# 		# Handle file attachment
+# 		if "attachment" in files:
+# 			uploaded_file = files["attachment"]
+# 			if uploaded_file and uploaded_file.filename:
+# 				try:
+# 					# Save the file
+# 					file_doc = frappe.get_doc({
+# 						"doctype": "File",
+# 						"file_name": uploaded_file.filename,
+# 						"content": uploaded_file.read(),
+# 						"decode": False,
+# 						"is_private": 0,
+# 						"attached_to_doctype": "Cart Details",
+# 						"attached_to_name": purchase_inquiry_id
+# 					})
+# 					file_doc.insert(ignore_permissions=True)
+
+# 					# Add file URL to the product row
+# 					product_row["attachment"] = file_doc.file_url
+# 				except Exception as file_error:
+# 					frappe.log_error(f"File upload error: {str(file_error)}", "Cart Product File Upload")
+# 					return {
+# 						"status": "error",
+# 						"message": "Failed to upload attachment.",
+# 						"error": str(file_error)
+# 					}
+
+# 		# Handle numeric field conversion
+# 		for field in ["product_price", "lead_time", "product_quantity"]:
+# 			if field in product_row:
+# 				value = product_row[field]
+# 				if value and str(value).strip():
+# 					try:
+# 						if field == "product_quantity":
+# 							product_row[field] = int(float(value))
+# 						else:
+# 							product_row[field] = float(value)
+# 					except (ValueError, TypeError):
+# 						product_row[field] = 0
+# 				else:
+# 					product_row[field] = 0
+
+		
+# 		if not any(product_row.get(field) for field in product_fields):
+# 			return {
+# 				"status": "error",
+# 				"message": "No product data provided."
+# 			}
+
+# 		row_name = form_data.get("name")
+
+# 		# Prepare row data
+# 		row_data = {
+# 			"assest_code": product_row.get("assest_code", ""),
+# 			"product_name": product_row.get("product_name", ""),
+# 			"uom": product_row.get("uom", ""),
+# 			"user_specifications": product_row.get("user_specifications", ""),
+# 			"attachment": product_row.get("attachment", ""),
+# 			"product_price": product_row.get("product_price", 0),
+# 			"lead_time": product_row.get("lead_time", 0),
+# 			"product_quantity": product_row.get("product_quantity", 0),
+# 			"final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", 0),
+# 			"need_asset_code": product_row.get("need_asset_code", 0)
+# 		}
+
+# 		# Handle numeric fields (ensure they are properly set)
+# 		for numeric_field in ["product_price", "lead_time", "product_quantity"]:
+# 			value = product_row.get(numeric_field, 0)
+# 			row_data[numeric_field] = value
+
+# 		if row_name:
+# 			# Update existing row
+# 			row_found = False
+# 			for row in doc.cart_product:
+# 				if row.name == row_name:
+# 					for field, value in row_data.items():
+# 						setattr(row, field, value)
+# 					row_found = True
+# 					operation = "updated"
+# 					child_row_name = row_name
+# 					break
+
+# 			if not row_found:
+# 				return {
+# 					"status": "error",
+# 					"message": f"Cart product with row name {row_name} not found."
+# 				}
+# 		else:
+# 			# Create new row
+# 			new_row = doc.append("cart_product", row_data)
+# 			operation = "added"
+
+# 		# Save the document
+# 		doc.save(ignore_permissions=True)
+# 		frappe.db.commit()
+
+# 		if not row_name:
+# 			child_row_name = doc.cart_product[-1].name
+# 		else:
+# 			child_row_name = row_name
+
+# 		return {
+# 			"status": "success",
+# 			"message": f"Cart product {operation} successfully.",
+# 			"purchase_inquiry_id": purchase_inquiry_id,
+# 			"product_name": row_data.get("product_name", ""),
+# 			"child_row_name": child_row_name,
+# 			"operation": operation
+# 		}
+
+# 	except Exception as e:
+# 		frappe.db.rollback()
+# 		frappe.log_error(frappe.get_traceback(), "Update Cart Products API Error")
+# 		return {
+# 			"status": "error",
+# 			"message": "Failed to add cart product.",
+# 			"error": str(e)
+# 		}
+
+
 @frappe.whitelist(allow_guest=True)
 def update_cart_products():
 	try:
@@ -212,7 +385,7 @@ def update_cart_products():
 		product_row = {}
 		product_fields = [
 			"assest_code", "product_name", "product_price", "uom",
-			"lead_time", "product_quantity", "user_specifications"
+			"lead_time", "product_quantity", "user_specifications", "need_asset_code"
 		]
 
 		for field in product_fields:
@@ -262,14 +435,13 @@ def update_cart_products():
 				else:
 					product_row[field] = 0
 
-		
 		if not any(product_row.get(field) for field in product_fields):
 			return {
 				"status": "error",
 				"message": "No product data provided."
 			}
 
-		row_name = form_data.get("row_name")
+		row_name = form_data.get("name")
 
 		# Prepare row data
 		row_data = {
@@ -282,7 +454,7 @@ def update_cart_products():
 			"lead_time": product_row.get("lead_time", 0),
 			"product_quantity": product_row.get("product_quantity", 0),
 			"final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", 0),
-			"need_asset_code": product_row.get("need_asset_code", 0)
+			# "need_asset_code": product_row.get("need_asset_code", 0)
 		}
 
 		# Handle numeric fields (ensure they are properly set)
@@ -295,8 +467,29 @@ def update_cart_products():
 			row_found = False
 			for row in doc.cart_product:
 				if row.name == row_name:
+					# store existing attachment
+					existing_attachment = row.attachment  # Get existing attachment
+					need_asset_code = row.need_asset_code  # Get existing checkbox
+
 					for field, value in row_data.items():
-						setattr(row, field, value)
+						if field == "attachment":
+							# Handle attachment fallback
+							if value in ["undefined", None, ""]:
+								setattr(row, "attachment", existing_attachment)
+							else:
+								setattr(row, "attachment", value)
+
+						elif field == "need_asset_code":
+							# Handle checkbox fallback
+							if value in ["undefined", None, ""]:
+								setattr(row, "need_asset_code", need_asset_code)
+							else:
+								# Cast to int/bool if needed
+								setattr(row, "need_asset_code", int(value) if isinstance(value, (str, bool)) else value)
+
+						else:
+							setattr(row, field, value)
+
 					row_found = True
 					operation = "updated"
 					child_row_name = row_name
@@ -443,6 +636,15 @@ def get_full_data_pur_inquiry(pur_inq):
 def modified_peq(data):
     try:
         doc = frappe.get_doc("Cart Details", data.get("cart_id"))
+
+        if doc.cart_date:
+            try:
+                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except Exception:
+                cart_date_formatted = doc.cart_date
+        else:
+            cart_date_formatted = "N/A"
+                  
         if doc:
             doc.asked_to_modify = 1
             doc.append("modification_info", {
@@ -460,6 +662,9 @@ def modified_peq(data):
                     if child.name == row_id:
                         child.need_asset_code = need_asset_code
                         break 
+
+            doc.purchase_team_approval_status = "Modify"
+            doc.purchase_team_status = "Raised Query"
                       
             doc.save()
 
@@ -492,7 +697,7 @@ def modified_peq(data):
                 <p>A modification request has been submitted for the following <strong>Cart Details</strong>:</p>
 
                 <p><strong>Cart ID:</strong> {doc.name}<br>
-                <strong>Cart Date:</strong> {doc.cart_date}</p>
+                <strong>Cart Date:</strong> {cart_date_formatted}</p>
 
                 {table_html}
 
@@ -528,11 +733,31 @@ def acknowledge_purchase_inquiry(data):
             data = json.loads(data)
 
         doc = frappe.get_doc("Cart Details", data.get("cart_id"))
+
+        # format cart date
+        if doc.cart_date:
+            try:
+                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except Exception:
+                cart_date_formatted = doc.cart_date
+        else:
+            cart_date_formatted = "N/A"
+
+        # format acknowledge date
+        if doc.acknowledged_date:
+            try:
+                acknowledged_date_formatted = datetime.strptime(doc.acknowledged_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except Exception:
+                acknowledged_date_formatted = doc.acknowledged_date
+        else:
+            acknowledged_date_formatted = "N/A"
+                  
         if doc:
             doc.purchase_team_acknowledgement = 1
             doc.acknowledged_date = data.get("acknowledged_date")
             doc.acknowledged_remarks = data.get("acknowledged_remarks")
             doc.purchase_team_status = "Acknowledged"
+            doc.purchase_team_approval_status = "Acknowledged"
             doc.save(ignore_permissions=True)
 
             employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
@@ -575,8 +800,8 @@ def acknowledge_purchase_inquiry(data):
                 <p>Your cart details have been <b>acknowledged</b>.</p>
 
                 <p><b>Cart ID:</b> {doc.name}</p>
-                <p><b>Cart Date:</b> {doc.cart_date}</p>
-                <p><b>Acknowledged Date:</b> {doc.acknowledged_date}</p>
+                <p><b>Cart Date:</b> {cart_date_formatted}</p>
+                <p><b>Acknowledged Date:</b> {acknowledged_date_formatted}</p>
                 <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks}</p>
 
                 {table_html}
@@ -712,124 +937,296 @@ def get_company_for_pe_detailed(usr):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_plants_and_purchase_group(comp):
+def get_plants_and_purchase_group(comp, page=1, page_size=20, search_term=None, 
+                                   entity_type=None, sort_by=None, sort_order="asc"):
     """
-    Get plant and purchase group data for a given company
+    Get plant and purchase group data for a given company with pagination and filters
     
     Args:
         comp (str): Company name to filter records
+        page (int): Page number (default: 1)
+        page_size (int): Number of records per page (default: 20, max: 100)
+        search_term (str): Search term to filter across name and description fields
+        entity_type (str): Filter by specific entity type ('plants', 'purchase_groups', 'cost_centers', 'gl_accounts', or 'all')
+        sort_by (str): Field to sort by
+        sort_order (str): Sort order ('asc' or 'desc')
         
     Returns:
-        dict: Dictionary containing plant and purchase group data
+        dict: Dictionary containing paginated plant and purchase group data
     """
     try:
-        # Validate input parameter
+        # Validate and sanitize input parameters
         if not comp:
             frappe.throw(_("Company is required"), frappe.ValidationError)
         
         # Check if company exists
-        if not frappe.db.exists("Company", comp) and not frappe.db.exists("Company Master", comp):
+        if not frappe.db.exists("Company Master", comp) and not frappe.db.exists("Company Master", comp):
             frappe.throw(_("Company '{0}' not found").format(comp), frappe.DoesNotExistError)
+        
+        # Validate pagination parameters
+        try:
+            page = int(page) if page else 1
+            page_size = int(page_size) if page_size else 20
+        except (ValueError, TypeError):
+            frappe.throw(_("Invalid pagination parameters"), frappe.ValidationError)
+        
+        # Enforce pagination limits
+        if page < 1:
+            page = 1
+        if page_size < 1:
+            page_size = 20
+        if page_size > 100:
+            page_size = 100
+        
+        # Validate sort order
+        sort_order = sort_order.lower() if sort_order else "asc"
+        if sort_order not in ["asc", "desc"]:
+            sort_order = "asc"
+        
+        # Calculate offset
+        start = (page - 1) * page_size
+        
+        # Determine which entities to fetch
+        fetch_all = not entity_type or entity_type == "all"
+        fetch_plants = fetch_all or entity_type == "plants"
+        fetch_purchase_groups = fetch_all or entity_type == "purchase_groups"
+        fetch_cost_centers = fetch_all or entity_type == "cost_centers"
+        fetch_gl_accounts = fetch_all or entity_type == "gl_accounts"
         
         response = {
             "success": True,
             "company": comp,
-            "plants": [],
-            "purchase_groups": [],
-            "cost_centers": [],
-            "gl_accounts": [],
+            "page": page,
+            "page_size": page_size,
+            "search_term": search_term,
+            "entity_type": entity_type or "all",
+            "plants": {"data": [], "total": 0},
+            "purchase_groups": {"data": [], "total": 0},
+            "cost_centers": {"data": [], "total": 0},
+            "gl_accounts": {"data": [], "total": 0},
             "errors": []
         }
         
         # Get Plant Master data
-        try:
-            plants = frappe.get_all(
-                "Plant Master",
-                filters={"company": comp},
-                fields=["name", "plant_name", "description"]
-            )
-            response["plants"] = plants
-
-            
-        except frappe.PermissionError:
-            frappe.log_error(f"Permission denied for Plant Master - Company: {comp}")
-            response["errors"].append("Permission denied for Plant Master")
-        except Exception as e:
-            frappe.log_error(f"Error fetching Plant Master for company {comp}: {str(e)}")
-            response["errors"].append("Error fetching Plant Master data")
-
-        try:
-            cost_centers = frappe.get_all(
-                "Cost Center",
-                filters={"company_code": comp},
-                fields=["name", "cost_center_name", "description"]
-            )
-            response["cost_centers"] = cost_centers
-
-           
-
-            
-        except frappe.PermissionError:
-            frappe.log_error(f"Permission denied for Cost Centers - Company: {comp}")
-            response["errors"].append("Permission denied for Cost Centers")
-        except Exception as e:
-            frappe.log_error(f"Error fetching Cost Centers for company {comp}: {str(e)}")
-            response["errors"].append("Error fetching Cost centers data")
+        if fetch_plants:
+            try:
+                plants_data = get_entity_data(
+                    doctype="Plant Master",
+                    company_field="company",
+                    company=comp,
+                    search_term=search_term,
+                    search_fields=["name", "plant_name", "description"],
+                    fields=["name", "plant_name", "description"],
+                    sort_by=sort_by or "name",
+                    sort_order=sort_order,
+                    start=start,
+                    page_size=page_size
+                )
+                response["plants"] = plants_data
+                
+            except frappe.PermissionError:
+                frappe.log_error(f"Permission denied for Plant Master - Company: {comp}")
+                response["errors"].append("Permission denied for Plant Master")
+            except Exception as e:
+                frappe.log_error(f"Error fetching Plant Master for company {comp}: {str(e)}")
+                response["errors"].append("Error fetching Plant Master data")
         
-        try:
-            gl_accounts = frappe.get_all(
-                "GL Account",
-                filters={"company": comp},
-                fields=["name", "gl_account_name", "description"]
-            )
-            response["gl_accounts"] = gl_accounts
-
-            
-        except frappe.PermissionError:
-            frappe.log_error(f"Permission denied for GL Accounts- Company: {comp}")
-            response["errors"].append("Permission denied for GL Accounts")
-        except Exception as e:
-            frappe.log_error(f"Error fetching GL Accounts for company {comp}: {str(e)}")
-            response["errors"].append("Error fetching GL Accounts data")
+        # Get Cost Center data
+        if fetch_cost_centers:
+            try:
+                cost_centers_data = get_entity_data(
+                    doctype="Cost Center",
+                    company_field="company_code",
+                    company=comp,
+                    search_term=search_term,
+                    search_fields=["name", "cost_center_name", "cost_center_code", "description","company_code"],
+                    fields=["name", "cost_center_name", "cost_center_code", "description"],
+                    sort_by=sort_by or "name",
+                    sort_order=sort_order,
+                    start=start,
+                    page_size=page_size
+                )
+                response["cost_centers"] = cost_centers_data
+                
+            except frappe.PermissionError:
+                frappe.log_error(f"Permission denied for Cost Centers - Company: {comp}")
+                response["errors"].append("Permission denied for Cost Centers")
+            except Exception as e:
+                frappe.log_error(f"Error fetching Cost Centers for company {comp}: {str(e)}")
+                response["errors"].append("Error fetching Cost Centers data")
+        
+        # Get GL Account data
+        if fetch_gl_accounts:
+            try:
+                gl_accounts_data = get_entity_data(
+                    doctype="GL Account",
+                    company_field="company",
+                    company=comp,
+                    search_term=search_term,
+                    search_fields=["name", "gl_account_name", "description"],
+                    fields=["name", "gl_account_name", "description"],
+                    sort_by=sort_by or "name",
+                    sort_order=sort_order,
+                    start=start,
+                    page_size=page_size
+                )
+                response["gl_accounts"] = gl_accounts_data
+                
+            except frappe.PermissionError:
+                frappe.log_error(f"Permission denied for GL Accounts - Company: {comp}")
+                response["errors"].append("Permission denied for GL Accounts")
+            except Exception as e:
+                frappe.log_error(f"Error fetching GL Accounts for company {comp}: {str(e)}")
+                response["errors"].append("Error fetching GL Accounts data")
         
         # Get Purchase Group Master data
-        try:
-            purchase_groups = frappe.get_all(
-                "Purchase Group Master",
-                filters={"company": comp},
-                fields=["name", "purchase_group_code", "team", "purchase_group_name", "description"]
-            )
-            response["purchase_groups"] = purchase_groups
-            
-        except frappe.PermissionError:
-            frappe.log_error(f"Permission denied for Purchase Group Master - Company: {comp}")
-            response["errors"].append("Permission denied for Purchase Group Master")
-        except Exception as e:
-            frappe.log_error(f"Error fetching Purchase Group Master for company {comp}: {str(e)}")
-            response["errors"].append("Error fetching Purchase Group Master data")
+        if fetch_purchase_groups:
+            try:
+                purchase_groups_data = get_entity_data(
+                    doctype="Purchase Group Master",
+                    company_field="company",
+                    company=comp,
+                    search_term=search_term,
+                    search_fields=["name", "purchase_group_code", "team", "purchase_group_name", "description"],
+                    fields=["name", "purchase_group_code", "team", "purchase_group_name", "description"],
+                    sort_by=sort_by or "name",
+                    sort_order=sort_order,
+                    start=start,
+                    page_size=page_size
+                )
+                response["purchase_groups"] = purchase_groups_data
+                
+            except frappe.PermissionError:
+                frappe.log_error(f"Permission denied for Purchase Group Master - Company: {comp}")
+                response["errors"].append("Permission denied for Purchase Group Master")
+            except Exception as e:
+                frappe.log_error(f"Error fetching Purchase Group Master for company {comp}: {str(e)}")
+                response["errors"].append("Error fetching Purchase Group Master data")
+        
+        # Calculate total records
+        total_records = (
+            response["plants"]["total"] +
+            response["purchase_groups"]["total"] +
+            response["cost_centers"]["total"] +
+            response["gl_accounts"]["total"]
+        )
+        
+        response["total_records"] = total_records
+        response["total_pages"] = (total_records + page_size - 1) // page_size if page_size > 0 else 0
         
         # Check if any data was retrieved
-        if not response["plants"] and not response["purchase_groups"] and not response["errors"] and not response["cost_centers"] and not response["gl_accounts"]:
-            response["errors"].append("No plant or purchase group data found for the specified company")
+        if total_records == 0 and not response["errors"]:
+            response["errors"].append("No data found for the specified company and filters")
         
         return response
         
     except frappe.ValidationError:
-        # Re-raise validation errors as they contain user-friendly messages
         raise
     except frappe.DoesNotExistError:
-        # Re-raise DoesNotExist errors as they contain user-friendly messages
         raise
     except frappe.PermissionError:
         frappe.throw(_("Insufficient permissions to access the requested data"), frappe.PermissionError)
     except Exception as e:
-        # Log unexpected errors and return generic message
         frappe.log_error(f"Unexpected error in get_plants_and_purchase_group: {str(e)}")
         frappe.throw(_("An unexpected error occurred. Please try again later."), frappe.ValidationError)
 
 
+def get_entity_data(doctype, company_field, company, search_term, search_fields, 
+                    fields, sort_by, sort_order, start, page_size):
+   
+    filters = {company_field: company}
     
+    # Build OR filters for search term
+    or_filters = None
+    if search_term:
+        or_filters = []
+        for field in search_fields:
+            or_filters.append([doctype, field, "like", f"%{search_term}%"])
+    
+    # Validate sort_by field
+    if sort_by and sort_by not in fields:
+        sort_by = "name"
+    
+    # Get paginated data
+    data = frappe.get_all(
+        doctype,
+        filters=filters,
+        or_filters=or_filters,
+        fields=fields,
+        order_by=f"{sort_by} {sort_order}",
+        start=start,
+        page_length=page_size
+    )
+    
+    # Get total count - frappe.db.count doesn't support or_filters
+    # So we use get_all without pagination to count
+    if search_term and or_filters:
+        # Count with search filters using get_all
+        total = len(frappe.get_all(
+            doctype,
+            filters=filters,
+            or_filters=or_filters,
+            fields=["name"],
+            limit_page_length=0  # Get all records to count
+        ))
+    else:
+        # Simple count without search
+        total = frappe.db.count(doctype, filters=filters)
+    
+    return {
+        "data": data,
+        "total": total
+    }
 
+
+@frappe.whitelist(allow_guest=True)
+def get_entity_counts(comp):
+   
+    try:
+        if not comp:
+            frappe.throw(_("Company is required"), frappe.ValidationError)
+        
+        counts = {
+            "success": True,
+            "company": comp,
+            "counts": {
+                "plants": 0,
+                "purchase_groups": 0,
+                "cost_centers": 0,
+                "gl_accounts": 0
+            },
+            "errors": []
+        }
+        
+        # Count each entity type
+        try:
+            counts["counts"]["plants"] = frappe.db.count("Plant Master", {"company": comp})
+        except Exception as e:
+            counts["errors"].append(f"Error counting plants: {str(e)}")
+        
+        try:
+            counts["counts"]["cost_centers"] = frappe.db.count("Cost Center", {"company_code": comp})
+        except Exception as e:
+            counts["errors"].append(f"Error counting cost centers: {str(e)}")
+        
+        try:
+            counts["counts"]["gl_accounts"] = frappe.db.count("GL Account", {"company": comp})
+        except Exception as e:
+            counts["errors"].append(f"Error counting GL accounts: {str(e)}")
+        
+        try:
+            counts["counts"]["purchase_groups"] = frappe.db.count("Purchase Group Master", {"company": comp})
+        except Exception as e:
+            counts["errors"].append(f"Error counting purchase groups: {str(e)}")
+        
+        counts["total"] = sum(counts["counts"].values())
+        
+        return counts
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_entity_counts: {str(e)}")
+        frappe.throw(_("An error occurred while fetching counts"), frappe.ValidationError)
+    
 # @frappe.whitelist(allow_guest=True)
 # def get_purchase_type():
 #      pt = frappe.get_all(
@@ -890,7 +1287,7 @@ def submit_purchase_inquiry(data):
         doc = frappe.get_doc("Cart Details", purchase_inquiry_id)
         
         # Update top-level fields
-        top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type"]
+        top_fields = ["user", "cart_use", "cart_date", "category_type", "company", "plant", "purchase_group", "purchase_type", "cost_center", "gl_account"]
         
         for field in top_fields:
             if field in data:

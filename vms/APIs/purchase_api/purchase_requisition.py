@@ -193,9 +193,9 @@ def filter_material_master(company):
             }
 
         material_master = frappe.get_all(
-            "Material Master",
+            "Material Code",
             filters={"company": company},
-            fields=["name", "material_code", "material_name", "material_type", "material_category", "description"]
+            fields=["name", "material_code", "material_code_name", "material_type", "material_group", "material_description"]
         )
 
         return {
@@ -204,10 +204,10 @@ def filter_material_master(company):
         }
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error filtering material master")
+        frappe.log_error(frappe.get_traceback(), "Error filtering material Code Master")
         return {
             "status": "error",
-            "message": "Failed to filter material master",
+            "message": "Failed to filter material code master",
             "error": str(e)
         }
 	
@@ -313,9 +313,9 @@ def filter_masters(company):
         )
 
         material_master = frappe.get_all(
-            "Material Master",
+            "Material Code",
             filters={"company": company},
-            fields=["name", "material_code", "material_name", "material_type", "material_category", "description"]
+            fields=["name", "material_code", "material_code_name", "material_type", "material_group", "material_description"]
         )
 
         material_group = frappe.get_all(
@@ -391,7 +391,18 @@ def get_cart_details(cart_id):
 def create_purchase_requisition(cart_id):
 	try:
 		if not cart_id:
+			frappe.response["http_status_code"] = 400
 			return {"status": "error", "message": "Cart ID is required."}
+
+		# Check if a purchase requisition already exists for the same cart ID
+		prev_pur_req = frappe.get_all("Purchase Requisition Webform", filters={"cart_details_id": cart_id})
+		if prev_pur_req:
+			frappe.response["http_status_code"] = 400
+			return {
+				"status": "error", 
+				"message": f"Purchase Requisition ({prev_pur_req[0]['name']}) already exists for this Cart or Inquiry.",
+				"prev_pur_req": prev_pur_req[0]['name']
+			}
 
 		cart_details = frappe.get_doc("Cart Details", cart_id)
 
@@ -407,15 +418,21 @@ def create_purchase_requisition(cart_id):
 		for row in cart_details.cart_product:
 			pur_req.append("purchase_requisition_form_table", {
 				"item_number_of_purchase_requisition_head": str(item_number),
+				"uom_head": row.uom,
 				"main_asset_no_head": row.assest_code,
 				"product_name_head": row.product_name,
 				"product_price_head": row.product_price,
 				"final_price_by_purchase_team_head": row.final_price_by_purchase_team,
+				"quantity_head": row.product_quantity,
 				"lead_time_head": row.lead_time,
+				"purchase_group_head": cart_details.purchase_group,
+				"delivery_date_head": cart_details.acknowledged_date,
 				"purchase_requisition_type": cart_details.purchase_type,
 				"plant_head": cart_details.plant,
 				"requisitioner_name_head": cart_details.user,
-				"company_code_area_head": cart_details.company
+				"company_code_area_head": cart_details.company,
+				"cost_center_head": cart_details.cost_center,
+				"gl_account_number_head": cart_details.gl_account
 			})
 			item_number += 10
 
@@ -428,6 +445,7 @@ def create_purchase_requisition(cart_id):
 		}
 
 	except Exception as e:
+		frappe.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "Create Purchase Requisition Error")
 		return {
 			"status": "error", 
@@ -587,6 +605,8 @@ def get_pur_req_table_data(name):
 			"Purchase Group": doc.purchase_group,
 			"Cart ID": doc.cart_details_id,
 			"Form Status": doc.form_status,
+			"form_is_submitted": doc.form_is_submitted,
+			"sap_error": doc.zmsg,
 			"data": list(grouped_data.values())
 		}
 
@@ -600,101 +620,326 @@ def get_pur_req_table_data(name):
 
 
 # create or update pr table head form
+
+# @frappe.whitelist(allow_guest=True)
+# def create_update_pr_table_head_form(data):
+# 	try:
+# 		if isinstance(data, str):
+# 			data = json.loads(data)
+
+# 		docname = data.get("name")
+# 		rows = data.get("rows")
+
+# 		if not docname or not rows or not isinstance(rows, list):
+# 			return {
+# 				"status": "error",
+# 				"message": "'name' and 'rows' (as a list) are required."
+# 			}
+
+# 		doc = frappe.get_doc("Purchase Requisition Webform", docname)
+
+# 		updated_rows = []
+# 		created_rows = []
+
+# 		for update_row in rows:
+# 			row_name = update_row.get("row_name")
+# 			target_row = None
+
+# 			if row_name:
+# 				target_row = next((r for r in doc.purchase_requisition_form_table if r.name == row_name), None)
+
+# 			if target_row:
+# 				# Update existing row
+# 				for field, value in update_row.items():
+# 					if hasattr(target_row, field):
+# 						setattr(target_row, field, value)
+# 				updated_rows.append(row_name)
+# 			else:
+# 				# Append new row
+# 				new_row = doc.append("purchase_requisition_form_table", {
+# 					"purchase_requisition_item_head": update_row.get("purchase_requisition_item_head"),
+# 					"item_number_of_purchase_requisition_head": update_row.get("item_number_of_purchase_requisition_head"),
+# 					"purchase_requisition_date_head": update_row.get("purchase_requisition_date_head"),
+# 					"purchase_requisition_type": update_row.get("purchase_requisition_type"),
+# 					"delivery_date_head": update_row.get("delivery_date_head"),
+# 					"store_location_head": update_row.get("store_location_head"),
+# 					"item_category_head": update_row.get("item_category_head"),
+# 					"material_group_head": update_row.get("material_group_head"),
+# 					"uom_head": update_row.get("uom_head"),
+# 					"cost_center_head": update_row.get("cost_center_head"),
+# 					"main_asset_no_head": update_row.get("main_asset_no_head"),
+# 					"asset_subnumber_head": update_row.get("asset_subnumber_head"),
+# 					"profit_ctr_head": update_row.get("profit_ctr_head"),
+# 					"short_text_head": update_row.get("short_text_head"),
+# 					"line_item_number_head": update_row.get("line_item_number_head"),
+# 					"company_code_area_head": update_row.get("company_code_area_head"),
+# 					"c_delivery_date_head": update_row.get("c_delivery_date_head"),
+# 					"quantity_head": update_row.get("quantity_head"),
+# 					"price_of_purchase_requisition_head": update_row.get("price_of_purchase_requisition_head"),
+# 					"gl_account_number_head": update_row.get("gl_account_number_head"),
+# 					"material_code_head": update_row.get("material_code_head"),
+# 					"account_assignment_category_head": update_row.get("account_assignment_category_head"),
+# 					"purchase_group_head": update_row.get("purchase_group_head"),
+# 					"product_name_head": update_row.get("product_name_head"),
+# 					"product_price_head": update_row.get("product_price_head"),
+# 					"final_price_by_purchase_team_head": update_row.get("final_price_by_purchase_team_head"),
+# 					"lead_time_head": update_row.get("lead_time_head"),
+# 					"plant_head": update_row.get("plant_head"),
+# 					"requisitioner_name_head": update_row.get("requisitioner_name_head"),
+# 					"tracking_id_head": update_row.get("tracking_id_head"),
+# 					"desired_vendor_head": update_row.get("desired_vendor_head"),
+# 					"valuation_area_head": update_row.get("valuation_area_head"),
+# 					"fixed_value_head": update_row.get("fixed_value_head"),
+# 					"spit_head": update_row.get("spit_head"),
+# 					"purchase_organisation_head": update_row.get("purchase_organisation_head"),
+# 					"agreement_head": update_row.get("agreement_head"),
+# 					"item_of_head": update_row.get("item_of_head"),
+# 					"mpn_number_head": update_row.get("mpn_number_head")
+# 				})
+# 				created_rows.append(new_row.name)
+
+# 		doc.save(ignore_permissions=True)
+# 		frappe.db.commit()
+
+# 		return {
+# 			"status": "success",
+# 			"message": f"{len(updated_rows)} row(s) updated, {len(created_rows)} row(s) created.",
+# 			"updated_rows": updated_rows,
+# 			"created_rows": created_rows
+# 		}
+
+# 	except Exception as e:
+# 		frappe.log_error(frappe.get_traceback(), "Update PR Head Form Error")
+# 		return {
+# 			"status": "error",
+# 			"message": "Failed to update or create head rows.",
+# 			"error": str(e)
+# 		}
+
 @frappe.whitelist(allow_guest=True)
 def create_update_pr_table_head_form(data):
-	try:
-		if isinstance(data, str):
-			data = json.loads(data)
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
 
-		docname = data.get("name")
-		rows = data.get("rows")
+        docname = data.get("name")
+        rows = data.get("rows")
 
-		if not docname or not rows or not isinstance(rows, list):
-			return {
-				"status": "error",
-				"message": "'name' and 'rows' (as a list) are required."
-			}
+        if not docname or not rows or not isinstance(rows, list):
+            return {
+                "status": "error",
+                "message": "'name' and 'rows' (as a list) are required."
+            }
 
-		doc = frappe.get_doc("Purchase Requisition Webform", docname)
+        doc = frappe.get_doc("Purchase Requisition Webform", docname)
 
-		updated_rows = []
-		created_rows = []
+        if doc.company:
+            company = frappe.get_value("Company Master", {"name": doc.company}, "sap_client_code")
 
-		for update_row in rows:
-			row_name = update_row.get("row_name")
-			target_row = None
+        updated_rows = []
+        created_rows = []
 
-			if row_name:
-				target_row = next((r for r in doc.purchase_requisition_form_table if r.name == row_name), None)
+        for update_row in rows:
+            row_name = update_row.get("row_name")
+            target_row = None
 
-			if target_row:
-				# Update existing row
-				for field, value in update_row.items():
-					if hasattr(target_row, field):
-						setattr(target_row, field, value)
-				updated_rows.append(row_name)
-			else:
-				# Append new row
-				new_row = doc.append("purchase_requisition_form_table", {
-					"purchase_requisition_item_head": update_row.get("purchase_requisition_item_head"),
-					"item_number_of_purchase_requisition_head": update_row.get("item_number_of_purchase_requisition_head"),
-					"purchase_requisition_date_head": update_row.get("purchase_requisition_date_head"),
-					"purchase_requisition_type": update_row.get("purchase_requisition_type"),
-					"delivery_date_head": update_row.get("delivery_date_head"),
-					"store_location_head": update_row.get("store_location_head"),
-					"item_category_head": update_row.get("item_category_head"),
-					"material_group_head": update_row.get("material_group_head"),
-					"uom_head": update_row.get("uom_head"),
-					"cost_center_head": update_row.get("cost_center_head"),
-					"main_asset_no_head": update_row.get("main_asset_no_head"),
-					"asset_subnumber_head": update_row.get("asset_subnumber_head"),
-					"profit_ctr_head": update_row.get("profit_ctr_head"),
-					"short_text_head": update_row.get("short_text_head"),
-					"line_item_number_head": update_row.get("line_item_number_head"),
-					"company_code_area_head": update_row.get("company_code_area_head"),
-					"c_delivery_date_head": update_row.get("c_delivery_date_head"),
-					"quantity_head": update_row.get("quantity_head"),
-					"price_of_purchase_requisition_head": update_row.get("price_of_purchase_requisition_head"),
-					"gl_account_number_head": update_row.get("gl_account_number_head"),
-					"material_code_head": update_row.get("material_code_head"),
-					"account_assignment_category_head": update_row.get("account_assignment_category_head"),
-					"purchase_group_head": update_row.get("purchase_group_head"),
-					"product_name_head": update_row.get("product_name_head"),
-					"product_price_head": update_row.get("product_price_head"),
-					"final_price_by_purchase_team_head": update_row.get("final_price_by_purchase_team_head"),
-					"lead_time_head": update_row.get("lead_time_head"),
-					"plant_head": update_row.get("plant_head"),
-					"requisitioner_name_head": update_row.get("requisitioner_name_head"),
-					"tracking_id_head": update_row.get("tracking_id_head"),
-					"desired_vendor_head": update_row.get("desired_vendor_head"),
-					"valuation_area_head": update_row.get("valuation_area_head"),
-					"fixed_value_head": update_row.get("fixed_value_head"),
-					"spit_head": update_row.get("spit_head"),
-					"purchase_organisation_head": update_row.get("purchase_organisation_head"),
-					"agreement_head": update_row.get("agreement_head"),
-					"item_of_head": update_row.get("item_of_head"),
-					"mpn_number_head": update_row.get("mpn_number_head")
-				})
-				created_rows.append(new_row.name)
+            if row_name:
+                target_row = next(
+                    (r for r in doc.purchase_requisition_form_table if r.name == row_name),
+                    None
+                )
 
-		doc.save(ignore_permissions=True)
-		frappe.db.commit()
+            if target_row:
+                # Validate before updating
+                category = update_row.get("account_assignment_category_head")
+                validate_required_fields(company, doc.purchase_requisition_type, category, update_row, is_update=True)
 
-		return {
-			"status": "success",
-			"message": f"{len(updated_rows)} row(s) updated, {len(created_rows)} row(s) created.",
-			"updated_rows": updated_rows,
-			"created_rows": created_rows
-		}
+                # Update existing row
+                for field, value in update_row.items():
+                    if hasattr(target_row, field):
+                        setattr(target_row, field, value)
 
-	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "Update PR Head Form Error")
-		return {
-			"status": "error",
-			"message": "Failed to update or create head rows.",
-			"error": str(e)
-		}
+                updated_rows.append(row_name)
+                
+            else:
+                category = update_row.get("account_assignment_category_head")
+                validate_required_fields(company, doc.purchase_requisition_type, category, update_row, is_update=False)
 
+                new_row = doc.append("purchase_requisition_form_table", {
+                    "purchase_requisition_item_head": update_row.get("purchase_requisition_item_head"),
+                    "item_number_of_purchase_requisition_head": update_row.get("item_number_of_purchase_requisition_head"),
+                    "purchase_requisition_date_head": update_row.get("purchase_requisition_date_head"),
+                    "purchase_requisition_type": update_row.get("purchase_requisition_type"),
+                    "delivery_date_head": update_row.get("delivery_date_head"),
+                    "store_location_head": update_row.get("store_location_head"),
+                    "item_category_head": update_row.get("item_category_head"),
+                    "material_group_head": update_row.get("material_group_head"),
+                    "uom_head": update_row.get("uom_head"),
+                    "cost_center_head": update_row.get("cost_center_head"),
+                    "main_asset_no_head": update_row.get("main_asset_no_head"),
+                    "asset_subnumber_head": update_row.get("asset_subnumber_head"),
+                    "profit_ctr_head": update_row.get("profit_ctr_head"),
+                    "short_text_head": update_row.get("short_text_head"),
+                    "line_item_number_head": update_row.get("line_item_number_head"),
+                    "company_code_area_head": update_row.get("company_code_area_head"),
+                    "c_delivery_date_head": update_row.get("c_delivery_date_head"),
+                    "quantity_head": update_row.get("quantity_head"),
+                    "price_of_purchase_requisition_head": update_row.get("price_of_purchase_requisition_head"),
+                    "gl_account_number_head": update_row.get("gl_account_number_head"),
+                    "material_code_head": update_row.get("material_code_head"),
+                    "account_assignment_category_head": update_row.get("account_assignment_category_head"),
+                    "purchase_group_head": update_row.get("purchase_group_head"),
+                    "product_name_head": update_row.get("product_name_head"),
+                    "product_price_head": update_row.get("product_price_head"),
+                    "final_price_by_purchase_team_head": update_row.get("final_price_by_purchase_team_head"),
+                    "lead_time_head": update_row.get("lead_time_head"),
+                    "plant_head": update_row.get("plant_head"),
+                    "requisitioner_name_head": update_row.get("requisitioner_name_head"),
+                    "tracking_id_head": update_row.get("tracking_id_head"),
+                    "desired_vendor_head": update_row.get("desired_vendor_head"),
+                    "valuation_area_head": update_row.get("valuation_area_head"),
+                    "fixed_value_head": update_row.get("fixed_value_head"),
+                    "spit_head": update_row.get("spit_head"),
+                    "purchase_organisation_head": update_row.get("purchase_organisation_head"),
+                    "agreement_head": update_row.get("agreement_head"),
+                    "item_of_head": update_row.get("item_of_head"),
+                    "mpn_number_head": update_row.get("mpn_number_head")
+                })
+                created_rows.append(new_row.name)
+
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "message": f"{len(updated_rows)} row(s) updated, {len(created_rows)} row(s) created.",
+            "updated_rows": updated_rows,
+            "created_rows": created_rows
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Update PR Head Form Error")
+        return {
+            "status": "error",
+            "message": "Failed to update or create head rows.",
+            "error": str(e)
+        }
+
+# Validate required fields based on company, requisition type, and account assignment category
+def validate_required_fields(company, requisition_type, category, row, is_update=True):
+    missing_fields = []
+
+    if company == "900" and requisition_type == "SB" and category in ["K", "A"]:
+        required_fields = [
+            "account_assignment_category_head", "short_text_head", "quantity_head", "item_category_head"
+            "material_group_head", "uom_head", "gl_account_number_head", "cost_center_head"
+        ]
+
+    elif company == "900" and requisition_type == "NB" and category == "A":
+        required_fields = [
+            "account_assignment_category_head", "material_code_head",
+            "quantity_head", "main_asset_no_head"
+        ]
+
+    elif company == "800" and requisition_type == "SB" and category == "K":
+        required_fields = [
+            "account_assignment_category_head", "item_category_head", "short_text_head",
+            "quantity_head", "material_group_head", "uom_head", "gl_account_number_head",
+            "cost_center_head"
+        ]
+
+    elif company == "800" and requisition_type == "NB" and category == "A":
+        required_fields = [
+            "account_assignment_category_head", "material_code_head",
+            "quantity_head", "main_asset_no_head"
+        ]
+
+    elif company == "700" and requisition_type == "SB" and category in ["K", "A"]:
+        required_fields = [
+            "account_assignment_category_head", "item_category_head", "short_text_head",
+            "quantity_head", "material_group_head", "uom_head", "gl_account_number_head",
+            "cost_center_head"
+        ]
+
+    # elif company == "700" and requisition_type == "NB":
+    #     required_fields = [
+    #         "account_assignment_category_head", "material_code_head",
+    #         "quantity_head"
+    #     ]
+
+    elif company == "700" and requisition_type == "NB" and category == "A":
+        required_fields = [
+            "account_assignment_category_head", "material_code_head",
+            "quantity_head", "main_asset_no_head"
+        ]
+
+    # elif company == "300" and requisition_type == "NB":
+    #     required_fields = [
+    #         "account_assignment_category_head", "material_code_head",
+    #         "quantity_head"
+    #     ]
+
+    elif company == "300" and requisition_type == "NB" and category == "A":
+        required_fields = [
+            "account_assignment_category_head", "material_code_head",
+            "quantity_head", "main_asset_no_head"
+        ]
+
+    elif company == "300" and requisition_type == "SB" and category == "K":
+        required_fields = [
+            "account_assignment_category_head", "item_category_head", "short_text_head",
+            "quantity_head", "material_group_head", "uom_head", "gl_account_number_head",
+            "cost_center_head"
+        ]
+
+    # elif company == "200" and requisition_type == "NB":
+    #     required_fields = [
+    #         "account_assignment_category_head", "material_code_head",
+    #         "quantity_head"
+    #     ]
+
+    elif company == "200" and requisition_type == "NB" and category == "A":
+        required_fields = [
+            "account_assignment_category_head", "material_code_head",
+            "quantity_head", "main_asset_no_head"
+        ]
+
+    elif company == "200" and requisition_type == "SB" and category in ["K", "A"]:
+        required_fields = [
+            "account_assignment_category_head", "item_category_head", "short_text_head",
+            "quantity_head", "material_group_head", "uom_head", "gl_account_number_head",
+            "cost_center_head"
+        ]
+
+    elif company == "100" and requisition_type == "NB" and category == "A":
+        required_fields = [
+            "account_assignment_category_head", "material_code_head",
+            "quantity_head", "main_asset_no_head"
+        ]
+
+    elif company == "100" and requisition_type == "SB" and category in ["K", "A"]:
+        required_fields = [
+            "account_assignment_category_head", "item_category_head", "short_text_head",
+            "quantity_head", "material_group_head", "uom_head", "gl_account_number_head",
+            "cost_center_head"
+        ]
+
+    else:
+        frappe.response.http_status_code = 400
+        raise frappe.ValidationError(
+            f"Invalid combination: Company {company}, Type {requisition_type}, Category {category}"
+        )
+
+    for field in required_fields:
+        if not row.get(field):
+            missing_fields.append(field)
+
+    if missing_fields:
+        frappe.response.http_status_code = 400
+        context = "update" if is_update else "create"
+        raise frappe.ValidationError(
+            f"[{context.upper()} ERROR] Missing required fields for company {company}, type {requisition_type}, category {category}: {', '.join(missing_fields)}"
+        )
 
 
 # Update only head part fields
@@ -1133,8 +1378,43 @@ def submit_pr_form(name):
 			}
 		
 		doc = frappe.get_doc("Purchase Requisition Webform", name)
-		doc.form_is_submitted = 1
+		# doc.form_is_submitted = 1
 		doc.form_status = "Submitted"
+
+		# sending email to Purchase team for Approval
+		employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
+
+		pur_team_email = None
+		pur_team_name = None
+
+		if doc.cart_details_id:
+			cart_details = frappe.get_doc("Cart Details", doc.cart_details_id)
+			pur_team = cart_details.dedicated_purchase_team
+
+		if pur_team:
+			pur_team_email = pur_team
+			pur_team_name = frappe.get_value("Employee", {"user_id": pur_team}, "full_name")
+			
+			if pur_team_email:
+				subject = f"New Purchase Requisition Raised by {employee_name}"
+				message = f"""
+					<p>Dear {pur_team_name},</p>		
+
+					<p>A new <b>Purchase Requisition</b> has been raised by <b>{employee_name}</b>. Kindly review the details and take the necessary action.</p>
+
+					<p>Thank you.<br>
+					Best regards,<br>
+					VMS Team</p>
+				"""
+
+				frappe.custom_sendmail(
+					recipients=pur_team_email,
+					subject=subject,
+					message=message,
+					now=True
+				)
+				
+				doc.mail_sent_to_purchase_team = 1
 
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()

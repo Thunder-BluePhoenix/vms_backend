@@ -2,11 +2,174 @@ import frappe
 import json
 
 
-@frappe.whitelist(allow_guest = True)
-def get_po():
-    all_po = frappe.get_all("Purchase Order", fields ="*", order_by = "modified desc")
-    return all_po
+# @frappe.whitelist(allow_guest = True)
+# def get_po():
+#     all_po = frappe.get_all("Purchase Order", fields ="*", order_by = "modified desc")
+#     return all_po
 
+
+@frappe.whitelist(allow_guest=True)
+def get_po(page_no=None, page_length=None, vendor_code_invalid=None):
+    try:
+        # Set default pagination
+        page_no = int(page_no) if page_no else 1
+        page_length = int(page_length) if page_length else 20
+        start = (page_no - 1) * page_length
+
+        user = frappe.session.user
+        user_roles = frappe.get_roles(user)
+
+        # VENDOR FLOW
+        if "Vendor" in user_roles:
+            # Get Vendor Master entries where user's email matches primary or secondary email
+            ref_no = frappe.get_all("Vendor Master", filters={"office_email_primary": user}, pluck="name")
+
+            if ref_no:
+                company_vendor_codes = frappe.get_all(
+                    "Company Vendor Code",
+                    filters={"vendor_ref_no": ["in", ref_no]},
+                    pluck="name"
+                )
+
+                if company_vendor_codes:
+                    vendor_codes_set = set()
+                    for code_name in company_vendor_codes:
+                        doc = frappe.get_doc("Company Vendor Code", code_name)
+                        if doc.vendor_code:
+                            for row in doc.vendor_code:
+                                vendor_codes_set.add(row.vendor_code)
+
+                    vendor_codes = list(vendor_codes_set)
+
+                    if vendor_codes:
+                        total_count = frappe.db.count("Purchase Order", {
+                            "vendor_code": ["in", vendor_codes],
+                            "sent_to_vendor": 1
+                        })
+
+                        total_pages = (total_count + page_length - 1) // page_length
+
+                        all_po = frappe.get_all(
+                            "Purchase Order",
+                            filters={
+                                "vendor_code": ["in", vendor_codes],
+                                "sent_to_vendor": 1
+                            },
+                            fields="*",
+                            order_by="modified desc",
+                            start=start,
+                            page_length=page_length
+                        )
+
+                        return {
+                            "status": "success",
+                            "message": "Purchase Orders fetched successfully.",
+                            "data": all_po,
+                            "total_count": total_count,
+                            "page_no": page_no,
+                            "page_length": page_length,
+                            "total_pages": total_pages
+                        }
+
+            # No Vendor Master or Vendor Codes
+            return {
+                "status": "success",
+                "message": "No Purchase Orders found for vendor.",
+                "data": [],
+                "total_count": 0,
+                "page_no": page_no,
+                "page_length": page_length,
+                "total_pages": 0
+            }
+
+        # NON-VENDOR FLOW
+        else:
+            emp_doc = frappe.get_doc("Employee", {"user_id": user})
+
+            if not emp_doc:
+                return {
+                    "status": "error",
+                    "message": "Employee record not found for the current user.",
+                    "error": f"No employee found with user_id: {user}",
+                    "data": [],
+                    "total_count": 0,
+                    "page_no": page_no,
+                    "page_length": page_length,
+                    "total_pages": 0
+                }
+
+            team = emp_doc.team
+            
+            employee_companies = []
+            if emp_doc.company:
+                employee_companies = [row.company_name for row in emp_doc.company if row.company_name]
+
+            if not employee_companies:
+                return {
+                    "status": "success",
+                    "message": "No companies found for the employee.",
+                    "data": [],
+                    "total_count": 0,
+                    "page_no": page_no,
+                    "page_length": page_length,
+                    "total_pages": 0
+                }
+
+            pur_grp_codes = frappe.get_all(
+                "Purchase Group Master",
+                filters={
+                    "team": team,
+                    "company": ["in", employee_companies]
+                },
+                pluck="purchase_group_code"
+            )
+
+            if not pur_grp_codes:
+                return {
+                    "status": "success",
+                    "message": "No purchase groups found for the user's team and companies.",
+                    "data": [],
+                    "total_count": 0,
+                    "page_no": page_no,
+                    "page_length": page_length,
+                    "total_pages": 0
+                }
+
+            po_filters = {
+                "purchase_group": ["in", pur_grp_codes],
+                "company_code": ["in", employee_companies]
+                # "sent_to_vendor": 1
+            }
+
+            if vendor_code_invalid is not None and vendor_code_invalid != "":
+                vendor_code_invalid_value = int(vendor_code_invalid)
+                po_filters["vendor_code_invalid"] = vendor_code_invalid_value
+
+            total_count = frappe.db.count("Purchase Order", po_filters)
+
+            total_pages = (total_count + page_length - 1) // page_length
+
+            all_po = frappe.get_all("Purchase Order",
+                                    filters=po_filters,
+                                    fields="*",
+                                    order_by="modified desc",
+                                    start=start,
+                                    page_length=page_length)
+
+            return {
+                "status": "success",
+                "message": "Purchase Orders fetched successfully.",
+                "data": all_po,
+                "total_count": total_count,
+                "page_no": page_no,
+                "page_length": page_length,
+                "total_pages": total_pages
+            }
+
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_po error")
+        frappe.throw(f"Error while fetching purchase orders: {str(e)}")
 
 
 @frappe.whitelist(allow_guest = True)
@@ -15,14 +178,35 @@ def get_po_details(po_name):
         po = frappe.get_doc("Purchase Order", po_name)
         po_dict = po.as_dict()
         
-      
         po_dict["requisitioner_email"] = None
         po_dict["requisitioner_name"] = None
-        
+        po_dict["bill_to_company_details"] = None
+        po_dict["ship_to_company_details"] = None
+        po_dict["vendor_address_details"] = None
+
         pr_no = po.get("ref_pr_no")
-        
-        if pr_no:
+        bill_to_company = po.get("bill_to_company")
+        ship_to_company = po.get("ship_to_company")
+        vendor_code = po.get("vendor_code")
+        company_code = po.get("company_code")
+
+        if bill_to_company:
+            bill_to_company_details = get_company_details_with_state(bill_to_company)
             
+            if bill_to_company_details:
+                po_dict["bill_to_company_details"] = bill_to_company_details
+
+        if ship_to_company:
+            ship_to_company_details = get_company_details_with_state(ship_to_company)
+            if ship_to_company_details:
+                po_dict["ship_to_company_details"] = ship_to_company_details
+
+        if vendor_code and company_code:
+            vendor_address = get_vendor_address_details(vendor_code, company_code)
+            if vendor_address:
+                po_dict["vendor_address_details"] = vendor_address
+
+        if pr_no:
             pr_form_name = frappe.db.get_value("Purchase Requisition Form", {"sap_pr_code": pr_no}, "name")
             
             if pr_form_name:
@@ -30,9 +214,7 @@ def get_po_details(po_name):
                 purchase_requisitioner = pr_doc.get("requisitioner")
                 
                 if purchase_requisitioner:
-                    
                     po_dict["requisitioner_email"] = purchase_requisitioner
-                    
                     
                     requisitioner_name = frappe.get_value("User", purchase_requisitioner, "first_name") or frappe.get_value("User", purchase_requisitioner, "full_name")
                     po_dict["requisitioner_name"] = requisitioner_name
@@ -45,6 +227,90 @@ def get_po_details(po_name):
         frappe.log_error(f"Error in get_po_details: {str(e)}")
         frappe.throw(f"An error occurred while fetching PO details: {str(e)}")
 
+
+def get_company_details_with_state(company_name):
+   
+    try:
+        company_details = frappe.db.get_value(
+            "Company Master", 
+            company_name,
+            ["name", "sap_client_code", "company_code", "company_name", "company_short_form", 
+             "description", "gstin_number", "dl_number", "ssi_region_number", "street_1", 
+             "street_2", "city", "pincode", "inactive", "qms_required", "contact_no", "state"],
+            as_dict=True
+        )
+        
+        if company_details and company_details.get("state"):
+          
+            state_code = frappe.db.get_value("State Master", company_details.get("state"), "custom_gst_state_code")
+            
+           
+            company_details["state_code"] = state_code
+            
+            company_details["state_full"] = f"{state_code}-{company_details.get('state')}" if state_code else company_details.get('state')
+        
+        return company_details
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_company_details_with_state: {str(e)}")
+        return None
+
+
+
+def get_vendor_address_details(vendor_code, company_code):
+    
+    try:
+    
+        company_vendor_codes = frappe.get_all(
+            "Company Vendor Code",
+            filters={"company_code": company_code},
+            fields=["name", "vendor_ref_no", "vendor_name"]  
+        )
+        
+        if not company_vendor_codes:
+            return None
+        
+        
+        for cvc in company_vendor_codes:
+        
+            vendor_code_entries = frappe.get_all(
+                "Vendor Code",
+                filters={
+                    "parent": cvc.name,
+                    "vendor_code": vendor_code
+                },
+                fields=["vendor_code", "state", "gst_no", "address_line_1", 
+                        "address_line_2", "zip_code", "city", "district", "country"]
+            )
+            
+            if vendor_code_entries:
+               
+                result = vendor_code_entries[0]
+                
+              
+                result["vendor_name"] = cvc.get("vendor_name")
+                
+                
+                if result.get("state"):
+                    state_name = result.get("state")
+                    state_code = frappe.db.get_value("State Master", state_name, "custom_gst_state_code")
+                    
+                    
+                    result["state_code"] = state_code
+                    result["state_name"] = state_name
+                    
+                    result["state_full"] = f"{state_code}-{state_name}" if state_code else state_name
+                else:
+                    result["state_code"] = None
+                    result["state_name"] = None
+                
+                return result
+        
+        return None
+        
+    except Exception as e:
+        frappe.log_error(f"Error in get_vendor_address_details: {str(e)}")
+        return None
 
 @frappe.whitelist(allow_guest = True)
 def filtering_data(data):
@@ -252,8 +518,38 @@ def get_po_details_withformat(po_name, po_format_name=None):
         po_dict["sign_url1"] = None
         po_dict["sign_url2"] = None
         po_dict["sign_url3"] = None
+        po_dict["company_logo"] = None
+        po_dict["bill_to_company_details"] = None
+        po_dict["ship_to_company_details"] = None
+        po_dict["vendor_address_details"] = None
+
+
+        bill_to_company = po.get("bill_to_company")
         
+        ship_to_company = po.get("ship_to_company")
+        vendor_code = po.get("vendor_code")
+        company_code = po.get("company_code")
         pr_no = po.get("ref_pr_no")
+
+        if bill_to_company:
+            
+            bill_to_company_details = get_company_details_with_state(bill_to_company)
+            
+            if bill_to_company_details:
+                po_dict["bill_to_company_details"] = bill_to_company_details
+
+        if ship_to_company:
+            ship_to_company_details = get_company_details_with_state(ship_to_company)
+            if ship_to_company_details:
+                po_dict["ship_to_company_details"] = ship_to_company_details
+
+        if vendor_code and company_code:
+            vendor_address = get_vendor_address_details(vendor_code, company_code)
+            if vendor_address:
+                po_dict["vendor_address_details"] = vendor_address
+        
+        
+            
         
         if pr_no:
             pr_form_name = frappe.db.get_value("Purchase Requisition Form", {"sap_pr_code": pr_no}, "name")
@@ -273,7 +569,8 @@ def get_po_details_withformat(po_name, po_format_name=None):
                 file_doc = frappe.get_doc("File", {"file_url": file_url})
                 
                 # Get the full file path
-                file_path = frappe.get_site_path() + file_doc.file_url
+                # file_path = frappe.get_site_path() + file_doc.file_url
+                file_path = file_doc.get_full_path()
                 
                 # Initialize base64 data
                 base64_data = None
@@ -295,7 +592,9 @@ def get_po_details_withformat(po_name, po_format_name=None):
                             '.jpg': 'image/jpeg',
                             '.jpeg': 'image/jpeg',
                             '.gif': 'image/gif',
-                            '.pdf': 'application/pdf'
+                            '.pdf': 'application/pdf',
+                            '.svg': 'image/svg+xml',
+                            '.webp': 'image/webp',
                         }
                         mime_type = mime_type_map.get(file_ext, 'application/octet-stream')
                 
@@ -328,6 +627,18 @@ def get_po_details_withformat(po_name, po_format_name=None):
             
         if po.sign_of_approval3:
             po_dict["sign_url3"] = get_file_data_with_base64(po.sign_of_approval3)
+
+
+        if bill_to_company:
+            company_details = frappe.db.get_value(
+                "Company Master",
+                bill_to_company,
+                ["company_logo"],
+                as_dict=True
+            )
+            
+            if company_details and company_details.get("company_logo"):
+                po_dict["company_logo"] = get_file_data_with_base64(company_details.get("company_logo"))
         
         # Success response
         frappe.response["http_status_code"] = 200

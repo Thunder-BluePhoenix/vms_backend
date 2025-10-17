@@ -61,6 +61,7 @@
   "mail_sent_for_cr",
   "made_changes_by_pt",
   "change_requested_by",
+  "change_requested_by_designation",
   "column_break_eife",
   "cr_description",
   "tables_section",
@@ -119,7 +120,10 @@
   "allow_to_change_document_details_by_accounts_head",
   "sap_details_tab",
   "sap_validation_html",
-  "mandatory_data_for_sap"
+  "mandatory_data_for_sap",
+  "tab_10_tab",
+  "version_history",
+  "history_html"
  ],
  "fields": [
   {
@@ -724,12 +728,12 @@
    "default": "0",
    "fieldname": "change_request_by_at",
    "fieldtype": "Check",
-   "label": "Change Request by AT"
+   "label": "Change Request by Team"
   },
   {
    "fieldname": "section_break_ireg",
    "fieldtype": "Section Break",
-   "label": "CR By Accounts Team"
+   "label": "CR By Team"
   },
   {
    "default": "0",
@@ -757,12 +761,35 @@
    "fieldtype": "Link",
    "label": "Change Requested By",
    "options": "User"
+  },
+  {
+   "fieldname": "tab_10_tab",
+   "fieldtype": "Tab Break",
+   "label": "Versions"
+  },
+  {
+   "fieldname": "history_html",
+   "fieldtype": "HTML",
+   "label": "History"
+  },
+  {
+   "fieldname": "version_history",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Version History",
+   "options": "Vendor Onboarding History"
+  },
+  {
+   "fieldname": "change_requested_by_designation",
+   "fieldtype": "Link",
+   "label": "Change Requested By Designation",
+   "options": "Designation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 10:48:19.642694",
+ "modified": "2025-10-08 14:44:05.872514",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
@@ -778,6 +805,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -790,6 +818,20 @@
    "read": 1,
    "report": 1,
    "role": "Guest",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1,
    "share": 1,
    "write": 1
   }

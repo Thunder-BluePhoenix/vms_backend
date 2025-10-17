@@ -1,26 +1,36 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
+ "autoname": "field:smk_code",
  "creation": "2025-09-25 15:38:26.984458",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "smk_code"
+  "smk_code",
+  "description"
  ],
  "fields": [
   {
    "fieldname": "smk_code",
    "fieldtype": "Data",
-   "label": "SMK Code"
+   "label": "SMK Code",
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Long Text",
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 15:38:42.258984",
+ "modified": "2025-10-11 10:15:25.803638",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Scheduling Margin Key",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -37,7 +47,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "smk_code"
 }

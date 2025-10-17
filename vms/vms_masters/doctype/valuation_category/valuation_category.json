@@ -1,6 +1,8 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
+ "autoname": "format:{valuation_category_name}-{valuation_category_code}",
  "creation": "2025-09-26 15:37:37.102904",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -29,10 +31,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-26 15:38:59.232871",
+ "modified": "2025-10-11 10:13:31.345849",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Valuation Category",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

@@ -1,7 +1,8 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:plant_code",
+ "autoname": "format:{plant_code}",
  "creation": "2025-05-23 13:48:46.969710",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -19,8 +20,7 @@
   {
    "fieldname": "plant_code",
    "fieldtype": "Data",
-   "label": "Plant Code",
-   "unique": 1
+   "label": "Plant Code"
   },
   {
    "fieldname": "plant_name",
@@ -65,11 +65,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:31.377274",
+ "modified": "2025-10-11 12:33:47.622560",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Plant Master",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -96,6 +96,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "search_fields": "plant_code",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",

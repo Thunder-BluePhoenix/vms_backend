@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "GRW-.####",
  "creation": "2025-09-24 10:17:52.813777",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -371,10 +372,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-24 12:56:06.493344",
+ "modified": "2025-10-06 10:45:14.413388",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "GR Waiver",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
