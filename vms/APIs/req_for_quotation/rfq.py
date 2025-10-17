@@ -1266,27 +1266,39 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 		condition_clause = " AND ".join(conditions)
 		condition_clause = f"WHERE {condition_clause}" if condition_clause else ""
 
-		if vendor_code:
-			rfq_names = [r[0] for r in frappe.db.sql("""
-				SELECT parent FROM `tabVendor Details`
-				WHERE office_email_primary = %(email)s
-				AND FIND_IN_SET(%(vendor_code)s, REPLACE(vendor_code, ' ', '')) > 0
-			""", {"email": usr, "vendor_code": vendor_code})]
-		else:
-			rfq_names = [r[0] for r in frappe.db.sql("""
-				SELECT parent FROM `tabVendor Details`
-				WHERE office_email_primary = %s
-			""", usr)]
+		rfq_names_with_emails = [r[0] for r in frappe.db.sql("""
+			SELECT DISTINCT parent FROM `tabVendor Details`
+			WHERE office_email_primary = %s
+		""", usr)]
 
-		if not rfq_names:
+		if not rfq_names_with_emails:
 			return {
 				"status": "success",
 				"message": "No RFQs found for vendor",
 				"data": [],
 				"total_count": 0
 			}
+		
+		if vendor_code:
+			vendor_code = vendor_code.strip()
 
-		values["rfq_names"] = tuple(rfq_names)
+			rfq_names_with_code = [r[0] for r in frappe.db.sql("""
+				SELECT DISTINCT parent FROM `tabVendor Details`
+				WHERE parent IN %(rfq_names)s
+				AND FIND_IN_SET(%(vendor_code)s, REPLACE(vendor_code, ' ', '')) > 0
+			""", {"rfq_names": tuple(rfq_names_with_emails), "vendor_code": vendor_code})]
+
+			if not rfq_names_with_code:
+				return {
+					"status": "success",
+					"message": "No RFQs found for vendor with the specified vendor code",
+					"data": [],
+					"total_count": 0
+				}
+
+			rfq_names_with_emails = rfq_names_with_code
+
+		values["rfq_names"] = tuple(rfq_names_with_emails)
 
 		# Total count
 		total_count = frappe.db.sql(f"""
