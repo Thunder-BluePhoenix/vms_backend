@@ -3,7 +3,7 @@
   "docstatus": 0,
   "doctype": "SAP Mapper PR",
   "doctype_name": "GRN",
-  "modified": "2025-09-05 12:53:28.235919",
+  "modified": "2025-10-17 11:05:07.095431",
   "name": "GRN",
   "table_cjfk": [
    {
@@ -161,7 +161,7 @@
     "sap_field": "LSMNG_I"
    },
    {
-    "erp_field": "material_receipt_date",
+    "erp_field": "number_of_bill_of_loading",
     "parent": "GRN",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
@@ -294,21 +294,21 @@
     "sap_field": "GJAHR"
    },
    {
-    "erp_field": "",
+    "erp_field": "ref_invoice_no",
     "parent": "GRN",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "XBLNR2"
    },
    {
-    "erp_field": "",
+    "erp_field": "store_location",
     "parent": "GRN",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "LGORT_I"
    },
    {
-    "erp_field": "",
+    "erp_field": "user_code",
     "parent": "GRN",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
@@ -355,6 +355,41 @@
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "BUKRS_I"
+   },
+   {
+    "erp_field": "grn_doc_date",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BLDAT"
+   },
+   {
+    "erp_field": "collective_number",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SUBMI"
+   },
+   {
+    "erp_field": "expected_delivery_date",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "BEDNR"
+   },
+   {
+    "erp_field": "grn_item_text",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "SGTXT_I"
+   },
+   {
+    "erp_field": "grn_goods_recipient",
+    "parent": "GRN",
+    "parentfield": "table_cjfk",
+    "parenttype": "SAP Mapper PR",
+    "sap_field": "WEMPF_I"
    }
   ]
  },
@@ -362,7 +397,7 @@
   "docstatus": 0,
   "doctype": "SAP Mapper PR",
   "doctype_name": "GRN Items",
-  "modified": "2025-07-17 12:57:22.726911",
+  "modified": "2025-10-17 10:34:56.242480",
   "name": "GRN Items",
   "table_cjfk": [
    {
@@ -534,7 +569,7 @@
     "sap_field": "LSMNG_I"
    },
    {
-    "erp_field": "material_receipt_date",
+    "erp_field": "number_of_bill_of_loading",
     "parent": "GRN Items",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
