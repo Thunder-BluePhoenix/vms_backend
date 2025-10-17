@@ -2,6 +2,8 @@ import frappe
 import json
 from datetime import datetime
 from frappe import _
+from vms.utils.custom_send_mail import custom_sendmail
+from collections import defaultdict
 
 
 def parse_date(value):
@@ -99,6 +101,7 @@ def get_grn():
         # Save or Update GRN
         if is_existing_doc:
             grn_doc.save()
+            send_grn_emails_to_po_contacts(grn_doc)
             frappe.db.commit()
             
             response = {
@@ -120,6 +123,7 @@ def get_grn():
             
         else:
             grn_doc.insert()
+            send_grn_emails_to_po_contacts(grn_doc)
             frappe.db.commit()
             
             response = {
@@ -370,6 +374,152 @@ def create_error_only_grn_log(data, error_message, traceback):
 
 
 
+
+
+
+
+def send_grn_emails_to_po_contacts(grn_doc):
+    """
+    Send emails to unique contacts from Purchase Orders referenced in GRN items.
+    Groups GRN items by PO email2 field and sends one email per unique contact.
+    
+    Args:
+        grn_doc: GRN document object or name
+    """
+    
+    if isinstance(grn_doc, str):
+        grn_doc = frappe.get_doc("GRN", grn_doc)
+    
+    email_groups = defaultdict(list)
+    
+    for grn_item in grn_doc.grn_items_table:
+        po_no = grn_item.po_no
+        
+        if not po_no:
+            continue
+            
+        try:
+            po_doc = frappe.get_doc("Purchase Order", {"po_no": po_no})
+            
+            email2 = po_doc.email2
+            
+            if email2:
+                email_groups[email2].append({
+                    "grn_item": grn_item.grn_item,
+                    "po_no": po_no,
+                    "material": grn_item.material,
+                    "material_description": grn_item.material_description,
+                    "quantity": grn_item.quantity,
+                    "uom": grn_item.uom,
+                    "batch_no": grn_item.batch_no,
+                    "vendor_name": grn_item.vendor_name,
+                    "grn_number": grn_item.grn_number,
+                    "grn_date": grn_item.grn_date
+                })
+        except Exception as e:
+            frappe.log_error(
+                message=f"Error fetching PO {po_no}: {str(e)}",
+                title="GRN Email - PO Fetch Error"
+            )
+            continue
+    
+    # Send one email per unique contact
+    for email, items in email_groups.items():
+        try:
+            send_grn_notification_email(grn_doc, email, items)
+        except Exception as e:
+            frappe.log_error(
+                message=f"Error sending email to {email}: {str(e)}",
+                title="GRN Email Sending Error"
+            )
+
+def send_grn_notification_email(grn_doc, recipient_email, grn_items):
+    """
+    Send email notification with GRN details
+    
+    Args:
+        grn_doc: GRN document
+        recipient_email: Email address to send to
+        grn_items: List of GRN items for this recipient
+    """
+    
+    # Build item details table for email
+    items_html = """
+    <table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
+        <thead>
+            <tr style="background-color: #f2f2f2;">
+                <th style="border: 1px solid #ddd; padding: 8px;">Item</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">PO No</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Material</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Description</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Quantity</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">UOM</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Batch No</th>
+            </tr>
+        </thead>
+        <tbody>
+    """
+    
+    for item in grn_items:
+        items_html += f"""
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 8px;">{item['grn_item']}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">{item['po_no']}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">{item['material']}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">{item['material_description']}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">{item['quantity']}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">{item['uom']}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">{item['batch_no']}</td>
+            </tr>
+        """
+    
+    items_html += """
+        </tbody>
+    </table>
+    """
+    
+    # Email subject
+    subject = f"GRN Notification - {grn_doc.grn_number}"
+    
+    # Email message
+    message = f"""
+    <p>Dear User,</p>
+    
+    <p>Please find the details of Goods Receipt Note (GRN) below:</p>
+    
+    <p><strong>GRN Number:</strong> {grn_doc.grn_number}<br>
+    <strong>GRN Date:</strong> {grn_doc.grn_date}<br>
+    <strong>Company Code:</strong> {grn_doc.company_code}<br>
+    <strong>Total Items:</strong> {len(grn_items)}</p>
+    
+    <h3>Item Details:</h3>
+    {items_html}
+    
+    <p>This is an automated notification.</p>
+    
+    <p>Best regards,<br>
+    VMS Team</p>
+    """
+    
+    # Send email
+    frappe.custom_sendmail(
+        recipients=[recipient_email],
+        subject=subject,
+        message=message,
+        now=True
+    )
+    
+    frappe.msgprint(f"Email sent successfully to {recipient_email}")
+
+# Example usage in a server script or button event
+@frappe.whitelist()
+def trigger_grn_emails(grn_name):
+    """
+    Whitelist function to trigger email sending from client side
+    """
+    grn_doc = frappe.get_doc("GRN", grn_name)
+    send_grn_emails_to_po_contacts(grn_doc)
+    return {"status": "success", "message": "Emails sent successfully"}
 #############################old code - sap_to_grn.py@@@@@@@@@###############################
 
 
