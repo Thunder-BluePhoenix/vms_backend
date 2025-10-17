@@ -9,7 +9,7 @@ def get_port_master(search_term=None, page=None, page_size=None):
     try:
         # Validate and set defaults
         page = max(1, cint(page)) if page else 1
-        page_size = min(200, max(1, cint(page_size))) if page_size else 10
+        page_size = min(200, max(1, cint(page_size))) if page_size else 20
         search_term = cstr(search_term).strip() if search_term else None
       
         where_conditions = []
