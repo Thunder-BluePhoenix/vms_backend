@@ -4,7 +4,7 @@ import json
 @frappe.whitelist(allow_guest=True)
 def get_valuation_class_list(limit=None, offset=0, order_by=None, search_term=None):
     try:
-        limit = int(limit) if limit else 10
+        limit = int(limit) if limit else 20
         offset = int(offset) if offset else 0
         
         order_by = order_by if order_by else "creation desc"
