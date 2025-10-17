@@ -582,7 +582,8 @@ def get_po():
                 frappe.throw(error_msg)
 
             po_id = po_doc.name
-            po_creation_send_mail(po_id)
+            # po_creation_send_mail(po_id)
+            po_creation_email_to_purchase(po_id)
 
             response = {
                 "status": "success",
@@ -605,7 +606,8 @@ def get_po():
         else:
             po_doc.save()
             po_id = po_doc.name
-            po_update_send_mail(po_id)
+            # po_update_send_mail(po_id)
+            po_updation_email_to_purchase(po_id)
 
             if sap_status == "REVOKED":
                 po_doc.sent_to_vendor = 0
@@ -795,6 +797,63 @@ def po_update_send_mail(po_id):
             "message": "An error occurred.",
             "error": str(e)
         }
+    
+# PO Creation Email to Purchase Team    
+def po_creation_email_to_purchase(po_id):
+    try:
+        if not po_id:
+            frappe.throw("Failed to send email: Purchase Order name is missing.")
+
+        purchase_order = frappe.get_doc("Purchase Order", po_id)
+
+        subject = f"A New Purchase Order has been created - {po_id}"
+
+        message = f"""
+            Dear Purchase Team,<br><br>
+            A new Purchase Order <strong>{po_id}</strong> has been created.<br><br>
+            Please review the details and take the necessary action.<br><br>
+            Regards,<br>
+            VMS Team
+        """
+
+        frappe.custom_sendmail(
+            recipients=[purchase_order.email2],
+            subject=subject,
+            message=message,
+            now=True
+        )
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in po_creation_email_to_purchase")
+
+
+# PO Updation Email to Purchase Team    
+def po_updation_email_to_purchase(po_id):
+    try:
+        if not po_id:
+            frappe.throw("Failed to send email: Purchase Order name is missing.")
+
+        purchase_order = frappe.get_doc("Purchase Order", po_id)
+
+        subject = f"Purchase Order Updated - {po_id}"
+
+        message = f"""
+            Dear Purchase Team,<br><br>
+            The Purchase Order <strong>{po_id}</strong> has been updated.<br><br>
+            Kindly review the changes and take the necessary action as required.<br><br>
+            Regards,<br>
+            VMS Team
+        """
+
+        frappe.custom_sendmail(
+            recipients=[purchase_order.email2],
+            subject=subject,
+            message=message,
+            now=True
+        )
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in po_updation_email_to_purchase")
 
 
 

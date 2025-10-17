@@ -35,6 +35,7 @@ def po_approve(data):
 
 
         message = f"""
+            Dear Purchase Team,<br>
             The Vendor <b>{po.approved_by_name}</b> has <b>Approved</b> the Purchase Order - <b>{po_name}</b>.
             The Tentative date  submitted by Vendor is <b>{formatted_date}</b>.<br>
             Please see the details of the Purchase Order and take necessary action.
@@ -82,6 +83,7 @@ def po_reject(data):
         subject = f"The Vendor {po.rejected_by_name} has Rejected the Purchase Order - {po_name}"
 
         message = f"""
+            Dear Purchase Team,<br>
             The Vendor <b>{po.rejected_by_name}</b> has <b>Rejected</b> the Purchase Order - <b>{po_name}</b>.<br>
             The Reason for Rejection is: <b>{reason_for_rejection}</b><br>
             Please see the details of the Purchase Order and take necessary action.
