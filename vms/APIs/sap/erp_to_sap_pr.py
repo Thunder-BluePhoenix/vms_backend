@@ -971,10 +971,10 @@ def erp_to_sap_pr(doc_name, method=None):
                         
                         # **UPDATE DOCUMENT WITH SUCCESS DATA**
                         try:
-                            doc.sent_to_sap = 1
-                            doc.sap_pr_code = pr_code
-                            if not doc.prf_name_for_sap:
-                                doc.prf_name_for_sap = name_for_sap
+                            # doc.sent_to_sap = 1
+                            # doc.sap_pr_code = pr_code
+                            # if not doc.prf_name_for_sap:
+                            #     doc.prf_name_for_sap = name_for_sap
                             # doc.db_update()
                             print(f"📝 Document updated successfully with PR code: {pr_code}")
                             
@@ -989,6 +989,12 @@ def erp_to_sap_pr(doc_name, method=None):
                                 name_for_sap,
                                 doc.purchase_requisition_type
                             )
+                            doc.db_set({
+                                            "sent_to_sap": 1,
+                                            "sap_pr_code": pr_code,
+                                            "prf_name_for_sap": name_for_sap if not doc.prf_name_for_sap else doc.prf_name_for_sap
+                                        })
+
                             
                         except Exception as update_err:
                             error_msg = f"Failed to update document: {str(update_err)}"
