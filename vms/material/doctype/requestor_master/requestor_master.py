@@ -15,3 +15,11 @@ class RequestorMaster(Document):
 			frappe.log_error(f"Aging tracker update error for {self.name}: {str(e)}")
 			return {"status": "error", "message": str(e)}	
     # pass
+	# def validate(self):
+	# 	try:
+	# 		if self.request_id == "" or self.request_id is None:
+	# 			self.request_id = frappe.generate_hash(length=7)
+	# 		return {"status": "success", "message": "Request ID validated"}
+	# 	except Exception as e:
+	# 		frappe.log_error(f"Request ID validation error for {self.name}: {str(e)}")
+	# 		return {"status": "error", "message": str(e)}
