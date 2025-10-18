@@ -605,6 +605,8 @@ def erp_to_sap_vendor_data(onb_ref):
                     add1 = vcd.address_line_1 or ""
                     add2 = vcd.address_line_2 or ""
                     total_gst_rows_processed += 1  # Count international as 1 entry
+                    reg_impo = "ZZ" if acc_grp.account_group_code == "ZIMP" else ""
+
                     
                     print(f"   📋 Company: {vcd.company_name}")
                     print(f"   📋 SAP Client Code: {sap_client_code}")
@@ -680,7 +682,7 @@ def erp_to_sap_vendor_data(onb_ref):
                             "City1": gst_city,
                             "Country": country_code,
                             "J1kftind": "",
-                            "Region": "",  # Fixed region for international vendors
+                            "Region": reg_impo,  # Fixed region for international vendors
                             "TelNumber": "",
                             "MobNumber": onb_vm.mobile_number or "",
                             "SmtpAddr": onb_vm.office_email_primary or "",
