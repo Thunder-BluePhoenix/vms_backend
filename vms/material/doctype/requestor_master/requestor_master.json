@@ -137,7 +137,12 @@
   {
    "fieldname": "request_id",
    "fieldtype": "Data",
-   "label": "Request ID"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Request ID",
+   "no_copy": 1,
+   "read_only": 1,
+   "unique": 1
   },
   {
    "fieldname": "sap_tab",
@@ -190,7 +195,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-13 15:31:51.640312",
+ "modified": "2025-10-23 17:40:55.137991",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Requestor Master",
