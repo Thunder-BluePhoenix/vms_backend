@@ -5,7 +5,9 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "requestor_id_char_number"
+  "requestor_id_char_number",
+  "column_break_fhvr",
+  "last_request_id_counter"
  ],
  "fields": [
   {
@@ -14,13 +16,23 @@
    "fieldname": "requestor_id_char_number",
    "fieldtype": "Int",
    "label": "Requestor Id CHAR Number"
+  },
+  {
+   "description": "Stores the last numeric counter used for generating sequential Requestor IDs.\n<br>This is used internally to ensure unique Request IDs.",
+   "fieldname": "last_request_id_counter",
+   "fieldtype": "Int",
+   "label": "Last Request ID Counter"
+  },
+  {
+   "fieldname": "column_break_fhvr",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-23 16:28:56.257419",
+ "modified": "2025-10-23 16:47:50.347722",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Onboarding Settings",
