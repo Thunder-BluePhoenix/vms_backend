@@ -7,6 +7,7 @@
  "field_order": [
   "requestor_id_char_number",
   "column_break_fhvr",
+  "max_request_id_counter",
   "last_request_id_counter"
  ],
  "fields": [
@@ -20,19 +21,25 @@
   {
    "description": "Stores the last numeric counter used for generating sequential Requestor IDs.\n<br>This is used internally to ensure unique Request IDs.",
    "fieldname": "last_request_id_counter",
-   "fieldtype": "Int",
-   "label": "Last Request ID Counter"
+   "fieldtype": "Data",
+   "label": "Last Request ID Counter",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_fhvr",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_request_id_counter",
+   "fieldtype": "Data",
+   "label": "Max Req IDs"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-23 16:47:50.347722",
+ "modified": "2025-10-23 17:02:18.934870",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Onboarding Settings",
