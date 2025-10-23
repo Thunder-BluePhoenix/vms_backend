@@ -142,7 +142,6 @@
    "label": "Request ID",
    "no_copy": 1,
    "read_only": 1,
-   "set_only_once": 1,
    "unique": 1
   },
   {
@@ -196,7 +195,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-23 16:22:38.115717",
+ "modified": "2025-10-23 17:40:55.137991",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Requestor Master",

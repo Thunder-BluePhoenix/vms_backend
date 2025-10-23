@@ -8,7 +8,9 @@
   "requestor_id_char_number",
   "column_break_fhvr",
   "max_request_id_counter",
-  "last_request_id_counter"
+  "last_request_id_counter",
+  "tab_2_tab",
+  "req_ids_details"
  ],
  "fields": [
   {
@@ -33,13 +35,23 @@
    "fieldname": "max_request_id_counter",
    "fieldtype": "Data",
    "label": "Max Req IDs"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "INFO"
+  },
+  {
+   "fieldname": "req_ids_details",
+   "fieldtype": "Code",
+   "label": "REQ IDs Details"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-23 17:02:18.934870",
+ "modified": "2025-10-23 17:23:36.843217",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Material Onboarding Settings",
