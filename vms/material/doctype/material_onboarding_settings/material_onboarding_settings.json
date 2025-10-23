@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-23 16:23:58.352809",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "requestor_id_char_number",
+  "column_break_fhvr",
+  "max_request_id_counter",
+  "last_request_id_counter",
+  "tab_2_tab",
+  "req_ids_details"
+ ],
+ "fields": [
+  {
+   "default": "7",
+   "description": "Define the number of characters to be used to generate unique Requestor IDs.\n<br>For example, if set to 7, each generated ID will contain 7 alphanumeric characters (A\u2013Z, a\u2013z, 0\u20139).",
+   "fieldname": "requestor_id_char_number",
+   "fieldtype": "Int",
+   "label": "Requestor Id CHAR Number"
+  },
+  {
+   "description": "Stores the last numeric counter used for generating sequential Requestor IDs.\n<br>This is used internally to ensure unique Request IDs.",
+   "fieldname": "last_request_id_counter",
+   "fieldtype": "Data",
+   "label": "Last Request ID Counter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_fhvr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_request_id_counter",
+   "fieldtype": "Data",
+   "label": "Max Req IDs"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "INFO"
+  },
+  {
+   "fieldname": "req_ids_details",
+   "fieldtype": "Code",
+   "label": "REQ IDs Details"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-10-23 17:23:36.843217",
+ "modified_by": "Administrator",
+ "module": "Material",
+ "name": "Material Onboarding Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

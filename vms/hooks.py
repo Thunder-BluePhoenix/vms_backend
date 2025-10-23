@@ -238,6 +238,7 @@ scheduler_events = {
         "vms.vms.doctype.vendor_aging_tracker.vendor_aging_tracker.refresh_all_aging_trackers",
         "vms.purchase.doctype.cart_aging_track.cart_aging_track.update_all_cart_aging_tracks",
         "vms.material.doctype.material_aging_track.material_aging_track.update_all_mo_aging_tracks",
+        "vms.material.doctype.material_onboarding_settings.material_onboarding_settings.validate_request_id_counters"
     ],
     "cron": {
         "0 0 * * *": [
