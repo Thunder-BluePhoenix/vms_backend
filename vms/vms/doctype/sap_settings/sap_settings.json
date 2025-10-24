@@ -16,7 +16,9 @@
   "url",
   "purchase_requisition_sap_section",
   "column_break_qmkf",
-  "sap_pr_url",
+  "sap_pr_url_nb",
+  "column_break_uhwo",
+  "sap_pr_url_sb",
   "material_onboarding_sap_section",
   "mo_sap_link"
  ],
@@ -76,12 +78,6 @@
    "label": "Purchase Requisition SAP"
   },
   {
-   "description": "Sending PR data to sap. eg link: http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_ME51N_PR7_SRV/HdrSet?sap-client=",
-   "fieldname": "sap_pr_url",
-   "fieldtype": "Data",
-   "label": "URL"
-  },
-  {
    "fieldname": "column_break_qmkf",
    "fieldtype": "Column Break"
   },
@@ -95,13 +91,29 @@
    "fieldname": "mo_sap_link",
    "fieldtype": "Data",
    "label": "URL"
+  },
+  {
+   "description": "Sending PR data to sap. eg link: http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_ME51N_PR7_SRV/HdrSet?sap-client=",
+   "fieldname": "sap_pr_url_nb",
+   "fieldtype": "Data",
+   "label": "URL(NB)"
+  },
+  {
+   "fieldname": "column_break_uhwo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Sending PR data to sap. eg link: http://10.10.103.133:8000/sap/opu/odata/sap/ZMM_ME51N_PR10_SRV/HdrSet?sap-client=",
+   "fieldname": "sap_pr_url_sb",
+   "fieldtype": "Data",
+   "label": "URL(SB)"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-07 14:46:07.667403",
+ "modified": "2025-10-24 17:44:18.578431",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "SAP Settings",

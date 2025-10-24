@@ -837,6 +837,7 @@
 
 
 
+from pickle import NONE
 import frappe
 from frappe import _
 import json
@@ -855,6 +856,7 @@ def erp_to_sap_pr(doc_name, method=None):
     
     try:
         doc = frappe.get_doc("Purchase Requisition Form", doc_name)
+        prf_type = frappe.db.get_value("Purchase Requisition Type", doc.purchase_requisition_type, "purchase_requisition_type_name") 
         sap_client_code = doc.sap_client_code
         now = datetime.now()
         year_month_prefix = f"P{now.strftime('%y')}{now.strftime('%m')}"  # e.g. PRF2506
@@ -910,7 +912,7 @@ def erp_to_sap_pr(doc_name, method=None):
 
         # Get CSRF token and session
         print(f"🔑 Getting CSRF token for SAP client: {sap_client_code}")
-        csrf_result = get_pr_csrf_token_and_session(sap_client_code)
+        csrf_result = get_pr_csrf_token_and_session(sap_client_code, prf_type)
         
         if csrf_result["success"]:
             print(f"✅ CSRF token obtained successfully")
@@ -923,7 +925,8 @@ def erp_to_sap_pr(doc_name, method=None):
                     csrf_result["session_cookies"],
                     doc, 
                     sap_client_code,
-                    name_for_sap
+                    name_for_sap,
+                    prf_type
                 )
                 
                 # **CHECK RESULT AND HANDLE RESPONSE**
@@ -1161,8 +1164,8 @@ def build_pr_payload(doc, name_for_sap):
                     "Txz01": first_item.short_text_head or "",
                     "Menge": first_item.quantity_head or "",
                     "Meins": first_item.uom_head or "",
-                    "Werks": first_item.plant_head or "",
-                    "Lgort": first_item.store_location_head or "",
+                    "Werks": frappe.db.get_value("Plant Master", first_item.plant_head, "plant_code") or "",
+                    "Lgort": frappe.db.get_value("Storage Location Master", first_item.store_location_head, "storage_location") or "",
                     "Afnam": doc.requisitioner_first_name or "",
                     "Bsart": first_item.purchase_requisition_type or "",
                     "Ekgrp": first_item.purchase_grp_code_head or "",
@@ -1240,11 +1243,18 @@ def build_pr_payload(doc, name_for_sap):
         return None
 
 
-def get_pr_csrf_token_and_session(sap_client_code):
+def get_pr_csrf_token_and_session(sap_client_code, prf_type):
     """Get CSRF token and session cookies for PR API"""
     try:
         sap_settings = frappe.get_doc("SAP Settings")
-        erp_to_sap_pr_url = sap_settings.sap_pr_url
+        erp_to_sap_pr_url = None
+        if prf_type == "NB":
+            erp_to_sap_pr_url = sap_settings.sap_pr_url_nb
+
+        else:
+            erp_to_sap_pr_url = sap_settings.sap_pr_url_sb
+
+
         url = f"{erp_to_sap_pr_url}{sap_client_code}"
         header_auth_type = sap_settings.authorization_type
         header_auth_key = sap_settings.authorization_key
@@ -1304,10 +1314,15 @@ def get_pr_csrf_token_and_session(sap_client_code):
 
 
 @frappe.whitelist(allow_guest=True)
-def send_pr_detail(csrf_token, data_list, session_cookies, doc, sap_code, name_for_sap):
+def send_pr_detail(csrf_token, data_list, session_cookies, doc, sap_code, name_for_sap, prf_type):
     """Send PR details to SAP with comprehensive logging - Enhanced Version"""
     sap_settings = frappe.get_doc("SAP Settings")
-    erp_to_sap_pr_url = sap_settings.sap_pr_url
+    erp_to_sap_pr_url = None
+    if prf_type == "NB":
+        erp_to_sap_pr_url = sap_settings.sap_pr_url_nb
+
+    else:
+        erp_to_sap_pr_url = sap_settings.sap_pr_url_sb
     url = f"{erp_to_sap_pr_url}{sap_code}"
     header_auth_type = sap_settings.authorization_type
     header_auth_key = sap_settings.authorization_key
