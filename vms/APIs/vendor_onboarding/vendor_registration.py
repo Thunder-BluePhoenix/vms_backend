@@ -8,6 +8,7 @@ from vms.utils.custom_send_mail import custom_sendmail
 import time
 
 from vms.APIs.vendor_onboarding.vendor_registration_helper import populate_vendor_data_from_existing_onboarding
+from vms.APIs.vendor_onboarding.vendor_reg_mail import send_registration_email_link_v2
 
 
 
@@ -462,7 +463,8 @@ def vendor_registration_single(data):
         vendor_onboarding.manufacturing_details = manufacturing_details
         
         vendor_onboarding.save()
-        send_registration_email_link(vendor_onboarding.name, vendor_master.name)
+        # send_registration_email_link(vendor_onboarding.name, vendor_master.name)
+        send_registration_email_link_v2(vendor_onboarding.name, vendor_master.name)
         frappe.db.commit()
 
 
@@ -1018,7 +1020,8 @@ def vendor_registration_multi(data):
         # Send registration email (only if we have onboarding docs)
         if vendor_onboarding_docs:
             try:
-                send_registration_email_link(vendor_onboarding_docs[0], vendor_master.name)
+                # send_registration_email_link(vendor_onboarding_docs[0], vendor_master.name)
+                send_registration_email_link_v2(vendor_onboarding_docs[0], vendor_master.name)
             except Exception:
                 frappe.log_error(frappe.get_traceback(), "Error sending registration email")
                 # Don't fail the entire process for email errors
