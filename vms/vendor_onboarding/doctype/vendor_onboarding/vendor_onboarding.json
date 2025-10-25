@@ -20,6 +20,10 @@
   "register_by_account_team",
   "onboarding_form_status",
   "vendor_country",
+  "column_break_gshn",
+  "sap_processing_status",
+  "sap_processing_started_at",
+  "sap_processing_completed_at",
   "company_details_section",
   "vendor_company_details",
   "status_section",
@@ -121,6 +125,7 @@
   "sap_details_tab",
   "sap_validation_html",
   "mandatory_data_for_sap",
+  "sap_processing_error",
   "tab_10_tab",
   "version_history",
   "history_html"
@@ -784,12 +789,37 @@
    "fieldtype": "Link",
    "label": "Change Requested By Designation",
    "options": "Designation"
+  },
+  {
+   "fieldname": "column_break_gshn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sap_processing_status",
+   "fieldtype": "Select",
+   "label": "SAP Processing Status",
+   "options": "Pending\nQueued\nProcessing\nCompleted\nPartial Success\nFailed"
+  },
+  {
+   "fieldname": "sap_processing_started_at",
+   "fieldtype": "Datetime",
+   "label": "SAP Processing Started At"
+  },
+  {
+   "fieldname": "sap_processing_completed_at",
+   "fieldtype": "Datetime",
+   "label": "SAP Processing Completed At"
+  },
+  {
+   "fieldname": "sap_processing_error",
+   "fieldtype": "Long Text",
+   "label": "SAP Processing Error"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-08 14:44:05.872514",
+ "modified": "2025-10-25 12:57:47.306525",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",

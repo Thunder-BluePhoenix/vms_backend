@@ -7,23 +7,69 @@ from vms.utils.custom_send_mail import custom_sendmail
 from vms.APIs.vendor_onboarding.extend_vendor_code_in_sap import send_vendor_code_extend_mail_for_sap_team
 from requests.exceptions import RequestException, JSONDecodeError
 
-
 def update_sap_vonb(doc, method=None):
     """
-    Hook function to trigger SAP vendor onboarding
-    This remains the same as your original implementation
+    Hook function - Modified to use background job
     """
     if doc.register_by_account_team == 0:
         if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking:
             if doc.rejected == 0 and doc.data_sent_to_sap == 0 and doc.mandatory_data_filled == 1:
-                erp_to_sap_vendor_data(doc.name)
+                # Enqueue the SAP call instead of calling directly
+                frappe.enqueue(
+                    'vms.APIs.sap.sap.erp_to_sap_vendor_data',
+                    queue='long',  # Use 'long' queue for tasks > 30 seconds
+                    timeout=300,  # 5 minutes timeout
+                    is_async=True,
+                    job_name=f'sap_vendor_onboarding_{doc.name}',
+                    onb_ref=doc.name,
+                    now=False  # Don't execute immediately, queue it
+                )
+                
+                # Update document to show processing
+                doc.db_set({
+                    'sap_processing_status': 'Queued',
+                    'sap_processing_started_at': frappe.utils.now()
+                }, commit=False)
+                
+                frappe.msgprint("Your request has been queued. You'll receive a notification when SAP processing completes.")
                 frappe.db.commit()
 
     elif doc.register_by_account_team == 1:
         if doc.accounts_team_undertaking and doc.accounts_head_undertaking:
             if doc.rejected == 0 and doc.data_sent_to_sap == 0 and doc.mandatory_data_filled == 1:
-                erp_to_sap_vendor_data(doc.name)
+                frappe.enqueue(
+                    'vms.APIs.sap.sap.erp_to_sap_vendor_data',
+                    queue='long',
+                    timeout=300,
+                    is_async=True,
+                    job_name=f'sap_vendor_onboarding_{doc.name}',
+                    onb_ref=doc.name,
+                    now=False
+                )
+                
+                doc.db_set({
+                    'sap_processing_status': 'Queued',
+                    'sap_processing_started_at': frappe.utils.now()
+                }, commit=False)
+                
+                frappe.msgprint("Your request has been queued. You'll receive a notification when SAP processing completes.")
                 frappe.db.commit()
+# def update_sap_vonb(doc, method=None):
+#     """
+#     Hook function to trigger SAP vendor onboarding
+#     This remains the same as your original implementation
+#     """
+#     if doc.register_by_account_team == 0:
+#         if doc.purchase_team_undertaking and doc.accounts_team_undertaking and doc.purchase_head_undertaking:
+#             if doc.rejected == 0 and doc.data_sent_to_sap == 0 and doc.mandatory_data_filled == 1:
+#                 erp_to_sap_vendor_data(doc.name)
+#                 frappe.db.commit()
+
+#     elif doc.register_by_account_team == 1:
+#         if doc.accounts_team_undertaking and doc.accounts_head_undertaking:
+#             if doc.rejected == 0 and doc.data_sent_to_sap == 0 and doc.mandatory_data_filled == 1:
+#                 erp_to_sap_vendor_data(doc.name)
+#                 frappe.db.commit()
 
 
 # =====================================================================================
@@ -910,20 +956,21 @@ def erp_to_sap_vendor_data(onb_ref):
                 message = f"SAP Integration Successful: {successful_sap_calls}/{total_attempts} entries sent to SAP successfully."
             
             # **UPDATE ONBOARDING DOCUMENT STATUS**
-            try:
-                # onb.data_sent_to_sap = 1
-                # onb.data_sent_to_sap = "Approved"
-                # onb.save(ignore_permissions=True)
-                # frappe.db.commit()
-                onb.db_set({
-                                "data_sent_to_sap": 1,
-                                "onboarding_form_status": "Approved"
-                            }, commit=False)
+            # try:
+            #     # onb.data_sent_to_sap = 1
+            #     # onb.data_sent_to_sap = "Approved"
+            #     # onb.save(ignore_permissions=True)
+            #     # frappe.db.commit()
+            #     onb.db_set({
+            #                     "data_sent_to_sap": 1,
+            #                     "onboarding_form_status": "Approved"
+            #                 }, commit=False)
+            #     frappe.db.commit()
 
 
-                print(f"✅ Onboarding document updated: data_sent_to_sap = 1")
-            except Exception as onb_update_err:
-                print(f"⚠️ Failed to update onboarding status: {str(onb_update_err)}")
+            #     print(f"✅ Onboarding document updated: data_sent_to_sap = 1")
+            # except Exception as onb_update_err:
+            #     print(f"⚠️ Failed to update onboarding status: {str(onb_update_err)}")
             
         elif successful_sap_calls > 0 and failed_sap_calls > 0:
             status = "partial_success"
@@ -933,6 +980,36 @@ def erp_to_sap_vendor_data(onb_ref):
         else:
             status = "error"
             message = "No SAP integration attempts were made. Check data configuration."
+
+        if status == "success":
+            onb.db_set({
+                'data_sent_to_sap': 1,
+                'onboarding_form_status': 'Approved',
+                'sap_processing_status': 'Completed',
+                'sap_processing_completed_at': frappe.utils.now(),
+                'sap_processing_error': ''
+            }, commit=True)
+            
+            # Send success notification
+            # send_success_notification(onb_ref, message)
+            
+        elif status == "partial_success":
+            onb.db_set({
+                'sap_processing_status': 'Partial Success',
+                'onboarding_form_status': 'SAP Error',
+                'sap_processing_completed_at': frappe.utils.now(),
+                'sap_processing_error': message
+            }, commit=True)
+            
+            # send_partial_success_notification(onb_ref, message)
+            
+        elif status == "error":
+            onb.db_set({
+                'sap_processing_status': 'Failed',
+                'onboarding_form_status': 'SAP Error',
+                'sap_processing_error': message,
+                'sap_processing_completed_at': frappe.utils.now()
+            }, commit=True)
         
         print(f"🎯 FINAL STATUS: {status.upper()}")
         print(f"💬 FINAL MESSAGE: {message}")
