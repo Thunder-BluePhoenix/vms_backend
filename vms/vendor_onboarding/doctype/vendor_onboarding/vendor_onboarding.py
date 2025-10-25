@@ -102,10 +102,28 @@ class VendorOnboarding(Document):
                     self.data_sent_to_sap == 1):
                     new_status = "Approved"
                     new_rejected = False
+
                 elif (self.purchase_team_undertaking and 
                       self.accounts_team_undertaking and 
                       self.purchase_head_undertaking and 
-                      self.data_sent_to_sap != 1):
+                      self.data_sent_to_sap != 1 and 
+                      self.sap_processing_status == "Queued"):
+                    new_status = "Approved & SAP Processing"
+                    new_rejected = False
+
+                elif (self.purchase_team_undertaking and 
+                      self.accounts_team_undertaking and 
+                      self.purchase_head_undertaking and 
+                      self.data_sent_to_sap != 1 and 
+                      self.sap_processing_status == "Partial Success"):
+                    new_status = "Approved & SAP Partial Success"
+                    new_rejected = False
+
+                elif (self.purchase_team_undertaking and 
+                      self.accounts_team_undertaking and 
+                      self.purchase_head_undertaking and 
+                      self.data_sent_to_sap != 1 and 
+                      self.sap_processing_status == "Failed"):
                     new_status = "SAP Error"
                     new_rejected = False
                 elif self.rejected:
@@ -119,9 +137,25 @@ class VendorOnboarding(Document):
                     self.data_sent_to_sap == 1):
                     new_status = "Approved"
                     new_rejected = False
+
                 elif (self.accounts_team_undertaking and 
                       self.accounts_head_undertaking and 
-                      self.data_sent_to_sap != 1):
+                      self.data_sent_to_sap != 1 and 
+                      self.sap_processing_status == "Queued"):
+                    new_status = "Approved & SAP Processing"
+                    new_rejected = False
+
+                elif (self.accounts_team_undertaking and 
+                      self.accounts_head_undertaking and 
+                      self.data_sent_to_sap != 1 and 
+                      self.sap_processing_status == "Partial Success"):
+                    new_status = "Approved & SAP Partial Success"
+                    new_rejected = False
+
+                elif (self.accounts_team_undertaking and 
+                      self.accounts_head_undertaking and 
+                      self.data_sent_to_sap != 1 and 
+                      self.sap_processing_status == "Failed"):
                     new_status = "SAP Error"
                     new_rejected = False
                 elif self.rejected:
