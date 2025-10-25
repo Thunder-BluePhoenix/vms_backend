@@ -162,7 +162,7 @@ class SAPSessionManager:
                 url, 
                 headers=csrf_headers, 
                 auth=self.auth, 
-                timeout=30
+                timeout=300
             )
             
             print(f"🔑 CSRF Response Status: {response.status_code}")
@@ -246,7 +246,7 @@ class SAPSessionManager:
                 url, 
                 json=data, 
                 auth=self.auth, 
-                timeout=30
+                timeout=300
             )
             
             print(f"📨 SAP Response Status: {response.status_code}")
