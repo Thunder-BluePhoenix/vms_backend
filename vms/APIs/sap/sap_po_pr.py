@@ -1060,8 +1060,10 @@ def update_sap_log_success(log_id, response, frappe_doc_type, frappe_doc_name, d
                 "frappe_doc_type": frappe_doc_type,
                 "frappe_doc_name": frappe_doc_name,
                 "created_new": response.get("message", "").lower().find("created") != -1,
-                "processing_time_seconds": (datetime.strptime(log_doc.processed_date, "%Y-%m-%d %H:%M:%S.%f") - 
-                                          datetime.strptime(log_doc.transaction_date, "%Y-%m-%d %H:%M:%S.%f")).total_seconds() if log_doc.processed_date and log_doc.transaction_date else 0
+                "processing_time_seconds": (
+                    (get_datetime(log_doc.processed_date) - get_datetime(log_doc.transaction_date)).total_seconds()
+                    if log_doc.processed_date and log_doc.transaction_date else 0
+                )
             }
         }
         
@@ -1084,6 +1086,12 @@ def update_sap_log_success(log_id, response, frappe_doc_type, frappe_doc_name, d
             title="Failed to update SAP log with success",
             message=f"Log ID: {log_id}\nError: {str(e)}\n{frappe.get_traceback()}"
         )
+
+def get_datetime(value):
+    """Convert value to datetime if it's a string, otherwise return as-is"""
+    if isinstance(value, str):
+        return datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+    return value
 
 
 def update_sap_log_failure(log_id, error_message, traceback):
