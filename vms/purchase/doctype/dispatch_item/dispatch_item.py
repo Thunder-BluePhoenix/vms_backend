@@ -245,14 +245,13 @@ class DispatchItem(Document):
 
 # calculating Pending Qty 
 def calculate_pending_qty(doc, method=None):
-	try:
-		for row in doc.items:
-			row.pending_qty = int(row.quantity) - int(row.dispatch_qty)
-	except Exception:
-		frappe.log_error(frappe.get_traceback(), "Pending Qty Calculation Error")
-
-
-
+    try:
+        for row in doc.items:
+            quantity = float(row.quantity or 0)
+            dispatch_qty = float(row.dispatch_qty or 0)
+            row.pending_qty = quantity - dispatch_qty
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "Pending Qty Calculation Error")
 
 
 
