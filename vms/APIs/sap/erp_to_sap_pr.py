@@ -1158,7 +1158,7 @@ def build_pr_payload(doc, name_for_sap):
                 
                 print(f"   📦 Processing SB head group {packno_counter}: {first_item.short_text_head}")
                 material_group = frappe.db.get_value("Material Code", first_item.material_code_head, "material_group")
-                matkl = frappe.db.get_value("Material Group Master", material_group, "material_group_name") or ""
+                matkl = frappe.db.get_value("Material Group Master", first_item.material_group_head, "material_group_name") or ""
 
                 
                 data = {
