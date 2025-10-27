@@ -1157,10 +1157,14 @@ def build_pr_payload(doc, name_for_sap):
                 head_to_packno[head_id] = str(packno_counter)
                 
                 print(f"   📦 Processing SB head group {packno_counter}: {first_item.short_text_head}")
+                material_group = frappe.db.get_value("Material Code", first_item.material_code_head, "material_group")
+                matkl = frappe.db.get_value("Material Group Master", material_group, "material_group_name") or ""
+
                 
                 data = {
                     "Bnfpo": first_item.item_number_of_purchase_requisition_head or "",
                     "Matnr": frappe.db.get_value("Material Code", first_item.material_code_head, "material_code") or "",
+                    "Matkl": matkl,
                     "Txz01": first_item.short_text_head or "",
                     "Menge": first_item.quantity_head or "",
                     "Meins": first_item.uom_head or "",
