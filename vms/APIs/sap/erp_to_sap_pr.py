@@ -1192,6 +1192,8 @@ def build_pr_payload(doc, name_for_sap):
                     "Pstyp": frappe.db.get_value("Item Category Master", first_item.item_category_head, "sap_key") or "",
                     # "Sakto": frappe.db.get_value("GL Account", first_item.gl_account_number_head, "gl_account_code") or "",
                     # "Kostl": frappe.db.get_value("Cost Center", first_item.cost_center_head, "cost_center_code") or "",
+                    "Sakto": "",
+                    "Kostl": "",
                     "Preis": first_item.final_price_by_purchase_team_head or "",
                     "Zvmsprno": doc.prf_name_for_sap or name_for_sap,
                     "Packno": str(packno_counter)
