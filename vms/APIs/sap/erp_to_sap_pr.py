@@ -1189,9 +1189,10 @@ def build_pr_payload(doc, name_for_sap):
                     "Anln1": first_item.main_asset_no_head or "",
                     "Anln2": first_item.asset_subnumber_head or "",
                     "Knttp": first_item.account_assignment_category_head or "",
-                    "Pstyp": first_item.item_category_head or "",
-                    "Sakto": frappe.db.get_value("GL Account", first_item.gl_account_number_head, "gl_account_code") or "",
-                    "Kostl": frappe.db.get_value("Cost Center", first_item.cost_center_head, "cost_center_code") or "",
+                    "Pstyp": "9",
+                            #   first_item.item_category_head or "",
+                    # "Sakto": frappe.db.get_value("GL Account", first_item.gl_account_number_head, "gl_account_code") or "",
+                    # "Kostl": frappe.db.get_value("Cost Center", first_item.cost_center_head, "cost_center_code") or "",
                     "Preis": first_item.final_price_by_purchase_team_head or "",
                     "Zvmsprno": doc.prf_name_for_sap or name_for_sap,
                     "Packno": str(packno_counter)
