@@ -503,6 +503,14 @@ def get_pur_req_table_data(name):
 			}
 
 		doc = frappe.get_doc("Purchase Requisition Webform", name)
+		sap_status = "Pending"
+		if not doc.sap_status or doc.sap_status == "":
+			sap_status = "Pending"
+		elif doc.sap_status == "Success":
+			sap_status = "Success"
+		else:
+			sap_status = "Failed"
+
 		grouped_data = {}
 
 		for row in sorted(doc.purchase_requisition_form_table, key=lambda x: x.idx):
@@ -606,7 +614,8 @@ def get_pur_req_table_data(name):
 			"Cart ID": doc.cart_details_id,
 			"Form Status": doc.form_status,
 			"form_is_submitted": doc.form_is_submitted,
-			"sap_error": doc.zmsg,
+			"sap_response": doc.zmsg,
+			"sap_status": sap_status,
 			"data": list(grouped_data.values())
 		}
 
