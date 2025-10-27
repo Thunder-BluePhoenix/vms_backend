@@ -1510,6 +1510,9 @@ def get_purchase_requisition_form(page_no=None, page_length=None, pur_req_type=N
         if pur_req_type:
             filters["purchase_requisition_type"] = pur_req_type
 
+        filters["sent_to_sap"] = 1
+        filters["sap_pr_code"] = ["is", "set"]  # This checks for non-empty values
+
         # Enquirer Role ---
         if "Enquirer" in user_roles or designation == "Enquirer":
             filters["requisitioner"] = user
