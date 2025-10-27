@@ -11,7 +11,8 @@
   "gl_account_name",
   "company",
   "account_group",
-  "description"
+  "description",
+  "usable_in_pr"
  ],
  "fields": [
   {
@@ -41,12 +42,18 @@
    "fieldtype": "Link",
    "label": "Account Group",
    "options": "Account Group Master"
+  },
+  {
+   "default": "0",
+   "fieldname": "usable_in_pr",
+   "fieldtype": "Check",
+   "label": "Usable in PR"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:01.422780",
+ "modified": "2025-10-27 15:09:25.823427",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "GL Account",

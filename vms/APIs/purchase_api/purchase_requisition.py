@@ -75,7 +75,7 @@ def filter_cost_center(company):
 
         cost_center = frappe.get_all(
             "Cost Center",
-            filters={"company_code": company},
+            filters={"company_code": company, "usable_in_pr": 1},
             fields=["name", "cost_center_code", "cost_center_name", "description", "category"]
         )
 
@@ -164,7 +164,7 @@ def filter_gl_account(company):
 
         gl_account = frappe.get_all(
             "GL Account",
-            filters={"company": company},
+            filters={"company": company, "usable_in_pr": 1},
             fields=["name", "gl_account_code", "gl_account_name", "description"]
         )
 

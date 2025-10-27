@@ -18,7 +18,8 @@
   "category",
   "person",
   "profit_center",
-  "department"
+  "department",
+  "usable_in_pr"
  ],
  "fields": [
   {
@@ -83,12 +84,18 @@
    "fieldname": "department",
    "fieldtype": "Data",
    "label": "Department"
+  },
+  {
+   "default": "0",
+   "fieldname": "usable_in_pr",
+   "fieldtype": "Check",
+   "label": "Usable IN PR"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:37:55.498833",
+ "modified": "2025-10-27 15:08:48.593446",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Cost Center",
