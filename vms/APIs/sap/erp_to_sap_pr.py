@@ -1099,6 +1099,11 @@ def build_pr_payload(doc, name_for_sap):
             
             item_counter = 0
             for item in doc.purchase_requisition_form_table:
+                # Skip if item is marked as deleted
+                if item.get("is_deleted"):
+                    print(f"   ⏭️  Skipping deleted item: {item.short_text_head}")
+                    continue
+                    
                 item_counter += 1
                 print(f"   📦 Processing NB item {item_counter}: {item.short_text_head}")
                 
@@ -1137,9 +1142,14 @@ def build_pr_payload(doc, name_for_sap):
                 "ItemSet": []
             }
             
-            # Group items by head_unique_id
+            # Group items by head_unique_id (skip deleted items)
             head_groups = {}
             for item in doc.purchase_requisition_form_table:
+                # Skip if item is marked as deleted
+                if item.get("is_deleted"):
+                    print(f"   ⏭️  Skipping deleted item: {item.short_text_head}")
+                    continue
+                    
                 head_id = item.head_unique_id
                 if head_id not in head_groups:
                     head_groups[head_id] = []
@@ -1179,9 +1189,10 @@ def build_pr_payload(doc, name_for_sap):
                     "Anln1": first_item.main_asset_no_head or "",
                     "Anln2": first_item.asset_subnumber_head or "",
                     "Knttp": first_item.account_assignment_category_head or "",
-                    "Pstyp": first_item.item_category_head or "",
-                    "Sakto": frappe.db.get_value("GL Account", first_item.gl_account_number_head, "gl_account_code") or "",
-                    "Kostl": frappe.db.get_value("Cost Center", first_item.cost_center_head, "cost_center_code") or "",
+                    "Pstyp": "9",
+                            #   first_item.item_category_head or "",
+                    # "Sakto": frappe.db.get_value("GL Account", first_item.gl_account_number_head, "gl_account_code") or "",
+                    # "Kostl": frappe.db.get_value("Cost Center", first_item.cost_center_head, "cost_center_code") or "",
                     "Preis": first_item.final_price_by_purchase_team_head or "",
                     "Zvmsprno": doc.prf_name_for_sap or name_for_sap,
                     "Packno": str(packno_counter)
@@ -1245,7 +1256,6 @@ def build_pr_payload(doc, name_for_sap):
         frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "PR Payload Build Error")
         print(f"❌ PAYLOAD BUILD ERROR: {error_msg}")
         return None
-
 
 def get_pr_csrf_token_and_session(sap_client_code, prf_type):
     """Get CSRF token and session cookies for PR API"""
