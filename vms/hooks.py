@@ -48,7 +48,7 @@ app_include_js = [
 # web_include_js = "/assets/vms/js/vms.js"
 website_context = {
     "chat_enabled": True,
-    "max_file_size": 10485760,  # 10MB
+    "max_file_size": 26214400,  # 10MB
     "supported_file_types": ["image/*", "application/pdf", "text/*", ".doc", ".docx", ".xls", ".xlsx"]
 }
 # include custom scss in every website theme (without file extension ".scss")

@@ -217,13 +217,13 @@ def robust_upload_file():
             return response
         
         # Set maximum file size (10MB)
-        max_size = 10 * 1024 * 1024  # 10MB
+        max_size = 25 * 1024 * 1024  # 10MB
         file_obj.seek(0, 2)  # Seek to end
         file_size = file_obj.tell()
         file_obj.seek(0)  # Reset to beginning
         
         if file_size > max_size:
-            response["message"] = "File too large. Maximum size is 10MB"
+            response["message"] = "File too large. Maximum size is 25MB"
             return response
         
         # Read file content
