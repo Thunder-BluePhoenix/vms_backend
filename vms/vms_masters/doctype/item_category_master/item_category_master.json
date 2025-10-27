@@ -8,7 +8,8 @@
  "field_order": [
   "item_code",
   "item_name",
-  "description"
+  "description",
+  "sap_key"
  ],
  "fields": [
   {
@@ -26,12 +27,17 @@
    "fieldname": "description",
    "fieldtype": "Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "sap_key",
+   "fieldtype": "Data",
+   "label": "SAP Key"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:38.043274",
+ "modified": "2025-10-27 15:05:33.136184",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Item Category Master",
