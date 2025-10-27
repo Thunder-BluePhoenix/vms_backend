@@ -46,7 +46,7 @@ def upload_chat_file(room_id):
             file_size = file_obj.tell()
             file_obj.seek(0)
             
-            if file_size > 10 * 1024 * 1024:  # 10MB
+            if file_size > 25 * 1024 * 1024:  # 10MB
                 frappe.throw(f"File {file_obj.filename} is too large. Maximum size is 10MB")
                 
             # Get file content

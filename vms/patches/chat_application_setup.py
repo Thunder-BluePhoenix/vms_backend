@@ -232,7 +232,7 @@ def create_chat_settings_record():
         if not frappe.db.exists("Chat Settings", "Chat Settings"):
             settings = frappe.new_doc("Chat Settings")
             settings.name = "Chat Settings"
-            settings.max_file_size = 10485760
+            settings.max_file_size = 26214400  # 25 MB
             settings.allowed_file_types = "image/*,application/pdf,text/*,.doc,.docx,.xls,.xlsx"
             settings.default_room_max_members = 50
             settings.enable_desktop_notifications = 1
