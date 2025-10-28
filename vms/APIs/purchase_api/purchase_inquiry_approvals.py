@@ -244,8 +244,14 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
                 now=True
             )
 
-            frappe.set_value("Cart Details", doc.name, "mail_sent_to_second_stage_approval", 1)
-            frappe.set_value("Cart Details", doc.name, "is_requested_second_stage_approval", 1)
+            # frappe.set_value("Cart Details", doc.name, "mail_sent_to_second_stage_approval", 1)
+            # frappe.set_value("Cart Details", doc.name, "is_requested_second_stage_approval", 1)
+            # frappe.set_value("cart Details", doc.name, "second_stage_approval_by", email_id)
+            # frappe.db.commit()
+            doc.is_requested_second_stage_approval = 1
+            doc.second_stage_approval_by = email_id
+            doc.mail_sent_to_second_stage_approval = 1
+            doc.save(ignore_permissions=True)
             frappe.db.commit()
 
             return {
