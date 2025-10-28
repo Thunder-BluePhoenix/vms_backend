@@ -2,12 +2,17 @@ import frappe
 import json
 
 @frappe.whitelist(allow_guest=True)
-def get_storage_location_list(limit=None, offset=0, order_by=None, search_term=None):
+def get_storage_location_list(limit=None, offset=0, order_by=None, search_term=None, plant_name=None):
     try:
         limit = int(limit) if limit else 20
         offset = int(offset) if offset else 0
         
         order_by = order_by if order_by else "creation desc"
+
+        # Base filters
+        filters = {}
+        if plant_name:
+            filters["plant_code"] = plant_name
 
         if search_term:
             or_filters = [
@@ -19,30 +24,37 @@ def get_storage_location_list(limit=None, offset=0, order_by=None, search_term=N
 
             storage_locations = frappe.get_list(
                 "Storage Location Master",
+                filters=filters,
                 or_filters=or_filters,
                 limit=limit,
                 start=offset,
                 order_by=order_by,
                 ignore_permissions=False,
-                fields=["name", "storage_name", "storage_location", "storage_location_name", "company"]
+                fields=["name", "storage_name", "storage_location", "storage_location_name", "company", "plant_code"]
             )
             
             total_count = len(frappe.get_all(
                 "Storage Location Master",
+                filters=filters,
                 or_filters=or_filters,
                 fields=["name"]
             ))
         else:
             storage_locations = frappe.get_list(
                 "Storage Location Master",
+                filters=filters,
                 limit=limit,
                 start=offset,
                 order_by=order_by,
                 ignore_permissions=False,
-                fields=["name", "storage_name", "storage_location", "storage_location_name", "company"]
+                fields=["name", "storage_name", "storage_location", "storage_location_name", "company", "plant_code"]
             )
             
-            total_count = frappe.db.count("Storage Location Master")
+            total_count = len(frappe.get_all(
+                "Storage Location Master",
+                filters=filters,
+                fields=["name"]
+            ))
 
         frappe.response.http_status_code = 200
         return {
