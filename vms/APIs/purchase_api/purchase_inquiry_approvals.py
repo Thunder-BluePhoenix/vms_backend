@@ -141,9 +141,9 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 
         if doc.cart_date:
             try:
-                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+                cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
             except Exception:
-                cart_date_formatted = doc.cart_date
+                cart_date_formatted = str(doc.cart_date)
         else:
             cart_date_formatted = "N/A"
 
@@ -244,8 +244,14 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
                 now=True
             )
 
-            frappe.set_value("Cart Details", doc.name, "mail_sent_to_second_stage_approval", 1)
-            frappe.set_value("Cart Details", doc.name, "is_requested_second_stage_approval", 1)
+            # frappe.set_value("Cart Details", doc.name, "mail_sent_to_second_stage_approval", 1)
+            # frappe.set_value("Cart Details", doc.name, "is_requested_second_stage_approval", 1)
+            # frappe.set_value("cart Details", doc.name, "second_stage_approval_by", email_id)
+            # frappe.db.commit()
+            doc.is_requested_second_stage_approval = 1
+            doc.second_stage_approval_by = email_id
+            doc.mail_sent_to_second_stage_approval = 1
+            doc.save(ignore_permissions=True)
             frappe.db.commit()
 
             return {

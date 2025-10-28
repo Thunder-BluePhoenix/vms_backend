@@ -261,15 +261,17 @@ def send_mail_hod(doc, method=None):
 		http_server = frappe.conf.get("backend_http")
 		employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
 		hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
+		purchase_team_email = frappe.db.get_value("Category Master",{"name": doc.category_type}, "purchase_team_user")
+		purchase_team_name = frappe.db.get_value("Employee", {"user_id": purchase_team_email}, "full_name")
 
 		if doc.cart_date:
 			try:
-				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+				cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
 			except Exception:
-				cart_date_formatted = doc.cart_date
+				cart_date_formatted = str(doc.cart_date)
 		else:
 			cart_date_formatted = "N/A"
-			
+	
 		if hod:
 			hod_email = frappe.get_value("Employee", hod, "user_id")
 			hod_name = frappe.get_value("Employee", hod, "full_name")
@@ -331,6 +333,8 @@ def send_mail_hod(doc, method=None):
 				"""
 
 				# Message for user (without buttons)
+				user_subject = f"Your Cart Details has been Approved by Purchase Team ({purchase_team_name})"
+
 				user_message = f"""
 					<p>Dear {employee_name},</p>
 					<p>Your cart has been approved by Purchase Team and sent to your HOD <b>{hod_name}</b> for further approval.</p>
@@ -352,7 +356,7 @@ def send_mail_hod(doc, method=None):
 				# Send to User separately (without buttons)
 				frappe.custom_sendmail(
 					recipients=[doc.user],
-					subject=subject,
+					subject=user_subject,
 					message=user_message,
 					now=True
 				)
@@ -387,9 +391,9 @@ def send_mail_purchase(doc, method=None):
 
 		if doc.cart_date:
 			try:
-				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+				cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
 			except Exception:
-				cart_date_formatted = doc.cart_date
+				cart_date_formatted = str(doc.cart_date)
 		else:
 			cart_date_formatted = "N/A"
 		
@@ -463,9 +467,9 @@ def send_mail_user(doc, method=None):
 
 		if doc.cart_date:
 			try:
-				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+				cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
 			except Exception:
-				cart_date_formatted = doc.cart_date
+				cart_date_formatted = str(doc.cart_date)
 		else:
 			cart_date_formatted = "N/A"
 
@@ -540,9 +544,9 @@ def rejection_mail_to_user(doc, method=None):
 
 		if doc.cart_date:
 			try:
-				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+				cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
 			except Exception:
-				cart_date_formatted = doc.cart_date
+				cart_date_formatted = str(doc.cart_date)
 		else:
 			cart_date_formatted = "N/A"
 		
@@ -681,9 +685,9 @@ def send_mail_alternate_purchase(doc, method=None):
 
 		if doc.cart_date:
 			try:
-				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+				cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
 			except Exception:
-				cart_date_formatted = doc.cart_date
+				cart_date_formatted = str(doc.cart_date)
 		else:
 			cart_date_formatted = "N/A"
 		
@@ -765,9 +769,9 @@ def send_mail_purchase_hod(doc, method=None):
 
 		if doc.cart_date:
 			try:
-				cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+				cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
 			except Exception:
-				cart_date_formatted = doc.cart_date
+				cart_date_formatted = str(doc.cart_date)
 		else:
 			cart_date_formatted = "N/A"
 		

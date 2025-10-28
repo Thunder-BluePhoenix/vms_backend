@@ -450,10 +450,10 @@ def update_cart_products():
 			"uom": product_row.get("uom", ""),
 			"user_specifications": product_row.get("user_specifications", ""),
 			"attachment": product_row.get("attachment", ""),
-			"product_price": product_row.get("product_price", 0),
-			"lead_time": product_row.get("lead_time", 0),
-			"product_quantity": product_row.get("product_quantity", 0),
-			"final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", 0),
+			"product_price": product_row.get("product_price", ""),
+			"lead_time": product_row.get("lead_time", ""),
+			"product_quantity": product_row.get("product_quantity", ""),
+			"final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", ""),
 			# "need_asset_code": product_row.get("need_asset_code", 0)
 		}
 
@@ -639,9 +639,9 @@ def modified_peq(data):
 
         if doc.cart_date:
             try:
-                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+                cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
             except Exception:
-                cart_date_formatted = doc.cart_date
+                cart_date_formatted = str(doc.cart_date)
         else:
             cart_date_formatted = "N/A"
                   
@@ -737,18 +737,18 @@ def acknowledge_purchase_inquiry(data):
         # format cart date
         if doc.cart_date:
             try:
-                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+                cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
             except Exception:
-                cart_date_formatted = doc.cart_date
+                cart_date_formatted = str(doc.cart_date)
         else:
             cart_date_formatted = "N/A"
 
         # format acknowledge date
         if doc.acknowledged_date:
             try:
-                acknowledged_date_formatted = datetime.strptime(doc.acknowledged_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+                acknowledged_date_formatted = doc.acknowledged_date.strftime("%d-%m-%Y")
             except Exception:
-                acknowledged_date_formatted = doc.acknowledged_date
+                acknowledged_date_formatted = str(doc.acknowledged_date)
         else:
             acknowledged_date_formatted = "N/A"
                   
