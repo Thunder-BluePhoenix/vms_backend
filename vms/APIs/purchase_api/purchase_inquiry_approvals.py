@@ -141,9 +141,9 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 
         if doc.cart_date:
             try:
-                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+                cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
             except Exception:
-                cart_date_formatted = doc.cart_date
+                cart_date_formatted = str(doc.cart_date)
         else:
             cart_date_formatted = "N/A"
 
