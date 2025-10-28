@@ -639,9 +639,9 @@ def modified_peq(data):
 
         if doc.cart_date:
             try:
-                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+                cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
             except Exception:
-                cart_date_formatted = doc.cart_date
+                cart_date_formatted = str(doc.cart_date)
         else:
             cart_date_formatted = "N/A"
                   
@@ -737,18 +737,18 @@ def acknowledge_purchase_inquiry(data):
         # format cart date
         if doc.cart_date:
             try:
-                cart_date_formatted = datetime.strptime(doc.cart_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+                cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
             except Exception:
-                cart_date_formatted = doc.cart_date
+                cart_date_formatted = str(doc.cart_date)
         else:
             cart_date_formatted = "N/A"
 
         # format acknowledge date
         if doc.acknowledged_date:
             try:
-                acknowledged_date_formatted = datetime.strptime(doc.acknowledged_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+                acknowledged_date_formatted = doc.acknowledged_date.strftime("%d-%m-%Y")
             except Exception:
-                acknowledged_date_formatted = doc.acknowledged_date
+                acknowledged_date_formatted = str(doc.acknowledged_date)
         else:
             acknowledged_date_formatted = "N/A"
                   
