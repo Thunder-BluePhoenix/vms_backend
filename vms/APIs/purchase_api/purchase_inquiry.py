@@ -450,10 +450,10 @@ def update_cart_products():
 			"uom": product_row.get("uom", ""),
 			"user_specifications": product_row.get("user_specifications", ""),
 			"attachment": product_row.get("attachment", ""),
-			"product_price": product_row.get("product_price", 0),
-			"lead_time": product_row.get("lead_time", 0),
-			"product_quantity": product_row.get("product_quantity", 0),
-			"final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", 0),
+			"product_price": product_row.get("product_price", ""),
+			"lead_time": product_row.get("lead_time", ""),
+			"product_quantity": product_row.get("product_quantity", ""),
+			"final_price_by_purchase_team": product_row.get("final_price_by_purchase_team", ""),
 			# "need_asset_code": product_row.get("need_asset_code", 0)
 		}
 
