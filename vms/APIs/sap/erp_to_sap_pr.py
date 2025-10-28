@@ -1845,6 +1845,7 @@ def send_pr_success_notification(doc_name, pr_code, name_for_sap, pr_type):
         
         # Send success email to thunder00799@gmail.com
         try:
+            send_pr_success_notification_to_enquirer(doc_name, pr_code, name_for_sap, pr_type)
             frappe.custom_sendmail(
                 recipients=["thunder00799@gmail.com", "rishi.hingadd@merillife.com", "abhishek@mail.hybrowlabs.com"],
                 subject=subject,
@@ -2045,6 +2046,143 @@ def onupdate_pr(doc, method = None):
 
 
 
-
+def send_pr_success_notification_to_enquirer(doc_name, pr_code, name_for_sap, pr_type):
+    """Send success notification to enquirer when PR is created successfully in SAP"""
+    try:
+        # Get PR document
+        pr_doc = frappe.get_doc("Purchase Requisition Form", doc_name)
+        
+        # Get Purchase Requisition Webform
+        prw_doc_name = frappe.get_all(
+            "Purchase Requisition Webform",
+            {"purchase_requisition_form_link": pr_doc.name},
+            "name"
+        )
+        
+        if not prw_doc_name:
+            print(f"⚠️ No Purchase Requisition Webform found for PR: {pr_doc.name}")
+            return
+        
+        prw_doc = frappe.get_doc("Purchase Requisition Webform", prw_doc_name[0].name)
+        cart = frappe.get_doc("Cart Details", prw_doc.cart_details_id)
+        
+        # Prepare recipient and CC lists
+        enq_recipients = [cart.user] if cart.user else []
+        enq_cc = []
+        
+        if cart.purchase_team_approval:
+            enq_cc.append(cart.purchase_team_approval)
+        if cart.hod_approval:
+            enq_cc.append(cart.hod_approval)
+        if cart.second_stage_approval_by:
+            enq_cc.append(cart.second_stage_approval_by)
+        
+        # Remove duplicates and None values
+        enq_cc = list(filter(None, set(enq_cc)))
+        
+        if not enq_recipients:
+            print(f"⚠️ No valid recipient found for PR: {pr_doc.name}")
+            return
+        
+        # Prepare success email content
+        subject = f"✅ Your Purchase Requisition has been Successfully Created in SAP - PR Code: {pr_code}"
+        
+        # Get PR details for email
+        pr_details = get_pr_details_for_email(pr_doc)
+        
+        # Create success email message
+        message = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <div style="background-color: #28a745; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+                <h2 style="margin: 0; font-size: 24px;">✅ Purchase Requisition Success</h2>
+                <p style="margin: 5px 0 0 0; font-size: 16px;">Your PR has been successfully created in SAP</p>
+            </div>
+           
+            <div style="padding: 20px;">
+                <div style="background-color: #d4edda; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <h3 style="color: #155724; margin-top: 0;">🎉 Great News!</h3>
+                    <p style="margin: 0; font-size: 16px; line-height: 1.5;">
+                        Your Purchase Requisition has been successfully processed and created in SAP system.
+                    </p>
+                </div>
+               
+                <h3 style="color: #333; border-bottom: 2px solid #28a745; padding-bottom: 5px;">📋 Purchase Requisition Details</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 40%;">SAP PR Code</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; color: #28a745; font-weight: bold;">{pr_code}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">SAP Name</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{name_for_sap}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">PR Document</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{pr_details['pr_name']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">PR Type</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{pr_details['pr_type']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">SAP Client Code</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{pr_details['sap_client_code']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Requisitioner</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{pr_details['requisitioner']}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Items Count</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{pr_details['items_count']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Processing Time</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{frappe.utils.now()}</td>
+                    </tr>
+                </table>
+                
+                <div style="background-color: #e7f3ff; padding: 15px; border-radius: 6px; border-left: 4px solid #0066cc;">
+                    <p style="margin: 0; font-size: 14px; color: #004085;">
+                        <strong>ℹ️ Next Steps:</strong><br>
+                        Your Purchase Requisition is now in the SAP system and will be processed according to your organization's procurement workflow.
+                    </p>
+                </div>
+            </div>
+           
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 0 0 8px 8px; text-align: center; color: #666; font-size: 12px;">
+                <p style="margin: 0;">This is an automated notification from the VMS Purchase Requisition System</p>
+                <p style="margin: 5px 0 0 0;">Please do not reply to this email</p>
+            </div>
+        </div>
+        """
+        
+        # Send success email to enquirer
+        try:
+            frappe.custom_sendmail(
+                recipients=enq_recipients,
+                cc=enq_cc,
+                subject=subject,
+                message=message,
+                now=True
+            )
+            print(f"📧 PR Success notification sent to Enquirer: {', '.join(enq_recipients)}")
+            if enq_cc:
+                print(f"📧 CC: {', '.join(enq_cc)}")
+            
+        except Exception as email_err:
+            print(f"❌ Failed to send success email to enquirer: {str(email_err)}")
+            frappe.log_error(f"Failed to send PR success notification email to enquirer: {str(email_err)}")
+        
+        # Log the success notification
+        frappe.log_error(
+            title=f"SAP PR Integration Success Notification Sent to Enquirer",
+            message=f"PR Doc: {pr_details['pr_name']}\nPR Code: {pr_code}\nSAP Name: {name_for_sap}\nRecipient: {', '.join(enq_recipients)}\nCC: {', '.join(enq_cc)}"
+        )
+        
+    except Exception as e:
+        error_msg = f"Failed to send PR success notification to enquirer: {str(e)}"
+        print(f"❌ {error_msg}")
+        frappe.log_error(error_msg)
 
 # {'Banfn': '', 'Ztype': '', 'Ztext': '', 'Zvmsprno': 'PRF-2025-06-00001', 'ItemSet': [{'Bnfpo': '10', 'Matnr': 'EJBCO-00001', 'Txz01': 'Test text t1', 'Menge': '10', 'Meins': 'EA', 'Werks': '7100', 'Lgort': 'RM01', 'Afnam': 'HARIN', 'Bsart': 'NB', 'Ekgrp': '', 'Ernam': 'PRD1', 'Erdat': datetime.date(2025, 6, 17), 'Badat': datetime.date(2025, 6, 19), 'Anln1': '', 'Anln2': '', 'Knttp': '', 'Pstyp': '', 'Sakto': '', 'Kostl': '', 'Preis': ''}]}
