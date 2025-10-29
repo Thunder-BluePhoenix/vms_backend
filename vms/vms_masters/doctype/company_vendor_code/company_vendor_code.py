@@ -353,14 +353,20 @@ def safe_get(obj, attr, index=None, subattr=None):
 	try:
 		if hasattr(obj, attr):
 			value = getattr(obj, attr)
-			if index is not None and isinstance(value, list) and len(value) > abs(index):
-				value = value[index]
-				if subattr and hasattr(value, subattr):
-					return getattr(value, subattr)
+			if index is not None and isinstance(value, list):
+				
+				if len(value) > 0:
+					# For negative index, check if abs(index) <= len(value)
+					# For positive index, check if index < len(value)
+					if (index < 0 and abs(index) <= len(value)) or (index >= 0 and index < len(value)):
+						value = value[index]
+						if subattr and hasattr(value, subattr):
+							return getattr(value, subattr)
+						return value
+			elif index is None:
 				return value
-			return value
-	except:
-		pass
+	except Exception as e:
+		frappe.logger().error(f"Error in safe_get: {str(e)}")
 	return None
 
 
