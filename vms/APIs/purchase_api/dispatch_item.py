@@ -612,31 +612,118 @@ def submit_dispatch_item(data):
 
 
 # list of purchase order based on vendor code and status
+import frappe
+import json
+
 @frappe.whitelist(allow_guest=True)
-def list_purchase_order(vendor_code):
-	try:
-		purchase_orders = frappe.get_all(
-			"Purchase Order",
-			filters={
-				"po_dispatch_status": ["in", [None, "", "Partial"]],
-				"vendor_code": vendor_code,
-				"sent_to_vendor": 1
-			},
-			fields="*"
-		)
-		return {
-			"status": "success",
-			"data": purchase_orders,
-			"purchase_orders": [po["name"] for po in purchase_orders]	
-		}
-	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "List Purchase Order Error")
-		return {
-			"status": "error",
-			"message": "Failed to fetch purchase orders.",
-			"error": str(e)
-		}
-	
+def list_purchase_order(vendor_code, filters=None, fields=None, limit=None, offset=0, order_by=None, search_term=None):
+    try:
+        # Validate mandatory vendor_code
+        if not vendor_code:
+            frappe.response.http_status_code = 400
+            return {
+                "status": "error",
+                "message": "vendor_code is mandatory"
+            }
+        
+        # Parse filters if they're passed as JSON string
+        if isinstance(filters, str):
+            filters = json.loads(filters) if filters else {}
+        elif filters is None:
+            filters = {}
+        
+        # Add mandatory filters
+        filters["po_dispatch_status"] = ["in", [None, "", "Partial"]]
+        filters["vendor_code"] = vendor_code
+        filters["sent_to_vendor"] = 1
+
+        # Parse fields if they're passed as JSON string
+        if isinstance(fields, str):
+            fields = json.loads(fields) if fields else "*"
+        elif fields is None:
+            fields = "*"
+
+        # Convert limit and offset to integers
+        limit = int(limit) if limit else 20
+        offset = int(offset) if offset else 0
+        
+        # Set default order_by if not provided
+        order_by = order_by if order_by else "creation desc"
+
+        # Add search term to filters if provided
+        if search_term:
+            # Search across multiple fields using OR condition
+            or_filters = [
+                ["name", "like", f"%{search_term}%"],
+                ["po_number", "like", f"%{search_term}%"],
+                ["vendor_name", "like", f"%{search_term}%"]
+            ]
+            
+            # Get documents with OR filters
+            purchase_orders = frappe.get_list(
+                "Purchase Order",
+                filters=filters,
+                or_filters=or_filters,
+                fields=fields,
+                limit=limit,
+                start=offset,
+                order_by=order_by,
+                ignore_permissions=False
+            )
+            
+            # Count with OR filters
+            total_count = len(frappe.get_all(
+                "Purchase Order",
+                filters=filters,
+                or_filters=or_filters,
+                fields=["name"]
+            ))
+        else:
+            # Get list of documents with filters
+            purchase_orders = frappe.get_list(
+                "Purchase Order",
+                filters=filters,
+                fields=fields,
+                limit=limit,
+                start=offset,
+                order_by=order_by,
+                ignore_permissions=False
+            )
+            
+            # Get total count for pagination
+            total_count = frappe.db.count("Purchase Order", filters)
+
+        frappe.response.http_status_code = 200
+        return {
+            "status": "success",
+            "message": "Success",
+            "data": purchase_orders,
+            "purchase_orders": [po["name"] for po in purchase_orders],
+            "pagination": {
+                "total_count": total_count,
+                "limit": limit,
+                "offset": offset,
+                "has_next": (offset + limit) < total_count,
+                "has_previous": offset > 0
+            }
+        }
+    
+    except json.JSONDecodeError:
+        frappe.response.http_status_code = 400
+        return {
+            "status": "error",
+            "message": "Failed",
+            "error": "Invalid JSON in filters or fields"
+        }
+    
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "List Purchase Order Error")
+        frappe.response.http_status_code = 500
+        return {
+            "status": "error",
+            "message": "Failed to fetch purchase orders.",
+            "error": str(e)
+        }
 
 
 

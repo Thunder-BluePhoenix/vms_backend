@@ -1,10 +1,12 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-07-17 17:57:57.718125",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series",
   "user_email",
   "signature_image",
   "column_break_ittj",
@@ -25,7 +27,8 @@
    "in_list_view": 1,
    "label": "User Email",
    "options": "email",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "signature_image",
@@ -80,15 +83,22 @@
    "fieldname": "po_sign_designation",
    "fieldtype": "Data",
    "label": "PO Sign Designation"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "SR-"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:39:48.866317",
+ "modified": "2025-10-28 21:35:18.763241",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Signature Record",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
