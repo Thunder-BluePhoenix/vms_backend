@@ -1348,6 +1348,26 @@ def vendor_rfq_dashboard(company_name, name, page_no, page_length, rfq_type, sta
 			LIMIT %(limit)s OFFSET %(offset)s
 		""", {**values, "limit": page_length, "offset": offset}, as_dict=True)
 
+
+		for row in data:
+			for key in ["creation", "rfq_date", "delivery_date"]:
+				if row.get(key):
+					value = str(row[key]).strip()
+					try:
+						if " " in value:
+							for fmt in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
+								try:
+									parsed = datetime.strptime(value, fmt)
+									row[key] = parsed.strftime("%d-%m-%Y %H:%M:%S")
+									break
+								except ValueError:
+									continue
+						else:
+							parsed = datetime.strptime(value, "%Y-%m-%d")
+							row[key] = parsed.strftime("%d-%m-%Y")
+					except Exception:
+						pass
+
 		return {
 			"status": "success",
 			"message": f"{len(data)} RFQ(s) found",
@@ -1434,6 +1454,25 @@ def purchase_team_rfq_dashboard(company_name, name, page_no, page_length, rfq_ty
 			ORDER BY rfq.creation DESC
 			LIMIT %(limit)s OFFSET %(offset)s
 		""", {**values, "limit": page_length, "offset": offset}, as_dict=True)
+
+		for row in data:
+			for key in ["creation", "rfq_date", "delivery_date"]:
+				if row.get(key):
+					value = str(row[key]).strip()
+					try:
+						if " " in value:
+							for fmt in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
+								try:
+									parsed = datetime.strptime(value, fmt)
+									row[key] = parsed.strftime("%d-%m-%Y %H:%M:%S")
+									break
+								except ValueError:
+									continue
+						else:
+							parsed = datetime.strptime(value, "%Y-%m-%d")
+							row[key] = parsed.strftime("%d-%m-%Y")
+					except Exception:
+						pass
 
 		return {
 			"status": "success",
