@@ -27,8 +27,7 @@
    "in_list_view": 1,
    "label": "User Email",
    "options": "User",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "fieldname": "signature_image",
@@ -94,7 +93,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-29 12:29:58.343951",
+ "modified": "2025-10-29 15:49:14.393349",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Signature Record",
