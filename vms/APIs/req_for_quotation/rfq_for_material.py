@@ -7,62 +7,65 @@ from datetime import datetime
 # PR Numbers list
 @frappe.whitelist(allow_guest=False)
 def pr_number_list(pr_number=None, rfq_type=None):
-    try:
-        user = frappe.session.user
+	try:
+		user = frappe.session.user
 
-        # Get user's team from Employee
-        employee_team = frappe.db.get_value("Employee", {"user_id": user}, "team")
-        if not employee_team:
-            return {
-                "status": "error",
-                "message": "No team assigned to the user"
-            }
+		# Get user's team from Employee
+		employee_team = frappe.db.get_value("Employee", {"user_id": user}, "team")
+		if not employee_team:
+			return {
+				"status": "error",
+				"message": "No team assigned to the user"
+			}
 
-        # Get all Purchase Group names where this team is linked
-        purchase_groups = frappe.get_all(
-            "Purchase Group Master",
-            filters={"team": employee_team},
-            pluck="name"
-        )
+		# Get all Purchase Group names where this team is linked
+		purchase_groups = frappe.get_all(
+			"Purchase Group Master",
+			filters={"team": employee_team},
+			pluck="name"
+		)
+		
 
-        if not purchase_groups:
-            return {
-                "status": "success",
-                "pr_numbers": []
-            }
+		if not purchase_groups:
+			return {
+				"status": "success",
+				"pr_numbers": []
+			}
 
-        # Set filters
-        filters = {
-            "purchase_group": ["in", purchase_groups]
-        }
+		# Set filters
+		filters = {
+			"purchase_group": ["in", purchase_groups]
+		}
 
-        if pr_number:
-            filters["sap_pr_code"] = ["like", f"{pr_number}%"]
+		if pr_number:
+			filters["sap_pr_code"] = ["like", f"{pr_number}%"]
 
-        if rfq_type == "Material Vendor":
-            filters["purchase_requisition_type"] = "NB"
-        elif rfq_type == "Service Vendor":
-            filters["purchase_requisition_type"] = "SB"
+		if rfq_type == "Material Vendor":
+			filters["purchase_requisition_type"] = "NB"
+		elif rfq_type == "Service Vendor":
+			filters["purchase_requisition_type"] = "SB"
 
-        # Fetch PR Numbers
-        pr_numbers = frappe.get_all(
-            "Purchase Requisition Form",
-            filters=filters,
-            fields=["name", "sap_pr_code"],
-            limit_page_length=20
-        )
+		filters["sap_pr_code"] = ["is", "set"]
 
-        return {
-            "status": "success",
-            "pr_numbers": pr_numbers
-        }
+		# Fetch PR Numbers
+		pr_numbers = frappe.get_all(
+			"Purchase Requisition Form",
+			filters=filters,
+			fields=["name", "sap_pr_code"],
+			limit_page_length=20
+		)	
 
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "PR Number List Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+		return {
+			"status": "success",
+			"pr_numbers": pr_numbers
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "PR Number List Error")
+		return {
+			"status": "error",
+			"message": str(e)
+		}
 
 
 # add pr numbers
