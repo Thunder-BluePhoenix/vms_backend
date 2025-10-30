@@ -1530,7 +1530,7 @@ def get_purchase_requisition_form(page_no=None, page_length=None, pur_req_type=N
             )
 
         # Other Roles ---
-        else:
+        elif ("Purchase Team" in user_roles or "Purchase Head" in user_roles or designation in ["Purchase Team", "Purchase Head"]):
             pur_grp = frappe.get_all(
                 "Purchase Group Master",
                 filters={"team": team},
@@ -1559,6 +1559,19 @@ def get_purchase_requisition_form(page_no=None, page_length=None, pur_req_type=N
             pr_w = frappe.get_all(
                 "Purchase Requisition Form",
                 filters=filters,
+                fields="*",
+                order_by="modified desc",
+                start=start,
+                page_length=page_length
+            )
+
+        else:
+            total_count = frappe.db.count("Purchase Requisition Form", filters={"sent_to_sap": 1, "sap_pr_code": ["is", "set"]})
+            total_pages = (total_count + page_length - 1) // page_length
+
+            pr_w = frappe.get_all(
+                "Purchase Requisition Form",
+                filters={"sent_to_sap": 1, "sap_pr_code": ["is", "set"]},
                 fields="*",
                 order_by="modified desc",
                 start=start,
