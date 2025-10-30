@@ -92,7 +92,7 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                 if not (po_no and plant):
                     continue
 
-                company = item.get("company_code")
+                company = grn.get("company_code")
                 pg_code = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
 
                 if (pg_code, company) in pg_team_map:
