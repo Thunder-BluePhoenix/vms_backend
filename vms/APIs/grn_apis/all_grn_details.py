@@ -34,7 +34,7 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
         if team:
             pg_list = frappe.get_all("Purchase Group Master", filters={"team": team}, fields=["purchase_group_code", "company"])
             pg_team_map = {(pg["purchase_group_code"], pg["company"]) for pg in pg_list}
-            # print(f"🔗 Purchase Group Mappings for team: {pg_team_map}")
+            print(f"🔗 Purchase Group Mappings for team: {pg_team_map}")
 
         if search_term:
             or_filters = [
@@ -92,7 +92,7 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                 if not (po_no and plant):
                     continue
 
-                company = item.get("company_name")
+                company = item.get("company_code")
                 pg_code = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
 
                 if (pg_code, company) in pg_team_map:
