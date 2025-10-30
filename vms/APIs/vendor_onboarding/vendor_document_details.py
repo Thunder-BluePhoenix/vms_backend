@@ -440,34 +440,49 @@ def update_vendor_onboarding_gst_details(data):
 		if main_doc.registered_for_multi_companies == 1:
 			unique_multi_comp_id = main_doc.unique_multi_comp_id
 
-			linked_docs = frappe.get_all(
-				"Legal Documents",
-				filters={
-					"registered_for_multi_companies": 1,
-					"unique_multi_comp_id": unique_multi_comp_id
-				},
-				fields=["name"]
-			)
+			for row in data["gst_table"]:
+				companies = row.get("company") or []
+				if isinstance(companies, str):
+					companies = [companies]  # normalize if a single string
 
-			for entry in linked_docs:
-				doc = frappe.get_doc("Legal Documents", entry.name)
+				gst_state = (row.get("gst_state") or "").strip()
+				gst_number = (row.get("gst_number") or "").strip()
+				gst_registration_date = (row.get("gst_registration_date") or "").strip()
+				gst_ven_type = (row.get("gst_ven_type") or "").strip()
+				pincode = (row.get("pincode") or "").strip()
+				row_name = row.get("name")
 
-				if doc.vendor_onboarding:
-					vendor_onboarding_doc = frappe.get_doc("Vendor Onboarding", doc.vendor_onboarding)
-					company_name = getattr(vendor_onboarding_doc, "company_name", "") or ""
+				for company_name in companies:
+					company_name = (company_name or "").strip()
+					if not company_name:
+						continue
 
-				for row in data["gst_table"]:
-					row_name = row.get("name")
-					gst_state = (row.get("gst_state") or "").strip()
-					gst_number = (row.get("gst_number") or "").strip()
-					gst_registration_date = (row.get("gst_registration_date") or "").strip()
-					gst_ven_type = (row.get("gst_ven_type") or "").strip()
-					pincode = (row.get("pincode") or "").strip()
-					# company = (row.get("company") or "").strip()
-					company = company_name
+					# Step 1: Find Vendor Onboarding for this company
+					vendor_onboarding_docname = frappe.db.get_value(
+						"Vendor Onboarding",
+						{"company_name": company_name, "unique_multi_comp_id": unique_multi_comp_id},
+						"name"
+					)
 
+					if not vendor_onboarding_docname:
+						frappe.log_error(f"Vendor Onboarding not found for company: {company_name}", "GST Update Warning")
+						continue
+
+					# Step 2: Find corresponding Legal Document
+					legal_doc_name = frappe.db.get_value(
+						"Legal Documents",
+						{"vendor_onboarding": vendor_onboarding_docname, "unique_multi_comp_id": unique_multi_comp_id},
+						"name"
+					)
+
+					if not legal_doc_name:
+						frappe.log_error(f"Legal Document not found for company: {company_name}", "GST Update Warning")
+						continue
+
+					doc = frappe.get_doc("Legal Documents", legal_doc_name)
+
+					# Step 3: Update or Add GST row
 					if row_name:
-						# Update existing row by name (row ID).pincode
 						existing_row = next((g for g in doc.gst_table if g.name == row_name), None)
 						if existing_row:
 							existing_row.gst_state = gst_state
@@ -475,23 +490,19 @@ def update_vendor_onboarding_gst_details(data):
 							existing_row.gst_registration_date = gst_registration_date
 							existing_row.gst_ven_type = gst_ven_type
 							existing_row.pincode = pincode
-							existing_row.company = company
-							
-							# Set file URL if available
+							existing_row.company = company_name
 							if uploaded_file_url:
 								existing_row.gst_document = uploaded_file_url
 					else:
-						# Add new row - allow if gst_ven_type exists, check duplicates only if gst_number provided
 						can_add = False
-						
-						if gst_ven_type:  # If vendor type exists, allow the row
-							if gst_number:  # If GST number is also provided, check for duplicates
+						if gst_ven_type:
+							if gst_number:
 								is_duplicate = any(
 									(g.gst_number or "").strip() == gst_number and gst_number
 									for g in doc.gst_table
 								)
 								can_add = not is_duplicate
-							else:  # No GST number but vendor type exists, allow
+							else:
 								can_add = True
 
 						if can_add:
@@ -500,22 +511,20 @@ def update_vendor_onboarding_gst_details(data):
 								"gst_number": gst_number,
 								"gst_registration_date": gst_registration_date,
 								"gst_ven_type": gst_ven_type,
-								"pincode":pincode,
-								"company":company
+								"pincode": pincode,
+								"company": company_name
 							})
-
-							# Set file URL explicitly if available
 							if uploaded_file_url:
 								new_row.gst_document = uploaded_file_url
 
-				doc.save(ignore_permissions=True)
-				frappe.db.commit()
+					doc.save(ignore_permissions=True)
+					frappe.db.commit()
 
 			return {
 				"status": "success",
-				"message": "GST details updated successfully for all linked records.",
-				"docnames": [doc.name for doc in linked_docs]
+				"message": "GST details updated successfully for all companies in each row."
 			}
+
 
 		else:
 			# Single doc update
