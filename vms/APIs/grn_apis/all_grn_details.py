@@ -213,25 +213,28 @@ def get_grn_details_of_grn_number(grn_number=None):
         if not grn_items:
             frappe.throw("No GRN Items found in this GRN.")
 
-        for item in grn_items:
-            po_no = item.get("po_no")
-            plant = item.get("plant")
+        # for item in grn_items:
+        #     po_no = item.get("po_no")
+        #     plant = item.get("plant")
 
-            if not po_no or not plant:
-                continue
+        #     if not po_no or not plant:
+        #         continue
 
-            purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
-            company = frappe.db.get_value("Plant Master", plant, "company")
+        #     purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
+        #     company = frappe.db.get_value("Plant Master", plant, "company")
 
-            if not purchase_group or not company:
-                continue
+        #     if not purchase_group or not company:
+        #         continue
 
-            pg_master_name = f"{purchase_group}-{company}"
+        #     pg_master_name = f"{purchase_group}-{company}"
             
-            filtered_items.append(item)
+        #     filtered_items.append(item)
 
-        if not filtered_items:
-            frappe.throw("No valid items found in this GRN.")
+        
+            # frappe.throw("No valid items found in this GRN.")
+        for item in grn_items:
+            filtered_items.append(item)
+            
 
         attachments_data = []
         if hasattr(grn_doc, 'attachments') and grn_doc.attachments: 
