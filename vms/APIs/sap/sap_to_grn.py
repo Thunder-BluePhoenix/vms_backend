@@ -6,6 +6,17 @@ from vms.utils.custom_send_mail import custom_sendmail
 from collections import defaultdict
 
 
+
+def convert_and_validate_date(date_value):
+    
+    if not date_value or date_value == "0000-00-00" or date_value == "":
+        return None
+    
+    try:
+        date_obj = datetime.strptime(str(date_value), "%Y-%m-%d")
+        return date_obj.strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        return None
 def parse_date(value):
     if not value:
         return None
@@ -81,20 +92,37 @@ def get_grn():
                 value = data.get(sap_field, "")
                 field_meta = next((f for f in meta.fields if f.fieldname == erp_field), None)
                 if field_meta and field_meta.fieldtype != "Table":
+                    # Handle date fields
+                    if field_meta.fieldtype == "Date":
+                        value = convert_and_validate_date(value)
                     header_data[erp_field] = value
         
         # Set header fields on GRN doc
         for field_name, value in header_data.items():
-            grn_doc.set(field_name, value)
+            if value is not None:  # Only set non-None values
+                grn_doc.set(field_name, value)
         
         # Process items (table rows)
         for idx, item in enumerate(data["items"]):
             grn_item_data = {}
             
+            # Get child table meta
+            child_meta = frappe.get_meta("GRN Items")  # Replace with your actual child table doctype name
+            
             for sap_field, erp_field in field_mappings.items():
                 if sap_field in item:
                     value = item.get(sap_field, "")
-                    grn_item_data[erp_field] = value
+                    
+                    # Get field metadata from child table
+                    field_meta = next((f for f in child_meta.fields if f.fieldname == erp_field), None)
+                    
+                    # Handle date fields in child table
+                    if field_meta and field_meta.fieldtype == "Date":
+                        value = convert_and_validate_date(value)
+                    
+                    # Only add non-None values
+                    if value is not None:
+                        grn_item_data[erp_field] = value
             
             grn_doc.append("grn_items_table", grn_item_data)
         
