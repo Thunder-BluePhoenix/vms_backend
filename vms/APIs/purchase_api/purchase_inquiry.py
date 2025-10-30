@@ -733,24 +733,6 @@ def acknowledge_purchase_inquiry(data):
             data = json.loads(data)
 
         doc = frappe.get_doc("Cart Details", data.get("cart_id"))
-
-        # format cart date
-        if doc.cart_date:
-            try:
-                cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
-            except Exception:
-                cart_date_formatted = str(doc.cart_date)
-        else:
-            cart_date_formatted = "N/A"
-
-        # format acknowledge date
-        if doc.acknowledged_date:
-            try:
-                acknowledged_date_formatted = doc.acknowledged_date.strftime("%d-%m-%Y")
-            except Exception:
-                acknowledged_date_formatted = str(doc.acknowledged_date)
-        else:
-            acknowledged_date_formatted = "N/A"
                   
         if doc:
             doc.purchase_team_acknowledgement = 1
@@ -759,6 +741,30 @@ def acknowledge_purchase_inquiry(data):
             doc.purchase_team_status = "Acknowledged"
             doc.purchase_team_approval_status = "Acknowledged"
             doc.save(ignore_permissions=True)
+
+            # format cart date
+            if doc.cart_date:
+                try:
+                    cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
+                except Exception:
+                    cart_date_formatted = str(doc.cart_date)
+            else:
+                cart_date_formatted = "N/A"
+
+            # format acknowledge date
+            if doc.acknowledged_date:
+                try:
+                    if isinstance(doc.acknowledged_date, str):
+                        acknowledged_date_obj = datetime.strptime(doc.acknowledged_date, "%Y-%m-%d")
+                        acknowledged_date_formatted = acknowledged_date_obj.strftime("%d-%m-%Y")
+                    else:
+                        acknowledged_date_formatted = doc.acknowledged_date.strftime("%d-%m-%Y")
+                except Exception as e:
+                    frappe.log_error(f"Date formatting error: {str(e)}", "Acknowledged Date Format Error")
+                    acknowledged_date_formatted = str(doc.acknowledged_date)
+            else:
+                acknowledged_date_formatted = "N/A"
+                
 
             employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
             hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")

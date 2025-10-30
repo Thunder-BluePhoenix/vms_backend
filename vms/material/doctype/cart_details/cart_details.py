@@ -391,8 +391,13 @@ def send_mail_purchase(doc, method=None):
 
 		if doc.cart_date:
 			try:
-				cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
-			except Exception:
+				if isinstance(doc.cart_date, str):
+					cart_date_obj = datetime.strptime(doc.cart_date, "%Y-%m-%d")
+					cart_date_formatted = cart_date_obj.strftime("%d-%m-%Y")
+				else:
+					cart_date_formatted = doc.cart_date.strftime("%d-%m-%Y")
+			except Exception as e:
+				frappe.log_error(f"Date formatting error: {str(e)}", "Cart Date Format Error")
 				cart_date_formatted = str(doc.cart_date)
 		else:
 			cart_date_formatted = "N/A"
@@ -510,7 +515,7 @@ def send_mail_user(doc, method=None):
 			<p>Your cart details has been approved by HOD</b>.</p>
 			<p><b>Cart ID:</b> {doc.name}</p>
 			<p><b>Cart Date:</b> {cart_date_formatted}</p>
-			<p><b>Cart Products:</b></p>Your cart details has been approved by HOD0
+			<p><b>Cart Products:</b></p>
 			{table_html}
 			<p>Thank you!</p>
 		"""
