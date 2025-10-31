@@ -413,6 +413,7 @@ def create_purchase_requisition(cart_id):
 		pur_req.company = cart_details.company  
 		pur_req.purchase_group = cart_details.purchase_group  
 		pur_req.purchase_requisition_type = cart_details.purchase_type  
+		pur_req.plant = cart_details.plant  
 
 		item_number = 10
 		for row in cart_details.cart_product:
