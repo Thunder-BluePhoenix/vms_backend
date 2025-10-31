@@ -7,11 +7,9 @@ from frappe.utils.file_manager import save_file
 
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=False)
 def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_by=None, search_term=None):
     try:
-        # print("Fetching all GRN records...")
-        
         if isinstance(filters, str):
             filters = json.loads(filters) if filters else {}
         elif filters is None:
@@ -22,17 +20,20 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
         elif fields is None:
             fields = "*"
 
-        limit = int(limit) if limit else None  
+        limit = int(limit) if limit else None
         offset = int(offset) if offset else 0
-        
         order_by = order_by if order_by else "creation desc"
 
         user = frappe.session.user
         team = frappe.db.get_value("Employee", {"user_id": user}, "team")
-        
+
         pg_team_map = {}
         if team:
-            pg_list = frappe.get_all("Purchase Group Master", filters={"team": team}, fields=["purchase_group_code", "company"])
+            pg_list = frappe.get_all(
+                "Purchase Group Master",
+                filters={"team": team},
+                fields=["purchase_group_code", "company"]
+            )
             pg_team_map = {(pg["purchase_group_code"], pg["company"]) for pg in pg_list}
             print(f"🔗 Purchase Group Mappings for team: {pg_team_map}")
 
@@ -44,8 +45,7 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                 ["miro_no", "like", f"%{search_term}%"],
                 ["company_name", "like", f"%{search_term}%"]
             ]
-            
-            # Get GRNs with OR filters
+
             grns = frappe.get_list(
                 "GRN",
                 filters=filters,
@@ -56,8 +56,7 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                 order_by=order_by,
                 ignore_permissions=False
             )
-            
-            # Count with OR filters for pagination
+
             total_count_before_filter = len(frappe.get_all(
                 "GRN",
                 filters=filters,
@@ -65,7 +64,6 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                 fields=["name"]
             ))
         else:
-            # Get all GRNs with filters
             grns = frappe.get_list(
                 "GRN",
                 filters=filters,
@@ -75,13 +73,11 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                 order_by=order_by,
                 ignore_permissions=False
             )
-            
-            # Count for pagination
             total_count_before_filter = frappe.db.count("GRN", filters)
 
-        # print(f"📄 Total GRNs fetched: {len(grns)}")
-        
         result = []
+        missing_pos = []  
+
         for grn in grns:
             grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn["name"]})
             found_match = False
@@ -93,7 +89,16 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                     continue
 
                 company = grn.get("company_code")
-                pg_code = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
+
+                try:
+                    pg_code = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
+                except Exception:
+                    pg_code = None
+
+                if not pg_code:
+                    # Keep track of missing PO
+                    missing_pos.append({"grn_name": grn["name"], "po_no": po_no, "error": "Purchase Order not found"})
+                    continue  # skip this PO, but don’t fail
 
                 if (pg_code, company) in pg_team_map:
                     found_match = True
@@ -102,18 +107,17 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
             if found_match or not team:
                 try:
                     grn_doc = frappe.get_doc("GRN", grn["name"])
-                    
-                    # Get attachments data
+
                     attachments_data = []
                     if hasattr(grn_doc, 'attachments') and grn_doc.attachments:
                         for attachment in grn_doc.attachments:
                             attachment_url = attachment.get('attachment_name')
-                            
+
                             attachment_info = {
-                                "row_name": attachment.name,    
+                                "row_name": attachment.name,
                                 "file_name": attachment.get('name1'),
                             }
-                            
+
                             if attachment_url:
                                 try:
                                     file_doc = frappe.get_doc("File", {"file_url": attachment_url})
@@ -128,10 +132,9 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                                     attachment_info["error"] = str(e)
                             else:
                                 attachment_info["full_url"] = None
-                            
+
                             attachments_data.append(attachment_info)
-                    
-                    # Add additional fields to grn
+
                     grn["attachments"] = attachments_data
                     grn["sap_booking_id"] = grn_doc.sap_booking_id
                     grn["miro_no"] = grn_doc.miro_no
@@ -139,9 +142,8 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                     grn["grn_date"] = grn_doc.grn_date
                     grn["grn_year"] = grn_doc.grn_year
                     grn["company_name"] = grn_doc.company_name
-                    
+
                 except Exception as doc_error:
-                    # print(f"Error getting GRN document {grn['name']}: {str(doc_error)}")
                     grn["attachments"] = []
                     grn["sap_booking_id"] = None
                     grn["miro_no"] = None
@@ -149,17 +151,15 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
                     grn["grn_date"] = None
                     grn["grn_year"] = None
                     grn["company_name"] = None
-                
+
                 grn["grn_items"] = grn_items
                 result.append(grn)
 
-        # print(f"Returning {len(result)} GRNs after filtering.")
-        
-        # Return with pagination metadata
         return {
             "status": "success",
             "message": "Success",
             "data": result,
+            "missing_pos": missing_pos,  # <── Added here
             "pagination": {
                 "total_count": len(result),
                 "total_count_before_team_filter": total_count_before_filter,
@@ -177,7 +177,7 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
             "message": "Failed",
             "error": "Invalid JSON in filters or fields"
         }
-    
+
     except Exception as e:
         frappe.log_error(str(e), "Error in get_all_grn_details")
         frappe.response.http_status_code = 500
