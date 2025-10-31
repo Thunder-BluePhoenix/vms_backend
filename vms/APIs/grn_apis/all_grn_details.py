@@ -97,7 +97,7 @@ def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_b
 
                 if not pg_code:
                     # Keep track of missing PO
-                    missing_pos.append({"grn_name": grn["name"], "po_no": po_no, "error": "Purchase Order not found"})
+                    missing_pos.append({"grn_name": grn["name"],"grn_number":grn["grn_number"], "po_no": po_no, "error": "Purchase Order not found"})
                     continue  # skip this PO, but don’t fail
 
                 if (pg_code, company) in pg_team_map:
