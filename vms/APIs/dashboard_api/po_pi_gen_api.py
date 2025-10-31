@@ -1578,6 +1578,19 @@ def get_purchase_requisition_form(page_no=None, page_length=None, pur_req_type=N
                 page_length=page_length
             )
 
+        # get pur_req_webform_name and cart_id
+        for pr in pr_w:
+            webform_data = frappe.get_value(
+                "Purchase Requisition Webform",
+                {"purchase_requisition_form_link": pr["name"]},
+                ["name", "cart_details_id"]
+            )
+            if webform_data:
+                pr["pur_req_webform_name"], pr["cart_id"] = webform_data
+            else:
+                pr["pur_req_webform_name"], pr["cart_id"] = (None, None)
+                
+                
         # --- Success Response ---
         frappe.response["http_status_code"] = 200
         return {

@@ -60,7 +60,6 @@
   {
    "fieldname": "plant",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "Plant",
    "options": "Plant Master"
   },
@@ -304,7 +303,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-09 17:14:32.669229",
+ "modified": "2025-10-31 11:00:43.777470",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",
