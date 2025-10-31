@@ -63,7 +63,9 @@ websocket_events = {
 # webform_include_js = {"doctype": "public/js/doctype.js"}
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
-
+# after_request = [
+#     "vms.utils.decorators.auto_set_status_codes"
+# ]
 # boot_session = [
 #     "vms.chat_vms.doctype.chat_message.chat_message.get_user_chat_status"
 # ]

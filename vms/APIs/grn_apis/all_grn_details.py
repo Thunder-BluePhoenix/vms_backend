@@ -3,11 +3,13 @@ from frappe import _
 import json
 from datetime import datetime, date
 from frappe.utils.file_manager import save_file
+from vms.utils.decorators import api_response_handler
 
 
 
 
 @frappe.whitelist(allow_guest=False)
+# @api_response_handler
 def get_all_grn_details(filters=None, fields=None, limit=None, offset=0, order_by=None, search_term=None):
     try:
         if isinstance(filters, str):
@@ -207,6 +209,16 @@ def get_grn_details_of_grn_number(grn_number=None):
         if not user_team:
             frappe.throw("Your team is not mapped. Contact Admin.")
 
+        # Build pg_team_map like reference code
+        pg_team_map = {}
+        if user_team:
+            pg_list = frappe.get_all(
+                "Purchase Group Master",
+                filters={"team": user_team},
+                fields=["purchase_group_code", "company"]
+            )
+            pg_team_map = {(pg["purchase_group_code"], pg["company"]) for pg in pg_list}
+
         grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
         if not grn_name:
             frappe.throw("GRN not found.")
@@ -216,33 +228,47 @@ def get_grn_details_of_grn_number(grn_number=None):
         except frappe.DoesNotExistError:
             frappe.throw("GRN document does not exist.")
 
-        filtered_items = []
-
         grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn_name})
         if not grn_items:
             frappe.throw("No GRN Items found in this GRN.")
 
+        # Use the same filtering logic as reference
+        filtered_items = []
+        missing_pos = []
+
         for item in grn_items:
-            po_no = item.get("po_no")
-            plant = item.get("plant")
+            po_no, plant = item.get("po_no"), item.get("plant")
 
-            if not po_no or not plant:
+            if not (po_no and plant):
                 continue
 
-            purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
-            company = frappe.db.get_value("Plant Master", plant, "company")
+            company = grn_doc.company_code
 
-            if not purchase_group or not company:
-                continue
+            try:
+                pg_code = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
+            except Exception:
+                pg_code = None
 
-            pg_master_name = f"{purchase_group}-{company}"
-            pg_team = frappe.db.get_value("Purchase Group Master", pg_master_name, "team")
+            if not pg_code:
+                # Keep track of missing PO
+                missing_pos.append({
+                    "grn_name": grn_doc.name,
+                    "grn_number": grn_doc.grn_number, 
+                    "po_no": po_no, 
+                    "error": "Purchase Order not found"
+                })
+                continue  
 
-            if pg_team and pg_team == user_team:
+            if (pg_code, company) in pg_team_map:
                 filtered_items.append(item)
 
+        # items_to_return = filtered_items if filtered_items else grn_items
         if not filtered_items:
-            frappe.throw("You are not authorized to view any items in this GRN.")
+            return {
+                "status": "Not Found",
+                "message": "No GRN Items found for your team in this GRN.",
+            }
+
 
         attachments_data = []
         if hasattr(grn_doc, 'attachments') and grn_doc.attachments: 
@@ -252,8 +278,6 @@ def get_grn_details_of_grn_number(grn_number=None):
                     "row_name": attachment.name,    
                     "file_name": attachment.get('name1'),  
                 }
-                attachments_data.append(attachment_info)
-
 
                 if attachment_url:
                     try:
@@ -275,16 +299,18 @@ def get_grn_details_of_grn_number(grn_number=None):
         return {
             "grn_no": grn_doc.grn_number,
             "grn_date": grn_doc.grn_date,
-            "grn_items": filtered_items,
-            "sap_booking_id":grn_doc.sap_booking_id,
-            "miro_no":grn_doc.miro_no,
+            "grn_items": filtered_items,  # ✅ Return filtered or all items
+            "sap_booking_id": grn_doc.sap_booking_id,
+            "miro_no": grn_doc.miro_no,
             "sap_status": grn_doc.sap_status,
             "grn_year": grn_doc.grn_year,
             "company_name": grn_doc.company_name,
-            "attachments": attachments_data
+            "attachments": attachments_data,
+            "missing_pos": missing_pos
         }
     
     else:
+        # For non-Purchase Team users, return all items without filtering
         grn_name = frappe.db.get_value("GRN", {"grn_number": grn_number})
         if not grn_name:
             frappe.throw("GRN not found.")
@@ -294,34 +320,9 @@ def get_grn_details_of_grn_number(grn_number=None):
         except frappe.DoesNotExistError:
             frappe.throw("GRN document does not exist.")
 
-        filtered_items = []
-
         grn_items = frappe.get_all("GRN Items", fields="*", filters={"parent": grn_name})
         if not grn_items:
             frappe.throw("No GRN Items found in this GRN.")
-
-        # for item in grn_items:
-        #     po_no = item.get("po_no")
-        #     plant = item.get("plant")
-
-        #     if not po_no or not plant:
-        #         continue
-
-        #     purchase_group = frappe.db.get_value("Purchase Order", po_no, "purchase_group")
-        #     company = frappe.db.get_value("Plant Master", plant, "company")
-
-        #     if not purchase_group or not company:
-        #         continue
-
-        #     pg_master_name = f"{purchase_group}-{company}"
-            
-        #     filtered_items.append(item)
-
-        
-            # frappe.throw("No valid items found in this GRN.")
-        for item in grn_items:
-            filtered_items.append(item)
-            
 
         attachments_data = []
         if hasattr(grn_doc, 'attachments') and grn_doc.attachments: 
@@ -331,8 +332,6 @@ def get_grn_details_of_grn_number(grn_number=None):
                     "row_name": attachment.name,    
                     "file_name": attachment.get('name1'),  
                 }
-                attachments_data.append(attachment_info)
-
 
                 if attachment_url:
                     try:
@@ -354,15 +353,14 @@ def get_grn_details_of_grn_number(grn_number=None):
         return {
             "grn_no": grn_doc.grn_number,
             "grn_date": grn_doc.grn_date,
-            "grn_items": filtered_items,
-            "sap_booking_id":grn_doc.sap_booking_id,
-            "miro_no":grn_doc.miro_no,
+            "grn_items": grn_items,
+            "sap_booking_id": grn_doc.sap_booking_id,
+            "miro_no": grn_doc.miro_no,
             "sap_status": grn_doc.sap_status,
             "grn_year": grn_doc.grn_year,
             "company_name": grn_doc.company_name,
             "attachments": attachments_data
         }
-
 
 
 @frappe.whitelist(allow_guest=False)

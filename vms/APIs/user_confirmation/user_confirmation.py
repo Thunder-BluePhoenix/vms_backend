@@ -333,7 +333,7 @@ def send_payment_release_notification_api():
         company_code = None
 
         if company_code_from_po:
-            company_code = frappe.db.get_value("Company Master", {"company_name": company_code_from_po}, "name")
+            company_code = frappe.db.get_value("Company Master", {"company_code": company_code_from_po}, "name")
         if not company_code:
             return {
                 "status": "error",
@@ -393,81 +393,143 @@ def send_payment_release_notification_api():
                 </div>
             """
         
-        successful_emails = 0
-        failed_emails = 0
+        # successful_emails = 0
+        # failed_emails = 0
         
-        for member in accounts_team_emails:
-            try:
-                subject = f"Payment Release Approved - PO: {po_doc.name}"
+        # for member in accounts_team_emails:
+        #     try:
+        #         subject = f"Payment Release Approved - PO: {po_doc.name}"
                 
-                message = f"""
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #28a745;">Payment Release Notification</h2>
+        #         message = f"""
+        #             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        #                 <h2 style="color: #28a745;">Payment Release Notification</h2>
                         
-                        <p>Dear {member['name']},</p>
+        #                 <p>Dear {member['name']},</p>
                         
-                        <p>Good news! We have received confirmation that Material have been delivered for the following purchase order. You can now proceed with payment release.</p>
+        #                 <p>Good news! We have received confirmation that Material have been delivered for the following purchase order. You can now proceed with payment release.</p>
                         
-                        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <strong>Purchase Order Details:</strong><br>
-                            <strong>PO Number:</strong> {po_doc.name}<br>
-                            <strong>Company Code:</strong> {company_code}<br>
-                            <strong>Delivery Date:</strong> {frappe.utils.format_date(po_doc.delivery_date) if po_doc.delivery_date else 'Not specified'}<br>
-                        </div>
+        #                 <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        #                     <strong>Purchase Order Details:</strong><br>
+        #                     <strong>PO Number:</strong> {po_doc.name}<br>
+        #                     <strong>Company Code:</strong> {company_code}<br>
+        #                     <strong>Delivery Date:</strong> {frappe.utils.format_date(po_doc.delivery_date) if po_doc.delivery_date else 'Not specified'}<br>
+        #                 </div>
                         
-                        {remark_section}
+        #                 {remark_section}
                         
-                        <div style="background-color: #cce5ff; border: 1px solid #99ccff; color: #004085; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <strong>Action Required:</strong> Please proceed with payment release for this purchase order as Material delivery has been confirmed.
-                        </div>
+        #                 <div style="background-color: #cce5ff; border: 1px solid #99ccff; color: #004085; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        #                     <strong>Action Required:</strong> Please proceed with payment release for this purchase order as Material delivery has been confirmed.
+        #                 </div>
                         
-                        <p>Please process the payment at your earliest convenience.</p>
+        #                 <p>Please process the payment at your earliest convenience.</p>
                         
-                        <p>Regards,<br>VMS Team</p>
-                    </div>
-                """
+        #                 <p>Regards,<br>VMS Team</p>
+        #             </div>
+        #         """
                 
-                frappe.custom_sendmail(
-                    recipients=[member['email']],
-                    subject=subject,
-                    message=message,
-                    now=True
-                )
+        #         frappe.custom_sendmail(
+        #             recipients=[member['email']],
+        #             subject=subject,
+        #             message=message,
+        #             now=True
+        #         )
                 
-                successful_emails += 1
+        #         successful_emails += 1
                 
-            except Exception as email_error:
-                frappe.log_error(f"Error sending email to {member['email']}: {str(email_error)}", "Accounts Team Email Error")
-                failed_emails += 1
+        #     except Exception as email_error:
+        #         frappe.log_error(f"Error sending email to {member['email']}: {str(email_error)}", "Accounts Team Email Error")
+        #         failed_emails += 1
         
-        if successful_emails > 0:
+        # if successful_emails > 0:
+        #     return {
+        #         "status": "success",
+        #         "message": f"Payment release notification sent successfully to {successful_emails} accounts team member(s).",
+        #         "remark_saved": bool(remark),
+        #         "details": {
+        #             "po_id": po_id,
+        #             "company_code": company_code,
+        #             "total_recipients": len(accounts_team_emails),
+        #             "successful_emails": successful_emails,
+        #             "failed_emails": failed_emails,
+        #             "recipients": [member['email'] for member in accounts_team_emails]
+        #         }
+        #     }
+        # else:
+        #     return {
+        #         "status": "error",
+        #         "message": "Failed to send any notification emails.",
+        #         "details": {
+        #             "po_id": po_id,
+        #             "company_code": company_code,
+        #             "total_recipients": len(accounts_team_emails),
+        #             "failed_emails": failed_emails
+        #         }
+        #     }
+
+        subject = f"Payment Release Approved - PO: {po_doc.name}"
+
+        message = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #28a745;">Payment Release Notification</h2>
+
+                <p>Dear Accounts Team,</p>
+                
+                <p>Good news! We have received confirmation that materials have been delivered for the following purchase order. You can now proceed with payment release.</p>
+
+                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <strong>Purchase Order Details:</strong><br>
+                    <strong>PO Number:</strong> {po_doc.name}<br>
+                    <strong>Company Code:</strong> {company_code}<br>
+                    <strong>Delivery Date:</strong> {frappe.utils.format_date(po_doc.delivery_date) if po_doc.delivery_date else 'Not specified'}<br>
+                </div>
+
+                {remark_section}
+
+                <div style="background-color: #cce5ff; border: 1px solid #99ccff; color: #004085; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <strong>Action Required:</strong> Please proceed with payment release for this purchase order as material delivery has been confirmed.
+                </div>
+
+                <p>Please process the payment at your earliest convenience.</p>
+
+                <p>Regards,<br>VMS Team</p>
+            </div>
+        """
+
+        recipient_list = [member["email"] for member in accounts_team_emails if member.get("email")]
+       
+        try:
+            frappe.custom_sendmail(
+                recipients=recipient_list,
+                subject=subject,
+                message=message,
+                now=True
+            )
+
+            frappe.local.response["http_status_code"] = 200
             return {
                 "status": "success",
-                "message": f"Payment release notification sent successfully to {successful_emails} accounts team member(s).",
+                "message": f"Payment release notification sent successfully to {len(accounts_team_emails)} accounts team member(s).",
                 "remark_saved": bool(remark),
                 "details": {
                     "po_id": po_id,
                     "company_code": company_code,
                     "total_recipients": len(accounts_team_emails),
-                    "successful_emails": successful_emails,
-                    "failed_emails": failed_emails,
-                    "recipients": [member['email'] for member in accounts_team_emails]
+                    "recipients": accounts_team_emails
                 }
             }
-        else:
+
+        except Exception as email_error:
+            frappe.log_error(f"Error sending email: {str(email_error)}", "Accounts Team Email Error")
+            frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
-                "message": "Failed to send any notification emails.",
-                "details": {
-                    "po_id": po_id,
-                    "company_code": company_code,
-                    "total_recipients": len(accounts_team_emails),
-                    "failed_emails": failed_emails
-                }
+                "message": "Failed to send notification email.",
+                "error": str(email_error)
             }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Payment Release Notification API Error")
+        frappe.local.response["http_status_code"] = 500
         return {
             "status": "error",
             "message": "Failed to send payment release notification.",
