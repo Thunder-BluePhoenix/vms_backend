@@ -33,11 +33,11 @@ def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=No
         _create_email_queue_record(
             subject=subject,
             body=message,
-            # all_recipients=_normalize_recipients(recipients) + _normalize_recipients(cc) + _normalize_recipients(bcc),
-            # cc_emails=_normalize_recipients(cc),
-            to_emails=_normalize_recipients(recipients),
+            all_recipients=_normalize_recipients(recipients) + _normalize_recipients(cc) + _normalize_recipients(bcc),
             cc_emails=_normalize_recipients(cc),
-            bcc_emails=_normalize_recipients(bcc),
+            # to_emails=_normalize_recipients(recipients),
+            # cc_emails=_normalize_recipients(cc),
+            # bcc_emails=_normalize_recipients(bcc),
             sender_email=email_account["email_id"], 
             sender_name=email_account["sender_name"],  
             attachments=attachments,
@@ -425,24 +425,24 @@ def toggle_sending(enable):
     frappe.db.set_default("suspend_email_queue", 0 if frappe.utils.cint(enable) else 1)
 
 
-@frappe.whitelist()
-def resume_sending():
-    """Re-send all 'Not Sent' emails when resuming"""
-    if not frappe.has_permission("Email Queue", "write"):
-        frappe.throw("Not permitted")
-    unsent_emails = frappe.get_all("Email Queue", filters={"status": "Not Sent"})
-    for e in unsent_emails:
-        frappe.enqueue(_resend_email_queue, email_queue_name=e.name)
+# @frappe.whitelist()
+# def resume_sending():
+#     """Re-send all 'Not Sent' emails when resuming"""
+#     if not frappe.has_permission("Email Queue", "write"):
+#         frappe.throw("Not permitted")
+#     unsent_emails = frappe.get_all("Email Queue", filters={"status": "Not Sent"})
+#     for e in unsent_emails:
+#         frappe.enqueue(_resend_email_queue, email_queue_name=e.name)
 
 
-def _resend_email_queue(email_queue_name):
-    email_doc = frappe.get_doc("Email Queue", email_queue_name)
-    _send_email_with_cc_bcc_attachments(
-        subject=email_doc.subject,
-        body=email_doc.message,
-        to_emails=[r.recipient for r in email_doc.recipients],
-        attachments=None
-    )
+# def _resend_email_queue(email_queue_name):
+#     email_doc = frappe.get_doc("Email Queue", email_queue_name)
+#     _send_email_with_cc_bcc_attachments(
+#         subject=email_doc.subject,
+#         body=email_doc.message,
+#         to_emails=[r.recipient for r in email_doc.recipients],
+#         attachments=None
+#     )
 
 
 frappe.custom_sendmail = custom_sendmail
