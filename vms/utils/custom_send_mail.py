@@ -11,12 +11,40 @@ import mimetypes
 from vms.utils.notification import create_notification_log
 
 
+def is_email_sending_suspended():
+    """Return True if email sending is suspended in system defaults"""
+    try:
+        return bool(int(frappe.db.get_default("suspend_email_queue") or 0))
+    except Exception:
+        return False
 
 
 def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=None, attachments=None, **kwargs):
    
    
     create_notification_log(recipients= recipients, subject=subject, message=message, **kwargs)
+
+    # 🛑 Check if email sending is suspended
+    if is_email_sending_suspended():
+        frappe.logger("debug").info("Email sending is suspended. Adding to Email Queue but not sending.")
+        
+        email_account = _get_email_account_settings() 
+
+        _create_email_queue_record(
+            subject=subject,
+            body=message,
+            # all_recipients=_normalize_recipients(recipients) + _normalize_recipients(cc) + _normalize_recipients(bcc),
+            # cc_emails=_normalize_recipients(cc),
+            to_emails=_normalize_recipients(recipients),
+            cc_emails=_normalize_recipients(cc),
+            bcc_emails=_normalize_recipients(bcc),
+            sender_email=email_account["email_id"], 
+            sender_name=email_account["sender_name"],  
+            attachments=attachments,
+            status="Not Sent"
+        )
+        return
+
     if not cc and not bcc and not attachments:
         
         try:
@@ -90,7 +118,25 @@ def _get_email_account_settings(email_id="noreply@merillife.com"):
 
 
 def _send_email_with_cc_bcc_attachments(subject, body, to_emails, cc_emails=None, bcc_emails=None, attachments=None):
-   
+    
+    # 🛑 Stop if email sending is suspended
+    if is_email_sending_suspended():
+        frappe.logger("debug").info("Email sending is currently suspended. Skipping send.")
+
+        email_account = _get_email_account_settings() 
+
+        _create_email_queue_record(
+            subject=subject,
+            body=body,
+            all_recipients=(to_emails or []) + (cc_emails or []) + (bcc_emails or []),
+            cc_emails=cc_emails or [],
+            sender_email=email_account["email_id"], 
+            sender_name=email_account["sender_name"],
+            attachments=attachments,
+            status="Not Sent"
+        )
+        return
+
     cc_emails = cc_emails or []
     bcc_emails = bcc_emails or []
     
@@ -371,6 +417,32 @@ def _normalize_recipients(recipients):
         recipients = [recipients]
 
     return [str(r).strip() for r in recipients if r]
+
+
+@frappe.whitelist()
+def toggle_sending(enable):
+    frappe.only_for("System Manager")
+    frappe.db.set_default("suspend_email_queue", 0 if frappe.utils.cint(enable) else 1)
+
+
+@frappe.whitelist()
+def resume_sending():
+    """Re-send all 'Not Sent' emails when resuming"""
+    if not frappe.has_permission("Email Queue", "write"):
+        frappe.throw("Not permitted")
+    unsent_emails = frappe.get_all("Email Queue", filters={"status": "Not Sent"})
+    for e in unsent_emails:
+        frappe.enqueue(_resend_email_queue, email_queue_name=e.name)
+
+
+def _resend_email_queue(email_queue_name):
+    email_doc = frappe.get_doc("Email Queue", email_queue_name)
+    _send_email_with_cc_bcc_attachments(
+        subject=email_doc.subject,
+        body=email_doc.message,
+        to_emails=[r.recipient for r in email_doc.recipients],
+        attachments=None
+    )
 
 
 frappe.custom_sendmail = custom_sendmail
