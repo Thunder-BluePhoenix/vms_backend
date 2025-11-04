@@ -124,7 +124,7 @@ class PurchaseRequisitionWebform(Document):
 		else:
 			pur_req_form = frappe.get_doc("Purchase Requisition Form", self.purchase_requisition_form_link)
 
-		if self.purchase_team_approved == 1:
+		if self.purchase_team_approved == 1 or self.form_status == "Submitted":
 			pur_req_form.pr_approved = 1
 		else:
 			pur_req_form.pr_approved = 0
