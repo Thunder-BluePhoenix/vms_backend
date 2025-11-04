@@ -515,6 +515,18 @@ def get_pur_req_table_data(name):
 		grouped_data = {}
 
 		for row in sorted(doc.purchase_requisition_form_table, key=lambda x: x.idx):
+			valuation_info = frappe.db.get_value(
+				"Valuation Class", 
+				row.valuation_area_head, 
+				["valuation_class_code", "valuation_class_name"], 
+				as_dict=True
+			)
+
+			if valuation_info:
+				valuation_area_head_desc = f"{valuation_info.valuation_class_code or ''}-{valuation_info.valuation_class_name or ''}"
+			else:
+				valuation_area_head_desc = ""
+
 			head_id = row.head_unique_id
 			if not head_id:
 				continue
@@ -561,7 +573,7 @@ def get_pur_req_table_data(name):
 					"tracking_id_head": row.tracking_id_head,
 					"desired_vendor_head": row.desired_vendor_head,
 					"valuation_area_head": row.valuation_area_head,
-					"valuation_area_head_desc": frappe.db.get_value("Valuation Class", row.valuation_area_head, "valuation_class_code")+"-"+frappe.db.get_value("Valuation Class", row.valuation_area_head, "valuation_class_name"),
+					"valuation_area_head_desc": valuation_area_head_desc,
 					"fixed_value_head": row.fixed_value_head,
 					"spit_head": row.spit_head,
 					"purchase_organisation_head": row.purchase_organisation_head,
@@ -1396,40 +1408,40 @@ def submit_pr_form(name):
 		# doc.form_is_submitted = 1
 		doc.form_status = "Submitted"
 
-		# sending email to Purchase team for Approval
-		employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
+		# # sending email to Purchase team for Approval
+		# employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
 
-		pur_team_email = None
-		pur_team_name = None
+		# pur_team_email = None
+		# pur_team_name = None
 
-		if doc.cart_details_id:
-			cart_details = frappe.get_doc("Cart Details", doc.cart_details_id)
-			pur_team = cart_details.dedicated_purchase_team
+		# if doc.cart_details_id:
+		# 	cart_details = frappe.get_doc("Cart Details", doc.cart_details_id)
+		# 	pur_team = cart_details.dedicated_purchase_team
 
-		if pur_team:
-			pur_team_email = pur_team
-			pur_team_name = frappe.get_value("Employee", {"user_id": pur_team}, "full_name")
+		# if pur_team:
+		# 	pur_team_email = pur_team
+		# 	pur_team_name = frappe.get_value("Employee", {"user_id": pur_team}, "full_name")
 			
-			if pur_team_email:
-				subject = f"New Purchase Requisition Raised by {employee_name}"
-				message = f"""
-					<p>Dear {pur_team_name},</p>		
+		# 	if pur_team_email:
+		# 		subject = f"New Purchase Requisition Raised by {employee_name}"
+		# 		message = f"""
+		# 			<p>Dear {pur_team_name},</p>		
 
-					<p>A new <b>Purchase Requisition</b> has been raised by <b>{employee_name}</b>. Kindly review the details and take the necessary action.</p>
+		# 			<p>A new <b>Purchase Requisition</b> has been raised by <b>{employee_name}</b>. Kindly review the details and take the necessary action.</p>
 
-					<p>Thank you.<br>
-					Best regards,<br>
-					VMS Team</p>
-				"""
+		# 			<p>Thank you.<br>
+		# 			Best regards,<br>
+		# 			VMS Team</p>
+		# 		"""
 
-				frappe.custom_sendmail(
-					recipients=pur_team_email,
-					subject=subject,
-					message=message,
-					now=True
-				)
+		# 		frappe.custom_sendmail(
+		# 			recipients=pur_team_email,
+		# 			subject=subject,
+		# 			message=message,
+		# 			now=True
+		# 		)
 				
-				doc.mail_sent_to_purchase_team = 1
+		# 		doc.mail_sent_to_purchase_team = 1
 
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
