@@ -632,6 +632,7 @@ def get_pur_req_table_data(name):
 			"Cart ID": doc.cart_details_id,
 			"Form Status": doc.form_status,
 			"form_is_submitted": doc.form_is_submitted,
+			"mail_sent_to_purchase_team": doc.mail_sent_to_purchase_team,
 			"sap_response": doc.zmsg,
 			"sap_status": sap_status,
 			"data": list(grouped_data.values())
