@@ -45,6 +45,7 @@
   "purchase_requisition_json_section",
   "purchase_requisition_json_fields",
   "sap_response_tab",
+  "sap_created_pr",
   "sap_status",
   "zmsg",
   "column_break_qbnu",
@@ -241,7 +242,7 @@
    "fieldname": "form_status",
    "fieldtype": "Select",
    "label": "Form Status",
-   "options": "Pending\nSubmitted\nSAP Error\nPR Created"
+   "options": "Pending\nSubmitted\nSAP Error\nPR Created\nPR Created from SAP"
   },
   {
    "default": "Today",
@@ -298,12 +299,18 @@
    "fieldname": "sap_summary",
    "fieldtype": "Code",
    "label": "SAP Summary"
+  },
+  {
+   "default": "0",
+   "fieldname": "sap_created_pr",
+   "fieldtype": "Check",
+   "label": "PR Created From SAP"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-31 11:00:43.777470",
+ "modified": "2025-11-05 14:44:01.097191",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",
