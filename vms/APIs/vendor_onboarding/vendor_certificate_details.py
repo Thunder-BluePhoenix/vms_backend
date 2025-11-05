@@ -89,6 +89,8 @@ def update_vendor_onboarding_certificate_details(data):
 				for row in data["certificates"]:
 					certificate_code = (row.get("certificate_code") or "").strip()
 					certificate_name = (row.get("certificate_name") or "").strip()
+					certificate_number = (row.get("certificate_number") or "").strip()
+					certificate_body = (row.get("certificate_body") or "").strip()
 					other_certificate_name = (row.get("other_certificate_name") or "").strip()
 					valid_till = (row.get("valid_till") or "").strip()
 					other = (row.get("other") or "").strip()
@@ -102,6 +104,8 @@ def update_vendor_onboarding_certificate_details(data):
 						new_row = doc.append("certificates", {
 							"certificate_code": certificate_code,
 							"certificate_name": certificate_name,
+							"certificate_number": certificate_number,
+							"certificate_body": certificate_body,
 							"other_certificate_name": other_certificate_name,
 							"valid_till": valid_till,
 							"other": other
@@ -125,6 +129,8 @@ def update_vendor_onboarding_certificate_details(data):
 			for row in data["certificates"]:
 				certificate_code = (row.get("certificate_code") or "").strip()
 				certificate_name = (row.get("certificate_name") or "").strip()
+				certificate_number = (row.get("certificate_number") or "").strip()
+				certificate_body = (row.get("certificate_body") or "").strip()
 				other_certificate_name = (row.get("other_certificate_name") or "").strip()
 				valid_till = (row.get("valid_till") or "").strip()
 				other = (row.get("other") or "").strip()
@@ -138,6 +144,8 @@ def update_vendor_onboarding_certificate_details(data):
 					new_row = main_doc.append("certificates", {
 						"certificate_code": certificate_code,
 						"certificate_name": certificate_name,
+						"certificate_number": certificate_number,
+						"certificate_body": certificate_body,
 						"other_certificate_name": other_certificate_name,
 						"valid_till": valid_till,
 						"other": other
