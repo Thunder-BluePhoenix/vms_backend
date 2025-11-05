@@ -151,38 +151,39 @@ def purchase_team_approval_check(data):
         else:
             frappe.throw(_("Invalid request: approve must be set."))
 
-
-        employee_name = frappe.get_value("Employee", {"user_id": pur_req_doc.requisitioner}, "full_name")
-        subject = f"Purchase Requisition has been Approved by Purchase Team"
-		
-        message = f"""
-			<p>Dear {employee_name},</p>		
-
-			<p>Your <b>Purchase Requisition {pur_req_doc.name}</b> has been approved by the <b>Purchase Team</b>. Kindly review the details and take the necessary action.</p>
-
-			<p>Thank you.<br>
-			Best regards,<br>
-			VMS Team</p>
-		"""
-
-		
-        frappe.custom_sendmail(
-			recipients=[pur_req_doc.requisitioner],
-			subject=subject,
-			message=message,
-			now=True
-		)
-		
-        pur_req_doc.ack_mail_to_user = 1
-
         pur_req_doc.save(ignore_permissions=True)
         frappe.db.commit()
+
+        if pur_req_doc.sap_status == "Success":
+            employee_name = frappe.get_value("Employee", {"user_id": pur_req_doc.requisitioner}, "full_name")
+            subject = f"Purchase Requisition has been Approved by Purchase Team"
+
+            message = f"""
+                <p>Dear {employee_name},</p>		
+
+                <p>Your <b>Purchase Requisition {pur_req_doc.name}</b> has been approved by the <b>Purchase Team</b>. Kindly review the details and take the necessary action.</p>
+
+                <p>Thank you.<br>
+                Best regards,<br>
+                VMS Team</p>
+            """
+
+
+            frappe.custom_sendmail(
+                recipients=[pur_req_doc.requisitioner],
+                subject=subject,
+                message=message,
+                now=True
+            )
+
+            frappe.db.set_value("Purchase Requisition Webform", pur_req, "ack_mail_to_user", 1)
 
         return {
             "status": "success",
             "message": "Purchase Requisition updated successfully.",
             "Purchase Requisition": pur_req_doc.name,
         }
+    
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error updating Purchase Requisition")
         return {

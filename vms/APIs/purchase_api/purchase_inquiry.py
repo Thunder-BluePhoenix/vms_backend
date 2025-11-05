@@ -807,7 +807,7 @@ def acknowledge_purchase_inquiry(data):
 
                 <p><b>Cart ID:</b> {doc.name}</p>
                 <p><b>Cart Date:</b> {cart_date_formatted}</p>
-                <p><b>Acknowledged Date:</b> {acknowledged_date_formatted}</p>
+                <p><b>Expected Delivery Date:</b> {acknowledged_date_formatted}</p>
                 <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks}</p>
 
                 {table_html}
@@ -815,6 +815,10 @@ def acknowledge_purchase_inquiry(data):
                 <p>Thank you.<br>
                 Best regards,<br>
                 VMS Team</p>
+
+                <div style="background-color:#f9f9f9; border-left:4px solid #ccc; padding:10px; margin-top:20px; font-size:13px; color:#555;">
+                    <em>Disclaimer:</em> The Expected Delivery Date can be changed based on the Purchase Order and Purchase Requisition.
+                </div>
                 """
 
             frappe.custom_sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
