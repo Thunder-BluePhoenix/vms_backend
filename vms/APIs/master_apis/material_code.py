@@ -47,11 +47,11 @@ def get_material_code_list(filters=None, fields=None, limit=20, offset=0, order_
         if isinstance(fields, str):
             fields = json.loads(fields) if fields else [
                 "name", "material_description", "material_type", 
-                "material_group", "plant", "company_code"
+                "material_group", "plant", "company_code", "material_code", "valuation_class", "profit_center"
             ]
         elif fields is None:
             fields = [
-                "name", "material_description", "material_code_name","material_code"
+                "name", "material_description", "material_code_name","material_code", "material_type", "material_group", "plant", "company_code", "valuation_class", "profit_center"
             ]
 
         # Convert limit and offset to integers
