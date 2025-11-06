@@ -199,6 +199,9 @@ def update_vendor_onboarding_manufacturing_details(data):
 			if "materials_supplied" in data:
 				for row in data["materials_supplied"]:
 					new_row = doc.append("materials_supplied", {
+						"material_name": row.get("material_name"),
+						"critical": row.get("critical"),
+						"non_critical": row.get("non_critical"),
 						"material_description": row.get("material_description"),
 						"annual_capacity": row.get("annual_capacity"),
 						"hsnsac_code": row.get("hsnsac_code")
