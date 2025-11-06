@@ -5,6 +5,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import now, get_datetime, date_diff, getdate, nowdate
 import json
+from frappe import _
+from frappe.utils import now_datetime
 
 
 
@@ -274,96 +276,183 @@ def create_or_update_aging_tracker_from_vendor_onboarding(vendor_onboarding_name
 						"Vendor Aging Tracker Error")
 
 
+# Prev This function takes value from VMS SAP Logs and below there is new function which takes value from Compnay vendor code and set in vendor Aging
+# @frappe.whitelist()
+# def create_or_update_aging_tracker_from_sap_log(sap_log_name):
+# 	try:
+# 		sap_log = frappe.get_doc("VMS SAP Logs", sap_log_name)
+		
+# 		# Early exit if not successful or no data
+# 		if sap_log.status != "Success" or not sap_log.total_transaction:
+# 			return
+		
+# 		transaction_data = json.loads(sap_log.total_transaction)
+# 		vendor_code = (
+# 			transaction_data.get("transaction_summary", {}).get("vendor_code")
+# 			or transaction_data.get("response_details", {}).get("vendor_code")
+# 		)
+		
+# 		if not vendor_code:
+# 			frappe.log_error("No vendor code found in SAP log total_transaction", "Vendor Aging Tracker")
+# 			return
+		
+# 		request_details = transaction_data.get("request_details", {})
+# 		payload = request_details.get("payload", {})
+# 		doc_name = sap_log.vendor_onboarding_link
+		
+# 		# ✅ Get or create document
+# 		if frappe.db.exists("Vendor Aging Tracker", doc_name):
+# 			doc = frappe.get_doc("Vendor Aging Tracker", doc_name)
+# 		else:
+# 			doc = frappe.get_doc({
+# 				"doctype": "Vendor Aging Tracker",
+# 				"ag_id": doc_name,
+# 				"vendor_onboarding_link": doc_name
+# 			})
+		
+# 		# ✅ Update parent fields
+# 		doc.vendor_name = payload.get("Name1", "")
+# 		doc.primary_vendor_code = vendor_code
+# 		doc.company_code = request_details.get("company_name", "")
+# 		doc.sap_client_code = request_details.get("sap_client_code", "")
+# 		doc.gst_number = request_details.get("gst_number", "")
+# 		doc.vendor_ref_no = request_details.get("vendor_ref_no", "")
+# 		doc.vendor_status = "Active"
+# 		doc.sap_log_reference = sap_log.name
+		
+# 		# Handle vendor_creation_date_sap if empty
+# 		if not doc.vendor_creation_date_sap:
+# 			doc.vendor_creation_date_sap = get_datetime(sap_log.creation)
+		
+# 		# ✅ Update or add child table row
+# 		child_doctype = "Vendor Aging Company Codes"
+# 		company_code = request_details.get("company_name", "")
+# 		gst_number = request_details.get("gst_number", "")
+# 		sap_client_code = request_details.get("sap_client_code", "")
+		
+# 		# Find existing child row
+# 		existing_row = None
+# 		for row in doc.get("vendor_codes_by_company", []):
+# 			if (row.company_code == company_code and 
+# 				row.gst_number == gst_number and 
+# 				row.sap_client_code == sap_client_code):
+# 				existing_row = row
+# 				break
+		
+# 		if existing_row:
+# 			# Update existing row
+# 			existing_row.vendor_code = vendor_code
+# 			existing_row.vendor_code_generation_time = get_datetime(sap_log.creation)
+# 			existing_row.vms_sap_log = sap_log.name
+# 		else:
+# 			# Add new row
+# 			doc.append("vendor_codes_by_company", {
+# 				"company_code": company_code,
+# 				"gst_number": gst_number,
+# 				"sap_client_code": sap_client_code,
+# 				"vendor_code": vendor_code,
+# 				"vendor_code_generation_time": get_datetime(sap_log.creation),
+# 				"vms_sap_log": sap_log.name
+# 			})
+		
+# 		# ✅ Save document - this will trigger validate() and before_save()
+# 		doc.flags.ignore_permissions = True
+# 		doc.save()
+		
+# 		frappe.db.commit()
+		
+# 	except Exception as e:
+# 		frappe.log_error(
+# 			f"Error creating/updating Vendor Aging Tracker from SAP log: {frappe.get_traceback()}",
+# 			"Vendor Aging Tracker Error"
+# 		)
+# 		frappe.db.rollback()
+
 @frappe.whitelist()
-def create_or_update_aging_tracker_from_sap_log(sap_log_name):
-	try:
-		sap_log = frappe.get_doc("VMS SAP Logs", sap_log_name)
-		
-		# Early exit if not successful or no data
-		if sap_log.status != "Success" or not sap_log.total_transaction:
-			return
-		
-		transaction_data = json.loads(sap_log.total_transaction)
-		vendor_code = (
-			transaction_data.get("transaction_summary", {}).get("vendor_code")
-			or transaction_data.get("response_details", {}).get("vendor_code")
-		)
-		
-		if not vendor_code:
-			frappe.log_error("No vendor code found in SAP log total_transaction", "Vendor Aging Tracker")
-			return
-		
-		request_details = transaction_data.get("request_details", {})
-		payload = request_details.get("payload", {})
-		doc_name = sap_log.vendor_onboarding_link
-		
-		# ✅ Get or create document
-		if frappe.db.exists("Vendor Aging Tracker", doc_name):
-			doc = frappe.get_doc("Vendor Aging Tracker", doc_name)
-		else:
-			doc = frappe.get_doc({
-				"doctype": "Vendor Aging Tracker",
-				"ag_id": doc_name,
-				"vendor_onboarding_link": doc_name
-			})
-		
-		# ✅ Update parent fields
-		doc.vendor_name = payload.get("Name1", "")
-		doc.primary_vendor_code = vendor_code
-		doc.company_code = request_details.get("company_name", "")
-		doc.sap_client_code = request_details.get("sap_client_code", "")
-		doc.gst_number = request_details.get("gst_number", "")
-		doc.vendor_ref_no = request_details.get("vendor_ref_no", "")
-		doc.vendor_status = "Active"
-		doc.sap_log_reference = sap_log.name
-		
-		# Handle vendor_creation_date_sap if empty
-		if not doc.vendor_creation_date_sap:
-			doc.vendor_creation_date_sap = get_datetime(sap_log.creation)
-		
-		# ✅ Update or add child table row
-		child_doctype = "Vendor Aging Company Codes"
-		company_code = request_details.get("company_name", "")
-		gst_number = request_details.get("gst_number", "")
-		sap_client_code = request_details.get("sap_client_code", "")
-		
-		# Find existing child row
-		existing_row = None
-		for row in doc.get("vendor_codes_by_company", []):
-			if (row.company_code == company_code and 
-				row.gst_number == gst_number and 
-				row.sap_client_code == sap_client_code):
-				existing_row = row
-				break
-		
-		if existing_row:
-			# Update existing row
-			existing_row.vendor_code = vendor_code
-			existing_row.vendor_code_generation_time = get_datetime(sap_log.creation)
-			existing_row.vms_sap_log = sap_log.name
-		else:
-			# Add new row
-			doc.append("vendor_codes_by_company", {
-				"company_code": company_code,
-				"gst_number": gst_number,
-				"sap_client_code": sap_client_code,
-				"vendor_code": vendor_code,
-				"vendor_code_generation_time": get_datetime(sap_log.creation),
-				"vms_sap_log": sap_log.name
-			})
-		
-		# ✅ Save document - this will trigger validate() and before_save()
-		doc.flags.ignore_permissions = True
-		doc.save()
-		
-		frappe.db.commit()
-		
-	except Exception as e:
-		frappe.log_error(
-			f"Error creating/updating Vendor Aging Tracker from SAP log: {frappe.get_traceback()}",
-			"Vendor Aging Tracker Error"
-		)
-		frappe.db.rollback()
+def create_or_update_aging_tracker_from_sap_log(cvc_name):
+    """Create or update a Vendor Aging Tracker record based on Company Vendor Code data."""
+
+    if not cvc_name:
+        frappe.log_error(_("CVC Name is missing."), "Vendor Aging Tracker")
+        return
+
+    try:
+        company_vendor_code = frappe.get_doc("Company Vendor Code", cvc_name)
+
+        parent_fields = {
+            "vendor_ref_no": company_vendor_code.vendor_ref_no,
+            "vendor_name": company_vendor_code.vendor_name,
+            "company_code": company_vendor_code.company_code,
+            "sap_client_code": company_vendor_code.sap_client_code
+        }
+
+        for row in company_vendor_code.vendor_code:
+            ven_onb = row.vendor_onboarding
+            vendor_code = row.vendor_code
+            gst_no = row.gst_no
+            datetime = row.datetime or now_datetime()
+
+            if not (ven_onb or vendor_code):
+                frappe.log_error(
+                    _("Missing vendor onboarding ID or vendor code for {0}").format(cvc_name),
+                    "Vendor Aging Tracker"
+                )
+                return
+
+            if frappe.db.exists("Vendor Aging Tracker", ven_onb):
+                doc = frappe.get_doc("Vendor Aging Tracker", ven_onb)
+            else:
+                doc = frappe.get_doc({
+                    "doctype": "Vendor Aging Tracker",
+                    "vendor_ref_no": parent_fields["vendor_ref_no"],
+                    "vendor_onboarding_link": ven_onb
+                })
+
+            doc.update({
+                "vendor_name": parent_fields["vendor_name"],
+                "primary_vendor_code": vendor_code,
+                "company_code": parent_fields["company_code"],
+                "sap_client_code": parent_fields["sap_client_code"],
+                "gst_number": gst_no,
+                "vendor_status": "Active"
+            })
+
+            if not doc.vendor_creation_date_sap:
+                doc.vendor_creation_date_sap = datetime
+
+            child_table = "vendor_codes_by_company"
+
+            existing_row = next(
+                (child for child in doc.get(child_table, [])
+                 if child.company_code == parent_fields["company_code"]
+                 and child.gst_number == gst_no
+                 and child.sap_client_code == parent_fields["sap_client_code"]),
+                None
+            )
+
+            if existing_row:
+                existing_row.vendor_code = vendor_code
+                existing_row.vendor_code_generation_time = datetime
+            else:
+                doc.append(child_table, {
+                    "company_code": parent_fields["company_code"],
+                    "gst_number": gst_no,
+                    "sap_client_code": parent_fields["sap_client_code"],
+                    "vendor_code": vendor_code,
+                    "vendor_code_generation_time": datetime
+                })
+
+            doc.flags.ignore_permissions = True
+            doc.save(ignore_permissions=True)
+
+        frappe.db.commit()
+
+    except Exception:
+        frappe.db.rollback()
+        frappe.log_error(
+            frappe.get_traceback(),
+            "Vendor Aging Tracker - Error Creating/Updating"
+        )
 
 
 @frappe.whitelist()
