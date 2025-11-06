@@ -821,6 +821,8 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                     "name": row.name,
                     "idx": row.idx,
                     "certificate_code": row.certificate_code,
+                    "certificate_number": row.certificate_number,
+                    "certificate_body": row.certificate_body,
                     "valid_till": row.valid_till
                 }
 
