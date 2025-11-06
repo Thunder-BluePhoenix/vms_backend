@@ -6,6 +6,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "material_name",
+  "critical",
+  "non_critical",
   "material_description",
   "material_images",
   "annual_capacity",
@@ -35,13 +38,30 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "HSN/SAC Code"
+  },
+  {
+   "fieldname": "material_name",
+   "fieldtype": "Data",
+   "label": "Material Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "critical",
+   "fieldtype": "Check",
+   "label": "Critical"
+  },
+  {
+   "default": "0",
+   "fieldname": "non_critical",
+   "fieldtype": "Check",
+   "label": "Non Critical"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-22 14:39:55.471431",
+ "modified": "2025-11-06 10:31:40.178135",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Supplied",
