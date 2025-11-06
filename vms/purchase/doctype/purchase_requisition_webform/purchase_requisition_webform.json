@@ -26,7 +26,7 @@
   "purchase_team_approval",
   "purchase_team_approval_remarks",
   "purchase_head_status",
-  "purchase_head_approval_remarks",
+  "enquirer_remarks",
   "column_break_axrc",
   "rejected_by",
   "reason_for_rejection",
@@ -45,7 +45,6 @@
   "purchase_requisition_json_section",
   "purchase_requisition_json_fields",
   "sap_response_tab",
-  "sap_created_pr",
   "sap_status",
   "zmsg",
   "column_break_qbnu",
@@ -140,12 +139,6 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Purchase Head Status"
-  },
-  {
-   "fieldname": "purchase_head_approval_remarks",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Purchase Head Approval Remarks"
   },
   {
    "fieldname": "column_break_axrc",
@@ -301,16 +294,16 @@
    "label": "SAP Summary"
   },
   {
-   "default": "0",
-   "fieldname": "sap_created_pr",
-   "fieldtype": "Check",
-   "label": "PR Created From SAP"
+   "fieldname": "enquirer_remarks",
+   "fieldtype": "Small Text",
+   "label": "Enquirer's Remarks",
+   "max_height": "80px"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-05 14:44:01.097191",
+ "modified": "2025-11-06 16:01:37.505944",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",
