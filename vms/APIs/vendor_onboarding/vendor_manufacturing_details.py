@@ -310,7 +310,7 @@ def update_supplied_material_data(data):
 			"docname": main_doc.name,
 		}
 
-	except: 
+	except Exception as e: 
 		frappe.db.rollback()
 		frappe.log_error(frappe.get_traceback(), "Supplied Material Details Update Error")
 		return {
