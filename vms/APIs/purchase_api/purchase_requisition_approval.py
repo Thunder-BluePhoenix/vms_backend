@@ -52,7 +52,7 @@ def hod_approval_check(data):
     
 # this api is used for purchase team Approval
 @frappe.whitelist(allow_guest=True)
-def sent_approval_to_purchase_team(name):
+def sent_approval_to_purchase_team(name, enquirer_remarks=None):
     try:
         if not name:
             frappe.local.response["http_status_code"] = 400
@@ -97,7 +97,14 @@ def sent_approval_to_purchase_team(name):
                     now=True
                 )
 
-                frappe.db.set_value("Purchase Requisition Webform", name, "mail_sent_to_purchase_team", 1)
+                frappe.db.set_value(
+                    "Purchase Requisition Webform",
+                    name,
+                    {
+                        "mail_sent_to_purchase_team": 1,
+                        "enquirer_remarks": enquirer_remarks
+                    }
+                )
 
         frappe.local.response["http_status_code"] = 200
         return {

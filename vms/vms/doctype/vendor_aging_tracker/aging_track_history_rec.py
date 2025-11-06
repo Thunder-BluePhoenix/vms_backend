@@ -130,13 +130,13 @@ def create_aging_tracker_with_sap_data(vendor_onboarding_name, onboarding_status
         # Set vendor status based on onboarding status
         if onboarding_status == "Rejected" or rejected:
             aging_data["vendor_status"] = "Inactive"
-            should_process_sap = False
+            should_cvc_processed = False
         elif onboarding_status == "Approved":
             aging_data["vendor_status"] = "Active"
-            should_process_sap = True
+            should_cvc_processed = True
         else:
             aging_data["vendor_status"] = "Pending"
-            should_process_sap = False
+            should_cvc_processed = False
         
         # Process company details from vendor onboarding
         primary_code_set = False
@@ -173,80 +173,70 @@ def create_aging_tracker_with_sap_data(vendor_onboarding_name, onboarding_status
                     "state": cgt.gst_state or ""
                 })
         
-        # Process SAP logs if approved
-        sap_logs_processed = 0
-        if should_process_sap:
-            # Get all successful SAP logs for this vendor onboarding
-            sap_logs = frappe.db.sql("""
-                SELECT name, creation, total_transaction
-                FROM `tabVMS SAP Logs`
-                WHERE vendor_onboarding_link = %s
-                AND status = 'Success'
-                AND total_transaction IS NOT NULL
-                AND total_transaction != ''
-                ORDER BY creation ASC
-            """, (vendor_onboarding_name,), as_dict=1)
+        cvc_processed = 0
+
+        if should_cvc_processed:
+            cvc_docs = frappe.get_all(
+                "Vendor Code",
+                filters={"vendor_onboarding": vendor_onboarding_name},
+                fields=["name", "parent"]
+            )
             
-            for sap_log in sap_logs:
+            for cvc in cvc_docs:
                 try:
-                    transaction_data = json.loads(sap_log.total_transaction)
-                    vendor_code = (
-                        transaction_data.get("transaction_summary", {}).get("vendor_code")
-                        or transaction_data.get("response_details", {}).get("vendor_code")
-                    )
+                    company_vendor_code = frappe.get_doc("Company Vendor Code", cvc.parent)
                     
-                    if not vendor_code:
-                        continue
+                    parent_fields = {
+                        "vendor_ref_no": company_vendor_code.vendor_ref_no,
+                        "vendor_name": company_vendor_code.vendor_name,
+                        "company_code": company_vendor_code.company_code,
+                        "sap_client_code": company_vendor_code.sap_client_code
+                    }
                     
-                    request_details = transaction_data.get("request_details", {})
-                    payload = request_details.get("payload", {})
+                    for row in company_vendor_code.vendor_code:
+                        ven_onb = row.vendor_onboarding
+                        vendor_code = row.vendor_code
+                        gst_no = row.gst_no
+                        datetime = row.datetime or now_datetime()
                     
-                    # Set parent fields from first SAP log
-                    if sap_logs_processed == 0:
-                        aging_data["vendor_name"] = payload.get("Name1", aging_data["vendor_name"])
-                        aging_data["primary_vendor_code"] = vendor_code
-                        aging_data["company_code"] = request_details.get("company_name", aging_data["company_code"])
-                        aging_data["sap_client_code"] = request_details.get("sap_client_code", aging_data["sap_client_code"])
-                        aging_data["gst_number"] = request_details.get("gst_number", aging_data["gst_number"])
-                        aging_data["vendor_ref_no"] = request_details.get("vendor_ref_no", aging_data["vendor_ref_no"])
-                        aging_data["sap_log_reference"] = sap_log.name
-                        aging_data["vendor_creation_date_sap"] = get_datetime(sap_log.creation)
+                        if not (ven_onb and vendor_code):
+                            continue
                     
-                    # Add/update child table entry
-                    company_code = request_details.get("company_name", "")
-                    gst_number = request_details.get("gst_number", "")
-                    sap_client_code = request_details.get("sap_client_code", "")
-                    
-                    # Check if this combination already exists in child table
-                    existing_row = None
-                    for row in aging_data["vendor_codes_by_company"]:
-                        if (row.get("company_code") == company_code and 
-                            row.get("gst_number") == gst_number and 
-                            row.get("sap_client_code") == sap_client_code):
-                            existing_row = row
-                            break
-                    
-                    if existing_row:
-                        # Update existing row
-                        existing_row["vendor_code"] = vendor_code
-                        existing_row["vendor_code_generation_time"] = get_datetime(sap_log.creation)
-                        existing_row["vms_sap_log"] = sap_log.name
-                    else:
-                        # Add new row
-                        aging_data["vendor_codes_by_company"].append({
-                            "company_code": company_code,
-                            "gst_number": gst_number,
-                            "sap_client_code": sap_client_code,
-                            "vendor_code": vendor_code,
-                            "vendor_code_generation_time": get_datetime(sap_log.creation),
-                            "vms_sap_log": sap_log.name
-                        })
-                    
-                    sap_logs_processed += 1
+                        # Set parent fields from first SAP log
+                        if cvc_processed == 0:
+                            aging_data["vendor_name"] = parent_fields["vendor_name"]
+                            aging_data["primary_vendor_code"] = vendor_code
+                            aging_data["company_code"] = parent_fields["company_code"]
+                            aging_data["sap_client_code"] = parent_fields["sap_client_code"]
+                            aging_data["gst_number"] = gst_no
+                            aging_data["vendor_ref_no"] = parent_fields["vendor_ref_no"]
+                            aging_data["vendor_creation_date_sap"] = datetime
+                        
+                        existing_row = next(
+                            (r for r in aging_data["vendor_codes_by_company"]
+                                if r.get("company_code") == parent_fields["company_code"] and
+                                r.get("gst_number") == gst_no and
+                                r.get("sap_client_code") == parent_fields["sap_client_code"]),
+                            None
+                        )
+
+                        if existing_row:
+                            existing_row["vendor_code"] = vendor_code
+                            existing_row["vendor_code_generation_time"] = datetime
+                        else:
+                            aging_data["vendor_codes_by_company"].append({
+                                "company_code": parent_fields["company_code"],
+                                "gst_number": gst_no,
+                                "sap_client_code": parent_fields["sap_client_code"],
+                                "vendor_code": vendor_code,
+                                "vendor_code_generation_time": datetime
+                            })
+
+                        cvc_processed += 1
                     
                 except Exception as sap_error:
                     frappe.log_error(
-                        f"Error processing SAP log {sap_log.name} in batch: {str(sap_error)}",
+                        f"Error processing Company Vendor code in batch: {str(sap_error)}",
                         "SAP Log Processing Error"
                     )
                     continue
@@ -261,8 +251,8 @@ def create_aging_tracker_with_sap_data(vendor_onboarding_name, onboarding_status
         return {
             "success": True,
             "aging_tracker": aging_doc.name,
-            "sap_logs_processed": sap_logs_processed,
-            "sap_skipped": not should_process_sap
+            "cvc_processed": cvc_processed,
+            "cvc_skipped": not should_cvc_processed
         }
         
     except Exception as e:
