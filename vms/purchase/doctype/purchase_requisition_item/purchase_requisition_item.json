@@ -6,265 +6,504 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "item_code",
-  "item_category",
-  "material",
-  "quantity_requested",
-  "unit",
-  "plant",
-  "requisitioner",
-  "valuation",
-  "currency",
-  "planned_delivery_date",
-  "invoice",
-  "period_ind_for",
-  "gr_non_valuated",
-  "desired_vendor",
-  "supplying_plant",
-  "outlet_agreement",
-  "purchasing_information_rec",
-  "purchase_group",
-  "account_assign_category",
-  "pr_change_date",
-  "invoice_reciept",
-  "po_date",
-  "column_break_jssv",
-  "delivery_date",
-  "document_type",
-  "short_text",
-  "requisition_date",
-  "release_date",
-  "price_unit",
-  "storage_location",
-  "expected_delivery_date",
-  "total_value",
-  "delivery_date_fromto",
-  "goods_receipt",
-  "mrp",
-  "fixed_vendor",
-  "purchase_organization",
-  "principal",
-  "mpn_material",
-  "material_group",
-  "value_price",
-  "gr_reciept",
-  "purchase_number"
+  "head_fields_section",
+  "head_unique_id",
+  "status_head",
+  "purchase_requisition_item_head",
+  "item_number_of_purchase_requisition_head",
+  "purchase_requisition_date_head",
+  "purchase_requisition_type",
+  "delivery_date_head",
+  "store_location_head",
+  "item_category_head",
+  "material_group_head",
+  "uom_head",
+  "cost_center_head",
+  "main_asset_no_head",
+  "asset_subnumber_head",
+  "profit_ctr_head",
+  "short_text_head",
+  "line_item_number_head",
+  "company_code_area_head",
+  "c_delivery_date_head",
+  "column_break_vhsb",
+  "quantity_head",
+  "price_of_purchase_requisition_head",
+  "gl_account_number_head",
+  "material_code_head",
+  "account_assignment_category_head",
+  "purchase_group_head",
+  "product_name_head",
+  "product_price_head",
+  "final_price_by_purchase_team_head",
+  "lead_time_head",
+  "plant_head",
+  "requisitioner_name_head",
+  "tracking_id_head",
+  "desired_vendor_head",
+  "valuation_area_head",
+  "fixed_value_head",
+  "spit_head",
+  "purchase_organisation_head",
+  "agreement_head",
+  "item_of_head",
+  "mpn_number_head",
+  "sub_head_fields_section",
+  "sub_head_unique_id",
+  "purchase_requisition_item_subhead",
+  "item_number_of_purchase_requisition_subhead",
+  "purchase_requisition_date_subhead",
+  "delivery_date_subhead",
+  "store_location_subhead",
+  "item_category_subhead",
+  "material_group_subhead",
+  "uom_subhead",
+  "cost_center_subhead",
+  "main_asset_no_subhead",
+  "asset_subnumber_subhead",
+  "profit_ctr_subhead",
+  "short_text_subhead",
+  "column_break_bpcj",
+  "quantity_subhead",
+  "price_of_purchase_requisition_subhead",
+  "gl_account_number_subhead",
+  "material_code_subhead",
+  "account_assignment_category_subhead",
+  "purchase_group_subhead",
+  "line_item_number_subhead",
+  "service_number_subhead",
+  "gross_price_subhead",
+  "currency_subhead",
+  "service_type_subhead",
+  "net_value_subhead",
+  "is_deleted",
+  "is_created"
  ],
  "fields": [
   {
-   "fieldname": "material",
-   "fieldtype": "Data",
-   "label": "Material"
-  },
-  {
-   "fieldname": "unit",
-   "fieldtype": "Data",
-   "label": "Unit"
-  },
-  {
-   "fieldname": "plant",
-   "fieldtype": "Data",
-   "label": "Plant"
-  },
-  {
-   "fieldname": "requisitioner",
-   "fieldtype": "Data",
-   "label": "Requisitioner"
-  },
-  {
-   "fieldname": "delivery_date",
-   "fieldtype": "Data",
-   "label": "Delivery Date"
-  },
-  {
-   "fieldname": "document_type",
-   "fieldtype": "Data",
-   "label": "Document Type"
-  },
-  {
-   "fieldname": "short_text",
-   "fieldtype": "Small Text",
-   "label": "Short Text"
-  },
-  {
-   "fieldname": "requisition_date",
-   "fieldtype": "Data",
-   "label": "Requisition Date"
-  },
-  {
-   "fieldname": "release_date",
-   "fieldtype": "Data",
-   "label": "Release Date"
-  },
-  {
-   "fieldname": "valuation",
-   "fieldtype": "Data",
-   "label": "Valuation"
-  },
-  {
-   "fieldname": "column_break_jssv",
+   "fieldname": "column_break_vhsb",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "price_unit",
-   "fieldtype": "Data",
-   "label": "Price Unit"
+   "fieldname": "head_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Head Fields"
   },
   {
-   "fieldname": "currency",
-   "fieldtype": "Data",
-   "label": "Currency"
+   "fieldname": "sub_head_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Sub Head Fields"
   },
   {
-   "fieldname": "planned_delivery_date",
+   "fieldname": "purchase_requisition_item_head",
    "fieldtype": "Data",
-   "label": "Planned Delivery Date"
+   "in_list_view": 1,
+   "label": "Purchase Requisition Item"
   },
   {
-   "fieldname": "storage_location",
+   "fieldname": "item_number_of_purchase_requisition_head",
    "fieldtype": "Data",
-   "label": "Storage Location"
+   "in_list_view": 1,
+   "label": "Item Number of Purchase Requisition"
   },
   {
-   "fieldname": "expected_delivery_date",
-   "fieldtype": "Data",
-   "label": "Expected Delivery Date"
+   "fieldname": "purchase_requisition_date_head",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Purchase Requisition Date"
   },
   {
-   "fieldname": "invoice",
-   "fieldtype": "Data",
-   "label": "Invoice"
+   "fieldname": "delivery_date_head",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Delivery Date"
   },
   {
-   "fieldname": "item_code",
+   "fieldname": "store_location_head",
    "fieldtype": "Data",
-   "label": "Item Code"
+   "in_list_view": 1,
+   "label": "Store Location",
+   "options": "Storage Location Master"
   },
   {
-   "fieldname": "item_category",
+   "fieldname": "item_category_head",
    "fieldtype": "Data",
-   "label": "Item Category"
+   "in_list_view": 1,
+   "label": "Item Category",
+   "options": "Item Category Master"
   },
   {
-   "fieldname": "quantity_requested",
+   "fieldname": "material_group_head",
    "fieldtype": "Data",
-   "label": "Quantity Requested"
+   "in_list_view": 1,
+   "label": "Material Group",
+   "options": "Material Group Master"
   },
   {
-   "fieldname": "total_value",
+   "fieldname": "uom_head",
    "fieldtype": "Data",
-   "label": "Total Value"
+   "in_list_view": 1,
+   "label": "UOM",
+   "options": "UOM Master"
   },
   {
-   "fieldname": "delivery_date_fromto",
+   "fieldname": "cost_center_head",
    "fieldtype": "Data",
-   "label": "Delivery Date (from/to)"
+   "in_list_view": 1,
+   "label": "Cost Center",
+   "options": "Cost Center"
   },
   {
-   "fieldname": "period_ind_for",
+   "fieldname": "main_asset_no_head",
    "fieldtype": "Data",
-   "label": "Period Ind. For"
+   "in_list_view": 1,
+   "label": "Main Asset No"
   },
   {
-   "fieldname": "goods_receipt",
+   "fieldname": "asset_subnumber_head",
    "fieldtype": "Data",
-   "label": "Goods Receipt"
+   "in_list_view": 1,
+   "label": "Asset Subnumber"
   },
   {
-   "fieldname": "gr_non_valuated",
+   "fieldname": "profit_ctr_head",
    "fieldtype": "Data",
-   "label": "GR Non Valuated"
+   "in_list_view": 1,
+   "label": "Profit Center",
+   "options": "Profit Center"
   },
   {
-   "fieldname": "mrp",
-   "fieldtype": "Data",
-   "label": "MRP"
+   "fieldname": "short_text_head",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Short Text"
   },
   {
-   "fieldname": "desired_vendor",
+   "fieldname": "quantity_head",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "price_of_purchase_requisition_head",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Price of Purchase Requisition"
+  },
+  {
+   "fieldname": "gl_account_number_head",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "GL Account Number",
+   "options": "GL Account"
+  },
+  {
+   "fieldname": "material_code_head",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material Code",
+   "options": "Material Code"
+  },
+  {
+   "fieldname": "account_assignment_category_head",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Account Assignment Category",
+   "options": "Account Assignment Category"
+  },
+  {
+   "fieldname": "purchase_group_head",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "purchase_requisition_item_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Purchase Requisition Item"
+  },
+  {
+   "fieldname": "item_number_of_purchase_requisition_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Number of Purchase Requisition"
+  },
+  {
+   "fieldname": "purchase_requisition_date_subhead",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Purchase Requisition Date"
+  },
+  {
+   "fieldname": "delivery_date_subhead",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Delivery Date"
+  },
+  {
+   "fieldname": "store_location_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Store Location",
+   "options": "Storage Location Master"
+  },
+  {
+   "fieldname": "item_category_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Category",
+   "options": "Item Category Master"
+  },
+  {
+   "fieldname": "material_group_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material Group",
+   "options": "Material Group Master"
+  },
+  {
+   "fieldname": "uom_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "UOM",
+   "options": "UOM Master"
+  },
+  {
+   "fieldname": "cost_center_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cost Center",
+   "options": "Cost Center"
+  },
+  {
+   "fieldname": "main_asset_no_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Main Asset No"
+  },
+  {
+   "fieldname": "asset_subnumber_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Asset Subnumber"
+  },
+  {
+   "fieldname": "profit_ctr_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Profit Center",
+   "options": "Profit Center"
+  },
+  {
+   "fieldname": "short_text_subhead",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Short Text"
+  },
+  {
+   "fieldname": "quantity_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "price_of_purchase_requisition_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Price of Purchase Requisition"
+  },
+  {
+   "fieldname": "gl_account_number_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "GL Account Number",
+   "options": "GL Account"
+  },
+  {
+   "fieldname": "material_code_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material Code",
+   "options": "Material Master"
+  },
+  {
+   "fieldname": "account_assignment_category_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Account Assignment Category",
+   "options": "Account Assignment Category"
+  },
+  {
+   "fieldname": "purchase_group_subhead",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Purchase Group",
+   "options": "Purchase Group Master"
+  },
+  {
+   "fieldname": "column_break_bpcj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "product_name_head",
+   "fieldtype": "Data",
+   "label": "Product Name",
+   "options": "VMS Product Master"
+  },
+  {
+   "fieldname": "product_price_head",
+   "fieldtype": "Data",
+   "label": "Product Price"
+  },
+  {
+   "fieldname": "final_price_by_purchase_team_head",
+   "fieldtype": "Data",
+   "label": "Final Price by Purchase Team"
+  },
+  {
+   "fieldname": "lead_time_head",
+   "fieldtype": "Data",
+   "label": "Lead Time"
+  },
+  {
+   "fieldname": "head_unique_id",
+   "fieldtype": "Data",
+   "label": "Head Unique ID"
+  },
+  {
+   "fieldname": "sub_head_unique_id",
+   "fieldtype": "Data",
+   "label": "Sub Head Unique ID"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_deleted",
+   "fieldtype": "Check",
+   "label": "Is deleted"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_created",
+   "fieldtype": "Check",
+   "label": "Is created"
+  },
+  {
+   "fieldname": "purchase_requisition_type",
+   "fieldtype": "Data",
+   "label": "Purchase Requisition Type",
+   "options": "Purchase Requisition Type"
+  },
+  {
+   "fieldname": "status_head",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "plant_head",
+   "fieldtype": "Data",
+   "label": "Plant",
+   "options": "Plant Master"
+  },
+  {
+   "fieldname": "requisitioner_name_head",
+   "fieldtype": "Data",
+   "label": "Requisitioner Name"
+  },
+  {
+   "fieldname": "tracking_id_head",
+   "fieldtype": "Data",
+   "label": "Tracking ID"
+  },
+  {
+   "fieldname": "desired_vendor_head",
    "fieldtype": "Data",
    "label": "Desired Vendor"
   },
   {
-   "fieldname": "fixed_vendor",
+   "fieldname": "valuation_area_head",
    "fieldtype": "Data",
-   "label": "Fixed Vendor"
+   "label": "Valuation Class",
+   "options": "Valuation Class"
   },
   {
-   "fieldname": "supplying_plant",
+   "fieldname": "fixed_value_head",
    "fieldtype": "Data",
-   "label": "Supplying Plant"
+   "label": "Fixed Value"
   },
   {
-   "fieldname": "purchase_organization",
+   "fieldname": "spit_head",
    "fieldtype": "Data",
-   "label": "Purchase Organization"
+   "label": "SPIT"
   },
   {
-   "fieldname": "outlet_agreement",
+   "fieldname": "purchase_organisation_head",
    "fieldtype": "Data",
-   "label": "Outlet Agreement"
+   "label": "Purchase Organisation",
+   "options": "Purchase Organization Master"
   },
   {
-   "fieldname": "principal",
+   "fieldname": "agreement_head",
    "fieldtype": "Data",
-   "label": "Principal"
+   "label": "Agreement"
   },
   {
-   "fieldname": "purchasing_information_rec",
+   "fieldname": "item_of_head",
    "fieldtype": "Data",
-   "label": "Purchasing Information Rec."
+   "label": "Item of"
   },
   {
-   "fieldname": "mpn_material",
+   "fieldname": "mpn_number_head",
    "fieldtype": "Data",
-   "label": "MPN Material"
+   "label": "MPN Number"
   },
   {
-   "fieldname": "purchase_group",
+   "fieldname": "line_item_number_head",
    "fieldtype": "Data",
-   "label": "Purchase Group"
+   "label": "Line Item Number"
   },
   {
-   "fieldname": "account_assign_category",
+   "fieldname": "line_item_number_subhead",
    "fieldtype": "Data",
-   "label": "Account Assign Category"
+   "label": "Line Item Number"
   },
   {
-   "fieldname": "pr_change_date",
+   "fieldname": "service_number_subhead",
    "fieldtype": "Data",
-   "label": "PR Change Date"
+   "label": "Service Number"
   },
   {
-   "fieldname": "invoice_reciept",
+   "fieldname": "gross_price_subhead",
    "fieldtype": "Data",
-   "label": "Invoice Reciept"
+   "label": "Gross Price"
   },
   {
-   "fieldname": "po_date",
+   "fieldname": "currency_subhead",
    "fieldtype": "Data",
-   "label": "PO Date"
+   "label": "Currency",
+   "options": "Currency Master"
   },
   {
-   "fieldname": "material_group",
+   "fieldname": "service_type_subhead",
    "fieldtype": "Data",
-   "label": "Material Group"
+   "label": "Service Type"
   },
   {
-   "fieldname": "value_price",
+   "fieldname": "net_value_subhead",
    "fieldtype": "Data",
-   "label": "Value Price"
+   "label": "Net Value"
   },
   {
-   "fieldname": "gr_reciept",
+   "fieldname": "company_code_area_head",
    "fieldtype": "Data",
-   "label": "GR Reciept"
+   "label": "Company Code",
+   "options": "Company Master"
   },
   {
-   "fieldname": "purchase_number",
-   "fieldtype": "Data",
-   "label": "Purchase Number",
-   "options": "Purchase Order"
+   "fieldname": "c_delivery_date_head",
+   "fieldtype": "Date",
+   "label": "C Delivery Date"
   }
  ],
  "grid_page_length": 50,
