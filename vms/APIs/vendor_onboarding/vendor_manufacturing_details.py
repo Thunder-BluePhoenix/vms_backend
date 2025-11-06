@@ -142,7 +142,9 @@ def update_vendor_onboarding_manufacturing_details(data):
 		# Upload files only once
 		brochure_url = ""
 		org_structure_url = ""
-		material_img_url = ""
+
+		# Unused material image variable shifted to another API alongwith file parsing and updation logic
+		# material_img_url = ""
 
 		if 'brochure_proof' in frappe.request.files:
 			file = frappe.request.files['brochure_proof']
@@ -154,10 +156,10 @@ def update_vendor_onboarding_manufacturing_details(data):
 			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
 			org_structure_url = saved.file_url
 
-		if 'material_images' in frappe.request.files:
-			file = frappe.request.files['material_images']
-			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
-			material_img_url = saved.file_url
+		# if 'material_images' in frappe.request.files:
+		#	file = frappe.request.files['material_images']
+		#	saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
+		#	material_img_url = saved.file_url
 
 		# Get all linked docs if multi-company
 		linked_docs = []
@@ -194,20 +196,20 @@ def update_vendor_onboarding_manufacturing_details(data):
 				doc.organisation_structure_document = org_structure_url
 
 			# Clear child table and re-append
-			doc.set("materials_supplied", [])
+			# doc.set("materials_supplied", [])
 
-			if "materials_supplied" in data:
-				for row in data["materials_supplied"]:
-					new_row = doc.append("materials_supplied", {
-						"material_name": row.get("material_name"),
-						"critical": row.get("critical"),
-						"non_critical": row.get("non_critical"),
-						"material_description": row.get("material_description"),
-						"annual_capacity": row.get("annual_capacity"),
-						"hsnsac_code": row.get("hsnsac_code")
-					})
-					if material_img_url:
-						new_row.material_images = material_img_url
+			# if "materials_supplied" in data:
+			# 	for row in data["materials_supplied"]:
+			# 		new_row = doc.append("materials_supplied", {
+			# 			"material_name": row.get("material_name"),
+			# 			"critical": row.get("critical"),
+			# 			"non_critical": row.get("non_critical"),
+			# 			"material_description": row.get("material_description"),
+			# 			"annual_capacity": row.get("annual_capacity"),
+			# 			"hsnsac_code": row.get("hsnsac_code")
+			# 		})
+			# 		if material_img_url:
+			# 			new_row.material_images = material_img_url
 
 			doc.save(ignore_permissions=True)
 
@@ -230,3 +232,194 @@ def update_vendor_onboarding_manufacturing_details(data):
 			"error": str(e)
 		}
 
+
+@frappe.whitelist(allow_guest=True)
+def update_supplied_material_data(data):
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
+
+		ref_no = data.get("ref_no")
+		vendor_onboarding = data.get("vendor_onboarding")
+
+		if not ref_no or not vendor_onboarding:
+			return {
+				"status": "error",
+				"message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
+			}
+
+		doc_name = frappe.db.get_value(
+			"Vendor Onboarding Manufacturing Details",
+			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+			"name"
+		)
+
+		if not doc_name:
+			return {
+				"status": "error",
+				"message": "Vendor Onboarding Manufacturing Record not found."
+			}
+
+		main_doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", doc_name)
+		material_img_url = ""
+		
+		if 'material_images' in frappe.request.files:
+			file = frappe.request.files['material_images']
+			saved = save_file(file.filename, file.stream.read(), main_doc.doctype, main_doc.name, is_private=0)
+			material_img_url = saved.file_url
+
+		# Get all linked docs if multi-company
+		linked_docs = []
+		if main_doc.registered_for_multi_companies == 1:
+			unique_multi_comp_id = main_doc.unique_multi_comp_id
+			linked_docs = frappe.get_all(
+				"Vendor Onboarding Manufacturing Details",
+				filters={
+					"registered_for_multi_companies": 1,
+					"unique_multi_comp_id": unique_multi_comp_id
+				},
+				fields=["name"]
+			)
+		else:
+			linked_docs = [main_doc]
+
+		for entry in linked_docs:
+			doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", entry.name)
+			#Clear child table and re-append
+			doc.set("materials_supplied", [])
+
+			if "materials_supplied" in data:
+				for row in data["materials_supplied"]:
+					new_row = doc.append("materials_supplied", {
+						"material_name": row.get("material_name"),
+						"critical": row.get("critical"),
+						"non_critical": row.get("non_critical"),
+						"material_description": row.get("material_description"),
+						"annual_capacity": row.get("annual_capacity"),
+						"hsnsac_code": row.get("hsnsac_code")
+					})
+					if material_img_url:
+						new_row.material_images = material_img_url
+		
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {
+			"status": "success",
+			"message": "Supplied Materials details updated successfully.",
+			"docname": main_doc.name,
+		}
+
+	except: 
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "Supplied Material Details Update Error")
+		return {
+			"status": "error",
+			"message": "Failed to update supplied material details.",
+			"error": str(e)
+		}
+
+
+@frappe.whitelist(allow_guest=True, methods=['DELETE'])
+def delete_supplied_material_row(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        ref_no = data.get("ref_no")
+        vendor_onboarding = data.get("vendor_onboarding")
+        idx = data.get("idx")
+
+        if not ref_no or not vendor_onboarding or not idx:
+            return {
+                "status": "error",
+                "message": "Missing required fields: 'ref_no', 'vendor_onboarding', or 'idx'."
+            }
+
+        doc_name = frappe.db.get_value(
+            "Vendor Onboarding Manufacturing Details",
+            {"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+            "name"
+        )
+
+        if not doc_name:
+            return {
+                "status": "error",
+                "message": "Vendor Onboarding Manufacturing Record not found."
+            }
+
+        main_doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", doc_name)
+        deleted_from_docs = []
+
+        # Get all linked docs if multi-company
+        if main_doc.registered_for_multi_companies == 1:
+            unique_multi_comp_id = main_doc.unique_multi_comp_id
+
+            linked_docs = frappe.get_all(
+                "Vendor Onboarding Manufacturing Details",
+                filters={
+                    "registered_for_multi_companies": 1,
+                    "unique_multi_comp_id": unique_multi_comp_id
+                },
+                fields=["name"]
+            )
+
+            for entry in linked_docs:
+                doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", entry.name)
+                original_len = len(doc.materials_supplied)
+
+                # Filter out the row with matching idx
+                doc.materials_supplied = [
+                    row for row in doc.materials_supplied
+                    if row.idx != int(idx)
+                ]
+
+                if len(doc.materials_supplied) != original_len:
+                    doc.save(ignore_permissions=True)
+                    deleted_from_docs.append(doc.name)
+
+            if not deleted_from_docs:
+                return {
+                    "status": "error",
+                    "message": f"No matching material row with idx '{idx}' found in linked records."
+                }
+
+            frappe.db.commit()
+            return {
+                "status": "success",
+                "message": f"Material row with idx '{idx}' deleted from linked records.",
+                "docnames": deleted_from_docs
+            }
+
+        else:
+            # Single doc update
+            original_len = len(main_doc.materials_supplied)
+
+            main_doc.materials_supplied = [
+                row for row in main_doc.materials_supplied
+                if row.idx != int(idx)
+            ]
+
+            if len(main_doc.materials_supplied) == original_len:
+                return {
+                    "status": "error",
+                    "message": f"No matching material row with idx '{idx}' found in this document."
+                }
+
+            main_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": f"Material row with idx '{idx}' deleted successfully.",
+                "docname": main_doc.name
+            }
+
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "Delete Supplied Material Row Error")
+        return {
+            "status": "error",
+            "message": "Failed to delete material row.",
+            "error": str(e)
+        }

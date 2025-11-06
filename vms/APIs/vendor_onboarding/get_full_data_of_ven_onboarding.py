@@ -719,6 +719,77 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
 
         manuf_details = {field: manuf_doc.get(field) for field in manuf_fields}
 
+        # materials_supplied = []
+
+        # for row in manuf_doc.materials_supplied:
+        #     row_data = row.as_dict()
+
+        #     if row.material_images:
+        #         try:
+        #             if frappe.db.exists("File", {"file_url": row.material_images}):
+        #                 file_doc = frappe.get_doc("File", {"file_url": row.material_images})
+        #                 row_data["material_images"] = {
+        #                     "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+        #                     "name": file_doc.name,
+        #                     "file_name": file_doc.file_name
+        #                 }
+        #             else:
+        #                 row_data["material_images"] = {
+        #                     "url": "",
+        #                     "name": "",
+        #                     "file_name": ""
+        #                 }
+        #         except Exception as e:
+        #             frappe.log_error(f"Error fetching material_images for materials_supplied: {str(e)}")
+        #             row_data["material_images"] = {
+        #                 "url": "",
+        #                 "name": "",
+        #                 "file_name": ""
+        #             }
+        #     else:
+        #         row_data["material_images"] = {
+        #             "url": "",
+        #             "name": "",
+        #             "file_name": ""
+        #         }
+    
+        #     materials_supplied.append(row_data)
+
+        # manuf_details["materials_supplied"] = materials_supplied
+
+
+        for field in ["brochure_proof", "organisation_structure_document"]:
+            file_url = manuf_doc.get(field)
+            if file_url:
+                try:
+                    if frappe.db.exists("File", {"file_url": file_url}):
+                        file_doc = frappe.get_doc("File", {"file_url": file_url})
+                        manuf_details[field] = {
+                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+                            "name": file_doc.name,
+                            "file_name": file_doc.file_name
+                        }
+                    else:
+                        manuf_details[field] = {
+                            "url": "",
+                            "name": "",
+                            "file_name": ""
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Error fetching file for '{field}': {str(e)}")
+                    manuf_details[field] = {
+                        "url": "",
+                        "name": "",
+                        "file_name": ""
+                    }
+            else:
+                manuf_details[field] = {
+                    "url": "",
+                    "name": "",
+                    "file_name": ""
+                }
+        #----------------------Product Details Tab-------------------
+        
         materials_supplied = []
 
         for row in manuf_doc.materials_supplied:
@@ -754,40 +825,6 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                 }
     
             materials_supplied.append(row_data)
-
-        manuf_details["materials_supplied"] = materials_supplied
-
-
-        for field in ["brochure_proof", "organisation_structure_document"]:
-            file_url = manuf_doc.get(field)
-            if file_url:
-                try:
-                    if frappe.db.exists("File", {"file_url": file_url}):
-                        file_doc = frappe.get_doc("File", {"file_url": file_url})
-                        manuf_details[field] = {
-                            "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                            "name": file_doc.name,
-                            "file_name": file_doc.file_name
-                        }
-                    else:
-                        manuf_details[field] = {
-                            "url": "",
-                            "name": "",
-                            "file_name": ""
-                        }
-                except Exception as e:
-                    frappe.log_error(f"Error fetching file for '{field}': {str(e)}")
-                    manuf_details[field] = {
-                        "url": "",
-                        "name": "",
-                        "file_name": ""
-                    }
-            else:
-                manuf_details[field] = {
-                    "url": "",
-                    "name": "",
-                    "file_name": ""
-                }
 
         #----------------------Employee Detail Tab--------------------
 
@@ -1114,6 +1151,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
             "payment_details_tab": payment_details,
             "contact_details_tab": contact_details,
             "manufacturing_details_tab": manuf_details,
+            "product_details_tab": materials_supplied,
             "employee_details_tab": number_of_employee,
             "machinery_details_tab": machinery_detail,
             "testing_details_tab": testing_detail,
