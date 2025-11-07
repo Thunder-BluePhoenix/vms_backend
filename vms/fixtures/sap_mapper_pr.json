@@ -728,7 +728,7 @@
   "docstatus": 0,
   "doctype": "SAP Mapper PR",
   "doctype_name": "Purchase Requisition",
-  "modified": "2025-05-23 15:52:50.326042",
+  "modified": "2025-11-07 17:09:33.525086",
   "name": "Purchase Requisition",
   "table_cjfk": [
    {
@@ -739,77 +739,77 @@
     "sap_field": "pr_no"
    },
    {
-    "erp_field": "item_code",
+    "erp_field": "item_number_of_purchase_requisition_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "BNFPO"
    },
    {
-    "erp_field": "item_category",
+    "erp_field": "item_category_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "EPSTP"
    },
    {
-    "erp_field": "material_code",
+    "erp_field": "material_code_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "MATNR"
    },
    {
-    "erp_field": "short_text",
+    "erp_field": "short_text_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "TXZ01"
    },
    {
-    "erp_field": "quantity_requested",
+    "erp_field": "quantity_head ",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "MENGE"
    },
    {
-    "erp_field": "unit",
+    "erp_field": "uom_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "MEINS"
    },
    {
-    "erp_field": "plant",
+    "erp_field": "plant_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "WERKS"
    },
    {
-    "erp_field": "requisitioner",
+    "erp_field": "requisitioner_first_name",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "AFNAM"
    },
    {
-    "erp_field": "delivery_date",
+    "erp_field": "c_delivery_date_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "EEIND"
    },
    {
-    "erp_field": "requisition_date",
+    "erp_field": "delivery_date_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "BADAT"
    },
    {
-    "erp_field": "document_type",
+    "erp_field": "purchase_requisition_type",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
@@ -823,7 +823,7 @@
     "sap_field": "FRGDT"
    },
    {
-    "erp_field": "valuation",
+    "erp_field": "final_price_by_purchase_team_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
@@ -844,7 +844,7 @@
     "sap_field": "GSWRT"
    },
    {
-    "erp_field": "currency",
+    "erp_field": "currency_subhead",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
@@ -900,7 +900,7 @@
     "sap_field": "DISPO"
    },
    {
-    "erp_field": "storage_location",
+    "erp_field": "store_location_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
@@ -970,42 +970,42 @@
     "sap_field": "EMATN"
    },
    {
-    "erp_field": "material_group",
+    "erp_field": "material_group_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "MATKL"
    },
    {
-    "erp_field": "po_date",
+    "erp_field": "purchase_requisition_date_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "BEDAT"
    },
    {
-    "erp_field": "purchase_number",
+    "erp_field": "item_number_of_purchase_requisition_subhead",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "EBELN"
    },
    {
-    "erp_field": "value_price",
+    "erp_field": "final_price_by_purchase_team_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "PREIS"
    },
    {
-    "erp_field": "pr_change_date",
+    "erp_field": "purchase_requisition_date_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
     "sap_field": "ERDAT"
    },
    {
-    "erp_field": "account_assign_category",
+    "erp_field": "account_assignment_category_head",
     "parent": "Purchase Requisition",
     "parentfield": "table_cjfk",
     "parenttype": "SAP Mapper PR",
