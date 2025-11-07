@@ -1336,8 +1336,7 @@ def send_failure_notification(onb_name, failure_type, error_details):
                 frappe.custom_sendmail(
                     recipients=[
                         # recipient["email"], 
-                        "rishi.hingad@merillife.com",
-                        "thunder00799@gmail.com"],
+                        "rishi.hingad@merillife.com"],
                     # cc = [registered_by],
                     subject=subject,
                     message=message,

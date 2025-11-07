@@ -86,7 +86,7 @@ def send_vendor_code_extend_mail(ref_no=None, prev_company=None, extend_company=
         """
 
         frappe.sendmail(
-            recipients=["rishi.hingad@merillife.com", "abhishek@mail.hybrowlabs.com", "thunder00799@gmail.com"],
+            recipients=["rishi.hingad@merillife.com"],
             subject=subject,
             message=message
         )
@@ -549,7 +549,7 @@ def send_vendor_code_extend_mail_for_sap_team(ref_no=None, prev_company=None, ex
         """
 
         frappe.sendmail(
-            recipients=["rishi.hingad@merillife.com", "abhishek@mail.hybrowlabs.com", "thunder00799@gmail.com"],
+            recipients=["rishi.hingad@merillife.com"],
             subject=subject,
             message=message
         )

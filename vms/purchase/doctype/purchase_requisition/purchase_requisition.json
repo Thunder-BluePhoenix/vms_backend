@@ -10,6 +10,7 @@
   "purchase_requisition_type",
   "column_break_glta",
   "pr_plant",
+  "purchase_requisition_form_link",
   "pr_items_section",
   "pr_items"
  ],
@@ -48,12 +49,18 @@
    "fieldname": "pr_items_section",
    "fieldtype": "Section Break",
    "label": "PR Items"
+  },
+  {
+   "fieldname": "purchase_requisition_form_link",
+   "fieldtype": "Link",
+   "label": "Purchase Requisition Form Link",
+   "options": "Purchase Requisition Form"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:01.702201",
+ "modified": "2025-11-06 18:18:11.872937",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition",

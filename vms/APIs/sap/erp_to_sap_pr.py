@@ -1666,7 +1666,7 @@ def send_pr_detail(csrf_token, data_list, session_cookies, doc, sap_code, name_f
 
 
 def send_pr_failure_notification(doc_name, failure_type, error_details):
-    """Send email notifications to thunder00799@gmail.com when SAP PR integration fails"""
+    """Send email notifications when SAP PR integration fails"""
     try:
         # Get PR document
         pr_doc = frappe.get_doc("Purchase Requisition Form", doc_name)
@@ -1750,21 +1750,21 @@ def send_pr_failure_notification(doc_name, failure_type, error_details):
         # Send email to thunder00799@gmail.com
         try:
             frappe.custom_sendmail(
-                recipients=["thunder00799@gmail.com", "rishi.hingad@merillife.com", "abhishek@mail.hybrowlabs.com"],
+                recipients=["rishi.hingad@merillife.com", "abhishek@mail.hybrowlabs.com"],
                 subject=subject,
                 message=message,
                 now=True
             )
-            print(f"📧 PR Failure notification sent to: thunder00799@gmail.com")
+            print(f"📧 PR Failure notification sent")
             
         except Exception as email_err:
-            print(f"❌ Failed to send email to thunder00799@gmail.com: {str(email_err)}")
+            print(f"❌ Failed to send email: {str(email_err)}")
             frappe.log_error(f"Failed to send PR notification email: {str(email_err)}")
         
         # Log the notification
         frappe.log_error(
             title=f"SAP PR Integration Notification Sent - {failure_type}",
-            message=f"PR Doc: {pr_details['pr_name']}\nError: {error_details}\nNotified: thunder00799@gmail.com"
+            message=f"PR Doc: {pr_details['pr_name']}\nError: {error_details}\nNotified"
         )
         
     except Exception as e:
@@ -1774,7 +1774,7 @@ def send_pr_failure_notification(doc_name, failure_type, error_details):
 
 
 def send_pr_success_notification(doc_name, pr_code, name_for_sap, pr_type):
-    """Send success notification to thunder00799@gmail.com when PR is created successfully in SAP"""
+    """Send success notification when PR is created successfully in SAP"""
     try:
         # Get PR document
         pr_doc = frappe.get_doc("Purchase Requisition Form", doc_name)
@@ -1847,21 +1847,21 @@ def send_pr_success_notification(doc_name, pr_code, name_for_sap, pr_type):
         try:
             send_pr_success_notification_to_enquirer(doc_name, pr_code, name_for_sap, pr_type)
             frappe.custom_sendmail(
-                recipients=["thunder00799@gmail.com", "rishi.hingadd@merillife.com", "abhishek@mail.hybrowlabs.com"],
+                recipients=["rishi.hingadd@merillife.com", "abhishek@mail.hybrowlabs.com"],
                 subject=subject,
                 message=message,
                 now=True
             )
-            print(f"📧 PR Success notification sent to: thunder00799@gmail.com")
+            print(f"📧 PR Success notification sent")
             
         except Exception as email_err:
-            print(f"❌ Failed to send success email to thunder00799@gmail.com: {str(email_err)}")
+            print(f"❌ Failed to send success email: {str(email_err)}")
             frappe.log_error(f"Failed to send PR success notification email: {str(email_err)}")
         
         # Log the success notification
         frappe.log_error(
             title=f"SAP PR Integration Success Notification Sent",
-            message=f"PR Doc: {pr_details['pr_name']}\nPR Code: {pr_code}\nSAP Name: {name_for_sap}\nNotified: thunder00799@gmail.com"
+            message=f"PR Doc: {pr_details['pr_name']}\nPR Code: {pr_code}\nSAP Name: {name_for_sap}\nNotified"
         )
         
     except Exception as e:
