@@ -6,4 +6,5 @@ from frappe.model.document import Document
 
 
 class PurchaseRequisition(Document):
-	pass
+	def on_update(self):
+		pass
