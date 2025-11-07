@@ -285,22 +285,20 @@ def update_supplied_material_data(data):
 
 		for entry in linked_docs:
 			doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", entry.name)
-			#Clear child table and re-append
-			doc.set("materials_supplied", [])
 
 			if "materials_supplied" in data:
-				for row in data["materials_supplied"]:
-					new_row = doc.append("materials_supplied", {
-						"material_name": row.get("material_name"),
-						"critical": row.get("critical"),
-						"non_critical": row.get("non_critical"),
-						"material_description": row.get("material_description"),
-						"annual_capacity": row.get("annual_capacity"),
-						"hsnsac_code": row.get("hsnsac_code")
-					})
-					if material_img_url:
-						new_row.material_images = material_img_url
-		
+				row = data["materials_supplied"]
+				new_row = doc.append("materials_supplied", {
+					"material_name": row.get("material_name"),
+					"critical": row.get("critical"),
+					"non_critical": row.get("non_critical"),
+					"material_description": row.get("material_description"),
+					"annual_capacity": row.get("annual_capacity"),
+					"hsnsac_code": row.get("hsnsac_code")
+				})
+				if material_img_url:
+					new_row.material_images = material_img_url
+	
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
