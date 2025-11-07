@@ -31,6 +31,8 @@ def get_material_onboarding_list(
         requestor_filters = {}
         
         # Apply filters to requestor master fields
+        if "name" in filters:
+            requestor_filters["name"] = filters["name"]
         if "approval_status" in filters:
             requestor_filters["approval_status"] = filters["approval_status"]
         if "requested_by" in filters:
@@ -43,7 +45,7 @@ def get_material_onboarding_list(
             "Requestor Master",
             filters=requestor_filters,
             fields=["name", "requested_by", "request_date", "requestor_company", 
-                    "contact_information_email", "approval_status"],
+                    "contact_information_email", "approval_status","requested_by_place"],
             order_by=order_by
         )
 
@@ -55,6 +57,8 @@ def get_material_onboarding_list(
             
             for material in requestor_doc.material_request:
                 # Apply material-level filters if provided
+                if "material_name" in filters and material.name != filters["name"]:
+                    continue
                 if "material_type" in filters and material.material_type != filters["material_type"]:
                     continue
                 if "company_name" in filters and material.company_name != filters["company_name"]:
@@ -101,6 +105,16 @@ def get_material_onboarding_list(
                     "requestor_company": requestor.requestor_company,
                     "contact_information_email": requestor.contact_information_email,
                     "approval_status": requestor.approval_status,
+                    "requested_by_place": requestor.requested_by_place,
+                    "requested_by": requestor_doc.requested_by,
+                    "request_date": requestor_doc.request_date,
+                    "requestor_company": requestor_doc.requestor_company,
+                    "department": requestor_doc.requestor_department,
+                    "sub_department": requestor_doc.sub_department,
+                    "hod": requestor_doc.requestor_hod,
+                    "immediate_reporting_head": requestor_doc.immediate_reporting_head,
+                    "contact_information_email": requestor_doc.contact_information_email,
+                    "contact_information_phone": requestor_doc.contact_information_phone,
                 }
 
                 material_onboarding_list.append(entry)
