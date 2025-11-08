@@ -320,6 +320,8 @@ def update_supplied_material_data(data):
 						"message": f"No material row found with idx '{idx}'."
 					}
 				else:
+					doc.save(ignore_permissions=True)
+					frappe.db.commit()
 					frappe.local.response['http_status_code'] = 200
 					return {
 						"status": "success",
