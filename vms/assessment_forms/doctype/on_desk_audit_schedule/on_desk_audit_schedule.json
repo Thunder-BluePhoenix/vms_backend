@@ -1,0 +1,161 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{PRO}/{FMT}/{DD}-{MM}-{YY}-{####}",
+ "creation": "2025-11-07 15:01:02.609533",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "procedure_reference",
+  "column_break_ljdu",
+  "audit_schedule_date",
+  "section_break_aaji",
+  "period",
+  "section_break_hujm",
+  "prepared_by",
+  "prepared_by_name",
+  "prepared_date",
+  "prepared_by_signature",
+  "column_break_lygo",
+  "approved_by",
+  "approved_by_name",
+  "approved_date",
+  "approved_by_signature"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "PRO/FMT/.DD.-.MM.-.YY.-####"
+  },
+  {
+   "fieldname": "procedure_reference",
+   "fieldtype": "Data",
+   "label": "Procedure Reference"
+  },
+  {
+   "fieldname": "section_break_hujm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "prepared_by",
+   "fieldtype": "Link",
+   "label": "Prepared By",
+   "options": "User"
+  },
+  {
+   "fetch_from": "prepared_by.full_name",
+   "fieldname": "prepared_by_name",
+   "fieldtype": "Data",
+   "label": "Name"
+  },
+  {
+   "fieldname": "prepared_date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "prepared_by_signature",
+   "fieldtype": "Signature",
+   "label": "Signature"
+  },
+  {
+   "fieldname": "column_break_lygo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User"
+  },
+  {
+   "fetch_from": "approved_by.full_name",
+   "fieldname": "approved_by_name",
+   "fieldtype": "Data",
+   "label": "Name"
+  },
+  {
+   "fieldname": "approved_date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "approved_by_signature",
+   "fieldtype": "Signature",
+   "label": "Signature"
+  },
+  {
+   "fieldname": "section_break_aaji",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "period",
+   "fieldtype": "Table",
+   "label": "Period",
+   "options": "Audit Schedule Period"
+  },
+  {
+   "fieldname": "column_break_ljdu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "audit_schedule_date",
+   "fieldtype": "Date",
+   "label": "On desk Audit Schedule Date"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-07 16:10:47.097178",
+ "modified_by": "Administrator",
+ "module": "Assessment Forms",
+ "name": "On desk Audit Schedule",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QA Team",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "QA Head",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

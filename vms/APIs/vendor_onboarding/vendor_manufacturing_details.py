@@ -233,7 +233,7 @@ def update_vendor_onboarding_manufacturing_details(data):
 		}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods= ['POST', 'PATCH'])
 def update_supplied_material_data(data):
 	try:
 		if isinstance(data, str):
@@ -262,6 +262,8 @@ def update_supplied_material_data(data):
 
 		main_doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", doc_name)
 		material_img_url = ""
+
+
 		
 		if 'material_images' in frappe.request.files:
 			file = frappe.request.files['material_images']
@@ -286,22 +288,70 @@ def update_supplied_material_data(data):
 		for entry in linked_docs:
 			doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", entry.name)
 
-			if "materials_supplied" in data:
-				row = data["materials_supplied"]
-				new_row = doc.append("materials_supplied", {
-					"material_name": row.get("material_name"),
-					"critical": row.get("critical"),
-					"non_critical": row.get("non_critical"),
-					"material_description": row.get("material_description"),
-					"annual_capacity": row.get("annual_capacity"),
-					"hsnsac_code": row.get("hsnsac_code")
-				})
-				if material_img_url:
-					new_row.material_images = material_img_url
-	
+			if frappe.request.method == "PATCH":
+				idx = data.get("idx")
+				
+				if not idx:
+					return {
+						"status": "error",
+						"message": "Missing 'idx' for PATCH request."
+					}
+				
+				# Find and update the row with matching idx
+				row_found = False
+				for existing_row in doc.materials_supplied:
+					if existing_row.idx == int(idx):
+						# Update critical and non_critical fields
+						if "critical" in data:
+							existing_row.critical = data.get("critical")
+						if "non_critical" in data:
+							existing_row.non_critical = data.get("non_critical")
+						
+						# Update material image if provided
+						if material_img_url:
+							existing_row.material_images = material_img_url
+					
+						row_found = True
+						break
+				
+				if not row_found:
+					return {
+						"status": "error",
+						"message": f"No material row found with idx '{idx}'."
+					}
+				else:
+					doc.save(ignore_permissions=True)
+					frappe.db.commit()
+					frappe.local.response['http_status_code'] = 200
+					return {
+						"status": "success",
+						"message": "critical/non-critical details updated for record successfully.",
+						"docname": main_doc.name,
+					}
+			else:
+				if "materials_supplied" in data:
+					row = data["materials_supplied"]
+					new_row = doc.append("materials_supplied", {
+						"material_name": row.get("material_name"),
+						"critical": row.get("critical"),
+						"non_critical": row.get("non_critical"),
+						"material_description": row.get("material_description"),
+						"annual_capacity": row.get("annual_capacity"),
+						"hsnsac_code": row.get("hsnsac_code")
+					})
+					if material_img_url:
+						new_row.material_images = material_img_url
+				else:
+					frappe.local.response['http_status_code'] = 400
+					return {
+								"status": "error",
+								"message": "Failed to get material supplied data.",
+					}
+		
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
+		frappe.local.response['http_status_code'] = 201
 		return {
 			"status": "success",
 			"message": "Supplied Materials details updated successfully.",
