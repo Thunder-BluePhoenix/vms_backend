@@ -332,10 +332,17 @@ def update_supplied_material_data(data):
 					})
 					if material_img_url:
 						new_row.material_images = material_img_url
+				else:
+					frappe.local.response['http_status_code'] = 400
+					return {
+								"status": "error",
+								"message": "Failed to get material supplied data.",
+					}
 		
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
+		frappe.local.response['http_status_code'] = 201
 		return {
 			"status": "success",
 			"message": "Supplied Materials details updated successfully.",
