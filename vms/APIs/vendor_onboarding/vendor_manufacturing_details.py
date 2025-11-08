@@ -319,6 +319,13 @@ def update_supplied_material_data(data):
 						"status": "error",
 						"message": f"No material row found with idx '{idx}'."
 					}
+				else:
+					frappe.local.response['http_status_code'] = 200
+					return {
+						"status": "success",
+						"message": "critical/non-critical details updated for record successfully.",
+						"docname": main_doc.name,
+					}
 			else:
 				if "materials_supplied" in data:
 					row = data["materials_supplied"]
@@ -332,10 +339,17 @@ def update_supplied_material_data(data):
 					})
 					if material_img_url:
 						new_row.material_images = material_img_url
+				else:
+					frappe.local.response['http_status_code'] = 400
+					return {
+								"status": "error",
+								"message": "Failed to get material supplied data.",
+					}
 		
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
+		frappe.local.response['http_status_code'] = 201
 		return {
 			"status": "success",
 			"message": "Supplied Materials details updated successfully.",
