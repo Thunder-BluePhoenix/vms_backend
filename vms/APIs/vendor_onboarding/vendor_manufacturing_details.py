@@ -319,6 +319,13 @@ def update_supplied_material_data(data):
 						"status": "error",
 						"message": f"No material row found with idx '{idx}'."
 					}
+				else:
+					frappe.local.response['http_status_code'] = 200
+					return {
+						"status": "success",
+						"message": "critical/non-critical details updated for record successfully.",
+						"docname": main_doc.name,
+					}
 			else:
 				if "materials_supplied" in data:
 					row = data["materials_supplied"]
