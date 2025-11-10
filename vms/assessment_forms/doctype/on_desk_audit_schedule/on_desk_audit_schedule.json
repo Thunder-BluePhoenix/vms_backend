@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{PRO}/{FMT}/{DD}-{MM}-{YY}-{####}",
+ "autoname": "naming_series:",
  "creation": "2025-11-07 15:01:02.609533",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -30,7 +30,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Naming Series",
-   "options": "PRO/FMT/.DD.-.MM.-.YY.-####"
+   "options": "PRO-FMT-.DD.-.MM.-.YY.-"
   },
   {
    "fieldname": "procedure_reference",
@@ -122,7 +122,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-10 11:17:23.442562",
+ "modified": "2025-11-08 19:07:15.484587",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "On desk Audit Schedule",
