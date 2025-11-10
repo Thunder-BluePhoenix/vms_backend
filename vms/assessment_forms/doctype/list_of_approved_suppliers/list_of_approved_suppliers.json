@@ -1,10 +1,12 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-11-10 11:10:26.444991",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series",
   "creation_date",
   "section_break_rlhc",
   "approved_supplier_details",
@@ -132,12 +134,18 @@
    "fieldtype": "Table",
    "label": "Approved Supplier Details",
    "options": "Approved Supplier Detail"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "ASL-.DD.-.MM.-.YY.-"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-10 11:33:44.517602",
+ "modified": "2025-11-10 11:50:26.372280",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "List of Approved Suppliers",
