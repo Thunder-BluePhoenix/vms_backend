@@ -1,0 +1,163 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-10 11:10:26.444991",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "creation_date",
+  "section_break_rlhc",
+  "approved_supplier_details",
+  "section_break_ddsb",
+  "prepared_by",
+  "prepared_by_name",
+  "prepared_date",
+  "prepared_by_signature",
+  "upload_prepared_by_sign",
+  "column_break_amth",
+  "reviewed_by",
+  "reviewed_by_name",
+  "reviewed_date",
+  "reviewed_by_signature",
+  "upload_reviewed_by_sign",
+  "column_break_oagf",
+  "approved_by",
+  "approved_by_name",
+  "approved_date",
+  "approved_by_signature",
+  "upload_approved_by_sign"
+ ],
+ "fields": [
+  {
+   "fieldname": "creation_date",
+   "fieldtype": "Datetime",
+   "label": "Creation Date"
+  },
+  {
+   "fieldname": "section_break_ddsb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "prepared_by",
+   "fieldtype": "Link",
+   "label": "Prepared By",
+   "options": "User"
+  },
+  {
+   "fieldname": "prepared_date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "upload_prepared_by_sign",
+   "fieldtype": "Attach",
+   "label": "Upload Signature"
+  },
+  {
+   "fieldname": "prepared_by_name",
+   "fieldtype": "Data",
+   "label": "Name"
+  },
+  {
+   "fieldname": "prepared_by_signature",
+   "fieldtype": "Signature",
+   "label": "Signature"
+  },
+  {
+   "fieldname": "column_break_amth",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reviewed_by",
+   "fieldtype": "Link",
+   "label": "Reviewed By",
+   "options": "User"
+  },
+  {
+   "fieldname": "reviewed_by_name",
+   "fieldtype": "Data",
+   "label": "Name"
+  },
+  {
+   "fieldname": "reviewed_date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "reviewed_by_signature",
+   "fieldtype": "Signature",
+   "label": "Signature"
+  },
+  {
+   "fieldname": "upload_reviewed_by_sign",
+   "fieldtype": "Attach",
+   "label": "Upload Signature"
+  },
+  {
+   "fieldname": "column_break_oagf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User"
+  },
+  {
+   "fieldname": "approved_by_name",
+   "fieldtype": "Data",
+   "label": "Name"
+  },
+  {
+   "fieldname": "approved_date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "approved_by_signature",
+   "fieldtype": "Signature",
+   "label": "Signature"
+  },
+  {
+   "fieldname": "upload_approved_by_sign",
+   "fieldtype": "Attach",
+   "label": "Upload Signature"
+  },
+  {
+   "fieldname": "section_break_rlhc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "approved_supplier_details",
+   "fieldtype": "Table",
+   "label": "Approved Supplier Details",
+   "options": "Approved Supplier Detail"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-10 11:33:44.517602",
+ "modified_by": "Administrator",
+ "module": "Assessment Forms",
+ "name": "List of Approved Suppliers",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
