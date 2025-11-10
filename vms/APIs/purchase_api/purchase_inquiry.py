@@ -1341,10 +1341,13 @@ def submit_purchase_inquiry(data):
                     })
         
         # Save the document with updates first
-        doc.save(ignore_permissions=True)
+        # doc.save(ignore_permissions=True)
         
         # Now submit the document
         doc.is_submited = 1
+        doc.rejected = 0
+        doc.ack_mail_to_user = 0
+        doc.purchase_team_approval_status = "Pending"
         doc.save(ignore_permissions=True)
         frappe.db.commit()
         

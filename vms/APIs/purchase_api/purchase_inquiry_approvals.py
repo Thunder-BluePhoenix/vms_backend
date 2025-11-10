@@ -78,6 +78,9 @@ def purchase_approval_check(data):
 			cart_details_doc.purchase_team_approval_status = "Approved"
 			cart_details_doc.purchase_team_approval = session_user
 			cart_details_doc.purchase_team_approval_remarks = comments
+                  
+			cart_details_doc.rejected = 0
+			cart_details_doc.hod_approval_status = "Pending"
 
 			# Clear old child rows
 			# cart_details_doc.set("cart_product", [])
