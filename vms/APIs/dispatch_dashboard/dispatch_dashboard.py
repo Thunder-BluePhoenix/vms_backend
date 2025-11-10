@@ -166,6 +166,16 @@ def dispatch_dashboard(page_no=None, page_length=None, status=None, vendor_code=
 						"purchase_numbers": purchase_numbers_map.get(doc.name, [])
 					})
 
+		if dispatches:
+			for dispatch in dispatches:
+				if dispatch.get("owner"):
+					vendor_name = frappe.db.get_value(
+						"Vendor Master",
+						{"office_email_primary": dispatch["owner"]},
+						"vendor_name"
+					)
+					dispatch["vendor_name"] = vendor_name or ""
+
 		else:
 			return {
 				"status": "error",
