@@ -423,93 +423,69 @@
 
         const result = await response.json();
 
+        // Frappe wraps responses in a 'message' key, so unwrap if needed
+        const data = result.message || result;
+
         // Reset button state
         submitBtn.disabled = false;
         spinner.style.display = 'none';
         btnText.textContent = '✓ Submit Rejection';
 
         // Handle response based on status
-        if (result.status === 'success') {
-          const successMsg = typeof result.message === 'string'
-            ? result.message
-            : 'Cart rejection submitted successfully!';
-          showMessage('success', successMsg);
-
-          // Disable form after successful submission
-          document.getElementById('reason').disabled = true;
-          submitBtn.disabled = true;
-
-          // Close window after delay
-          setTimeout(() => {
-            window.close();
-            // If window.close() doesn't work (popup blocker), show message
-            if (!window.closed) {
-              showMessage('success', 'You can now close this window');
-            }
-          }, 2000);
-        } else if (result.status === 'already_processed') {
+        if (data.status === 'success') {
+          // Redirect to success page
+          window.location.href = `/hod_rejection_success?cart_id=${encodeURIComponent(cart_id)}`;
+          return;
+        } else if (data.status === 'already_processed') {
           // Cart was already processed
-          const alreadyMsg = typeof result.message === 'string'
-            ? result.message
+          const alreadyMsg = typeof data.message === 'string'
+            ? data.message
             : 'This cart has already been processed';
           showMessage('error', alreadyMsg);
           document.getElementById('reason').disabled = true;
           submitBtn.disabled = true;
         } else {
-          // Error occurred - handle all possible error formats
-          let errorMsg = 'Failed to submit rejection';
+          // Error occurred - extract clean error message
+          let errorMsg = 'Unable to submit rejection';
 
-          // Try to extract error message from various possible formats
-          if (result.message) {
-            if (typeof result.message === 'string') {
-              errorMsg = result.message;
-            } else if (typeof result.message === 'object') {
-              // Handle message as object
-              errorMsg = JSON.stringify(result.message);
-            }
+          // Priority 1: Check for message in unwrapped data
+          if (data.message && typeof data.message === 'string') {
+            errorMsg = data.message;
           }
-
-          // Handle _server_messages format (Frappe specific)
-          if (result._server_messages) {
+          // Priority 2: Check for _server_messages (Frappe format)
+          else if (result._server_messages) {
             try {
               const serverMsgs = JSON.parse(result._server_messages);
               if (Array.isArray(serverMsgs) && serverMsgs.length > 0) {
                 const firstMsg = JSON.parse(serverMsgs[0]);
-                if (firstMsg.message) {
-                  errorMsg = firstMsg.message;
-                }
+                errorMsg = firstMsg.message || 'An error occurred';
               }
             } catch (e) {
               console.error('Error parsing server messages:', e);
             }
           }
-
-          // Handle exception format
-          if (result.exception) {
-            try {
-              // Try to extract meaningful error from exception string
-              const excMatch = result.exception.match(/"message":\s*"([^"]+)"/);
-              if (excMatch && excMatch[1]) {
-                errorMsg = excMatch[1];
-              } else if (typeof result.exception === 'string') {
-                // Check if exception contains "Invalid Request" or other errors
-                if (result.exception.includes('CSRFTokenError')) {
-                  errorMsg = 'Invalid Request - Please refresh the page and try again';
-                } else if (result.exception.includes('PermissionError')) {
-                  errorMsg = 'Permission denied - You may not have access to perform this action';
-                }
+          // Priority 3: Check exception string
+          else if (result.exception || data.exception) {
+            const exception = result.exception || data.exception;
+            if (typeof exception === 'string') {
+              if (exception.includes('CSRFTokenError')) {
+                errorMsg = 'Session expired. Please refresh and try again.';
+              } else if (exception.includes('PermissionError')) {
+                errorMsg = 'You do not have permission for this action.';
+              } else {
+                // Try to extract message from exception
+                const excMatch = exception.match(/"message":\s*"([^"]+)"/);
+                errorMsg = excMatch ? excMatch[1] : 'An error occurred while processing';
               }
-            } catch (e) {
-              console.error('Error parsing exception:', e);
             }
           }
-
-          // Handle exc_type (Frappe error type)
-          if (result.exc_type) {
-            if (result.exc_type === 'CSRFTokenError') {
-              errorMsg = 'Session expired - Please refresh the page and try again';
-            } else if (result.exc_type === 'PermissionError') {
-              errorMsg = 'Permission denied - You may not have access to perform this action';
+          // Priority 4: Check exc_type
+          else if (result.exc_type || data.exc_type) {
+            const excType = result.exc_type || data.exc_type;
+            if (excType === 'CSRFTokenError') {
+              errorMsg = 'Session expired. Please refresh and try again.';
+            } else if (excType === 'PermissionError') {
+              errorMsg = 'You do not have permission for this action.';
             }
           }
 
