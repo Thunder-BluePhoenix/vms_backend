@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "supplier_name",
+  "supplier_address",
   "prev_audit_date",
   "due_date",
   "actual_completion_date",
@@ -14,7 +15,8 @@
   "column_break_rbsj",
   "can_remain_in_the_asl",
   "date",
-  "signature"
+  "signature",
+  "upload_signature"
  ],
  "fields": [
   {
@@ -69,13 +71,24 @@
    "fieldname": "signature",
    "fieldtype": "Signature",
    "label": "Signature"
+  },
+  {
+   "fieldname": "supplier_address",
+   "fieldtype": "Small Text",
+   "label": "Supplier Address",
+   "max_height": "80px"
+  },
+  {
+   "fieldname": "upload_signature",
+   "fieldtype": "Attach",
+   "label": "Upload Signature"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-07 15:17:39.239231",
+ "modified": "2025-11-10 11:17:50.942040",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Audit Schedule Period",

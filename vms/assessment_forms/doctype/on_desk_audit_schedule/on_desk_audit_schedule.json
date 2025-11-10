@@ -17,11 +17,13 @@
   "prepared_by_name",
   "prepared_date",
   "prepared_by_signature",
+  "upload_prepared_by_sign",
   "column_break_lygo",
   "approved_by",
   "approved_by_name",
   "approved_date",
-  "approved_by_signature"
+  "approved_by_signature",
+  "upload_approved_by_sign"
  ],
  "fields": [
   {
@@ -105,6 +107,16 @@
    "fieldname": "audit_schedule_date",
    "fieldtype": "Date",
    "label": "On desk Audit Schedule Date"
+  },
+  {
+   "fieldname": "upload_prepared_by_sign",
+   "fieldtype": "Attach",
+   "label": "Upload Signature"
+  },
+  {
+   "fieldname": "upload_approved_by_sign",
+   "fieldtype": "Attach",
+   "label": "Upload Signature"
   }
  ],
  "grid_page_length": 50,
