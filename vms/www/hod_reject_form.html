@@ -1,0 +1,151 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+  <title>HOD Rejection</title>
+</head>
+<body style="font-family: Arial; margin: 40px;">
+  <h2>Reject Cart</h2>
+  <p>Cart ID: <b id="cart_id"></b></p>
+  
+  <textarea id="reason" rows="5" cols="60" placeholder="Enter reason for rejection..."></textarea>
+  <br><br>
+  <button onclick="submitRejection()">Submit</button>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const cart_id = urlParams.get('cart_id');
+    const user = urlParams.get('user');
+    document.getElementById('cart_id').textContent = cart_id;
+
+    async function submitRejection() {
+      const reason = document.getElementById('reason').value;
+      if (!reason) {
+        alert("Please enter a reason for rejection.");
+        return;
+      }
+      const response = await fetch(
+        `/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cart_id: cart_id,
+            user: user,
+            action: "reject",
+            rejection_reason: reason
+          })
+        }
+      );
+      const result = await response.json();
+      alert("Response submitted successfully!");
+      window.close();
+    }
+  </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>HOD Rejection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #fafafa;
+    }
+    h2 {
+      color: #d32f2f;
+    }
+    textarea {
+      width: 100%;
+      max-width: 600px;
+      height: 120px;
+      font-size: 14px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    button {
+      background-color: #f44336;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #d32f2f;
+    }
+    .message {
+      margin-top: 20px;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h2>Reject Cart</h2>
+  <p>Cart ID: <b id="cart_id"></b></p>
+
+  <label for="reason">Reason for Rejection:</label><br>
+  <textarea id="reason" placeholder="Enter reason for rejection..."></textarea>
+  <br><br>
+
+  <button onclick="submitRejection()">Submit</button>
+  <div id="message" class="message"></div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const cart_id = urlParams.get('cart_id');
+    const user = urlParams.get('user');
+    document.getElementById('cart_id').textContent = cart_id;
+
+    async function submitRejection() {
+      const reason = document.getElementById('reason').value.trim();
+      const msgDiv = document.getElementById('message');
+
+      if (!reason) {
+        alert("⚠️ Please enter a reason for rejection.");
+        return;
+      }
+
+      // Prepare FormData (important for frappe.form_dict)
+      const formData = new FormData();
+      formData.append("cart_id", cart_id);
+      formData.append("user", user);
+      formData.append("action", "reject");
+      formData.append("rejection_reason", reason);
+
+      try {
+        const response = await fetch(
+          `/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check`,
+          { method: "POST", body: formData }
+        );
+
+        const result = await response.json();
+
+        if (result.message) {
+          msgDiv.style.color = "green";
+          msgDiv.textContent = "✅ Response submitted successfully!";
+          alert("Response submitted successfully!");
+          // Optional: close window after a short delay
+          setTimeout(() => window.close(), 1500);
+        } else {
+          msgDiv.style.color = "red";
+          msgDiv.textContent = "❌ Something went wrong while submitting.";
+        }
+
+      } catch (error) {
+        console.error("Error:", error);
+        msgDiv.style.color = "red";
+        msgDiv.textContent = "⚠️ Failed to connect to the server.";
+      }
+    }
+  </script>
+</body>
+</html>
+

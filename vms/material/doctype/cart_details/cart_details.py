@@ -277,7 +277,8 @@ def send_mail_hod(doc, method=None):
 			hod_name = frappe.get_value("Employee", hod, "full_name")
 			if hod_email:
 				approve_url = f"{http_server}/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check?cart_id={doc.name}&user={doc.user}&action=approve"
-				reject_url = f"{http_server}/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check?cart_id={doc.name}&user={doc.user}&action=reject"
+				# reject_url = f"{http_server}/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check?cart_id={doc.name}&user={doc.user}&action=reject"
+				reject_url = f"{http_server}/hod_reject_form?cart_id={doc.name}&user={doc.user}"
 				
 				table_html = """
 					<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
@@ -646,6 +647,7 @@ def hod_approval_check():
 
 		if action == "approve":
 			doc.hod_approved = 1
+			doc.rejected = 0
 			doc.hod_approval_status = "Approved"
 			doc.hod_approval = session_user
 			doc.hod_approval_remarks = "Approved by HOD"
@@ -654,6 +656,20 @@ def hod_approval_check():
 			doc.rejected_by = session_user
 			doc.hod_approval_status = "Rejected"
 			doc.reason_for_rejection = reason_for_rejection
+
+			doc.mail_sent_to_hod = 0
+			doc.purchase_team_approved = 0
+
+			subject = f"Your Cart Details Rejected by HOD"
+			message = f"""
+				<p>Dear Purchase Team,</p>		
+				<p>Your cart details has been rejected by HOD</b>.</p>
+				<p><b>Cart ID:</b> {doc.name}</p>
+				<p>Thank you!</p>
+			"""
+
+			frappe.custom_sendmail(recipients=[doc.dedicated_purchase_team], subject=subject, message=message, now=True)
+
 		else:
 			return {
 				"status": "error",
