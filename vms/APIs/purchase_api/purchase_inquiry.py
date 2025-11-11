@@ -706,7 +706,7 @@ def modified_peq(data):
             message = f"""
                 <p>Dear {employee_name},</p>
 
-                <p>A modification request has been submitted for the following <strong>Cart Details</strong>:</p>
+                <p>A modification request has been submitted by Purchase Team for the following <strong>Cart Details</strong>:</p>
 
                 <p><strong>Cart ID:</strong> {doc.name}<br>
                 <strong>Cart Date:</strong> {cart_date_formatted}</p>
@@ -1322,11 +1322,24 @@ def submit_purchase_inquiry(data):
                 row.modified1 = 1
 
                 frappe.custom_sendmail(
-                    recipients=["iamabhichavan123@gmail.com", "rishi.hingad@merillife.com"],
-                    subject="Modify Alert",
-                    message="A modification has been made.",
-                    now=True
-                )
+                    recipients=[doc.dedicated_purchase_team],
+                    subject=f"A Modification has been done for Cart ID {doc.name}",
+                    message=f"""
+                        Dear Purchase Team,<br>
+
+                        A modification request for <b>Cart ID: {doc.name}</b> has been <b>completed</b>.<br>
+
+                        The following field have been updated:<br>
+                        <b>{row.fields_to_modify}</b><br>
+
+                        Please review the updated details and proceed with the necessary approvals.<br>
+
+                        Regards,<br>
+                        <b>VMS System</b>
+                        """,
+                        now=True
+                    )
+                
         doc.asked_to_modify = 0
         
         
