@@ -533,6 +533,63 @@ def create_transaction_summary(requestor_ref, material_onboarding_link, payload,
 
 
 # =====================================================================================
+# MATERIAL CODE CREATION FUNCTION
+# =====================================================================================
+
+def create_material_code_entry(material_code, material_master, requestor_ref):
+    """
+    Create Material Code entry after successful SAP integration
+    """
+    try:
+        # Check if material code already exists
+        if frappe.db.exists("Material Code", {"material_code": material_code}):
+            print(f"⚠️ Material Code {material_code} already exists. Skipping creation.")
+            return None
+        
+        # Create new Material Code document
+        material_code_doc = frappe.new_doc("Material Code")
+        material_code_doc.material_code = material_code
+        material_code_doc.material_code_name = material_master.material_name
+        material_code_doc.material_type = material_master.material_type
+        material_code_doc.material_group = material_master.material_group
+        material_code_doc.material_description = material_master.description
+        
+        # Base UOM - Get from material master if available
+        material_code_doc.base_uom = getattr(material_master, 'base_uom', '') or getattr(material_master, 'uom', '')
+        
+        material_code_doc.company = material_master.company
+        material_code_doc.valuation_type = material_master.valuation_type
+        material_code_doc.plant = material_master.plant
+        material_code_doc.purchase_group = material_master.purchasing_group
+        material_code_doc.mrp_type = material_master.mrp_type
+        material_code_doc.price_unit = material_master.price_unit
+        material_code_doc.valuation_class = material_master.valuation_class
+        material_code_doc.currency = material_master.currency
+        material_code_doc.price_control = material_master.price_control
+        
+        # Profit Center - Get from material master or company
+        material_code_doc.profit_center = getattr(material_master, 'profit_center', '')
+        
+        material_code_doc.created_by = material_master.created_by
+        material_code_doc.default_material_manufacturer = material_master.default_material_manufacturer
+        
+        
+        material_code_doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+        
+        print(f"✅ Material Code entry created: {material_code_doc.name}")
+        return material_code_doc.name
+        
+    except Exception as e:
+        error_msg = f"Failed to create Material Code entry: {str(e)}"
+        frappe.log_error(f"{error_msg}\n\nTraceback: {frappe.get_traceback()}", "Material Code Creation Error")
+        print(f"❌ {error_msg}")
+        return None
+
+
+
+
+# =====================================================================================
 # MAIN INTEGRATION FUNCTION
 # =====================================================================================
 
@@ -627,6 +684,18 @@ def erp_to_sap_material_onboarding(requestor_ref):
             print(f"📦 Material Code: {material_code}")
             print(f"📝 SAP Message: {sap_message}")
             print(f"📝 SAP Text: {sap_text}")
+
+            material_code_name = None
+            if material_code:
+                print(f" Creating Material Code entry...")
+                material_code_name = create_material_code_entry(material_code, material_master, requestor_ref)
+                if material_code_name:
+                    print(f"Material Code created: {material_code_name}")
+                else:
+                    print(f" Material Code entry creation skipped or failed")
+            else:
+                print(f" No material code received from SAP. Skipping Material Code creation.")
+            
             
             # Update Requestor Master
             requestor.zmsg = sap_message
