@@ -744,6 +744,7 @@ def get_pur_req_table_data(name):
 # 			"error": str(e)
 # 		}
 
+# Not in Used
 @frappe.whitelist(allow_guest=True)
 def create_update_pr_table_head_form(data):
     try:

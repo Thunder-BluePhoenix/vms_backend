@@ -665,6 +665,18 @@ def modified_peq(data):
 
             doc.purchase_team_approval_status = "Modify"
             doc.purchase_team_status = "Raised Query"
+
+            if doc.rejected == 1:
+                doc.rejected = 0
+                # doc.mail_sent_to_purchase_team = 0
+                doc.ack_mail_to_user = 0
+
+                doc.hod_approval_status = "Pending"
+                doc.hod_approval = ""
+                doc.hod_approval_remarks = ""
+
+                doc.purchase_team_approval = ""
+                doc.purchase_team_approval_remarks = ""
                       
             doc.save()
 
@@ -1308,6 +1320,13 @@ def submit_purchase_inquiry(data):
             if row.fields_to_modify and not row.modified1:
                 row.modified_datetime = frappe.utils.now_datetime()
                 row.modified1 = 1
+
+                frappe.custom_sendmail(
+                    recipients=["iamabhichavan123@gmail.com", "rishi.hingad@merillife.com"],
+                    subject="Modify Alert",
+                    message="A modification has been made.",
+                    now=True
+                )
         doc.asked_to_modify = 0
         
         
@@ -1341,10 +1360,13 @@ def submit_purchase_inquiry(data):
                     })
         
         # Save the document with updates first
-        doc.save(ignore_permissions=True)
+        # doc.save(ignore_permissions=True)
         
         # Now submit the document
         doc.is_submited = 1
+        doc.rejected = 0
+        doc.ack_mail_to_user = 0
+        doc.purchase_team_approval_status = "Pending"
         doc.save(ignore_permissions=True)
         frappe.db.commit()
         

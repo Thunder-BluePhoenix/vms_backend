@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{PRO}/{FMT}/{DD}-{MM}-{YY}-{####}",
+ "autoname": "naming_series:",
  "creation": "2025-11-07 15:01:02.609533",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -17,18 +17,20 @@
   "prepared_by_name",
   "prepared_date",
   "prepared_by_signature",
+  "upload_prepared_by_sign",
   "column_break_lygo",
   "approved_by",
   "approved_by_name",
   "approved_date",
-  "approved_by_signature"
+  "approved_by_signature",
+  "upload_approved_by_sign"
  ],
  "fields": [
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Naming Series",
-   "options": "PRO/FMT/.DD.-.MM.-.YY.-####"
+   "options": "PRO-FMT-.DD.-.MM.-.YY.-"
   },
   {
    "fieldname": "procedure_reference",
@@ -105,12 +107,22 @@
    "fieldname": "audit_schedule_date",
    "fieldtype": "Date",
    "label": "On desk Audit Schedule Date"
+  },
+  {
+   "fieldname": "upload_prepared_by_sign",
+   "fieldtype": "Attach",
+   "label": "Upload Signature"
+  },
+  {
+   "fieldname": "upload_approved_by_sign",
+   "fieldtype": "Attach",
+   "label": "Upload Signature"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-07 16:10:47.097178",
+ "modified": "2025-11-08 19:07:15.484587",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "On desk Audit Schedule",
