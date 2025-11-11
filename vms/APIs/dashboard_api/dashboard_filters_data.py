@@ -267,6 +267,8 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
         if accounts_team_filter:
             conditions.append("vo.purchase_head_undertaking = 1")
 
+        conditions.append("(vo.inactive_record IS NULL OR vo.inactive_record = 0)")
+
         filter_clause = " AND ".join(conditions)
 
         # Total count for pagination
