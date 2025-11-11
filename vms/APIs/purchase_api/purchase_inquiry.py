@@ -665,6 +665,18 @@ def modified_peq(data):
 
             doc.purchase_team_approval_status = "Modify"
             doc.purchase_team_status = "Raised Query"
+
+            if doc.rejected == 1:
+                doc.rejected = 0
+                # doc.mail_sent_to_purchase_team = 0
+                doc.ack_mail_to_user = 0
+
+                doc.hod_approval_status = "Pending"
+                doc.hod_approval = ""
+                doc.hod_approval_remarks = ""
+
+                doc.purchase_team_approval = ""
+                doc.purchase_team_approval_remarks = ""
                       
             doc.save()
 
@@ -694,7 +706,7 @@ def modified_peq(data):
             message = f"""
                 <p>Dear {employee_name},</p>
 
-                <p>A modification request has been submitted for the following <strong>Cart Details</strong>:</p>
+                <p>A modification request has been submitted by Purchase Team for the following <strong>Cart Details</strong>:</p>
 
                 <p><strong>Cart ID:</strong> {doc.name}<br>
                 <strong>Cart Date:</strong> {cart_date_formatted}</p>
@@ -1308,6 +1320,26 @@ def submit_purchase_inquiry(data):
             if row.fields_to_modify and not row.modified1:
                 row.modified_datetime = frappe.utils.now_datetime()
                 row.modified1 = 1
+
+                frappe.custom_sendmail(
+                    recipients=[doc.dedicated_purchase_team],
+                    subject=f"A Modification has been done for Cart ID {doc.name}",
+                    message=f"""
+                        Dear Purchase Team,<br>
+
+                        A modification request for <b>Cart ID: {doc.name}</b> has been <b>completed</b>.<br>
+
+                        The following field have been updated:<br>
+                        <b>{row.fields_to_modify}</b><br>
+
+                        Please review the updated details and proceed with the necessary approvals.<br>
+
+                        Regards,<br>
+                        <b>VMS System</b>
+                        """,
+                        now=True
+                    )
+                
         doc.asked_to_modify = 0
         
         
