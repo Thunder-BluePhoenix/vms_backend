@@ -719,6 +719,8 @@ def hod_approval_check():
 
 			doc.mail_sent_to_hod = 0
 			doc.purchase_team_approved = 0
+			doc.ack_mail_to_user = 0
+			doc.purchase_team_acknowledgement = 0
 
 			# Send rejection email to purchase team
 			if doc.dedicated_purchase_team:
