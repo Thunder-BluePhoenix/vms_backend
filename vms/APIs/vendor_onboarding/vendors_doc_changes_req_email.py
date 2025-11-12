@@ -8,6 +8,7 @@ from vms.utils.custom_send_mail import custom_sendmail
 def send_doc_change_req_email(ven_onb, remarks):
     try:
         if not ven_onb:
+            frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error",
                 "message": "Vendor Onboarding ID not found"
@@ -113,12 +114,14 @@ def send_doc_change_req_email(ven_onb, remarks):
                 }
             )        
 
+            frappe.local.response["http_status_code"] = 200
             return {
                 "status": "success",
                 "message": "Email sent successfully"
             }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "send_doc_change_req_email")
         return {
             "status": "error",
@@ -130,6 +133,7 @@ def send_doc_change_req_email(ven_onb, remarks):
 def set_approval_check(vendor_onboarding: str, action: str):
     try:
         if not vendor_onboarding or not action:
+            frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
                 "message": "Missing required parameters (vendor_onboarding, action)."
@@ -139,6 +143,7 @@ def set_approval_check(vendor_onboarding: str, action: str):
 
         if doc.register_by_account_team == 0:
             if doc.get("allow_to_change_document_details_by_purchase_team") == 1:
+                frappe.local.response["http_status_code"] = 400
                 return {
                     "status": "error",
                     "message": f"This vendor onboarding ({vendor_onboarding}) has already been processed."
@@ -184,6 +189,7 @@ def set_approval_check(vendor_onboarding: str, action: str):
         }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "set_approval_check")
         return {
             "status": "error",
