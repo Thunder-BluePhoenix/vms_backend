@@ -12,6 +12,7 @@ def update_vendor_onboarding_company_details(data):
         vendor_onboarding = data.get("vendor_onboarding")
 
         if not ref_no or not vendor_onboarding:
+            frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
                 "message": "Both 'ref_no' and 'vendor_onboarding' are required."
@@ -25,6 +26,7 @@ def update_vendor_onboarding_company_details(data):
         )
 
         if not doc_name:
+            frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error",
                 "message": "Record not found."
@@ -47,6 +49,7 @@ def update_vendor_onboarding_company_details(data):
             main_doc.save()
             frappe.db.commit()
 
+            frappe.local.response["http_status_code"] = 200
             return {
                 "status": "success",
                 "message": "Vendor Onboarding Company Details updated successfully.",
@@ -82,6 +85,7 @@ def update_vendor_onboarding_company_details(data):
 
             frappe.db.commit()
 
+            frappe.local.response["http_status_code"] = 200
             return {
                 "status": "success",
                 "message": "Vendor Onboarding Company Details updated successfully.",
@@ -89,6 +93,7 @@ def update_vendor_onboarding_company_details(data):
             }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Company Update Error")
         return {
             "status": "error",
@@ -109,6 +114,7 @@ def update_vendor_onboarding_company_address(data):
         vendor_onboarding = data.get("vendor_onboarding")
 
         if not ref_no or not vendor_onboarding:
+            frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
                 "message": "Both 'ref_no' and 'vendor_onboarding' are required."
@@ -121,6 +127,7 @@ def update_vendor_onboarding_company_address(data):
         )
 
         if not doc_name:
+            frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error",
                 "message": "Vendor Onboarding Company Details record not found."
@@ -192,6 +199,7 @@ def update_vendor_onboarding_company_address(data):
             main_doc.save()
             frappe.db.commit()
 
+            frappe.local.response["http_status_code"] = 200
             return {
                 "status": "success",
                 "message": "Company address and locations updated successfully.",
@@ -276,6 +284,7 @@ def update_vendor_onboarding_company_address(data):
 
             frappe.db.commit()
 
+            frappe.local.response["http_status_code"] = 200
             return {
                 "status": "success",
                 "message": "Company address and locations updated successfully.",
@@ -283,6 +292,7 @@ def update_vendor_onboarding_company_address(data):
             }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "Company Address Update Error")
         return {
             "status": "error",

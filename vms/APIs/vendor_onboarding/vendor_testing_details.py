@@ -78,12 +78,14 @@ def update_vendor_onboarding_testing_details(data):
         testing_data = data.get("testing_detail")
 
         if not ref_no or not vendor_onboarding:
+            frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
                 "message": _("Missing required fields: 'ref_no' and 'vendor_onboarding'.")
             }
 
         if not isinstance(testing_data, list):
+            frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
                 "message": _("Missing or invalid child table: 'testing_detail'.")
@@ -124,6 +126,7 @@ def update_vendor_onboarding_testing_details(data):
 
         frappe.db.commit()
 
+        frappe.local.response["http_status_code"] = 200
         return {
             "status": "success",
             "message": _("Vendor Onboarding Testing Details updated successfully."),
@@ -132,6 +135,7 @@ def update_vendor_onboarding_testing_details(data):
 
     except Exception as e:
         frappe.db.rollback()
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Testing Details Update Error")
         return {
             "status": "error",

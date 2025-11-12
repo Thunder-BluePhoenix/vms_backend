@@ -58,6 +58,7 @@ def create_vendor_master(data):
         return {"status": "success", "name": doc.name}
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "Vendor Master API Error")
         return {
             "status": "error",
