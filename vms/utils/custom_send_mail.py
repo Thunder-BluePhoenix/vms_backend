@@ -19,10 +19,34 @@ def is_email_sending_suspended():
         return False
 
 
-def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=None, attachments=None, **kwargs):
-   
-   
-    create_notification_log(recipients= recipients, subject=subject, message=message, **kwargs)
+def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=None, 
+                   attachments=None, template=None, args=None, **kwargs):
+    """
+    Enhanced sendmail with template support
+    
+    Args:
+        recipients: Email recipients (string or list)
+        subject: Email subject (can be template string if args provided)
+        message: Email body (can be template string if args provided)
+        cc: CC recipients
+        bcc: BCC recipients
+        attachments: Email attachments
+        template: Email Template doctype name (optional)
+        args: Context dictionary for template rendering
+        **kwargs: Additional arguments
+    """
+    
+    # Handle Email Template if provided
+    if template:
+        subject, message = _render_email_template(template, args or {})
+    elif args and (subject or message):
+        # Render subject and message as templates if args provided
+        if subject:
+            subject = frappe.render_template(subject, args)
+        if message:
+            message = frappe.render_template(message, args)
+    
+    create_notification_log(recipients=recipients, subject=subject, message=message, **kwargs)
 
     # 🛑 Check if email sending is suspended
     if is_email_sending_suspended():
@@ -83,6 +107,42 @@ def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=No
             bcc_emails=_normalize_recipients(bcc),
             attachments=attachments
         )
+
+
+def custom_send_mail(mail_template, recipient, email_context=None, cc_recepients=None, **kwargs):
+    """
+    Convenience wrapper for template-based emails
+    Compatible with existing codebase
+    """
+    return custom_sendmail(
+        recipients=recipient,
+        cc=cc_recepients,
+        template=mail_template,
+        args=email_context,
+        now=kwargs.get('now', True),
+        **kwargs
+    )
+
+
+def _render_email_template(template_name, context):
+    """Render Email Template with context"""
+    try:
+        response = frappe.db.get_value("Email Template", template_name, "response_html")
+        subject = frappe.db.get_value("Email Template", template_name, "subject")
+        
+        # Handle empty rich text editor content
+        if response == '<div class="ql-editor read-mode"><p><br></p></div>':
+            response = frappe.db.get_value("Email Template", template_name, "response_html")
+        
+        # Render templates with context
+        rendered_subject = frappe.render_template(subject, context) if subject else ""
+        rendered_message = frappe.render_template(response, context) if response else ""
+        
+        return rendered_subject, rendered_message
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), f"Error rendering email template {template_name}: {str(e)}")
+        return "Email Template Error", "Failed to render email template"
 
 
 def _get_email_account_settings(email_id="noreply@merillife.com"):
