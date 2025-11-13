@@ -298,6 +298,20 @@ class SAPSessionManager:
             print("🔒 SAP session closed")
 
 
+def sanitize_sap_payload(data):
+    """
+    Recursively trim whitespace from all string values in the payload
+    Handles nested dictionaries and lists
+    """
+    if isinstance(data, dict):
+        return {key: sanitize_sap_payload(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [sanitize_sap_payload(item) for item in data]
+    elif isinstance(data, str):
+        return data.strip()  
+    else:
+        return data
+
 # =====================================================================================
 # MAIN VENDOR ONBOARDING FUNCTION - SESSION BASED
 # =====================================================================================
@@ -526,6 +540,9 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "Vedno": "",
                                 "Zmsg": ""
                             }
+
+                            data = sanitize_sap_payload(data)
+                        
                             
                             print(f"      🚀 Sending data to SAP for GST {gst_num} using session...")
                             
@@ -781,6 +798,8 @@ def erp_to_sap_vendor_data(onb_ref):
                             "Vedno": "",
                             "Zmsg": ""
                         }
+
+                        data = sanitize_sap_payload(data)
                         
                         print(f"      🚀 Sending international vendor data to SAP using session...")
                         
