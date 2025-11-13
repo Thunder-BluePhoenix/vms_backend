@@ -1031,7 +1031,7 @@ def get_pi(page_no=None, page_length=None, cart_id = None):
                 "cart_details": []
             }
 
-        allowed_roles = {"Purchase Team"}
+        allowed_roles = {"Purchase Team","Purchase Head"}
         user_roles = set(frappe.get_roles(usr))
 
         # Pagination parameters
