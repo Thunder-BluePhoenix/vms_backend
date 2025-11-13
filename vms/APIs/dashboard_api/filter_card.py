@@ -1543,7 +1543,9 @@ def filtering_po_details(page_no=None, page_length=None, company=None, status=No
             conditions = []
             values = {}
 
-            team = frappe.db.get_value("Employee", {"user_id": usr}, "team")
+            emp_data = frappe.get_value("Employee", {"user_id": usr}, ["team", "designation", "show_all_purchase_groups"])
+            team, designation, show_all_purchase_groups = emp_data
+
             if not team:
                 return {
                     "status": "error",
@@ -1568,8 +1570,12 @@ def filtering_po_details(page_no=None, page_length=None, company=None, status=No
                 }
 
             # Base filter for Purchase Team
-            conditions.append("po.purchase_group IN %(purchase_group)s")
-            values["purchase_group"] = pur_grp
+            if show_all_purchase_groups == 1:
+                conditions = []
+                values = {}
+            else:
+                conditions.append("po.purchase_group IN %(purchase_group)s")
+                values["purchase_group"] = pur_grp
 
             # Optional filters
             if company:
