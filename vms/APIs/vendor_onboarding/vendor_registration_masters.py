@@ -153,6 +153,13 @@ def address_filter(pincode=None, city_name=None, district_name=None, state_name=
         }
 
         if pincode:
+            if not frappe.db.exists("Pincode Master", pincode):
+                frappe.local.response["http_status_code"] = 404
+                return {
+                    "status": "error",
+                    "message": f"Pincode '{pincode}' not found in Pincode Master."
+                }
+
             pincode_doc = frappe.get_doc("Pincode Master", pincode)
 
             city = frappe.db.get_value("City Master", pincode_doc.city, ["name", "city_code", "city_name"], as_dict=True) if pincode_doc.city else {}

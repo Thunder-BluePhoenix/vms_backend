@@ -120,6 +120,7 @@ def update_vendor_onboarding_manufacturing_details(data):
 		vendor_onboarding = data.get("vendor_onboarding")
 
 		if not ref_no or not vendor_onboarding:
+			frappe.local.response["http_status_code"] = 400
 			return {
 				"status": "error",
 				"message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
@@ -132,6 +133,7 @@ def update_vendor_onboarding_manufacturing_details(data):
 		)
 
 		if not doc_name:
+			frappe.local.response["http_status_code"] = 404
 			return {
 				"status": "error",
 				"message": "Vendor Onboarding Manufacturing Record not found."
@@ -215,6 +217,7 @@ def update_vendor_onboarding_manufacturing_details(data):
 
 		frappe.db.commit()
 
+		frappe.local.response["http_status_code"] = 200
 		return {
 			"status": "success",
 			"message": "Manufacturing details updated successfully.",
@@ -225,6 +228,7 @@ def update_vendor_onboarding_manufacturing_details(data):
 
 	except Exception as e:
 		frappe.db.rollback()
+		frappe.local.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "Manufacturing Details Update Error")
 		return {
 			"status": "error",
@@ -243,6 +247,7 @@ def update_supplied_material_data(data):
 		vendor_onboarding = data.get("vendor_onboarding")
 
 		if not ref_no or not vendor_onboarding:
+			frappe.local.response["http_status_code"] = 400
 			return {
 				"status": "error",
 				"message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
@@ -255,6 +260,7 @@ def update_supplied_material_data(data):
 		)
 
 		if not doc_name:
+			frappe.local.response["http_status_code"] = 404
 			return {
 				"status": "error",
 				"message": "Vendor Onboarding Manufacturing Record not found."
@@ -292,6 +298,7 @@ def update_supplied_material_data(data):
 				idx = data.get("idx")
 				
 				if not idx:
+					frappe.local.response["http_status_code"] = 400
 					return {
 						"status": "error",
 						"message": "Missing 'idx' for PATCH request."
@@ -315,6 +322,7 @@ def update_supplied_material_data(data):
 						break
 				
 				if not row_found:
+					frappe.local.response["http_status_code"] = 404
 					return {
 						"status": "error",
 						"message": f"No material row found with idx '{idx}'."
@@ -351,7 +359,7 @@ def update_supplied_material_data(data):
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
-		frappe.local.response['http_status_code'] = 201
+		frappe.local.response['http_status_code'] = 200
 		return {
 			"status": "success",
 			"message": "Supplied Materials details updated successfully.",
@@ -360,6 +368,7 @@ def update_supplied_material_data(data):
 
 	except Exception as e: 
 		frappe.db.rollback()
+		frappe.local.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "Supplied Material Details Update Error")
 		return {
 			"status": "error",
@@ -370,104 +379,112 @@ def update_supplied_material_data(data):
 
 @frappe.whitelist(allow_guest=True, methods=['DELETE'])
 def delete_supplied_material_row(data):
-    try:
-        if isinstance(data, str):
-            data = json.loads(data)
+	try:
+		if isinstance(data, str):
+			data = json.loads(data)
 
-        ref_no = data.get("ref_no")
-        vendor_onboarding = data.get("vendor_onboarding")
-        idx = data.get("idx")
+		ref_no = data.get("ref_no")
+		vendor_onboarding = data.get("vendor_onboarding")
+		idx = data.get("idx")
 
-        if not ref_no or not vendor_onboarding or not idx:
-            return {
-                "status": "error",
-                "message": "Missing required fields: 'ref_no', 'vendor_onboarding', or 'idx'."
-            }
+		if not ref_no or not vendor_onboarding or not idx:
+			frappe.local.response["http_status_code"] = 400
+			return {
+				"status": "error",
+				"message": "Missing required fields: 'ref_no', 'vendor_onboarding', or 'idx'."
+			}
 
-        doc_name = frappe.db.get_value(
-            "Vendor Onboarding Manufacturing Details",
-            {"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
-            "name"
-        )
+		doc_name = frappe.db.get_value(
+			"Vendor Onboarding Manufacturing Details",
+			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+			"name"
+		)
 
-        if not doc_name:
-            return {
-                "status": "error",
-                "message": "Vendor Onboarding Manufacturing Record not found."
-            }
+		if not doc_name:
+			frappe.local.response["http_status_code"] = 404
+			return {
+				"status": "error",
+				"message": "Vendor Onboarding Manufacturing Record not found."
+			}
 
-        main_doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", doc_name)
-        deleted_from_docs = []
+		main_doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", doc_name)
+		deleted_from_docs = []
 
-        # Get all linked docs if multi-company
-        if main_doc.registered_for_multi_companies == 1:
-            unique_multi_comp_id = main_doc.unique_multi_comp_id
+		# Get all linked docs if multi-company
+		if main_doc.registered_for_multi_companies == 1:
+			unique_multi_comp_id = main_doc.unique_multi_comp_id
 
-            linked_docs = frappe.get_all(
-                "Vendor Onboarding Manufacturing Details",
-                filters={
-                    "registered_for_multi_companies": 1,
-                    "unique_multi_comp_id": unique_multi_comp_id
-                },
-                fields=["name"]
-            )
+			linked_docs = frappe.get_all(
+				"Vendor Onboarding Manufacturing Details",
+				filters={
+					"registered_for_multi_companies": 1,
+					"unique_multi_comp_id": unique_multi_comp_id
+				},
+				fields=["name"]
+			)
 
-            for entry in linked_docs:
-                doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", entry.name)
-                original_len = len(doc.materials_supplied)
+			for entry in linked_docs:
+				doc = frappe.get_doc("Vendor Onboarding Manufacturing Details", entry.name)
+				original_len = len(doc.materials_supplied)
 
-                # Filter out the row with matching idx
-                doc.materials_supplied = [
-                    row for row in doc.materials_supplied
-                    if row.idx != int(idx)
-                ]
+				# Filter out the row with matching idx
+				doc.materials_supplied = [
+					row for row in doc.materials_supplied
+					if row.idx != int(idx)
+				]
 
-                if len(doc.materials_supplied) != original_len:
-                    doc.save(ignore_permissions=True)
-                    deleted_from_docs.append(doc.name)
+				if len(doc.materials_supplied) != original_len:
+					doc.save(ignore_permissions=True)
+					deleted_from_docs.append(doc.name)
 
-            if not deleted_from_docs:
-                return {
-                    "status": "error",
-                    "message": f"No matching material row with idx '{idx}' found in linked records."
-                }
+			if not deleted_from_docs:
+				frappe.local.response["http_status_code"] = 404
+				return {
+					"status": "error",
+					"message": f"No matching material row with idx '{idx}' found in linked records."
+				}
 
-            frappe.db.commit()
-            return {
-                "status": "success",
-                "message": f"Material row with idx '{idx}' deleted from linked records.",
-                "docnames": deleted_from_docs
-            }
+			frappe.db.commit()
 
-        else:
-            # Single doc update
-            original_len = len(main_doc.materials_supplied)
+			frappe.local.response["http_status_code"] = 200
+			return {
+				"status": "success",
+				"message": f"Material row with idx '{idx}' deleted from linked records.",
+				"docnames": deleted_from_docs
+			}
 
-            main_doc.materials_supplied = [
-                row for row in main_doc.materials_supplied
-                if row.idx != int(idx)
-            ]
+		else:
+			# Single doc update
+			original_len = len(main_doc.materials_supplied)
 
-            if len(main_doc.materials_supplied) == original_len:
-                return {
-                    "status": "error",
-                    "message": f"No matching material row with idx '{idx}' found in this document."
-                }
+			main_doc.materials_supplied = [
+				row for row in main_doc.materials_supplied
+				if row.idx != int(idx)
+			]
 
-            main_doc.save(ignore_permissions=True)
-            frappe.db.commit()
+			if len(main_doc.materials_supplied) == original_len:
+				frappe.local.response["http_status_code"] = 404
+				return {
+					"status": "error",
+					"message": f"No matching material row with idx '{idx}' found in this document."
+				}
 
-            return {
-                "status": "success",
-                "message": f"Material row with idx '{idx}' deleted successfully.",
-                "docname": main_doc.name
-            }
+			main_doc.save(ignore_permissions=True)
+			frappe.db.commit()
 
-    except Exception as e:
-        frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Delete Supplied Material Row Error")
-        return {
-            "status": "error",
-            "message": "Failed to delete material row.",
-            "error": str(e)
-        }
+			frappe.local.response["http_status_code"] = 200
+			return {
+				"status": "success",
+				"message": f"Material row with idx '{idx}' deleted successfully.",
+				"docname": main_doc.name
+			}
+
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.local.response["http_status_code"] = 500
+		frappe.log_error(frappe.get_traceback(), "Delete Supplied Material Row Error")
+		return {
+			"status": "error",
+			"message": "Failed to delete material row.",
+			"error": str(e)
+		}

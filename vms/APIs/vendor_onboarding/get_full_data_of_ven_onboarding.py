@@ -5,6 +5,7 @@ from frappe import _
 def get_vendor_onboarding_details(vendor_onboarding, ref_no):
     try:
         if not vendor_onboarding or not ref_no:
+            frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error",
                 "message": "Missing required parameters: 'vendor_onboarding' and 'ref_no'."
@@ -17,6 +18,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         )
 
         if not docname:
+            frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error",
                 "message": "No matching Vendor Onboarding Company Details record found."
@@ -208,6 +210,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         )
 
         if not legal_docname:
+            frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error",
                 "message": "No matching Legal Documents record found."
@@ -328,6 +331,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         }, "name")
 
         if not payment_docname:
+            frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error",
                 "message": "No matching Vendor Onboarding Payment Details record found."
@@ -705,6 +709,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         }, "name")
 
         if not manuf_docname:
+            frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error", 
                 "message": "No matching Manufacturing Details record found."
@@ -1141,6 +1146,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
                     "field_json": row.field_json
                 })
 
+        frappe.local.response["http_status_code"] = 200
         return {
             "status": "success",
             "message": "Vendor onboarding company and address details fetched successfully.",
@@ -1165,6 +1171,7 @@ def get_vendor_onboarding_details(vendor_onboarding, ref_no):
         }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Company Details Fetch Error")
         return {
             "status": "error",

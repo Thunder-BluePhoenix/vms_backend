@@ -572,13 +572,26 @@ def vendor_data_for_purchase(usr, user_roles):
         # Extract only the names for filtering PRs
         pur_grp_names = [d["name"] for d in pur_groups]
 
-        pr_count = 0
+        # Build filters
+        filters = {
+            "purchase_group": ["in", pur_grp_names]
+        }
+
+        or_filters = [
+            {"sap_status": "Success"},
+            {"mail_sent_to_purchase_team": 1}
+        ]
 
         if employee.show_all_purchase_groups == 1:
             pr_count = frappe.db.count("Purchase Requisition Webform")
         else:
-            pr_count = frappe.db.count("Purchase Requisition Webform", filters={"purchase_group": ["in", pur_grp_names]})
-
+            records = frappe.get_all(
+                "Purchase Requisition Webform",
+                filters=filters,
+                or_filters=or_filters,
+                fields=["name"]
+            )
+            pr_count = len(records)
 
         # Purchase order Count
 
@@ -590,7 +603,6 @@ def vendor_data_for_purchase(usr, user_roles):
         if employee.show_all_purchase_groups == 1:
             purchase_order_count = frappe.db.count(
                 "Purchase Order",
-                filters={"sent_to_vendor": 1}
             )
         else:
             purchase_order_count = frappe.db.count(
@@ -1031,7 +1043,7 @@ def get_pi(page_no=None, page_length=None, cart_id = None):
                 "cart_details": []
             }
 
-        allowed_roles = {"Purchase Team"}
+        allowed_roles = {"Purchase Team","Purchase Head"}
         user_roles = set(frappe.get_roles(usr))
 
         # Pagination parameters
@@ -1354,6 +1366,7 @@ def get_pr_w(page_no=None, page_length=None):
         # Fetch team and designation of the logged-in user
         emp_data = frappe.get_value("Employee", {"user_id": user}, ["team", "designation"])
         if not emp_data:
+            frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error",
                 "message": "Employee record not found for the current user.",
@@ -1394,6 +1407,7 @@ def get_pr_w(page_no=None, page_length=None):
             pur_grp_names = [grp.name for grp in pur_grp]
 
             if not pur_grp_names:
+                frappe.local.response["http_status_code"] = 404
                 return {
                     "status": "success",
                     "message": "No purchase groups found for the user's team.",
@@ -1403,14 +1417,29 @@ def get_pr_w(page_no=None, page_length=None):
                     "page_length": page_length,
                     "total_pages": 0
                 }
+            
+            filters = {
+                "purchase_group": ["in", pur_grp_names]
+            }
 
-            total_count = frappe.db.count("Purchase Requisition Webform", 
-                                          filters={"purchase_group": ["in", pur_grp_names]})
+            or_filters = [
+                {"sap_status": "Success"},
+                {"mail_sent_to_purchase_team": 1}
+            ] 
+
+            records = frappe.get_all(
+                "Purchase Requisition Webform",
+                filters=filters,
+                or_filters=or_filters,
+                fields=["name"]  # minimal field for efficiency
+            )
+            total_count = len(records)            
 
             total_pages = (total_count + page_length - 1) // page_length
 
             pr_w = frappe.get_all("Purchase Requisition Webform", 
-                                  filters={"purchase_group": ["in", pur_grp_names]},
+                                  filters=filters,
+                                  or_filters=or_filters,
                                   fields="*", 
                                   order_by="modified desc",
                                   start=start,
@@ -1428,6 +1457,7 @@ def get_pr_w(page_no=None, page_length=None):
         }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "get_pr_w Error")
         return {
             "status": "error",
