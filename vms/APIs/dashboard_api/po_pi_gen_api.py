@@ -579,7 +579,7 @@ def vendor_data_for_purchase(usr, user_roles):
 
         or_filters = [
             {"sap_status": "Success"},
-            {"sap_status": "Failed", "mail_sent_to_purchase_team": 1}
+            {"mail_sent_to_purchase_team": 1}
         ]
 
         if employee.show_all_purchase_groups == 1:
@@ -603,7 +603,6 @@ def vendor_data_for_purchase(usr, user_roles):
         if employee.show_all_purchase_groups == 1:
             purchase_order_count = frappe.db.count(
                 "Purchase Order",
-                filters={"sent_to_vendor": 1}
             )
         else:
             purchase_order_count = frappe.db.count(
@@ -1425,7 +1424,7 @@ def get_pr_w(page_no=None, page_length=None):
 
             or_filters = [
                 {"sap_status": "Success"},
-                {"sap_status": "Failed", "mail_sent_to_purchase_team": 1}
+                {"mail_sent_to_purchase_team": 1}
             ] 
 
             records = frappe.get_all(
