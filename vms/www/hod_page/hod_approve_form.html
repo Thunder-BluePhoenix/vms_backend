@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart Approval - HOD Approval</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 40px;
+      color: white;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    h1 {
+      color: #2d3748;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #718096;
+      font-size: 16px;
+    }
+
+    .cart-info {
+      background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%);
+      border-left: 4px solid #4facfe;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .cart-info-label {
+      color: #4a5568;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .cart-info-value {
+      color: #2d3748;
+      font-size: 20px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+    }
+
+    .info-section {
+      background: #f7fafc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+    }
+
+    .info-section h3 {
+      color: #2d3748;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      color: #718096;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .info-value {
+      color: #2d3748;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    button {
+      flex: 1;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-approve {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+    }
+
+    .btn-approve:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+    }
+
+    .btn-approve:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-cancel {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+
+    .btn-cancel:hover {
+      background: #cbd5e0;
+      transform: translateY(-2px);
+    }
+
+    .spinner {
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .message {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border-left: 4px solid #28a745;
+      display: flex;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border-left: 4px solid #dc3545;
+      display: flex;
+    }
+
+    .message-icon {
+      font-size: 20px;
+    }
+
+    .confirmation-text {
+      background: #fff5e6;
+      border-left: 4px solid #ff9800;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      font-size: 15px;
+      color: #663c00;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .info-row {
+        flex-direction: column;
+        gap: 5px;
+      }
+    }
+  </style>
+  <!-- Include Frappe's CSRF token handling -->
+  <script src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+  <script>
+    // Get CSRF token from cookies
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // Set CSRF token for all requests
+    window.csrf_token = getCookie('csrf_token');
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="icon">✓</div>
+      <h1>Cart Approval</h1>
+      <p class="subtitle">Review and approve this cart request</p>
+    </div>
+
+    <div class="cart-info">
+      <div class="cart-info-label">Cart ID</div>
+      <div class="cart-info-value" id="cart_id">Loading...</div>
+    </div>
+
+    <div class="confirmation-text">
+      ⚠️ By clicking "Approve", you confirm that you have reviewed this cart request and approve it for processing.
+    </div>
+
+    <form id="approvalForm" onsubmit="submitApproval(event)">
+      <div class="button-group">
+        <button type="button" class="btn-cancel" onclick="handleCancel()">
+          ✕ Cancel
+        </button>
+        <button type="submit" class="btn-approve" id="approveBtn">
+          <span class="spinner" id="spinner"></span>
+          <span id="btnText">✓ Approve Cart</span>
+        </button>
+      </div>
+    </form>
+
+    <div id="message" class="message">
+      <span class="message-icon" id="messageIcon"></span>
+      <span id="messageText"></span>
+    </div>
+  </div>
+
+  <script>
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const cart_id = urlParams.get('cart_id');
+    const user = urlParams.get('user');
+    const hod_email = urlParams.get('hod_email');
+
+    // Display cart ID
+    if (cart_id) {
+      document.getElementById('cart_id').textContent = cart_id;
+    } else {
+      document.getElementById('cart_id').textContent = 'Invalid Cart ID';
+      showMessage('error', 'Invalid cart ID in URL');
+      document.getElementById('approveBtn').disabled = true;
+    }
+
+    // Validate hod_email
+    if (!hod_email) {
+      showMessage('error', 'Invalid authorization parameters');
+      document.getElementById('approveBtn').disabled = true;
+    }
+
+    // Show message
+    function showMessage(type, text) {
+      const messageDiv = document.getElementById('message');
+      const messageIcon = document.getElementById('messageIcon');
+      const messageText = document.getElementById('messageText');
+
+      messageDiv.className = 'message ' + type;
+      messageIcon.textContent = type === 'success' ? '✓' : '✕';
+      messageText.textContent = text;
+      messageDiv.style.display = 'flex';
+    }
+
+    // Hide message
+    function hideMessage() {
+      document.getElementById('message').style.display = 'none';
+    }
+
+    // Handle form submission
+    async function submitApproval(event) {
+      event.preventDefault();
+      hideMessage();
+
+      const approveBtn = document.getElementById('approveBtn');
+      const spinner = document.getElementById('spinner');
+      const btnText = document.getElementById('btnText');
+
+      if (!cart_id || !user || !hod_email) {
+        showMessage('error', 'Missing required parameters');
+        return;
+      }
+
+      // Show loading state
+      approveBtn.disabled = true;
+      spinner.style.display = 'block';
+      btnText.textContent = 'Approving...';
+
+      try {
+        // Prepare form data
+        const formData = new FormData();
+        formData.append("cart_id", cart_id);
+        formData.append("user", user);
+        formData.append("hod_email", hod_email);
+        formData.append("action", "approve");
+
+        // Include CSRF token in headers
+        const headers = {};
+        if (window.csrf_token) {
+          headers['X-Frappe-CSRF-Token'] = window.csrf_token;
+        }
+
+        // Make API request
+        const response = await fetch(
+          `/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check`,
+          {
+            method: "POST",
+            headers: headers,
+            body: formData
+          }
+        );
+
+        const result = await response.json();
+
+        // Frappe wraps responses in a 'message' key, so unwrap if needed
+        const data = result.message || result;
+
+        // Reset button state
+        approveBtn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.textContent = '✓ Approve Cart';
+
+        // Handle response based on status
+        if (data.status === 'success') {
+          // Redirect to success page
+          window.location.href = `/hod_page/hod_approval_success?cart_id=${encodeURIComponent(cart_id)}`;
+          return;
+        } else if (data.status === 'already_processed') {
+          // Cart was already processed
+          const alreadyMsg = typeof data.message === 'string'
+            ? data.message
+            : 'This cart has already been processed';
+          showMessage('error', alreadyMsg);
+          approveBtn.disabled = true;
+        } else {
+          // Error occurred - extract clean error message
+          let errorMsg = 'Unable to process approval';
+
+          // Priority 1: Check for message in unwrapped data
+          if (data.message && typeof data.message === 'string') {
+            errorMsg = data.message;
+          }
+          // Priority 2: Check for _server_messages (Frappe format)
+          else if (result._server_messages) {
+            try {
+              const serverMsgs = JSON.parse(result._server_messages);
+              if (Array.isArray(serverMsgs) && serverMsgs.length > 0) {
+                const firstMsg = JSON.parse(serverMsgs[0]);
+                errorMsg = firstMsg.message || 'An error occurred';
+              }
+            } catch (e) {
+              console.error('Error parsing server messages:', e);
+            }
+          }
+          // Priority 3: Check exception string
+          else if (result.exception || data.exception) {
+            const exception = result.exception || data.exception;
+            if (typeof exception === 'string') {
+              if (exception.includes('CSRFTokenError')) {
+                errorMsg = 'Session expired. Please refresh and try again.';
+              } else if (exception.includes('PermissionError')) {
+                errorMsg = 'You do not have permission for this action.';
+              } else {
+                // Try to extract message from exception
+                const excMatch = exception.match(/"message":\s*"([^"]+)"/);
+                errorMsg = excMatch ? excMatch[1] : 'An error occurred while processing';
+              }
+            }
+          }
+          // Priority 4: Check exc_type
+          else if (result.exc_type || data.exc_type) {
+            const excType = result.exc_type || data.exc_type;
+            if (excType === 'CSRFTokenError') {
+              errorMsg = 'Session expired. Please refresh and try again.';
+            } else if (excType === 'PermissionError') {
+              errorMsg = 'You do not have permission for this action.';
+            }
+          }
+
+          showMessage('error', errorMsg);
+        }
+
+      } catch (error) {
+        console.error("Error:", error);
+        approveBtn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.textContent = '✓ Approve Cart';
+        showMessage('error', 'Failed to connect to the server. Please try again.');
+      }
+    }
+
+    // Handle cancel
+    function handleCancel() {
+      if (confirm('Are you sure you want to cancel? The cart will not be approved.')) {
+        window.close();
+        // If window.close() doesn't work, redirect to home
+        if (!window.closed) {
+          window.location.href = '/';
+        }
+      }
+    }
+  </script>
+</body>
+</html>
