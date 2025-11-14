@@ -1,5 +1,49 @@
 frappe.listview_settings['Vendor Master'] = {
     onload(listview) {
+        listview.page.add_inner_button(__('Process Imported Vendors'), function() {
+            frappe.confirm(
+                'This will process all imported vendors (create users & send emails) in background. Continue?',
+                function() {
+                    // On yes
+                    frappe.call({
+                        method: 'vms.utils.bulk_vendor_user_creation.start_bulk_vendor_processing',
+                        callback: function(r) {
+                            if (r.message.status === 'success') {
+                                frappe.show_alert({
+                                    message: r.message.message,
+                                    indicator: 'green'
+                                }, 5);
+                            } else if (r.message.status === 'info') {
+                                frappe.show_alert({
+                                    message: r.message.message,
+                                    indicator: 'blue'
+                                }, 3);
+                            } else {
+                                frappe.msgprint(r.message.message);
+                            }
+                        }
+                    });
+                }
+            );
+        }, __('Vendor CODE Actions'));
+        
+    
+        frappe.call({
+            method: 'frappe.client.get_count',
+            args: {
+                doctype: 'Vendor Master',
+                filters: {
+                    via_data_import: 1,
+                    user_create: 0,
+                    is_blocked: 0
+                }
+            },
+            callback: function(r) {
+                if (r.message > 0) {
+                    listview.page.set_indicator(__('Pending Users: ' + r.message), 'orange');
+                }
+            }
+        });
         listview.page.add_menu_item(__('Danger'), function() {
             let selected = listview.get_checked_items();
 
@@ -51,7 +95,7 @@ frappe.listview_settings['Vendor Master'] = {
 
 
           // Add bulk action for syncing multiple vendors at once   
-    listview.page.add_inner_button(__('Sync Selected Vendors Addresses'), function() {
+        listview.page.add_inner_button(__('Sync Selected Vendors Addresses'), function() {
             let selected = listview.get_checked_items();
             
             if (selected.length === 0) {
