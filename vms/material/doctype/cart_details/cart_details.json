@@ -372,19 +372,16 @@
    "label": "Purchase Requisition Form Created"
   },
   {
-   "depends_on": "eval:doc.second_stage_approved\r\n",
    "fieldname": "second_stage_approval_status",
    "fieldtype": "Data",
    "label": "Second Stage Approval Status"
   },
   {
-   "depends_on": "eval:doc.second_stage_approved\r\n",
    "fieldname": "second_stage_approval_remark",
    "fieldtype": "Small Text",
    "label": "Second Stage Approval Remark"
   },
   {
-   "depends_on": "eval:doc.second_stage_approved\r\n",
    "fieldname": "second_stage_approval_by",
    "fieldtype": "Data",
    "label": "Second Stage Approval By"
@@ -475,7 +472,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-11 12:07:35.245458",
+ "modified": "2025-11-14 16:34:27.616936",
  "modified_by": "Administrator",
  "module": "Material",
  "name": "Cart Details",
