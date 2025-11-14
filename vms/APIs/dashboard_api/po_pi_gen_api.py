@@ -1357,6 +1357,7 @@ def get_pr_w(page_no=None, page_length=None):
         # Set default values for pagination
         page_no = int(page_no) if page_no else 1
         page_length = int(page_length) if page_length else 20
+        start = (page_no - 1) * page_length
 
         user = frappe.session.user
 
@@ -1364,7 +1365,7 @@ def get_pr_w(page_no=None, page_length=None):
         user_roles = frappe.get_roles(user)
 
         # Fetch team and designation of the logged-in user
-        emp_data = frappe.get_value("Employee", {"user_id": user}, ["team", "designation"])
+        emp_data = frappe.get_value("Employee", {"user_id": user}, ["team", "designation", "show_all_purchase_groups"])
         if not emp_data:
             frappe.local.response["http_status_code"] = 404
             return {
@@ -1378,10 +1379,7 @@ def get_pr_w(page_no=None, page_length=None):
                 "total_pages": 0
             }
 
-        team, designation = emp_data
-
-        # Calculate pagination start index
-        start = (page_no - 1) * page_length
+        team, designation, show_all_purchase_groups = emp_data
 
         # --- Enquirer Role ---
         if "Enquirer" in user_roles or designation == "Enquirer":
@@ -1407,7 +1405,7 @@ def get_pr_w(page_no=None, page_length=None):
             pur_grp_names = [grp.name for grp in pur_grp]
 
             if not pur_grp_names:
-                frappe.local.response["http_status_code"] = 404
+                frappe.local.response["http_status_code"] = 200
                 return {
                     "status": "success",
                     "message": "No purchase groups found for the user's team.",
@@ -1418,20 +1416,24 @@ def get_pr_w(page_no=None, page_length=None):
                     "total_pages": 0
                 }
             
-            filters = {
-                "purchase_group": ["in", pur_grp_names]
-            }
+            if show_all_purchase_groups==1:
+                filters = {}
+                or_filters = []
+            else:
+                filters = {
+                    "purchase_group": ["in", pur_grp_names]
+                }
 
-            or_filters = [
-                {"sap_status": "Success"},
-                {"mail_sent_to_purchase_team": 1}
-            ] 
+                or_filters = [
+                    {"sap_status": "Success"},
+                    {"mail_sent_to_purchase_team": 1}
+                ] 
 
             records = frappe.get_all(
                 "Purchase Requisition Webform",
                 filters=filters,
                 or_filters=or_filters,
-                fields=["name"]  # minimal field for efficiency
+                fields=["name"]
             )
             total_count = len(records)            
 
