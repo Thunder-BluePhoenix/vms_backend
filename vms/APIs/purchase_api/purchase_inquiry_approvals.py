@@ -332,11 +332,46 @@ def second_stage_approval_check():
             cart_details_doc.second_stage_approval_status = "Rejected"
             cart_details_doc.second_stage_approval_by = second_approver
             cart_details_doc.reason_for_rejection = reason_for_rejection
+
+            cart_details_doc.mail_sent_to_hod = 0
+            cart_details_doc.ack_mail_to_user = 0
+            cart_details_doc.asked_to_modify = 0
+            cart_details_doc.mail_sent_to_second_stage_approval = 0
+            cart_details_doc.is_requested_second_stage_approval = 0
+            cart_details_doc.purchase_team_approved = 0
+            cart_details_doc.hod_approved = 0
+            cart_details_doc.purchase_team_acknowledgement = 0
+
         else:
             frappe.throw(_("Invalid request: either approve or reject must be set."))
 
         cart_details_doc.save(ignore_permissions=True)
         frappe.db.commit()
+
+        # Send rejection email to purchase team
+        if cart_details_doc.dedicated_purchase_team:
+            try:
+                subject = f"Cart Details Rejected by HOD - {cart_id}"
+                message = f"""
+                    <p>Dear Purchase Team,</p>
+                    <p>The cart details have been rejected by {second_approver}(Second Approver).</p>
+                    <p><b>Cart User:</b> {user}</p>
+                    <p><b>Cart ID:</b> {cart_details_doc.name}</p>
+                    <p><b>Rejection Reason:</b> {reason_for_rejection}</p>
+                    <p>Please review and take necessary actions.</p>
+                    <p>Thank you!</p>
+                """
+                frappe.custom_sendmail(
+                    recipients=[cart_details_doc.dedicated_purchase_team],
+                    subject=subject,
+                    message=message,
+                    now=True
+                )
+            except Exception as email_error:
+                frappe.log_error(
+                    frappe.get_traceback(),
+                    f"Error sending rejection email for Cart {cart_id}"
+                )
 
         return {
             "status": "success",

@@ -675,6 +675,10 @@ def modified_peq(data):
                 doc.hod_approval = ""
                 doc.hod_approval_remarks = ""
 
+                doc.second_stage_approval_status = ""
+                doc.second_stage_approval_by = ""
+                doc.second_stage_approval_remark = ""
+
                 doc.purchase_team_approval = ""
                 doc.purchase_team_approval_remarks = ""
                       
