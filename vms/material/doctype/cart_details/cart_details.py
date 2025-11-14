@@ -276,8 +276,8 @@ def send_mail_hod(doc, method=None):
 			hod_email = frappe.get_value("Employee", hod, "user_id")
 			hod_name = frappe.get_value("Employee", hod, "full_name")
 			if hod_email:
-				approve_url = f"{http_server}/hod_approve_form?cart_id={doc.name}&user={doc.user}&hod_email={hod_email}"
-				reject_url = f"{http_server}/hod_reject_form?cart_id={doc.name}&user={doc.user}&hod_email={hod_email}"
+				approve_url = f"{http_server}/hod_page/hod_approve_form?cart_id={doc.name}&user={doc.user}&hod_email={hod_email}"
+				reject_url = f"{http_server}/hod_page/hod_reject_form?cart_id={doc.name}&user={doc.user}&hod_email={hod_email}"
 				
 				table_html = """
 					<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">

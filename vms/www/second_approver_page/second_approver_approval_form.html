@@ -321,7 +321,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const cart_id = urlParams.get('cart_id');
     const user = urlParams.get('user');
-    const hod_email = urlParams.get('hod_email');
+    const second_approver_email = urlParams.get('email');
 
     // Display cart ID
     if (cart_id) {
@@ -332,8 +332,8 @@
       document.getElementById('approveBtn').disabled = true;
     }
 
-    // Validate hod_email
-    if (!hod_email) {
+    // Validate second_approver_email
+    if (!second_approver_email) {
       showMessage('error', 'Invalid authorization parameters');
       document.getElementById('approveBtn').disabled = true;
     }
@@ -364,7 +364,7 @@
       const spinner = document.getElementById('spinner');
       const btnText = document.getElementById('btnText');
 
-      if (!cart_id || !user || !hod_email) {
+      if (!cart_id || !user || !second_approver_email) {
         showMessage('error', 'Missing required parameters');
         return;
       }
@@ -379,7 +379,7 @@
         const formData = new FormData();
         formData.append("cart_id", cart_id);
         formData.append("user", user);
-        formData.append("hod_email", hod_email);
+        formData.append("email", second_approver_email);
         formData.append("action", "approve");
 
         // Include CSRF token in headers
@@ -390,7 +390,7 @@
 
         // Make API request
         const response = await fetch(
-          `/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check`,
+          `/api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check`,
           {
             method: "POST",
             headers: headers,
@@ -411,7 +411,7 @@
         // Handle response based on status
         if (data.status === 'success') {
           // Redirect to success page
-          window.location.href = `/hod_approval_success?cart_id=${encodeURIComponent(cart_id)}`;
+          window.location.href = `/second_approver_page/second_approver_approval_success?cart_id=${encodeURIComponent(cart_id)}`;
           return;
         } else if (data.status === 'already_processed') {
           // Cart was already processed

@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+import datetime
 
 
 def execute(filters=None):
@@ -93,41 +94,3 @@ def get_data(filters):
             })
 
     return data
-
-
-# API Call to get the data of Product Inquiry Details Report
-@frappe.whitelist(allow_guest=True, methods=['GET'])
-def get_product_inquiry_report(cart_id=None, user=None, cart_date=None, product_name=None, page_no=None, page_size=None):
-
-    page = int(page_no) if page_no else 1
-    page_size = int(page_size) if page_size else 10
-
-    filters = {}
-    if cart_id:
-        filters["cart_id"] = cart_id
-    if user:
-        filters["user"] = user
-    if cart_date:
-        filters["cart_date"] = cart_date
-    if product_name:
-        filters["product_name"] = product_name
-
-    columns, data = execute(filters)
-
-    total_records = len(data)
-    start = (page - 1) * page_size
-    end = start + page_size
-    paginated_data = data[start:end]
-
-    return {
-        # "columns": columns,
-        "data": paginated_data,
-        "pagination": {
-            "page_no": page,
-            "page_size": page_size,
-            "total_records": total_records,
-            "total_pages": (total_records + page_size - 1) // page_size,
-            "has_next": end < total_records,
-            "has_previous": start > 0
-        }
-    }

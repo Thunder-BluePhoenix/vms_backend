@@ -163,8 +163,8 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 
         if email_id:
             # Create approval and reject URLs
-            approve_url = f"{http_server}/api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=approve"
-            reject_url = f"{http_server}/api/method/vms.APIs.purchase_api.purchase_inquiry_approvals.second_stage_approval_check?cart_id={doc.name}&email={email_id}&action=reject"
+            approve_url = f"{http_server}/second_approver_page/second_approver_approval_form?cart_id={doc.name}&user={doc.user}&email={email_id}&action=approve"
+            reject_url = f"{http_server}/second_approver_page/second_approver_reject_form?cart_id={doc.name}&user={doc.user}&email={email_id}&action=reject"
 
             table_html = """
                 <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
@@ -281,30 +281,56 @@ def send_purchase_enquiry_approval_mail(email_id, purchase_enquiry_id, method=No
 @frappe.whitelist(allow_guest=True)
 def second_stage_approval_check():
     try:
-        session_user = frappe.session.user
         cart_id = frappe.form_dict.get("cart_id")
-        user = frappe.form_dict.get("email")
+        user = frappe.form_dict.get("user")
+        second_approver = frappe.form_dict.get("email")
         action = frappe.form_dict.get("action")
-        comments = frappe.form_dict.get("comments") or ""
         reason_for_rejection = frappe.form_dict.get("rejection_reason") or ""
 
-        if not cart_id or not user or not action:
+        if not cart_id or not second_approver or not action:
+            frappe.response["http_status_code"] = 400
             return {
                 "status": "error",
-                "message": "Missing required parameters."
+                "message": "Missing required parameters (cart_id, user, hod_email, or action)."
+            }
+        
+        if not frappe.db.exists("Cart Details", cart_id):
+            frappe.response["http_status_code"] = 404
+            return {
+                "status": "error",
+                "message": f"Cart with ID '{cart_id}' not found."
             }
 
         cart_details_doc = frappe.get_doc("Cart Details", cart_id)
 
+        # Prevent multiple submissions
+        if cart_details_doc.second_stage_approval_status in ["Approved", "Rejected"]:
+            frappe.response["http_status_code"] = 409
+            return {
+                "status": "already_processed",
+                "message": f"This cart has already been {cart_details_doc.second_stage_approval_status}. Further action is not required.",
+                "cart_id": cart_id,
+                "current_status": cart_details_doc.second_stage_approval_status
+            }
+
         if action == "approve":
             cart_details_doc.second_stage_approved = 1
             cart_details_doc.second_stage_approval_status = "Approved"
-            cart_details_doc.second_stage_approval_remark = "Approved by " + user
-            cart_details_doc.second_stage_approval_by = session_user
+            cart_details_doc.second_stage_approval_remark = "Approved by " + second_approver
+            cart_details_doc.second_stage_approval_by = second_approver
         elif action == "reject":
+
+            if not reason_for_rejection or not reason_for_rejection.strip():
+                frappe.response["http_status_code"] = 400
+                return {
+                    "status": "error",
+                    "message": "Rejection reason is required."
+                }
+            
             cart_details_doc.rejected = 1
-            cart_details_doc.rejected_by = session_user
-            cart_details_doc.hod_approval_status = "Rejected"
+            cart_details_doc.rejected_by = second_approver
+            cart_details_doc.second_stage_approval_status = "Rejected"
+            cart_details_doc.second_stage_approval_by = second_approver
             cart_details_doc.reason_for_rejection = reason_for_rejection
         else:
             frappe.throw(_("Invalid request: either approve or reject must be set."))
@@ -315,7 +341,7 @@ def second_stage_approval_check():
         return {
             "status": "success",
             "message": f"Your response has been recorded for Cart ID: {cart_id}",
-            "status_value": cart_details_doc.hod_approval_status,
+            "status_value": cart_details_doc.second_stage_approval_status,
         }
 
     except Exception as e:

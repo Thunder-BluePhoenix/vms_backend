@@ -284,7 +284,7 @@
         if (data.status === 'success') {
           // ✅ Remove beforeUnload handler before redirect
           window.removeEventListener('beforeunload', beforeUnloadHandler);
-          window.location.href = `/hod_rejection_success?cart_id=${encodeURIComponent(cart_id)}`;
+          window.location.href = `/hod_page/hod_rejection_success?cart_id=${encodeURIComponent(cart_id)}`;
           return;
         } else {
           let errorMsg = data.message || 'Unable to submit rejection';
