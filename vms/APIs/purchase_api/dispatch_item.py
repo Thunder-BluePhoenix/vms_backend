@@ -3,6 +3,7 @@ import json
 from frappe.utils.file_manager import save_file
 from frappe.utils import now_datetime
 from vms.utils.custom_send_mail import custom_sendmail
+import binascii
 
 @frappe.whitelist(allow_guest=True)
 def update_dispatch_item(data=None):
@@ -548,6 +549,9 @@ def submit_child_dispatch_item(data):
 		}
 
 
+def json_to_hex(json_string):
+    return binascii.hexlify(json_string.encode()).decode()
+
 # submit the dispatch item doc
 @frappe.whitelist(allow_guest=True)
 def submit_dispatch_item(data):
@@ -595,14 +599,20 @@ def submit_dispatch_item(data):
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
+		qr_json = doc.qr_code_data or "{}"
+		qr_hex = json_to_hex(qr_json)
+
 		return {
 			"status": "success",
 			"message": "Dispatch item submitted successfully.",
-			"name": doc.name
+			"name": doc.name,
+			"qr_code": qr_hex,
+			"qr_code_image": doc.qr_code_image
 		}
 
 	except Exception as e:
 		frappe.db.rollback()
+		frappe.local.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "Dispatch Item Submit Error")
 		return {
 			"status": "error",
