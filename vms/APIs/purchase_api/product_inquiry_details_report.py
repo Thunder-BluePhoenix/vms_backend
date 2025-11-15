@@ -42,8 +42,19 @@ def get_latest_product_inquiry(cart_id=None):
 
 			latest_cart_id = latest_product_cart[1].parent
 
+			sap_pr_code = None
 			try:
 				latest_cart_details = frappe.get_doc("Cart Details", latest_cart_id)
+
+				if latest_cart_details.purchase_requisition_form_created:
+					pur_req_webform = frappe.get_doc("Purchase Requisition Webform", latest_cart_details.purchase_requisition_form)
+
+					if pur_req_webform.sap_status == "Success":
+						pur_req_form = frappe.get_doc(
+							"Purchase Requisition Form",
+							pur_req_webform.purchase_requisition_form_link
+						)
+						sap_pr_code = pur_req_form.sap_pr_code
 			except:
 				continue
 
@@ -56,8 +67,10 @@ def get_latest_product_inquiry(cart_id=None):
 						"cart_date": latest_cart_details.cart_date,
 						"purchase_requisition_form_created": latest_cart_details.purchase_requisition_form_created,
 						"purchase_requisition_form": latest_cart_details.purchase_requisition_form,
+						"sap_pr_code": sap_pr_code,
 
 						"product_name": latest_row.product_name,
+						"product_full_name": frappe.db.get_value("VMS Product Master", latest_row.product_name, "product_name") or "",
 						"price": latest_row.product_price,
 						"final_price": latest_row.final_price_by_purchase_team,
 						"qty": latest_row.product_quantity
