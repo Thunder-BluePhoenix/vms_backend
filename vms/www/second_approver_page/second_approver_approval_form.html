@@ -270,15 +270,8 @@
   <!-- Include Frappe's CSRF token handling -->
   <script src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
   <script>
-    // Get CSRF token from cookies
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
     // Set CSRF token for all requests
-    window.csrf_token = getCookie('csrf_token');
+    window.csrf_token = "{{ csrf_token | e }}"
   </script>
 </head>
 <body>
