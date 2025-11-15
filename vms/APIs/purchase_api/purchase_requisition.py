@@ -564,6 +564,7 @@ def get_pur_req_table_data(name):
 					"purchase_group_head": row.purchase_group_head,
 					"purchase_group_head_desc": frappe.db.get_value("Purchase Group Master", row.purchase_group_head, "description"),
 					"product_name_head": row.product_name_head,
+					"product_full_name_head": frappe.db.get_value("VMS Product Master", row.product_name_head, "product_name") or "",
 					"product_price_head": row.product_price_head,
 					"final_price_by_purchase_team_head": row.final_price_by_purchase_team_head,
 					"lead_time_head": row.lead_time_head,

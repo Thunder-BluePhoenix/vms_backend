@@ -4,99 +4,205 @@ from vms.purchase.report.product_inquiry_details.product_inquiry_details import 
 
 
 # Get latest Previous Product Inquiry beased on Cart ID
+# @frappe.whitelist(allow_guest=True, methods=['GET'])
+# def get_latest_product_inquiry(cart_id=None):
+# 	try:
+# 		if not cart_id:
+# 			frappe.local.response["http_status_code"] = 404
+# 			return {
+# 				"status": "error",
+# 				"message": "Cart ID not provided"
+# 			}
+
+# 		try:
+# 			cart_details = frappe.get_doc("Cart Details", cart_id)
+# 		except:
+# 			frappe.local.response["http_status_code"] = 404
+# 			return {
+# 				"status": "error",
+# 				"message": "Cart not found"
+# 			}
+
+# 		final_data = [] 
+
+# 		for row in cart_details.cart_product:
+# 			if not row.product_name:
+# 				continue
+
+# 			latest_product_cart = frappe.db.sql("""
+# 				SELECT parent, creation
+# 				FROM `tabCart Master`
+# 				WHERE product_name = %s
+# 				ORDER BY creation DESC
+# 				LIMIT 2
+# 			""", (row.product_name,), as_dict=True)
+
+# 			if len(latest_product_cart) < 2:
+# 				continue
+
+# 			latest_cart_id = latest_product_cart[1].parent
+
+# 			sap_pr_code = None
+# 			try:
+# 				latest_cart_details = frappe.get_doc("Cart Details", latest_cart_id)
+
+# 				if latest_cart_details.purchase_requisition_form_created:
+# 					pur_req_webform = frappe.get_doc("Purchase Requisition Webform", latest_cart_details.purchase_requisition_form)
+
+# 					if pur_req_webform.sap_status == "Success":
+# 						pur_req_form = frappe.get_doc(
+# 							"Purchase Requisition Form",
+# 							pur_req_webform.purchase_requisition_form_link
+# 						)
+# 						sap_pr_code = pur_req_form.sap_pr_code
+# 			except:
+# 				continue
+
+# 			for latest_row in latest_cart_details.cart_product:
+# 				if latest_row.product_name == row.product_name:
+
+# 					final_data.append({
+# 						"cart_id": latest_cart_details.name,
+# 						"user": latest_cart_details.user,
+# 						"cart_date": latest_cart_details.cart_date,
+# 						"purchase_requisition_form_created": latest_cart_details.purchase_requisition_form_created,
+# 						"purchase_requisition_form": latest_cart_details.purchase_requisition_form,
+# 						"sap_pr_code": sap_pr_code,
+
+# 						"product_name": latest_row.product_name,
+# 						"product_full_name": frappe.db.get_value("VMS Product Master", latest_row.product_name, "product_name") or "",
+# 						"price": latest_row.product_price,
+# 						"final_price": latest_row.final_price_by_purchase_team,
+# 						"quantity": latest_row.product_quantity
+# 					})
+
+# 		if not final_data:
+# 			frappe.local.response["http_status_code"] = 404
+# 			return {
+# 				"status": "error",
+# 				"message": "No related Cart Details found"
+# 			}
+
+# 		frappe.local.response["http_status_code"] = 200
+# 		return {
+# 			"status": "success",
+# 			"data": final_data,
+# 			"total_records": len(final_data)
+# 		}
+
+# 	except Exception as e:
+# 		frappe.local.response["http_status_code"] = 500
+# 		return {
+# 			"status": "error",
+# 			"message": "Internal Server Error",
+# 			"error": str(e)
+# 		}
+
+
 @frappe.whitelist(allow_guest=True, methods=['GET'])
 def get_latest_product_inquiry(cart_id=None):
-	try:
-		if not cart_id:
-			frappe.local.response["http_status_code"] = 404
-			return {
-				"status": "error",
-				"message": "Cart ID not provided"
-			}
+    try:
+        if not cart_id:
+            frappe.local.response["http_status_code"] = 404
+            return {
+                "status": "error",
+                "message": "Cart ID not provided"
+            }
 
-		try:
-			cart_details = frappe.get_doc("Cart Details", cart_id)
-		except:
-			frappe.local.response["http_status_code"] = 404
-			return {
-				"status": "error",
-				"message": "Cart not found"
-			}
+        try:
+            cart_details = frappe.get_doc("Cart Details", cart_id)
+        except:
+            frappe.local.response["http_status_code"] = 404
+            return {
+                "status": "error",
+                "message": "Cart not found"
+            }
 
-		final_data = [] 
+        final_data = []
+        creation_date = cart_details.creation
 
-		for row in cart_details.cart_product:
-			if not row.product_name:
-				continue
+        for row in cart_details.cart_product:
 
-			latest_product_cart = frappe.db.sql("""
-				SELECT parent, creation
-				FROM `tabCart Master`
-				WHERE product_name = %s
-				ORDER BY creation DESC
-				LIMIT 2
-			""", (row.product_name,), as_dict=True)
+            product_code = row.product_name
+            if not product_code:
+                continue
 
-			if len(latest_product_cart) < 2:
-				continue
+            previous_cart = frappe.db.sql("""
+                SELECT parent, creation
+                FROM `tabCart Master`
+                WHERE product_name = %s
+                  AND creation < %s
+                ORDER BY creation DESC
+                LIMIT 1
+            """, (product_code, creation_date), as_dict=True)
 
-			latest_cart_id = latest_product_cart[1].parent
+            if not previous_cart:
+                continue
 
-			sap_pr_code = None
-			try:
-				latest_cart_details = frappe.get_doc("Cart Details", latest_cart_id)
+            prev_cart_id = previous_cart[0].parent
 
-				if latest_cart_details.purchase_requisition_form_created:
-					pur_req_webform = frappe.get_doc("Purchase Requisition Webform", latest_cart_details.purchase_requisition_form)
+            try:
+                prev_cart_details = frappe.get_doc("Cart Details", prev_cart_id)
+            except:
+                continue
 
-					if pur_req_webform.sap_status == "Success":
-						pur_req_form = frappe.get_doc(
-							"Purchase Requisition Form",
-							pur_req_webform.purchase_requisition_form_link
-						)
-						sap_pr_code = pur_req_form.sap_pr_code
-			except:
-				continue
+            sap_pr_code = None
+            if prev_cart_details.purchase_requisition_form_created:
+                try:
+                    webform = frappe.get_doc(
+                        "Purchase Requisition Webform",
+                        prev_cart_details.purchase_requisition_form
+                    )
 
-			for latest_row in latest_cart_details.cart_product:
-				if latest_row.product_name == row.product_name:
+                    if webform.sap_status == "Success":
+                        pr_form = frappe.get_doc(
+                            "Purchase Requisition Form",
+                            webform.purchase_requisition_form_link
+                        )
+                        sap_pr_code = pr_form.sap_pr_code
+                except:
+                    pass
 
-					final_data.append({
-						"cart_id": latest_cart_details.name,
-						"user": latest_cart_details.user,
-						"cart_date": latest_cart_details.cart_date,
-						"purchase_requisition_form_created": latest_cart_details.purchase_requisition_form_created,
-						"purchase_requisition_form": latest_cart_details.purchase_requisition_form,
-						"sap_pr_code": sap_pr_code,
+            for prev_row in prev_cart_details.cart_product:
+                if prev_row.product_name == product_code:
 
-						"product_name": latest_row.product_name,
-						"product_full_name": frappe.db.get_value("VMS Product Master", latest_row.product_name, "product_name") or "",
-						"price": latest_row.product_price,
-						"final_price": latest_row.final_price_by_purchase_team,
-						"qty": latest_row.product_quantity
-					})
+                    final_data.append({
+                        "cart_id": prev_cart_details.name,
+                        "user": prev_cart_details.user,
+                        "cart_date": prev_cart_details.cart_date,
+                        "purchase_requisition_form_created": prev_cart_details.purchase_requisition_form_created,
+                        "purchase_requisition_form": prev_cart_details.purchase_requisition_form,
+                        "sap_pr_code": sap_pr_code,
 
-		if not final_data:
-			frappe.local.response["http_status_code"] = 404
-			return {
-				"status": "error",
-				"message": "No related Cart Details found"
-			}
+                        "product_name": product_code,
+                        "product_full_name": frappe.db.get_value("VMS Product Master", product_code, "product_name") or "",
+                        "price": prev_row.product_price,
+                        "final_price": prev_row.final_price_by_purchase_team,
+                        "quantity": prev_row.product_quantity
+                    })
 
-		frappe.local.response["http_status_code"] = 200
-		return {
-			"status": "success",
-			"data": final_data,
-			"total_records": len(final_data)
-		}
+        # No data found
+        if not final_data:
+            frappe.local.response["http_status_code"] = 200
+            return {
+                "status": "success",
+                "message": "No previous cart records found"
+            }
 
-	except Exception as e:
-		frappe.local.response["http_status_code"] = 500
-		return {
-			"status": "error",
-			"message": "Internal Server Error",
-			"error": str(e)
-		}
+        frappe.local.response["http_status_code"] = 200
+        return {
+            "status": "success",
+            "data": final_data,
+            "total_records": len(final_data)
+        }
+
+    except Exception as e:
+        frappe.local.response["http_status_code"] = 500
+        return {
+            "status": "error",
+            "message": "Internal Server Error",
+            "error": str(e)
+        }
 
 
 # API Call to get the data of Product Inquiry Details Report
