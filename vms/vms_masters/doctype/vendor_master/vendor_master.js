@@ -71,6 +71,76 @@ frappe.ui.form.on('Vendor Master', {
             });
         }, 300);
 
+        if (frm.doc.via_data_import === 1 && 
+            frm.doc.user_create === 0 && 
+            frm.doc.is_blocked === 0 && 
+            frm.doc.office_email_primary) {
+            
+            
+            frm.add_custom_button(__('Create User & Send Email'), function() {
+                frappe.confirm(
+                    __('This will create a user and send login credentials to {0}. Continue?', 
+                       [frm.doc.office_email_primary]),
+                    function() {
+                        // Show processing message
+                        frappe.show_alert({
+                            message: __('Processing vendor...'),
+                            indicator: 'blue'
+                        }, 3);
+                        
+                        // Call backend function
+                        frappe.call({
+                            method: 'vms.utils.bulk_vendor_user_creation.process_single_vendor',
+                            args: {
+                                vendor_name: frm.doc.name
+                            },
+                            freeze: true,
+                            freeze_message: __('Creating user and sending email...'),
+                            callback: function(r) {
+                                if (r.message) {
+                                    if (r.message.status === 'success') {
+                                        frappe.show_alert({
+                                            message: r.message.message,
+                                            indicator: 'green'
+                                        }, 5);
+                                        // Reload form to update user_create field
+                                        frm.reload_doc();
+                                    } else if (r.message.status === 'info') {
+                                        frappe.show_alert({
+                                            message: r.message.message,
+                                            indicator: 'blue'
+                                        }, 5);
+                                        // Reload form
+                                        frm.reload_doc();
+                                    } else {
+                                        frappe.msgprint({
+                                            title: __('Error'),
+                                            message: r.message.message,
+                                            indicator: 'red'
+                                        });
+                                    }
+                                }
+                            }
+                        });
+                    }
+                );
+            }, __('Vendor CODE Actions'));
+        }
+        
+        // Show indicator if user already created
+        if (frm.doc.via_data_import === 1 && frm.doc.user_create === 1) {
+            frm.dashboard.add_indicator(__('User Created'), 'green');
+        }
+        
+        // Show indicator if pending user creation
+        if (frm.doc.via_data_import === 1 && 
+            frm.doc.user_create === 0 && 
+            frm.doc.is_blocked === 0 && 
+            frm.doc.office_email_primary) {
+            frm.dashboard.add_indicator(__('Pending User Creation'), 'orange');
+        }
+
+
     vendor_code_doc_sync(frm);
     }
 });

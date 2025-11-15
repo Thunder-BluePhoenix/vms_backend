@@ -418,3 +418,99 @@ def safe_get(obj, attr, index=None, subattr=None):
     except:
         pass
     return None
+
+
+
+
+@frappe.whitelist()
+def process_single_vendor(vendor_name):
+    """
+    Process a single vendor - create user and send email
+    Called from Vendor Master form button
+    """
+    try:
+        vendor_doc = frappe.get_doc("Vendor Master", vendor_name)
+        
+        # Validation checks
+        if not vendor_doc.via_data_import:
+            return {
+                "status": "error",
+                "message": "This vendor is not imported via data import"
+            }
+        
+        if vendor_doc.user_create:
+            return {
+                "status": "info",
+                "message": "User already created for this vendor"
+            }
+        
+        if vendor_doc.is_blocked:
+            return {
+                "status": "error",
+                "message": "Cannot process blocked vendor"
+            }
+        
+        if not vendor_doc.office_email_primary:
+            return {
+                "status": "error",
+                "message": "Vendor email is not set"
+            }
+        
+        # Check if user already exists
+        if frappe.db.exists("User", vendor_doc.office_email_primary):
+            # Just mark as done, don't send email
+            vendor_doc.user_create = 1
+            vendor_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+            
+            return {
+                "status": "info",
+                "message": f"User already exists for {vendor_doc.office_email_primary}. Marked as completed."
+            }
+        
+        # Create user and send email
+        password = generate_random_password()
+        
+        # Create user
+        new_user = frappe.new_doc("User")
+        new_user.email = vendor_doc.office_email_primary
+        new_user.first_name = vendor_doc.vendor_name or "Vendor"
+        new_user.send_welcome_email = 0
+        new_user.module_profile = "Vendor"
+        new_user.role_profile_name = "Vendor"
+        new_user.new_password = password
+        new_user.insert(ignore_permissions=True)
+        
+        # Collect vendor codes
+        vendor_code_data = collect_all_vendor_codes(vendor_doc)
+        
+        # Get CC list
+        cc = get_vendor_cc_list(vendor_doc)
+        
+        # Send email
+        send_vendor_email_with_pdf_imported(
+            email=vendor_doc.office_email_primary,
+            username=vendor_doc.office_email_primary,
+            password=password,
+            vendor_name=vendor_doc.vendor_name or "Vendor",
+            vendor_code_data=vendor_code_data,
+            is_new_user=True,
+            cc=cc
+        )
+        
+        # Mark as done
+        vendor_doc.user_create = 1
+        vendor_doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        return {
+            "status": "success",
+            "message": f"User created successfully and email sent to {vendor_doc.office_email_primary}"
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error processing vendor {vendor_name}: {str(e)}")
+        return {
+            "status": "error",
+            "message": f"Error: {str(e)}"
+        }
