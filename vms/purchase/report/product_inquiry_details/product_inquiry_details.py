@@ -45,6 +45,16 @@ def get_data(filters):
     )
 
     for cart in cart_list:
+        sap_pr_code = None
+        try:
+            if cart.purchase_requisition_form_created:
+                pr_webform = frappe.get_doc("Purchase Requisition Webform", cart.purchase_requisition_form)
+
+                if pr_webform.sap_status == "Success":
+                    pr_form = frappe.get_doc("Purchase Requisition Form", pr_webform.purchase_requisition_form_link)
+                    sap_pr_code = pr_form.sap_pr_code
+        except:
+            sap_pr_code = None
 
         child_filters = {"parent": cart.name}
 
@@ -70,8 +80,10 @@ def get_data(filters):
                     "cart_date": cart.cart_date,
                     "pr_created": cart.purchase_requisition_form_created,
                     "pr_form": cart.purchase_requisition_form,
+                    "sap_pr_code": sap_pr_code,
 
                     "product_name": item.product_name,
+                    "product_full_name": frappe.db.get_value("VMS Product Master", item.product_name, "product_name") or "",
                     "product_price": item.product_price,
                     "final_price": item.final_price_by_purchase_team,
                     "quantity": item.product_quantity,
@@ -86,8 +98,10 @@ def get_data(filters):
                 "cart_date": cart.cart_date,
                 "pr_created": cart.purchase_requisition_form_created,
                 "pr_form": cart.purchase_requisition_form,
+                "sap_pr_code": sap_pr_code,
 
                 "product_name": "",
+                "product_full_name": "",
                 "product_price": "",
                 "final_price": "",
                 "quantity": "",
