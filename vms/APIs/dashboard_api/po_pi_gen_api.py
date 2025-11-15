@@ -875,7 +875,7 @@ def vendor_data_for_treasury(usr, user_roles):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_id=None):
+def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_id=None, company=None):
     try:
         purchase_team_user = frappe.session.user
         
@@ -904,6 +904,8 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_
             filter_dict = {"category_type": ("in", cart_category_names)}
             if cart_id:
                 filter_dict["name"] = ["like", f"%{cart_id}%"]
+            if company:
+                filter_dict["company"] = ["like", f"%{company}%"]
             all_filters.append(filter_dict)
             
         if alternate_cart_category_names:
@@ -913,6 +915,8 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_
             ]
             if cart_id:
                 filter_list.append({"name": ["like", f"%{cart_id}%"]})
+            if company:
+                filter_list.append({"company": ["like", f"%{company}%"]})
             all_filters.append(filter_list)
         
         if not all_filters:
@@ -1003,8 +1007,6 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_
         start = (page_no - 1) * page_length
         end = start + page_length
         paginated_cart_details = unique_cart_details[start:end]
-        
-        
         actual_total_count = len(unique_cart_details)
         
         return {
@@ -1033,7 +1035,7 @@ def get_pi_for_pt(purchase_team_user=None, page_no=None, page_length=None, cart_
 
 
 @frappe.whitelist(allow_guest=True)
-def get_pi(page_no=None, page_length=None, cart_id = None):
+def get_pi(page_no=None, page_length=None, cart_id = None, company=None):
     try:
         usr = frappe.session.user
         if not usr:
@@ -1054,9 +1056,11 @@ def get_pi(page_no=None, page_length=None, cart_id = None):
         filters = {"user": usr}
         if cart_id:
             filters["name"] = ["like", f"%{cart_id}%"]
+        if company:
+            filters["company"] = ["like", f"%{company}%"]
 
         if allowed_roles.intersection(user_roles):
-            return get_pi_for_pt(purchase_team_user=usr, page_no=page_no, page_length=page_length, cart_id=cart_id)
+            return get_pi_for_pt(purchase_team_user=usr, page_no=page_no, page_length=page_length, cart_id=cart_id, company=company)
         else:
             # Total count for pagination
             total_count = frappe.db.count("Cart Details", filters=filters)
@@ -1352,7 +1356,7 @@ def get_pi_details(pi_name):
     
 # Purchase Requisition Webform Dashboard
 @frappe.whitelist(allow_guest=True)
-def get_pr_w(page_no=None, page_length=None):
+def get_pr_w(page_no=None, page_length=None, company=None, cart_id=None, name=None):
     try:
         # Set default values for pagination
         page_no = int(page_no) if page_no else 1
@@ -1380,16 +1384,29 @@ def get_pr_w(page_no=None, page_length=None):
             }
 
         team, designation, show_all_purchase_groups = emp_data
+        base_filters = {}
+
+        if company:
+            base_filters["company"] = company
+
+        if cart_id:
+            base_filters["cart_details_id"] = cart_id
+
+        if name:
+            base_filters["name"] = ["like", f"%{name}%"]
 
         # --- Enquirer Role ---
         if "Enquirer" in user_roles or designation == "Enquirer":
-            total_count = frappe.db.count("Purchase Requisition Webform", 
-                                          filters={"requisitioner": user})
+
+            filters = {"requisitioner": user}
+            filters.update(base_filters)
+
+            total_count = frappe.db.count("Purchase Requisition Webform", filters=filters)
             
             total_pages = (total_count + page_length - 1) // page_length
             
             pr_w = frappe.get_all("Purchase Requisition Webform", 
-                                  filters={"requisitioner": user},
+                                  filters=filters,
                                   fields="*", 
                                   order_by="modified desc",
                                   start=start,
@@ -1427,7 +1444,9 @@ def get_pr_w(page_no=None, page_length=None):
                 or_filters = [
                     {"sap_status": "Success"},
                     {"mail_sent_to_purchase_team": 1}
-                ] 
+                ]
+
+            filters.update(base_filters)
 
             records = frappe.get_all(
                 "Purchase Requisition Webform",

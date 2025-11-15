@@ -1070,7 +1070,8 @@ def get_plants_and_purchase_group(comp, page=1, page_size=20, search_term=None,
                     sort_by=sort_by or "name",
                     sort_order=sort_order,
                     start=start,
-                    page_size=page_size
+                    page_size=page_size,
+                    filters={"usable_in_pr": 1}
                 )
                 response["cost_centers"] = cost_centers_data
                 
@@ -1094,7 +1095,8 @@ def get_plants_and_purchase_group(comp, page=1, page_size=20, search_term=None,
                     sort_by=sort_by or "name",
                     sort_order=sort_order,
                     start=start,
-                    page_size=page_size
+                    page_size=page_size,
+                    filters={"usable_in_pr": 1}
                 )
                 response["gl_accounts"] = gl_accounts_data
                 
@@ -1158,9 +1160,11 @@ def get_plants_and_purchase_group(comp, page=1, page_size=20, search_term=None,
 
 
 def get_entity_data(doctype, company_field, company, search_term, search_fields, 
-                    fields, sort_by, sort_order, start, page_size):
+                    fields, sort_by, sort_order, start, page_size, filters=None):
    
-    filters = {company_field: company}
+    base_filters = {company_field: company}
+    if filters:
+        base_filters.update(filters)
     
     # Build OR filters for search term
     or_filters = None
@@ -1176,7 +1180,7 @@ def get_entity_data(doctype, company_field, company, search_term, search_fields,
     # Get paginated data
     data = frappe.get_all(
         doctype,
-        filters=filters,
+        filters=base_filters,
         or_filters=or_filters,
         fields=fields,
         order_by=f"{sort_by} {sort_order}",
@@ -1190,7 +1194,7 @@ def get_entity_data(doctype, company_field, company, search_term, search_fields,
         # Count with search filters using get_all
         total = len(frappe.get_all(
             doctype,
-            filters=filters,
+            filters=base_filters,
             or_filters=or_filters,
             fields=["name"],
             limit_page_length=0  # Get all records to count
