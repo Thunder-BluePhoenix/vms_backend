@@ -216,25 +216,26 @@ class VendorOnboarding(Document):
             frappe.local.vendor_onboarding_updating.discard(self.name)
     
     def after_insert(self):
-        """
-        After insert hook - for post-creation tasks
-        """
-        try:
-            # Set up expiration handling
-            # self.setup_expiration_handling()
-            send_asa_form_link_job(self.name)
-            # Send ASA form link in background
-            # frappe.enqueue(
-            #     method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.send_asa_form_link_job",
-            #     queue='default',
-            #     timeout=300,
-            #     now=False,
-            #     job_name=f'send_asa_form_link_{self.name}',
-            #     doc_name=self.name
-            # )
+        # """
+        # After insert hook - for post-creation tasks
+        # """
+        # try:
+        #     # Set up expiration handling
+        #     # self.setup_expiration_handling()
+        #     send_asa_form_link_job(self.name)
+        #     # Send ASA form link in background
+        #     # frappe.enqueue(
+        #     #     method="vms.vendor_onboarding.doctype.vendor_onboarding.vendor_onboarding.send_asa_form_link_job",
+        #     #     queue='default',
+        #     #     timeout=300,
+        #     #     now=False,
+        #     #     job_name=f'send_asa_form_link_{self.name}',
+        #     #     doc_name=self.name
+        #     # )
             
-        except Exception as e:
-            frappe.log_error(f"After insert error in VendorOnboarding {self.name}: {str(e)}")
+        # except Exception as e:
+        #     frappe.log_error(f"After insert error in VendorOnboarding {self.name}: {str(e)}")
+        pass
     
     def setup_expiration_handling(self):
         """Setup vendor onboarding expiration"""
@@ -657,16 +658,16 @@ def handle_expiration_job(doc_name, exp_seconds):
     except Exception as e:
         frappe.log_error(f"Error handling expiration for {doc_name}: {str(e)}")
 
-
-@frappe.whitelist()
-def send_asa_form_link_job(doc_name):
-    """Send ASA form link - replaces sent_asa_form_link"""
-    try:
-        doc = frappe.get_doc("Vendor Onboarding", doc_name)
-        sent_asa_form_link(doc, method=None)
+# Not in Used
+# @frappe.whitelist()
+# def send_asa_form_link_job(doc_name):
+#     """Send ASA form link - replaces sent_asa_form_link"""
+#     try:
+#         doc = frappe.get_doc("Vendor Onboarding", doc_name)
+#         sent_asa_form_link(doc, method=None)
         
-    except Exception as e:
-        frappe.log_error(f"Error sending ASA form link for {doc_name}: {str(e)}")
+#     except Exception as e:
+#         frappe.log_error(f"Error sending ASA form link for {doc_name}: {str(e)}")
 
 
 
@@ -1431,60 +1432,60 @@ def update_van_core_docs(doc, method=None):
             vn_onb.save()
                 
                 
-            
-def sent_asa_form_link(doc, method=None):
-    try:
-        if doc.ref_no:
-            vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+# Not in Used            
+# def sent_asa_form_link(doc, method=None):
+#     try:
+#         if doc.ref_no:
+#             vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
 
-            # Only send if ASA is required and not already sent
-            if doc.asa_required and not vendor_master.asa_required:
-                http_server = frappe.conf.get("backend_http")
-                subject = "Fill ASA Form"
-                link = f"{http_server}/annual-supplier-assessment-questionnaire/new?vendor_ref_no={vendor_master.name}"
+#             # Only send if ASA is required and not already sent
+#             if doc.asa_required and not vendor_master.asa_required:
+#                 http_server = frappe.conf.get("backend_http")
+#                 subject = "Fill ASA Form"
+#                 link = f"{http_server}/annual-supplier-assessment-questionnaire/new?vendor_ref_no={vendor_master.name}"
 
-                message = f"""
-                    Dear {vendor_master.vendor_name},<br><br>
+#                 message = f"""
+#                     Dear {vendor_master.vendor_name},<br><br>
 
-                    <p>Meril is strengthening its Responsible Sourcing and Sustainability Framework across the entire supply chain. 
-                    As part of this initiative, we are collecting ESG (Environment, Social & Governance) information from all our partners 
-                    to understand operational practices related to the environment, workforce management, safety, and governance. 
-                    This also aims to create greater awareness regarding sustainability and ESG practices within our supply chain.</p><br>
+#                     <p>Meril is strengthening its Responsible Sourcing and Sustainability Framework across the entire supply chain. 
+#                     As part of this initiative, we are collecting ESG (Environment, Social & Governance) information from all our partners 
+#                     to understand operational practices related to the environment, workforce management, safety, and governance. 
+#                     This also aims to create greater awareness regarding sustainability and ESG practices within our supply chain.</p><br>
 
-                    <p>The information you provide will help us build a clear overview of sustainability practices across our supply chain, 
-                    identify potential risks, and understand where support or improvements may be required. This will also enable Meril to 
-                    meet evolving global expectations from healthcare customers, regulators, and international markets that increasingly 
-                    emphasize responsible and transparent supply chains.</p><br>
+#                     <p>The information you provide will help us build a clear overview of sustainability practices across our supply chain, 
+#                     identify potential risks, and understand where support or improvements may be required. This will also enable Meril to 
+#                     meet evolving global expectations from healthcare customers, regulators, and international markets that increasingly 
+#                     emphasize responsible and transparent supply chains.</p><br>
 
-                    <p>We request you to kindly submit your ESG information through the portal link given below:</p><br>
+#                     <p>We request you to kindly submit your ESG information through the portal link given below:</p><br>
 
-                    <strong>Portal Link:</strong> <a href="{link}">{link}</a><br><br>
+#                     <strong>Portal Link:</strong> <a href="{link}">{link}</a><br><br>
 
-                    <strong>The login credentials were already shared with you in a previous email.</strong><br><br>
+#                     <strong>The login credentials were already shared with you in a previous email.</strong><br><br>
 
-                    For any assistance or clarification, our team will be happy to support you.<br><br>
+#                     For any assistance or clarification, our team will be happy to support you.<br><br>
 
-                    Thank you.<br><br>
+#                     Thank you.<br><br>
 
-                    Regards,<br>
-                    Team VMS
-                """
+#                     Regards,<br>
+#                     Team VMS
+#                 """
 
-                recipients = vendor_master.office_email_primary or vendor_master.office_email_secondary
-                if recipients:
-                    frappe.custom_sendmail(
-                        recipients=recipients,
-                        subject=subject,
-                        message=message
-                    )
+#                 recipients = vendor_master.office_email_primary or vendor_master.office_email_secondary
+#                 if recipients:
+#                     frappe.custom_sendmail(
+#                         recipients=recipients,
+#                         subject=subject,
+#                         message=message
+#                     )
 
-                vendor_master.asa_required = 1
-                vendor_master.save()
-            else:
-                pass
+#                 vendor_master.asa_required = 1
+#                 vendor_master.save()
+#             else:
+#                 pass
 
-    except Exception:
-        frappe.log_error(frappe.get_traceback(), "Error in sent_asa_form_link")
+#     except Exception:
+#         frappe.log_error(frappe.get_traceback(), "Error in sent_asa_form_link")
 
 
 
@@ -3676,16 +3677,38 @@ def send_asa_form_link_again(vendor_ref_no):
         if not vendor_master.asa_required:
             return
 
-        http_server = frappe.conf.get("backend_http")
-        subject = "Fill ASA Form Link"
-        link = f"{http_server}/annual-supplier-assessment-questionnaire/new?vendor_ref_no={vendor_master.name}"
+        frontend_http = frappe.get_site_config().get('frontend_http', 'https://saksham-v.merillife.com/')
+        link = f"{frontend_http}/login"
 
+        subject = "Annual Reminder: Please Submit the ASA Form"
         message = f"""
-            Hello {vendor_master.vendor_name},<br><br>
-            Kindly fill the ASA Form for your Vendor Onboarding.<br>
-            Click the link below:<br>
-            <a href="{link}">{link}</a><br><br>
-            Thank You.<br><br>
+            Dear {vendor_master.vendor_name},<br><br>
+            <p>This is an annual reminder to Submit the ASA (Annual Supplier Assessment) Form. 
+            As you had submitted this form previously, we request you to kindly submit it again for this year.</p>
+
+            <p>Meril is strengthening its Responsible Sourcing and Sustainability Framework across the entire supply chain. 
+            As part of this initiative, we are collecting ESG (Environment, Social & Governance) information from all our partners 
+            to understand operational practices related to the environment, workforce management, safety, and governance. 
+            This also aims to create greater awareness regarding sustainability and ESG practices within our supply chain.</p>
+
+            <p>The information you provide will help us build a clear overview of sustainability practices across our supply chain, 
+            identify potential risks, and understand where support or improvements may be required. This will also enable Meril to 
+            meet evolving global expectations from healthcare customers, regulators, and international markets that increasingly 
+            emphasize responsible and transparent supply chains.</p>
+
+            <p>We request you to kindly submit your ESG information through the portal link given below:</p>
+
+            <p>To fill the form, please log in to the portal:</p>
+
+            <strong>Portal Link:</strong> 
+            <a href="{link}" target="_blank">Click here to access the portal</a><br>
+
+            <strong>The login credentials were already shared with you email.</strong><br><br>
+
+            For any assistance or clarification, our team will be happy to support you.<br><br>
+
+            Thank you.<br><br>
+
             Regards,<br>
             Team VMS
         """
