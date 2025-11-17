@@ -929,15 +929,32 @@ def sent_asa_form_link(doc, method=None):
             # Only send if ASA is required and not already sent
             if doc.asa_required and not vendor_master.asa_required:
                 http_server = frappe.conf.get("backend_http")
-                subject = "Fill ASA Form Link"
+                subject = "Fill ASA Form"
                 link = f"{http_server}/annual-supplier-assessment-questionnaire/new?vendor_ref_no={vendor_master.name}"
 
                 message = f"""
-                    Hello {vendor_master.vendor_name},<br><br>
-                    Kindly fill the ASA Form for your Vendor Onboarding.<br>
-                    Click the link below:<br>
-                    <a href="{link}">{link}</a><br><br>
-                    Thank You.<br><br>
+                    Dear {vendor_master.vendor_name},<br><br>
+
+                    <p>Meril is strengthening its Responsible Sourcing and Sustainability Framework across the entire supply chain. 
+                    As part of this initiative, we are collecting ESG (Environment, Social & Governance) information from all our partners 
+                    to understand operational practices related to the environment, workforce management, safety, and governance. 
+                    This also aims to create greater awareness regarding sustainability and ESG practices within our supply chain.</p><br>
+
+                    <p>The information you provide will help us build a clear overview of sustainability practices across our supply chain, 
+                    identify potential risks, and understand where support or improvements may be required. This will also enable Meril to 
+                    meet evolving global expectations from healthcare customers, regulators, and international markets that increasingly 
+                    emphasize responsible and transparent supply chains.</p><br>
+
+                    <p>We request you to kindly submit your ESG information through the portal link given below:</p><br>
+
+                    <strong>Portal Link:</strong> <a href="{link}">{link}</a><br><br>
+
+                    <strong>The login credentials were already shared with you in a previous email.</strong><br><br>
+
+                    For any assistance or clarification, our team will be happy to support you.<br><br>
+
+                    Thank you.<br><br>
+
                     Regards,<br>
                     Team VMS
                 """
