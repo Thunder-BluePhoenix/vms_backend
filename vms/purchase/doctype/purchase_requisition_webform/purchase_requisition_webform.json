@@ -26,7 +26,7 @@
   "purchase_team_approval",
   "purchase_team_approval_remarks",
   "purchase_head_status",
-  "purchase_head_approval_remarks",
+  "enquirer_remarks",
   "column_break_axrc",
   "rejected_by",
   "reason_for_rejection",
@@ -141,12 +141,6 @@
    "label": "Purchase Head Status"
   },
   {
-   "fieldname": "purchase_head_approval_remarks",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Purchase Head Approval Remarks"
-  },
-  {
    "fieldname": "column_break_axrc",
    "fieldtype": "Column Break"
   },
@@ -241,7 +235,7 @@
    "fieldname": "form_status",
    "fieldtype": "Select",
    "label": "Form Status",
-   "options": "Pending\nSubmitted\nSAP Error\nPR Created"
+   "options": "Pending\nSubmitted\nSAP Error\nPR Created\nPR Created from SAP"
   },
   {
    "default": "Today",
@@ -298,12 +292,18 @@
    "fieldname": "sap_summary",
    "fieldtype": "Code",
    "label": "SAP Summary"
+  },
+  {
+   "fieldname": "enquirer_remarks",
+   "fieldtype": "Small Text",
+   "label": "Enquirer's Remarks",
+   "max_height": "80px"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-31 11:00:43.777470",
+ "modified": "2025-11-06 16:01:37.505944",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition Webform",

@@ -6,10 +6,13 @@
  "engine": "InnoDB",
  "field_order": [
   "pr_details_section",
-  "purchase_requisition_number",
   "purchase_requisition_type",
+  "purchase_requisition_number",
+  "purchase_requisition_form_link",
   "column_break_glta",
   "pr_plant",
+  "company",
+  "purchase_requisition_date",
   "pr_items_section",
   "pr_items"
  ],
@@ -48,12 +51,28 @@
    "fieldname": "pr_items_section",
    "fieldtype": "Section Break",
    "label": "PR Items"
+  },
+  {
+   "fieldname": "purchase_requisition_form_link",
+   "fieldtype": "Link",
+   "label": "Purchase Requisition Form Link",
+   "options": "Purchase Requisition Form"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Data",
+   "label": "Company"
+  },
+  {
+   "fieldname": "purchase_requisition_date",
+   "fieldtype": "Date",
+   "label": "Purchase Requisition Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:38:01.702201",
+ "modified": "2025-11-07 11:45:09.900974",
  "modified_by": "Administrator",
  "module": "Purchase",
  "name": "Purchase Requisition",

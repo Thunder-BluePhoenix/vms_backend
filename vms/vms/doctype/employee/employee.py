@@ -189,6 +189,54 @@ class Employee(Document):
                         frappe.msgprint(f"User created for employee: {self.name}")
                 except Exception as e:
                     frappe.log_error(f"Error in on_update user creation for {self.name}: {str(e)}")
+        
+        
+        self.manage_cp_material_role()
+
+    def manage_cp_material_role(self):
+        """
+        Assign or remove CP Material role based on checkbox
+        """
+        try:
+        
+            if not self.user_id:
+                return
+            
+            
+            user_doc = frappe.get_doc("User", self.user_id)
+            
+            
+            cp_material_role = "Material CP"
+            
+          
+            if not frappe.db.exists("Role", cp_material_role):
+                frappe.log_error(f"Role '{cp_material_role}' does not exist in the system")
+                return
+            
+            
+            has_cp_role = any(role.role == cp_material_role for role in user_doc.roles)
+            
+           
+            if self.is_material_cp and not has_cp_role:
+                user_doc.append("roles", {
+                    "role": cp_material_role
+                })
+                user_doc.save(ignore_permissions=True)
+                frappe.msgprint(f"CP Material role assigned to user: {self.user_id}")
+                frappe.log_error(f"CP Material role assigned to {self.user_id}", "CP Material Role Assignment")
+            
+            
+            elif not self.is_material_cp and has_cp_role:
+                
+                user_doc.roles = [role for role in user_doc.roles if role.role != cp_material_role]
+                user_doc.save(ignore_permissions=True)
+                frappe.msgprint(f"CP Material role removed from user: {self.user_id}")
+                frappe.log_error(f"CP Material role removed from {self.user_id}", "CP Material Role Removal")
+                
+        except Exception as e:
+            frappe.log_error(f"Error managing CP Material role for {self.name}: {str(e)}")
+            if not frappe.flags.in_import:
+                frappe.msgprint(f"Error managing CP Material role: {str(e)}")
 
    
     

@@ -38,6 +38,7 @@ def update_vendor_onboarding_certificate_details(data):
 		vendor_onboarding = data.get("vendor_onboarding")
 
 		if not ref_no or not vendor_onboarding:
+			frappe.local.response["http_status_code"] = 400
 			return {
 				"status": "error",
 				"message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
@@ -50,6 +51,7 @@ def update_vendor_onboarding_certificate_details(data):
 		)
 
 		if not doc_name:
+			frappe.local.response["http_status_code"] = 404
 			return {
 				"status": "error",
 				"message": "Vendor Onboarding Certificates Record not found."
@@ -58,6 +60,7 @@ def update_vendor_onboarding_certificate_details(data):
 		main_doc = frappe.get_doc("Vendor Onboarding Certificates", doc_name)
 
 		if not data.get("certificates"):
+			frappe.local.response["http_status_code"] = 400
 			return {
 				"status": "error",
 				"message": "Missing child table fields: 'certificates'."
@@ -89,6 +92,8 @@ def update_vendor_onboarding_certificate_details(data):
 				for row in data["certificates"]:
 					certificate_code = (row.get("certificate_code") or "").strip()
 					certificate_name = (row.get("certificate_name") or "").strip()
+					certificate_number = (row.get("certificate_number") or "").strip()
+					certificate_body = (row.get("certificate_body") or "").strip()
 					other_certificate_name = (row.get("other_certificate_name") or "").strip()
 					valid_till = (row.get("valid_till") or "").strip()
 					other = (row.get("other") or "").strip()
@@ -102,6 +107,8 @@ def update_vendor_onboarding_certificate_details(data):
 						new_row = doc.append("certificates", {
 							"certificate_code": certificate_code,
 							"certificate_name": certificate_name,
+							"certificate_number": certificate_number,
+							"certificate_body": certificate_body,
 							"other_certificate_name": other_certificate_name,
 							"valid_till": valid_till,
 							"other": other
@@ -114,6 +121,7 @@ def update_vendor_onboarding_certificate_details(data):
 				doc.save(ignore_permissions=True)
 				frappe.db.commit()
 
+			frappe.local.response["http_status_code"] = 200
 			return {
 				"status": "success",
 				"message": "Vendor Onboarding Certificates updated successfully for all linked records.",
@@ -125,6 +133,8 @@ def update_vendor_onboarding_certificate_details(data):
 			for row in data["certificates"]:
 				certificate_code = (row.get("certificate_code") or "").strip()
 				certificate_name = (row.get("certificate_name") or "").strip()
+				certificate_number = (row.get("certificate_number") or "").strip()
+				certificate_body = (row.get("certificate_body") or "").strip()
 				other_certificate_name = (row.get("other_certificate_name") or "").strip()
 				valid_till = (row.get("valid_till") or "").strip()
 				other = (row.get("other") or "").strip()
@@ -138,6 +148,8 @@ def update_vendor_onboarding_certificate_details(data):
 					new_row = main_doc.append("certificates", {
 						"certificate_code": certificate_code,
 						"certificate_name": certificate_name,
+						"certificate_number": certificate_number,
+						"certificate_body": certificate_body,
 						"other_certificate_name": other_certificate_name,
 						"valid_till": valid_till,
 						"other": other
@@ -150,6 +162,7 @@ def update_vendor_onboarding_certificate_details(data):
 			main_doc.save(ignore_permissions=True)
 			frappe.db.commit()
 
+			frappe.local.response["http_status_code"] = 200
 			return {
 				"status": "success",
 				"message": "Vendor Onboarding Certificates updated successfully.",
@@ -158,6 +171,7 @@ def update_vendor_onboarding_certificate_details(data):
 
 	except Exception as e:
 		frappe.db.rollback()
+		frappe.local.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Certificates Update Error")
 		return {
 			"status": "error",
@@ -174,95 +188,102 @@ def update_vendor_onboarding_certificate_details(data):
 
 @frappe.whitelist(allow_guest=True)
 def delete_vendor_onboarding_certificate_row(certificate_code, ref_no, vendor_onboarding):
-    try:
-        if not certificate_code or not ref_no or not vendor_onboarding:
-            return {
-                "status": "error",
-                "message": "Missing required fields: 'certificate_code', 'ref_no', or 'vendor_onboarding'."
-            }
+	try:
+		if not certificate_code or not ref_no or not vendor_onboarding:
+			frappe.local.response["http_status_code"] = 400
+			return {
+				"status": "error",
+				"message": "Missing required fields: 'certificate_code', 'ref_no', or 'vendor_onboarding'."
+			}
 
-        doc_name = frappe.db.get_value(
-            "Vendor Onboarding Certificates",
-            {"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
-            "name"
-        )
+		doc_name = frappe.db.get_value(
+			"Vendor Onboarding Certificates",
+			{"ref_no": ref_no, "vendor_onboarding": vendor_onboarding},
+			"name"
+		)
 
-        if not doc_name:
-            return {
-                "status": "error",
-                "message": "Vendor Onboarding Certificates record not found."
-            }
+		if not doc_name:
+			frappe.local.response["http_status_code"] = 404
+			return {
+				"status": "error",
+				"message": "Vendor Onboarding Certificates record not found."
+			}
 
-        main_doc = frappe.get_doc("Vendor Onboarding Certificates", doc_name)
-        deleted_from_docs = []
+		main_doc = frappe.get_doc("Vendor Onboarding Certificates", doc_name)
+		deleted_from_docs = []
 
-        if main_doc.registered_for_multi_companies == 1:
-            unique_multi_comp_id = main_doc.unique_multi_comp_id
+		if main_doc.registered_for_multi_companies == 1:
+			unique_multi_comp_id = main_doc.unique_multi_comp_id
 
-            linked_docs = frappe.get_all(
-                "Vendor Onboarding Certificates",
-                filters={
-                    "registered_for_multi_companies": 1,
-                    "unique_multi_comp_id": unique_multi_comp_id
-                },
-                fields=["name"]
-            )
+			linked_docs = frappe.get_all(
+				"Vendor Onboarding Certificates",
+				filters={
+					"registered_for_multi_companies": 1,
+					"unique_multi_comp_id": unique_multi_comp_id
+				},
+				fields=["name"]
+			)
 
-            for entry in linked_docs:
-                doc = frappe.get_doc("Vendor Onboarding Certificates", entry.name)
-                original_len = len(doc.certificates)
+			for entry in linked_docs:
+				doc = frappe.get_doc("Vendor Onboarding Certificates", entry.name)
+				original_len = len(doc.certificates)
 
-                doc.certificates = [
-                    row for row in doc.certificates
-                    if (row.certificate_code or "").strip() != certificate_code.strip()
-                ]
+				doc.certificates = [
+					row for row in doc.certificates
+					if (row.certificate_code or "").strip() != certificate_code.strip()
+				]
 
-                if len(doc.certificates) != original_len:
-                    doc.save(ignore_permissions=True)
-                    deleted_from_docs.append(doc.name)
+				if len(doc.certificates) != original_len:
+					doc.save(ignore_permissions=True)
+					deleted_from_docs.append(doc.name)
 
-            if not deleted_from_docs:
-                return {
-                    "status": "error",
-                    "message": f"No matching certificate_code '{certificate_code}' found in linked records."
-                }
+			if not deleted_from_docs:
+				frappe.local.response["http_status_code"] = 404
+				return {
+					"status": "error",
+					"message": f"No matching certificate_code '{certificate_code}' found in linked records."
+				}
 
-            frappe.db.commit()
-            return {
-                "status": "success",
-                "message": f"Certificate with code '{certificate_code}' deleted from linked records.",
-                "docnames": deleted_from_docs
-            }
+			frappe.db.commit()
+			frappe.local.response["http_status_code"] = 200
+			return {
+				"status": "success",
+				"message": f"Certificate with code '{certificate_code}' deleted from linked records.",
+				"docnames": deleted_from_docs
+			}
 
-        else:
-            original_len = len(main_doc.certificates)
+		else:
+			original_len = len(main_doc.certificates)
 
-            main_doc.certificates = [
-                row for row in main_doc.certificates
-                if (row.certificate_code or "").strip() != certificate_code.strip()
-            ]
+			main_doc.certificates = [
+				row for row in main_doc.certificates
+				if (row.certificate_code or "").strip() != certificate_code.strip()
+			]
 
-            if len(main_doc.certificates) == original_len:
-                return {
-                    "status": "error",
-                    "message": f"No matching certificate_code '{certificate_code}' found in this document."
-                }
+			if len(main_doc.certificates) == original_len:
+				frappe.local.response["http_status_code"] = 404
+				return {
+					"status": "error",
+					"message": f"No matching certificate_code '{certificate_code}' found in this document."
+				}
 
-            main_doc.save(ignore_permissions=True)
-            frappe.db.commit()
+			main_doc.save(ignore_permissions=True)
+			frappe.db.commit()
 
-            return {
-                "status": "success",
-                "message": f"Certificate with code '{certificate_code}' deleted successfully.",
-                "docname": main_doc.name
-            }
+			frappe.local.response["http_status_code"] = 200
+			return {
+				"status": "success",
+				"message": f"Certificate with code '{certificate_code}' deleted successfully.",
+				"docname": main_doc.name
+			}
 
-    except Exception as e:
-        frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Delete Vendor Certificate by Code Error")
-        return {
-            "status": "error",
-            "message": "Failed to delete certificate row.",
-            "error": str(e)
-        }
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.local.response["http_status_code"] = 500
+		frappe.log_error(frappe.get_traceback(), "Delete Vendor Certificate by Code Error")
+		return {
+			"status": "error",
+			"message": "Failed to delete certificate row.",
+			"error": str(e)
+		}
 	

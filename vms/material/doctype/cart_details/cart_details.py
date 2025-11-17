@@ -276,8 +276,8 @@ def send_mail_hod(doc, method=None):
 			hod_email = frappe.get_value("Employee", hod, "user_id")
 			hod_name = frappe.get_value("Employee", hod, "full_name")
 			if hod_email:
-				approve_url = f"{http_server}/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check?cart_id={doc.name}&user={doc.user}&action=approve"
-				reject_url = f"{http_server}/api/method/vms.material.doctype.cart_details.cart_details.hod_approval_check?cart_id={doc.name}&user={doc.user}&action=reject"
+				approve_url = f"{http_server}/hod_page/hod_approve_form?cart_id={doc.name}&user={doc.user}&hod_email={hod_email}"
+				reject_url = f"{http_server}/hod_page/hod_reject_form?cart_id={doc.name}&user={doc.user}&hod_email={hod_email}"
 				
 				table_html = """
 					<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
@@ -617,63 +617,168 @@ def rejection_mail_to_user(doc, method=None):
 		}
 
 
-# hod Approval Flow	
+# Helper function to generate API credentials for HOD
+def get_or_create_api_credentials(user_email):
+	"""Get or create API key and secret for a user"""
+	try:
+		# Check if user exists
+		if not frappe.db.exists("User", user_email):
+			frappe.throw(f"User {user_email} does not exist")
+
+		# Check if API key already exists
+		api_key = frappe.db.get_value("User", user_email, "api_key")
+
+		if not api_key:
+			# Generate new API key and secret
+			api_key = frappe.generate_hash(length=15)
+			api_secret = frappe.generate_hash(length=15)
+
+			# Update user with API credentials
+			frappe.db.set_value("User", user_email, {
+				"api_key": api_key,
+				"api_secret": api_secret
+			})
+			frappe.db.commit()
+		else:
+			# Get existing API secret
+			api_secret = frappe.db.get_value("User", user_email, "api_secret")
+
+		return api_key, api_secret
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), f"Error getting API credentials for {user_email}")
+		return None, None
+
+
+# hod Approval Flow
 @frappe.whitelist(allow_guest=True)
 def hod_approval_check():
 	try:
-		session_user = frappe.session.user
 		cart_id = frappe.form_dict.get("cart_id")
 		user = frappe.form_dict.get("user")
+		hod_email = frappe.form_dict.get("hod_email")
 		action = frappe.form_dict.get("action")
 		comments = frappe.form_dict.get("comments") or ""
 		reason_for_rejection = frappe.form_dict.get("rejection_reason") or ""
 
-		if not cart_id or not user or not action:
+		# Validate required parameters
+		if not cart_id or not user or not action or not hod_email:
+			frappe.response["http_status_code"] = 400
 			return {
 				"status": "error",
-				"message": "Missing required parameters."
+				"message": "Missing required parameters (cart_id, user, hod_email, or action)."
+			}
+
+		# Validate hod_email exists
+		if not frappe.db.exists("User", hod_email):
+			frappe.response["http_status_code"] = 403
+			return {
+				"status": "error",
+				"message": "Invalid HOD email address."
+			}
+
+		# Check if cart exists
+		if not frappe.db.exists("Cart Details", cart_id):
+			frappe.response["http_status_code"] = 404
+			return {
+				"status": "error",
+				"message": f"Cart with ID '{cart_id}' not found."
 			}
 
 		doc = frappe.get_doc("Cart Details", cart_id)
 
 		# Prevent multiple submissions
 		if doc.hod_approval_status in ["Approved", "Rejected"]:
+			frappe.response["http_status_code"] = 409
 			return {
-				f"This cart has already been <b>{doc.hod_approval_status}",
-				"Further action is not required.",
-				f"Cart ID: {cart_id}"
+				"status": "already_processed",
+				"message": f"This cart has already been {doc.hod_approval_status}. Further action is not required.",
+				"cart_id": cart_id,
+				"current_status": doc.hod_approval_status
 			}
 
 		if action == "approve":
 			doc.hod_approved = 1
+			doc.rejected = 0
 			doc.hod_approval_status = "Approved"
-			doc.hod_approval = session_user
+			doc.hod_approval = hod_email
 			doc.hod_approval_remarks = "Approved by HOD"
+
 		elif action == "reject":
+			# Validate rejection reason
+			if not reason_for_rejection or not reason_for_rejection.strip():
+				frappe.response["http_status_code"] = 400
+				return {
+					"status": "error",
+					"message": "Rejection reason is required."
+				}
+
 			doc.rejected = 1
-			doc.rejected_by = session_user
+			doc.rejected_by = hod_email
 			doc.hod_approval_status = "Rejected"
 			doc.reason_for_rejection = reason_for_rejection
+
+			doc.mail_sent_to_hod = 0
+			doc.purchase_team_approved = 0
+			doc.ack_mail_to_user = 0
+			doc.purchase_team_acknowledgement = 0
+
+			# Send rejection email to purchase team
+			if doc.dedicated_purchase_team:
+				try:
+					subject = f"Cart Details Rejected by HOD - {cart_id}"
+					message = f"""
+						<p>Dear Purchase Team,</p>
+						<p>The cart details have been rejected by HOD.</p>
+						<p><b>Cart ID:</b> {doc.name}</p>
+						<p><b>Rejection Reason:</b> {reason_for_rejection}</p>
+						<p>Please review and take necessary actions.</p>
+						<p>Thank you!</p>
+					"""
+					frappe.custom_sendmail(
+						recipients=[doc.dedicated_purchase_team],
+						subject=subject,
+						message=message,
+						now=True
+					)
+				except Exception as email_error:
+					frappe.log_error(
+						frappe.get_traceback(),
+						f"Error sending rejection email for Cart {cart_id}"
+					)
+					# Don't fail the entire operation if email fails
+
 		else:
+			frappe.response["http_status_code"] = 400
 			return {
 				"status": "error",
 				"message": "Invalid action. Must be 'approve' or 'reject'."
 			}
 
+		# Save the document
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
+		# Return success response
+		frappe.response["http_status_code"] = 200
 		return {
-			"Thank you!",
-			f"Your response has been recorded for Cart ID: {cart_id}",
-			f"Status: {doc.hod_approval_status}"
+			"status": "success",
+			"message": f"Cart {action}ed successfully!",
+			"cart_id": cart_id,
+			"approval_status": doc.hod_approval_status,
+			"details": {
+				"cart_id": cart_id,
+				"action": action,
+				"status": doc.hod_approval_status,
+				"processed_by": hod_email
+			}
 		}
 
 	except Exception as e:
 		frappe.log_error(frappe.get_traceback(), "Error updating Cart Details (HOD Approval)")
+		frappe.response["http_status_code"] = 500
 		return {
 			"status": "error",
-			"message": "Failed to update Cart Details.",
+			"message": "An error occurred while processing your request. Please try again or contact support.",
 			"error": str(e)
 		}
 

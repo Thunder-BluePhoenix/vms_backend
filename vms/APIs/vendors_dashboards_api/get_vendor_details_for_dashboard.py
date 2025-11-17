@@ -199,7 +199,7 @@ def get_po_count_from_vendor_code(vendor_code=None):
         if vendor_code:
             po_count = frappe.db.count(
                 "Purchase Order",
-                filters={"vendor_code": vendor_code}
+                filters={"vendor_code": vendor_code, "sent_to_vendor":1}
             )
             return {
                 "status": "success",
@@ -301,10 +301,98 @@ def get_po_from_vendor_code(vendor_code=None, page_no=None, page_length=None, co
         }
     
 
+# @frappe.whitelist(allow_guest=False)
+# def filter_po_data(vendor_code=None, page_no=None, page_length=None, company=None, po_no=None, status=None, user=None):
+#     try:
+#         filters = {}
+#         if po_no:
+#             filters["name"] = po_no
+#         if status:
+#             filters["status"] = status
+#         if company:
+#             filters["company_code"] = company
+
+#         if vendor_code:
+#             filters["vendor_code"] = vendor_code
+#             filters["sent_to_vendor"] = 1
+
+        
+
+        
+#         else:
+#             filters["sent_to_vendor"] = 1
+#             user_doc = frappe.get_doc("User", user)
+#             if "Vendor" not in frappe.get_roles(user_doc.name):
+#                 return {"status": "error", "message": "User does not have the Vendor role."}
+
+#             vendor_master = frappe.get_doc("Vendor Master", {"office_email_primary": user_doc.name})
+#             if not vendor_master or not vendor_master.multiple_company_data:
+#                 return {
+#                     "status": "success",
+#                     "message": "No multiple_company_data found in vendor document.",
+#                     "data": [],
+#                     "total_count": 0,
+#                     "page_no": page_no,
+#                     "page_length": page_length
+#                 }
+
+#             all_vendor_codes = []
+#             for row in vendor_master.multiple_company_data:
+#                 if row.company_vendor_code:
+#                     company_vendor_code_doc = frappe.get_doc("Company Vendor Code", row.company_vendor_code)
+#                     all_vendor_codes += [
+#                         vc.vendor_code for vc in company_vendor_code_doc.vendor_code if vc.vendor_code
+#                     ]
+
+#             if not all_vendor_codes:
+#                 return {
+#                     "status": "success",
+#                     "message": "No vendor codes found for this vendor.",
+#                     "data": [],
+#                     "total_count": 0,
+#                     "page_no": page_no,
+#                     "page_length": page_length
+#                 }
+
+#             filters["vendor_code"] = ["in", all_vendor_codes]
+
+#         total_count = frappe.db.count("Purchase Order", filters=filters)
+#         offset = (page_no - 1) * page_length
+
+#         po_data = frappe.get_all(
+#             "Purchase Order",
+#             filters=filters,
+#             fields="*",
+#             order_by="modified desc",
+#             start=offset,
+#             page_length=page_length
+#         )
+
+#         return {
+#             "status": "success",
+#             "data": po_data,
+#             "total_count": total_count,
+#             "page_no": page_no,
+#             "page_length": page_length
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "filter_po_data Error")
+#         return {
+#             "status": "error",
+#             "message": "An error occurred during filtering.",
+#             "error": str(e)
+#         }
+
 @frappe.whitelist(allow_guest=False)
 def filter_po_data(vendor_code=None, page_no=None, page_length=None, company=None, po_no=None, status=None, user=None):
     try:
-        filters = {}
+        page_no = int(page_no or 1)
+        page_length = int(page_length or 10)
+        offset = (page_no - 1) * page_length
+
+        filters = {"sent_to_vendor": 1}
+
         if po_no:
             filters["name"] = po_no
         if status:
@@ -312,20 +400,21 @@ def filter_po_data(vendor_code=None, page_no=None, page_length=None, company=Non
         if company:
             filters["company_code"] = company
 
+        user_doc = frappe.get_doc("User", user)
+
+        if "Vendor" not in frappe.get_roles(user_doc.name):
+            return {"status": "error", "message": "User does not have the Vendor role."}
+
+        vendor_codes = []
+
         if vendor_code:
-            filters["vendor_code"] = vendor_code
-            filters["sent_to_vendor"] = 1
-
-        
-
-        
+            if isinstance(vendor_code, str):
+                vendor_codes = [code.strip() for code in vendor_code.split(",") if code.strip()]
+            elif isinstance(vendor_code, list):
+                vendor_codes = vendor_code
         else:
-            filters["sent_to_vendor"] = 1
-            user_doc = frappe.get_doc("User", user)
-            if "Vendor" not in frappe.get_roles(user_doc.name):
-                return {"status": "error", "message": "User does not have the Vendor role."}
-
             vendor_master = frappe.get_doc("Vendor Master", {"office_email_primary": user_doc.name})
+
             if not vendor_master or not vendor_master.multiple_company_data:
                 return {
                     "status": "success",
@@ -336,28 +425,26 @@ def filter_po_data(vendor_code=None, page_no=None, page_length=None, company=Non
                     "page_length": page_length
                 }
 
-            all_vendor_codes = []
             for row in vendor_master.multiple_company_data:
                 if row.company_vendor_code:
                     company_vendor_code_doc = frappe.get_doc("Company Vendor Code", row.company_vendor_code)
-                    all_vendor_codes += [
-                        vc.vendor_code for vc in company_vendor_code_doc.vendor_code if vc.vendor_code
-                    ]
+                    for vc in company_vendor_code_doc.vendor_code:
+                        if vc.vendor_code:
+                            vendor_codes.append(vc.vendor_code)
 
-            if not all_vendor_codes:
-                return {
-                    "status": "success",
-                    "message": "No vendor codes found for this vendor.",
-                    "data": [],
-                    "total_count": 0,
-                    "page_no": page_no,
-                    "page_length": page_length
-                }
+        if not vendor_codes:
+            return {
+                "status": "success",
+                "message": "No vendor codes found for this vendor.",
+                "data": [],
+                "total_count": 0,
+                "page_no": page_no,
+                "page_length": page_length
+            }
 
-            filters["vendor_code"] = ["in", all_vendor_codes]
+        filters["vendor_code"] = ["in", vendor_codes]
 
         total_count = frappe.db.count("Purchase Order", filters=filters)
-        offset = (page_no - 1) * page_length
 
         po_data = frappe.get_all(
             "Purchase Order",
@@ -370,6 +457,7 @@ def filter_po_data(vendor_code=None, page_no=None, page_length=None, company=Non
 
         return {
             "status": "success",
+            "message": "Purchase Orders fetched successfully.",
             "data": po_data,
             "total_count": total_count,
             "page_no": page_no,

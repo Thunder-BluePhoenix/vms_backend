@@ -293,7 +293,8 @@ def build_user_response(user, api_credentials):
         response = {
             'vendor_codes': vendor_code,
             'designation': 'Vendor',
-            'ref_no': vendor_master.name
+            'ref_no': vendor_master.name,
+            'asa_reqd': vendor_master.asa_required
         }
         return response
 

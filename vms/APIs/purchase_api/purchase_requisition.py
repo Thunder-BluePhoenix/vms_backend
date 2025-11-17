@@ -515,6 +515,18 @@ def get_pur_req_table_data(name):
 		grouped_data = {}
 
 		for row in sorted(doc.purchase_requisition_form_table, key=lambda x: x.idx):
+			valuation_info = frappe.db.get_value(
+				"Valuation Class", 
+				row.valuation_area_head, 
+				["valuation_class_code", "valuation_class_name"], 
+				as_dict=True
+			)
+
+			if valuation_info:
+				valuation_area_head_desc = f"{valuation_info.valuation_class_code or ''}-{valuation_info.valuation_class_name or ''}"
+			else:
+				valuation_area_head_desc = ""
+
 			head_id = row.head_unique_id
 			if not head_id:
 				continue
@@ -531,13 +543,17 @@ def get_pur_req_table_data(name):
 					"purchase_requisition_type": row.purchase_requisition_type,
 					"delivery_date_head": row.delivery_date_head,
 					"store_location_head": row.store_location_head,
+					"store_location_head_desc": frappe.db.get_value("Storage Location Master", row.store_location_head, "storage_location_name") or "",
 					"item_category_head": row.item_category_head,
 					"material_group_head": row.material_group_head,
+					"material_group_head_desc": frappe.db.get_value("Material Group Master", row.material_group_head, "material_group_description") or "",
 					"uom_head": row.uom_head,
-					"cost_center_head": row.cost_center_head,
+					"cost_center_head": row.cost_center_head, 
+					"cost_center_head_desc": frappe.db.get_value("Cost Center", row.cost_center_head, "description") or "", 
 					"main_asset_no_head": row.main_asset_no_head,
 					"asset_subnumber_head": row.asset_subnumber_head,
 					"profit_ctr_head": row.profit_ctr_head,
+					"profit_ctr_head_desc": frappe.db.get_value("Profit Center", row.profit_ctr_head, "description") or "",
 					"short_text_head": row.short_text_head,
 					"line_item_number_head": row.line_item_number_head,
 					"company_code_area_head": row.company_code_area_head,
@@ -545,18 +561,24 @@ def get_pur_req_table_data(name):
 					"quantity_head": row.quantity_head,
 					"price_of_purchase_requisition_head": row.price_of_purchase_requisition_head,
 					"gl_account_number_head": row.gl_account_number_head,
+					"gl_account_number_head_desc": frappe.db.get_value("GL Account", row.gl_account_number_head, "description") or "",
 					"material_code_head": row.material_code_head,
+					"material_code_head_desc": frappe.db.get_value("Material Code", row.material_code_head, "material_description") or "",
 					"account_assignment_category_head": row.account_assignment_category_head,
 					"purchase_group_head": row.purchase_group_head,
+					"purchase_group_head_desc": frappe.db.get_value("Purchase Group Master", row.purchase_group_head, "description") or "",
 					"product_name_head": row.product_name_head,
+					"product_full_name_head": frappe.db.get_value("VMS Product Master", row.product_name_head, "product_name") or "",
 					"product_price_head": row.product_price_head,
 					"final_price_by_purchase_team_head": row.final_price_by_purchase_team_head,
 					"lead_time_head": row.lead_time_head,
 					"plant_head": row.plant_head,
+					"plant_head_desc": frappe.db.get_value("Plant Master", row.plant_head, "plant_name") or "",
 					"requisitioner_name_head": row.requisitioner_name_head,
 					"tracking_id_head": row.tracking_id_head,
 					"desired_vendor_head": row.desired_vendor_head,
 					"valuation_area_head": row.valuation_area_head,
+					"valuation_area_head_desc": valuation_area_head_desc,
 					"fixed_value_head": row.fixed_value_head,
 					"spit_head": row.spit_head,
 					"purchase_organisation_head": row.purchase_organisation_head,
@@ -615,6 +637,7 @@ def get_pur_req_table_data(name):
 			"Cart ID": doc.cart_details_id,
 			"Form Status": doc.form_status,
 			"form_is_submitted": doc.form_is_submitted,
+			"mail_sent_to_purchase_team": doc.mail_sent_to_purchase_team,
 			"sap_response": doc.zmsg,
 			"sap_status": sap_status,
 			"data": list(grouped_data.values())
@@ -726,6 +749,7 @@ def get_pur_req_table_data(name):
 # 			"error": str(e)
 # 		}
 
+# Not in Used
 @frappe.whitelist(allow_guest=True)
 def create_update_pr_table_head_form(data):
     try:
@@ -1391,40 +1415,40 @@ def submit_pr_form(name):
 		# doc.form_is_submitted = 1
 		doc.form_status = "Submitted"
 
-		# sending email to Purchase team for Approval
-		employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
+		# # sending email to Purchase team for Approval
+		# employee_name = frappe.get_value("Employee", {"user_id": doc.requisitioner}, "full_name")
 
-		pur_team_email = None
-		pur_team_name = None
+		# pur_team_email = None
+		# pur_team_name = None
 
-		if doc.cart_details_id:
-			cart_details = frappe.get_doc("Cart Details", doc.cart_details_id)
-			pur_team = cart_details.dedicated_purchase_team
+		# if doc.cart_details_id:
+		# 	cart_details = frappe.get_doc("Cart Details", doc.cart_details_id)
+		# 	pur_team = cart_details.dedicated_purchase_team
 
-		if pur_team:
-			pur_team_email = pur_team
-			pur_team_name = frappe.get_value("Employee", {"user_id": pur_team}, "full_name")
+		# if pur_team:
+		# 	pur_team_email = pur_team
+		# 	pur_team_name = frappe.get_value("Employee", {"user_id": pur_team}, "full_name")
 			
-			if pur_team_email:
-				subject = f"New Purchase Requisition Raised by {employee_name}"
-				message = f"""
-					<p>Dear {pur_team_name},</p>		
+		# 	if pur_team_email:
+		# 		subject = f"New Purchase Requisition Raised by {employee_name}"
+		# 		message = f"""
+		# 			<p>Dear {pur_team_name},</p>		
 
-					<p>A new <b>Purchase Requisition</b> has been raised by <b>{employee_name}</b>. Kindly review the details and take the necessary action.</p>
+		# 			<p>A new <b>Purchase Requisition</b> has been raised by <b>{employee_name}</b>. Kindly review the details and take the necessary action.</p>
 
-					<p>Thank you.<br>
-					Best regards,<br>
-					VMS Team</p>
-				"""
+		# 			<p>Thank you.<br>
+		# 			Best regards,<br>
+		# 			VMS Team</p>
+		# 		"""
 
-				frappe.custom_sendmail(
-					recipients=pur_team_email,
-					subject=subject,
-					message=message,
-					now=True
-				)
+		# 		frappe.custom_sendmail(
+		# 			recipients=pur_team_email,
+		# 			subject=subject,
+		# 			message=message,
+		# 			now=True
+		# 		)
 				
-				doc.mail_sent_to_purchase_team = 1
+		# 		doc.mail_sent_to_purchase_team = 1
 
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()

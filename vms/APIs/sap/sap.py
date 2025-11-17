@@ -6,6 +6,7 @@ from requests.auth import HTTPBasicAuth
 from vms.utils.custom_send_mail import custom_sendmail
 from vms.APIs.vendor_onboarding.extend_vendor_code_in_sap import send_vendor_code_extend_mail_for_sap_team
 from requests.exceptions import RequestException, JSONDecodeError
+from frappe.utils import now_datetime
 
 def update_sap_vonb(doc, method=None):
     """
@@ -297,6 +298,20 @@ class SAPSessionManager:
             print("🔒 SAP session closed")
 
 
+def sanitize_sap_payload(data):
+    """
+    Recursively trim whitespace from all string values in the payload
+    Handles nested dictionaries and lists
+    """
+    if isinstance(data, dict):
+        return {key: sanitize_sap_payload(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [sanitize_sap_payload(item) for item in data]
+    elif isinstance(data, str):
+        return data.strip()  
+    else:
+        return data
+
 # =====================================================================================
 # MAIN VENDOR ONBOARDING FUNCTION - SESSION BASED
 # =====================================================================================
@@ -467,8 +482,8 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "Name2": name2,
                                 "Sort1": onb_vm.search_term or "",
                                 "Street": vcd.address_line_1,
-                                "StrSuppl1": gst_address_text or "",
-                                "StrSuppl2": "",
+                                "StrSuppl1": vcd.address_line_2,
+                                "StrSuppl2": gst_address_text or "",
                                 "StrSuppl3": "",
                                 "PostCode1": gst_pin,
                                 "City1": gst_city,
@@ -525,6 +540,9 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "Vedno": "",
                                 "Zmsg": ""
                             }
+
+                            data = sanitize_sap_payload(data)
+                        
                             
                             print(f"      🚀 Sending data to SAP for GST {gst_num} using session...")
                             
@@ -780,6 +798,8 @@ def erp_to_sap_vendor_data(onb_ref):
                             "Vedno": "",
                             "Zmsg": ""
                         }
+
+                        data = sanitize_sap_payload(data)
                         
                         print(f"      🚀 Sending international vendor data to SAP using session...")
                         
@@ -1335,8 +1355,7 @@ def send_failure_notification(onb_name, failure_type, error_details):
                 frappe.custom_sendmail(
                     recipients=[
                         # recipient["email"], 
-                        "rishi.hingad@merillife.com",
-                        "thunder00799@gmail.com"],
+                        "rishi.hingad@merillife.com"],
                     # cc = [registered_by],
                     subject=subject,
                     message=message,
@@ -1519,7 +1538,7 @@ def get_vendor_details_for_email(onb_doc):
         }
 
 
-def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, onb, add1=None, add2=None, dist=None, zip=None, city=None, country=None):
+def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, ven_onb, add1=None, add2=None, dist=None, zip=None, city=None, country=None):
     """
     Fixed function to properly handle multiple vendor code rows for a single company
     """
@@ -1563,6 +1582,8 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
                     vc.district = dist or ""
                     vc.zip_code = zip or ""
                     vc.country = country or ""
+                    vc.vendor_onboarding = ven_onb or ""
+                    vc.datetime = now_datetime()
                     found_existing = True
                     print(f"✅ Updated existing vendor code row: GST={gst}, State={state}, Vendor Code={vendor_code}")
                     break
@@ -1578,7 +1599,9 @@ def update_vendor_master(name, company_name, sap_code, vendor_code, gst, state, 
                 "address_line_2": add2 or "",   
                 "district": dist or "",
                 "zip_code": zip or "",
-                "country": country or ""
+                "country": country or "",
+                "vendor_onboarding": ven_onb or "",
+                "datetime": now_datetime() or ""
             }
             cvc.append("vendor_code", new_vendor_code_row)
             print(f"✅ Added new vendor code row: GST={gst}, State={state}, Vendor Code={vendor_code}")

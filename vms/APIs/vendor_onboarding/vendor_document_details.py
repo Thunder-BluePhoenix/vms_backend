@@ -287,6 +287,7 @@ def update_vendor_onboarding_document_details(data):
 		vendor_onboarding = data.get("vendor_onboarding")
 
 		if not ref_no or not vendor_onboarding:
+			frappe.local.response["http_status_code"] = 400
 			return {
 				"status": "error",
 				"message": "Both 'ref_no' and 'vendor_onboarding' are required."
@@ -299,6 +300,7 @@ def update_vendor_onboarding_document_details(data):
 		)
 
 		if not doc_name:
+			frappe.local.response["http_status_code"] = 404
 			return {
 				"status": "error",
 				"message": "Legal Documents record not found."
@@ -375,6 +377,7 @@ def update_vendor_onboarding_document_details(data):
 
 		frappe.db.commit()
 
+		frappe.local.response["http_status_code"] = 200
 		return {
 			"status": "success",
 			"message": "Legal Documents updated successfully.",
@@ -384,6 +387,7 @@ def update_vendor_onboarding_document_details(data):
 
 	except Exception as e:
 		frappe.db.rollback()
+		frappe.local.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "Legal Document Update Error")
 		return {
 			"status": "error",
@@ -405,6 +409,7 @@ def update_vendor_onboarding_gst_details(data):
 		vendor_onboarding = data.get("vendor_onboarding")
 
 		if not ref_no or not vendor_onboarding:
+			frappe.local.response["http_status_code"] = 400
 			return {
 				"status": "error",
 				"message": "Missing required fields: 'ref_no' and 'vendor_onboarding'."
@@ -417,6 +422,7 @@ def update_vendor_onboarding_gst_details(data):
 		)
 
 		if not doc_name:
+			frappe.local.response["http_status_code"] = 404
 			return {
 				"status": "error",
 				"message": "Legal Documents record not found."
@@ -425,6 +431,7 @@ def update_vendor_onboarding_gst_details(data):
 		main_doc = frappe.get_doc("Legal Documents", doc_name)
 
 		if not data.get("gst_table"):
+			frappe.local.response["http_status_code"] = 400
 			return {
 				"status": "error",
 				"message": "Missing child table fields: 'gst_table'."
@@ -528,6 +535,7 @@ def update_vendor_onboarding_gst_details(data):
 					doc.save(ignore_permissions=True)
 					frappe.db.commit()
 
+			frappe.local.response["http_status_code"] = 200
 			return {
 				"status": "success",
 				"message": "GST details updated successfully for all specified companies."
@@ -596,6 +604,7 @@ def update_vendor_onboarding_gst_details(data):
 			main_doc.save(ignore_permissions=True)
 			frappe.db.commit()
 
+			frappe.local.response["http_status_code"] = 200
 			return {
 				"status": "success",
 				"message": "GST details updated successfully.",
@@ -604,6 +613,7 @@ def update_vendor_onboarding_gst_details(data):
 
 	except Exception as e:
 		frappe.db.rollback()
+		frappe.local.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "GST Details Update Error")
 		return {
 			"status": "error",
@@ -617,6 +627,7 @@ def update_vendor_onboarding_gst_details(data):
 def delete_vendor_onboarding_gst_row(row_name, ref_no, vendor_onboarding):
 	try:
 		if not row_name or not ref_no or not vendor_onboarding:
+			frappe.local.response["http_status_code"] = 400
 			return {
 				"status": "error",
 				"message": "Missing required fields: 'row_name', 'ref_no', or 'vendor_onboarding'."
@@ -629,6 +640,7 @@ def delete_vendor_onboarding_gst_row(row_name, ref_no, vendor_onboarding):
 		)
 
 		if not doc_name:
+			frappe.local.response["http_status_code"] = 404
 			return {
 				"status": "error",
 				"message": "Legal Documents record not found."
@@ -663,12 +675,14 @@ def delete_vendor_onboarding_gst_row(row_name, ref_no, vendor_onboarding):
 					deleted_from_docs.append(doc.name)
 
 			if not deleted_from_docs:
+				frappe.local.response["http_status_code"] = 404
 				return {
 					"status": "error",
 					"message": f"No matching row with ID '{row_name}' found in linked records."
 				}
 
 			frappe.db.commit()
+			frappe.local.response["http_status_code"] = 200
 			return {
 				"status": "success",
 				"message": f"GST entry with row ID '{row_name}' deleted from linked records.",
@@ -684,6 +698,7 @@ def delete_vendor_onboarding_gst_row(row_name, ref_no, vendor_onboarding):
 			]
 
 			if len(main_doc.gst_table) == original_len:
+				frappe.local.response["http_status_code"] = 404
 				return {
 					"status": "error",
 					"message": f"No matching row with ID '{row_name}' found in this document."
@@ -692,6 +707,7 @@ def delete_vendor_onboarding_gst_row(row_name, ref_no, vendor_onboarding):
 			main_doc.save(ignore_permissions=True)
 			frappe.db.commit()
 
+			frappe.local.response["http_status_code"] = 200
 			return {
 				"status": "success",
 				"message": f"GST entry with row ID '{row_name}' deleted successfully.",
@@ -700,6 +716,7 @@ def delete_vendor_onboarding_gst_row(row_name, ref_no, vendor_onboarding):
 
 	except Exception as e:
 		frappe.db.rollback()
+		frappe.local.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "Delete GST Entry Error")
 		return {
 			"status": "error",

@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-10 11:29:57.327615",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "supplier_code",
+  "supplier",
+  "material_services",
+  "critical",
+  "address",
+  "column_break_jigq",
+  "contact_person",
+  "contact_no",
+  "email"
+ ],
+ "fields": [
+  {
+   "fieldname": "supplier_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Supplier Code"
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Supplier"
+  },
+  {
+   "fieldname": "material_services",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Material / Services"
+  },
+  {
+   "fieldname": "critical",
+   "fieldtype": "Data",
+   "label": "Critical"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Address",
+   "max_height": "80px"
+  },
+  {
+   "fieldname": "column_break_jigq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_person",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contact Person"
+  },
+  {
+   "fieldname": "contact_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contact No"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "URL/Email"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-11-10 11:34:17.667985",
+ "modified_by": "Administrator",
+ "module": "Assessment Forms",
+ "name": "Approved Supplier Detail",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

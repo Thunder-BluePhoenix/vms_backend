@@ -11,12 +11,64 @@ import mimetypes
 from vms.utils.notification import create_notification_log
 
 
+def is_email_sending_suspended():
+    """Return True if email sending is suspended in system defaults"""
+    try:
+        return bool(int(frappe.db.get_default("suspend_email_queue") or 0))
+    except Exception:
+        return False
 
 
-def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=None, attachments=None, **kwargs):
-   
-   
-    create_notification_log(recipients= recipients, subject=subject, message=message, **kwargs)
+def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=None, 
+                   attachments=None, template=None, args=None, **kwargs):
+    """
+    Enhanced sendmail with template support
+    
+    Args:
+        recipients: Email recipients (string or list)
+        subject: Email subject (can be template string if args provided)
+        message: Email body (can be template string if args provided)
+        cc: CC recipients
+        bcc: BCC recipients
+        attachments: Email attachments
+        template: Email Template doctype name (optional)
+        args: Context dictionary for template rendering
+        **kwargs: Additional arguments
+    """
+    
+    # Handle Email Template if provided
+    if template:
+        subject, message = _render_email_template(template, args or {})
+    elif args and (subject or message):
+        # Render subject and message as templates if args provided
+        if subject:
+            subject = frappe.render_template(subject, args)
+        if message:
+            message = frappe.render_template(message, args)
+    
+    create_notification_log(recipients=recipients, subject=subject, message=message, **kwargs)
+
+    # 🛑 Check if email sending is suspended
+    if is_email_sending_suspended():
+        frappe.logger("debug").info("Email sending is suspended. Adding to Email Queue but not sending.")
+        
+        email_account = _get_email_account_settings() 
+
+        _create_email_queue_record(
+            subject=subject,
+            body=message,
+            all_recipients=_normalize_recipients(recipients) + _normalize_recipients(cc) + _normalize_recipients(bcc),
+            cc_emails=_normalize_recipients(cc),
+            # to_emails=_normalize_recipients(recipients),
+            # cc_emails=_normalize_recipients(cc),
+            # bcc_emails=_normalize_recipients(bcc),
+            sender_email=email_account["email_id"], 
+            sender_name=email_account["sender_name"],  
+            attachments=attachments,
+            status="Not Sent"
+        )
+        return
+
     if not cc and not bcc and not attachments:
         
         try:
@@ -57,6 +109,42 @@ def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=No
         )
 
 
+def custom_send_mail(mail_template, recipient, email_context=None, cc_recepients=None, **kwargs):
+    """
+    Convenience wrapper for template-based emails
+    Compatible with existing codebase
+    """
+    return custom_sendmail(
+        recipients=recipient,
+        cc=cc_recepients,
+        template=mail_template,
+        args=email_context,
+        now=kwargs.get('now', True),
+        **kwargs
+    )
+
+
+def _render_email_template(template_name, context):
+    """Render Email Template with context"""
+    try:
+        response = frappe.db.get_value("Email Template", template_name, "response_html")
+        subject = frappe.db.get_value("Email Template", template_name, "subject")
+        
+        # Handle empty rich text editor content
+        if response == '<div class="ql-editor read-mode"><p><br></p></div>':
+            response = frappe.db.get_value("Email Template", template_name, "response_html")
+        
+        # Render templates with context
+        rendered_subject = frappe.render_template(subject, context) if subject else ""
+        rendered_message = frappe.render_template(response, context) if response else ""
+        
+        return rendered_subject, rendered_message
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), f"Error rendering email template {template_name}: {str(e)}")
+        return "Email Template Error", "Failed to render email template"
+
+
 def _get_email_account_settings(email_id="noreply@merillife.com"):
     try:
         email_account = frappe.get_doc("Email Account", {"email_id": email_id})
@@ -90,7 +178,25 @@ def _get_email_account_settings(email_id="noreply@merillife.com"):
 
 
 def _send_email_with_cc_bcc_attachments(subject, body, to_emails, cc_emails=None, bcc_emails=None, attachments=None):
-   
+    
+    # 🛑 Stop if email sending is suspended
+    if is_email_sending_suspended():
+        frappe.logger("debug").info("Email sending is currently suspended. Skipping send.")
+
+        email_account = _get_email_account_settings() 
+
+        _create_email_queue_record(
+            subject=subject,
+            body=body,
+            all_recipients=(to_emails or []) + (cc_emails or []) + (bcc_emails or []),
+            cc_emails=cc_emails or [],
+            sender_email=email_account["email_id"], 
+            sender_name=email_account["sender_name"],
+            attachments=attachments,
+            status="Not Sent"
+        )
+        return
+
     cc_emails = cc_emails or []
     bcc_emails = bcc_emails or []
     
@@ -371,6 +477,32 @@ def _normalize_recipients(recipients):
         recipients = [recipients]
 
     return [str(r).strip() for r in recipients if r]
+
+
+@frappe.whitelist()
+def toggle_sending(enable):
+    frappe.only_for("System Manager")
+    frappe.db.set_default("suspend_email_queue", 0 if frappe.utils.cint(enable) else 1)
+
+
+# @frappe.whitelist()
+# def resume_sending():
+#     """Re-send all 'Not Sent' emails when resuming"""
+#     if not frappe.has_permission("Email Queue", "write"):
+#         frappe.throw("Not permitted")
+#     unsent_emails = frappe.get_all("Email Queue", filters={"status": "Not Sent"})
+#     for e in unsent_emails:
+#         frappe.enqueue(_resend_email_queue, email_queue_name=e.name)
+
+
+# def _resend_email_queue(email_queue_name):
+#     email_doc = frappe.get_doc("Email Queue", email_queue_name)
+#     _send_email_with_cc_bcc_attachments(
+#         subject=email_doc.subject,
+#         body=email_doc.message,
+#         to_emails=[r.recipient for r in email_doc.recipients],
+#         attachments=None
+#     )
 
 
 frappe.custom_sendmail = custom_sendmail

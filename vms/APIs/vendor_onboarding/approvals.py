@@ -118,6 +118,7 @@ def purchase_team_check(data):
         #     onb_doc.save(ignore_permissions=True)
         #     frappe.db.commit()
 
+        frappe.local.response["http_status_code"] = 200
         return {
             "success": True,
             "message": message,

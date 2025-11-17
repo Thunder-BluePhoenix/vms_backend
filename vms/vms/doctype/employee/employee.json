@@ -29,6 +29,7 @@
   "sub_department",
   "column_break_qsjv",
   "designation",
+  "is_material_cp",
   "meril_designation",
   "reports_to",
   "head_of_department",
@@ -348,12 +349,19 @@
    "fieldtype": "Select",
    "label": "Vendor Reg Action",
    "options": "\nCan Register\nCan Approve\nCan Both Register and Approve"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.designation == \"Purchase Team\"",
+   "fieldname": "is_material_cp",
+   "fieldtype": "Check",
+   "label": "Is Material CP"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-09 10:03:08.162682",
+ "modified": "2025-11-14 11:15:36.997720",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",

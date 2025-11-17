@@ -28,8 +28,9 @@ class PRSAPLogs(Document):
 			if self.status != "Success":
 				pr_doc.db_set({
 					"form_is_submitted": 0,
+					"form_status": "Pending",
 					"purchase_team_approved": 0,
-					"form_status": "SAP Error",
+					# "form_status": "SAP Error",
 					"sap_status": "Failed",
 					"zmsg": ztext or transaction_summary.get("error_details", "Unknown Error"),
 					"sap_summary": f"""Status: Failed

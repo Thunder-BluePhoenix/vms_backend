@@ -665,6 +665,22 @@ def modified_peq(data):
 
             doc.purchase_team_approval_status = "Modify"
             doc.purchase_team_status = "Raised Query"
+
+            if doc.rejected == 1:
+                doc.rejected = 0
+                # doc.mail_sent_to_purchase_team = 0
+                doc.ack_mail_to_user = 0
+
+                doc.hod_approval_status = "Pending"
+                doc.hod_approval = ""
+                doc.hod_approval_remarks = ""
+
+                doc.second_stage_approval_status = ""
+                doc.second_stage_approval_by = ""
+                doc.second_stage_approval_remark = ""
+
+                doc.purchase_team_approval = ""
+                doc.purchase_team_approval_remarks = ""
                       
             doc.save()
 
@@ -694,7 +710,7 @@ def modified_peq(data):
             message = f"""
                 <p>Dear {employee_name},</p>
 
-                <p>A modification request has been submitted for the following <strong>Cart Details</strong>:</p>
+                <p>A modification request has been submitted by Purchase Team for the following <strong>Cart Details</strong>:</p>
 
                 <p><strong>Cart ID:</strong> {doc.name}<br>
                 <strong>Cart Date:</strong> {cart_date_formatted}</p>
@@ -807,7 +823,7 @@ def acknowledge_purchase_inquiry(data):
 
                 <p><b>Cart ID:</b> {doc.name}</p>
                 <p><b>Cart Date:</b> {cart_date_formatted}</p>
-                <p><b>Acknowledged Date:</b> {acknowledged_date_formatted}</p>
+                <p><b>Expected Delivery Date:</b> {acknowledged_date_formatted}</p>
                 <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks}</p>
 
                 {table_html}
@@ -815,6 +831,10 @@ def acknowledge_purchase_inquiry(data):
                 <p>Thank you.<br>
                 Best regards,<br>
                 VMS Team</p>
+
+                <div style="background-color:#f9f9f9; border-left:4px solid #ccc; padding:10px; margin-top:20px; font-size:13px; color:#555;">
+                    <em>Disclaimer:</em> The Expected Delivery Date can be changed based on the Purchase Order and Purchase Requisition.
+                </div>
                 """
 
             frappe.custom_sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
@@ -1050,7 +1070,8 @@ def get_plants_and_purchase_group(comp, page=1, page_size=20, search_term=None,
                     sort_by=sort_by or "name",
                     sort_order=sort_order,
                     start=start,
-                    page_size=page_size
+                    page_size=page_size,
+                    filters={"usable_in_pr": 1}
                 )
                 response["cost_centers"] = cost_centers_data
                 
@@ -1074,7 +1095,8 @@ def get_plants_and_purchase_group(comp, page=1, page_size=20, search_term=None,
                     sort_by=sort_by or "name",
                     sort_order=sort_order,
                     start=start,
-                    page_size=page_size
+                    page_size=page_size,
+                    filters={"usable_in_pr": 1}
                 )
                 response["gl_accounts"] = gl_accounts_data
                 
@@ -1138,9 +1160,11 @@ def get_plants_and_purchase_group(comp, page=1, page_size=20, search_term=None,
 
 
 def get_entity_data(doctype, company_field, company, search_term, search_fields, 
-                    fields, sort_by, sort_order, start, page_size):
+                    fields, sort_by, sort_order, start, page_size, filters=None):
    
-    filters = {company_field: company}
+    base_filters = {company_field: company}
+    if filters:
+        base_filters.update(filters)
     
     # Build OR filters for search term
     or_filters = None
@@ -1156,7 +1180,7 @@ def get_entity_data(doctype, company_field, company, search_term, search_fields,
     # Get paginated data
     data = frappe.get_all(
         doctype,
-        filters=filters,
+        filters=base_filters,
         or_filters=or_filters,
         fields=fields,
         order_by=f"{sort_by} {sort_order}",
@@ -1170,7 +1194,7 @@ def get_entity_data(doctype, company_field, company, search_term, search_fields,
         # Count with search filters using get_all
         total = len(frappe.get_all(
             doctype,
-            filters=filters,
+            filters=base_filters,
             or_filters=or_filters,
             fields=["name"],
             limit_page_length=0  # Get all records to count
@@ -1304,6 +1328,26 @@ def submit_purchase_inquiry(data):
             if row.fields_to_modify and not row.modified1:
                 row.modified_datetime = frappe.utils.now_datetime()
                 row.modified1 = 1
+
+                frappe.custom_sendmail(
+                    recipients=[doc.dedicated_purchase_team],
+                    subject=f"A Modification has been done for Cart ID {doc.name}",
+                    message=f"""
+                        Dear Purchase Team,<br>
+
+                        A modification request for <b>Cart ID: {doc.name}</b> has been <b>completed</b>.<br>
+
+                        The following field have been updated:<br>
+                        <b>{row.fields_to_modify}</b><br>
+
+                        Please review the updated details and proceed with the necessary approvals.<br>
+
+                        Regards,<br>
+                        <b>VMS System</b>
+                        """,
+                        now=True
+                    )
+                
         doc.asked_to_modify = 0
         
         
@@ -1337,10 +1381,13 @@ def submit_purchase_inquiry(data):
                     })
         
         # Save the document with updates first
-        doc.save(ignore_permissions=True)
+        # doc.save(ignore_permissions=True)
         
         # Now submit the document
         doc.is_submited = 1
+        doc.rejected = 0
+        doc.ack_mail_to_user = 0
+        doc.purchase_team_approval_status = "Pending"
         doc.save(ignore_permissions=True)
         frappe.db.commit()
         

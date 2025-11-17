@@ -102,7 +102,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Transaction Type",
-   "options": "Purchase Order\nPurchase Requisition\nOther"
+   "options": "Purchase Order\nPurchase Requisition\nPurchase Requisition Webform\nOther"
   },
   {
    "fieldname": "section_break_2",
@@ -158,7 +158,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-04 15:20:21.029887",
+ "modified": "2025-11-05 14:59:39.263463",
  "modified_by": "Administrator",
  "module": "SAP LOGs",
  "name": "Purchase SAP Logs",

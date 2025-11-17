@@ -8,6 +8,7 @@
  "field_order": [
   "company_details_tab",
   "vendor_details_section",
+  "inactive_record",
   "ref_no",
   "vendor_name",
   "qms_required",
@@ -814,12 +815,19 @@
    "fieldname": "sap_processing_error",
    "fieldtype": "Long Text",
    "label": "SAP Processing Error"
+  },
+  {
+   "default": "0",
+   "description": "If checked, this record will not be visible on the dashboard.",
+   "fieldname": "inactive_record",
+   "fieldtype": "Check",
+   "label": "Inactive Record"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-25 12:57:47.306525",
+ "modified": "2025-11-11 18:00:02.542839",
  "modified_by": "Administrator",
  "module": "Vendor Onboarding",
  "name": "Vendor Onboarding",
