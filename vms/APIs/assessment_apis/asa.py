@@ -693,7 +693,15 @@ def get_data_ann_asa_form(vendor_ref_no):
 				"mention_behavior_base_safety": social_doc.mention_behavior_base_safety,
 				"track_health_safety_indicators": social_doc.track_health_safety_indicators,
 				"provide_any_healthcare_services": social_doc.provide_any_healthcare_services,
-				"details_of_healthcare_services": social_doc.details_of_healthcare_services
+				"details_of_healthcare_services": social_doc.details_of_healthcare_services,
+				"details_14": social_doc.details_14,
+				"details_15": social_doc.details_15,
+				"details_16": social_doc.details_16,
+				"details_17": social_doc.details_17,
+				"details_18": social_doc.details_18,
+				"details_19": social_doc.details_19,
+
+
 			}
 			for i in range(14, 21):
 				field = f"upload_file_{i}"
