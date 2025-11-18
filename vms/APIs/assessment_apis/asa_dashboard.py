@@ -81,11 +81,15 @@ from vms.utils.custom_send_mail import custom_sendmail
 def asa_dashboard(vendor_name=None, page_no=1, page_length=5):
     try:
         usr = frappe.session.user
+
         page_no = int(page_no) if page_no else 1
         page_length = int(page_length) if page_length else 5
         offset = (page_no - 1) * page_length
+
         user_designation = frappe.get_value("Employee", {"user_id": usr}, "designation")
+
         if not user_designation or user_designation.strip().lower() != "asa":
+            frappe.local.response["http_status_code"] = 400
             return {
                 "status": "error",
                 "message": "User does not have ASA access",
@@ -93,16 +97,23 @@ def asa_dashboard(vendor_name=None, page_no=1, page_length=5):
                 "total_count": 0,
                 "overall_total_asa": 0
             }
+        
         filters = {}
+
+        filters["form_is_submitted"] = 1
+
         if vendor_name and vendor_name.strip():
             filters["vendor_name"] = ["like", f"%{vendor_name.strip()}%"]
+
         total_count = frappe.db.count(
             "Annual Supplier Assessment Questionnaire",
             filters=filters
         )
+
         overall_total_asa = frappe.db.count(
-            "Annual Supplier Assessment Questionnaire"
+            "Annual Supplier Assessment Questionnaire", filters={"form_is_submitted": 1}
         )
+
         asa_list = frappe.get_all(
             "Annual Supplier Assessment Questionnaire",
             filters=filters,
@@ -111,6 +122,7 @@ def asa_dashboard(vendor_name=None, page_no=1, page_length=5):
             start=offset,
             page_length=page_length
         )
+
         return {
             "status": "success",
             "message": f"{len(asa_list)} ASA record(s) found",
@@ -120,7 +132,9 @@ def asa_dashboard(vendor_name=None, page_no=1, page_length=5):
             "page_no": page_no,
             "page_length": page_length
         }
+    
     except Exception:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(message=frappe.get_traceback(), title="ASA Dashboard Error")
         return {
             "status": "error",
@@ -150,6 +164,7 @@ def approved_vendor_count():
         }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "Approved Vendor Count Error")
         return {
             "status": "error",

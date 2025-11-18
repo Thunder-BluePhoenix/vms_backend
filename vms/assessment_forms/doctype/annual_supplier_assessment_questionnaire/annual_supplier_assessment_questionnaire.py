@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import now_datetime
+from vms.utils.custom_send_mail import custom_sendmail
 
 
 
@@ -28,12 +29,32 @@ class AnnualSupplierAssessmentQuestionnaire(Document):
 				vendor_master = frappe.get_doc("Vendor Master", self.vendor_ref_no)
 
 				for row in vendor_master.form_records:
-					frappe.db.set_value(
-						"Vendor Form Records",
-						row.name,   
-						"form_is_submitted", 
-						1
-					)
+					if row.assessment_form == self.name and not row.form_is_submitted:
+						frappe.db.set_value(
+							"Assessment Form Records",
+							row.name,
+							"form_is_submitted",
+							1
+						)
+
+						subject = f"The Vendor {vendor_master.vendor_name} has completed the ASA Form"
+
+						message = f"""
+							Dear Sir/Madam,
+
+							The vendor has successfully completed the ASA Form.
+
+							Please log in to the VMS Portal to review and verify the submitted form.
+
+							Regards,
+							VMS System
+							"""
+
+						frappe.custom_sendmail(
+							recipients=[vendor_master.registered_by],
+							subject=subject,
+							message=message
+						)
 
 		except Exception as e:
 			frappe.log_error(frappe.get_traceback(), "Error in ASAQ on_update")

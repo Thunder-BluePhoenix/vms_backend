@@ -517,7 +517,7 @@ def erp_to_sap_vendor_data(onb_ref):
                                 "Bankn": onb_pmd.account_number if onb_pmd else "",
                                 "Bkref": onb_pmd.ifsc_code if onb_pmd else "",
                                 "Banka": "",
-                                "Koinh": onb_pmd.name_of_account_holder if onb_pmd.name_of_account_holder else "",
+                                "Koinh": (onb_pmd.name_of_account_holder[:50] if onb_pmd.name_of_account_holder else ""),  # apply char limit 50
                                 "Xezer": "",
                                 "ZZBENF_NAME": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_name"),
                                 "ZZBEN_BANK_NM": safe_get(onb_pmd, "international_bank_details", 0, "beneficiary_bank_name"),
