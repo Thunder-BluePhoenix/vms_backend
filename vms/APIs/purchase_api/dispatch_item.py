@@ -297,14 +297,13 @@ def full_data_dispatch_item(name):
 
 		qr_json = doc.qr_code_data
 		if not qr_json:
-			qr_hex = ""
+			data["hex_qr_code"] = ""
 		else:
-			qr_hex = json_to_hex(qr_json)
+			data["hex_qr_code"] = json_to_hex(qr_json)
 
 		return {
 			"status": "success",
-			"data": data,
-			"hex_qr_code": qr_hex
+			"data": data
 		}
 
 	except Exception as e:
