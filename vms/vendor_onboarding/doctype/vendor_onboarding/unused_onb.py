@@ -63,7 +63,7 @@ class UnUseVendorOnboarding(Document):
             # enqueue_after_commit = False
         )
         
-        sent_asa_form_link(self, method=None)
+        # sent_asa_form_link(self, method=None)
 
 
     def handle_expiration(self):
@@ -921,59 +921,59 @@ def update_van_core_docs(doc, method=None):
                 
                 
             
-def sent_asa_form_link(doc, method=None):
-    try:
-        if doc.ref_no:
-            vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
+# def sent_asa_form_link(doc, method=None):
+#     try:
+#         if doc.ref_no:
+#             vendor_master = frappe.get_doc("Vendor Master", doc.ref_no)
 
-            # Only send if ASA is required and not already sent
-            if doc.asa_required and not vendor_master.asa_required:
-                http_server = frappe.conf.get("backend_http")
-                subject = "Fill ASA Form"
-                link = f"{http_server}/annual-supplier-assessment-questionnaire/new?vendor_ref_no={vendor_master.name}"
+#             # Only send if ASA is required and not already sent
+#             if doc.asa_required and not vendor_master.asa_required:
+#                 http_server = frappe.conf.get("backend_http")
+#                 subject = "Fill ASA Form"
+#                 link = f"{http_server}/annual-supplier-assessment-questionnaire/new?vendor_ref_no={vendor_master.name}"
 
-                message = f"""
-                    Dear {vendor_master.vendor_name},<br><br>
+#                 message = f"""
+#                     Dear {vendor_master.vendor_name},<br><br>
 
-                    <p>Meril is strengthening its Responsible Sourcing and Sustainability Framework across the entire supply chain. 
-                    As part of this initiative, we are collecting ESG (Environment, Social & Governance) information from all our partners 
-                    to understand operational practices related to the environment, workforce management, safety, and governance. 
-                    This also aims to create greater awareness regarding sustainability and ESG practices within our supply chain.</p><br>
+#                     <p>Meril is strengthening its Responsible Sourcing and Sustainability Framework across the entire supply chain. 
+#                     As part of this initiative, we are collecting ESG (Environment, Social & Governance) information from all our partners 
+#                     to understand operational practices related to the environment, workforce management, safety, and governance. 
+#                     This also aims to create greater awareness regarding sustainability and ESG practices within our supply chain.</p><br>
 
-                    <p>The information you provide will help us build a clear overview of sustainability practices across our supply chain, 
-                    identify potential risks, and understand where support or improvements may be required. This will also enable Meril to 
-                    meet evolving global expectations from healthcare customers, regulators, and international markets that increasingly 
-                    emphasize responsible and transparent supply chains.</p><br>
+#                     <p>The information you provide will help us build a clear overview of sustainability practices across our supply chain, 
+#                     identify potential risks, and understand where support or improvements may be required. This will also enable Meril to 
+#                     meet evolving global expectations from healthcare customers, regulators, and international markets that increasingly 
+#                     emphasize responsible and transparent supply chains.</p><br>
 
-                    <p>We request you to kindly submit your ESG information through the portal link given below:</p><br>
+#                     <p>We request you to kindly submit your ESG information through the portal link given below:</p><br>
 
-                    <strong>Portal Link:</strong> <a href="{link}">{link}</a><br><br>
+#                     <strong>Portal Link:</strong> <a href="{link}">{link}</a><br><br>
 
-                    <strong>The login credentials were already shared with you in a previous email.</strong><br><br>
+#                     <strong>The login credentials were already shared with you in a previous email.</strong><br><br>
 
-                    For any assistance or clarification, our team will be happy to support you.<br><br>
+#                     For any assistance or clarification, our team will be happy to support you.<br><br>
 
-                    Thank you.<br><br>
+#                     Thank you.<br><br>
 
-                    Regards,<br>
-                    Team VMS
-                """
+#                     Regards,<br>
+#                     Team VMS
+#                 """
 
-                recipients = vendor_master.office_email_primary or vendor_master.office_email_secondary
-                if recipients:
-                    frappe.custom_sendmail(
-                        recipients=recipients,
-                        subject=subject,
-                        message=message
-                    )
+#                 recipients = vendor_master.office_email_primary or vendor_master.office_email_secondary
+#                 if recipients:
+#                     frappe.custom_sendmail(
+#                         recipients=recipients,
+#                         subject=subject,
+#                         message=message
+#                     )
 
-                vendor_master.asa_required = 1
-                vendor_master.save()
-            else:
-                pass
+#                 vendor_master.asa_required = 1
+#                 vendor_master.save()
+#             else:
+#                 pass
 
-    except Exception:
-        frappe.log_error(frappe.get_traceback(), "Error in sent_asa_form_link")
+#     except Exception:
+#         frappe.log_error(frappe.get_traceback(), "Error in sent_asa_form_link")
 
 
 
