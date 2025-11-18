@@ -34,7 +34,8 @@
   "column_break_siig",
   "social_doctype",
   "section_break_ljcm",
-  "form_is_submitted"
+  "form_is_submitted",
+  "verify_by_asa_team"
  ],
  "fields": [
   {
@@ -187,12 +188,18 @@
    "fieldname": "form_is_submitted",
    "fieldtype": "Check",
    "label": "Form is Completed and Submitted"
+  },
+  {
+   "default": "0",
+   "fieldname": "verify_by_asa_team",
+   "fieldtype": "Check",
+   "label": "Verified by ASA Team"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-18 10:19:27.138390",
+ "modified": "2025-11-18 17:01:30.575828",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Annual Supplier Assessment Questionnaire",

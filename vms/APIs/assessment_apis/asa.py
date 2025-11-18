@@ -471,6 +471,47 @@ def create_gov_asa_form(data):
 		return {"status": "error", "message": str(e)}
 
 
+# Verify the ASA Form
+@frappe.whitelist(allow_guest=True)
+def verify_asa_form(asa_name=None):
+	try:
+		# Validate inputs
+		if not asa_name:
+			frappe.local.response["http_status_code"] = 404
+			return {
+				"status": "error",
+				"message": "asa_name is required"
+			}
+
+		asa_doc = frappe.get_doc("Annual Supplier Assessment Questionnaire", asa_name)
+
+		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", asa_doc)
+
+		# Update the verification flag
+		asa_doc.verify_by_asa_team = 1
+		asa_doc.save(ignore_permissions=True)
+
+		return {
+			"status": "success",
+			"message": "Verified successfully"
+		}
+
+	except frappe.DoesNotExistError:
+		frappe.local.response["http_status_code"] = 404
+		return {
+			"status": "error",
+			"message": "ASA form not found"
+		}
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Error in verify_asa_form API")
+		frappe.local.response["http_status_code"] = 500
+		return {
+			"status": "error",
+			"message": "Something went wrong",
+			"error": str(e)
+		}
+
 
 # send full data of asa form
 @frappe.whitelist(allow_guest=True)
