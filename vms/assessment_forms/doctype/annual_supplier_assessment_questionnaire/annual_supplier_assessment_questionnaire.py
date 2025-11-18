@@ -24,37 +24,60 @@ class AnnualSupplierAssessmentQuestionnaire(Document):
 			frappe.log_error(frappe.get_traceback(), "Error in ASAQ after_insert")
 
 	def on_update(self):
-		try:
-			if self.form_is_submitted == 1 and self.vendor_ref_no:
-				vendor_master = frappe.get_doc("Vendor Master", self.vendor_ref_no)
+		send_asa_completion_email(self)
 
-				for row in vendor_master.form_records:
-					if row.assessment_form == self.name and not row.form_is_submitted:
-						frappe.db.set_value(
-							"Assessment Form Records",
-							row.name,
-							"form_is_submitted",
-							1
-						)
 
-						subject = f"The Vendor {vendor_master.vendor_name} has completed the ASA Form"
 
-						message = f"""
-							Dear Sir/Madam,
+def send_asa_completion_email(doc, method=None):
+	try:
+		if doc.form_is_submitted == 1 and doc.vendor_ref_no:
+			vendor_master = frappe.get_doc("Vendor Master", doc.vendor_ref_no)
 
-							The vendor has successfully completed the ASA Form.
+			for row in vendor_master.form_records:
+				if row.assessment_form == doc.name and not row.form_is_submitted:
+					frappe.db.set_value(
+						"Assessment Form Records",
+						row.name,
+						"form_is_submitted",
+						1
+					)
+					
+					# Get all users who have ASA role
+					user_list = frappe.get_all(
+						"Has Role",
+						filters={"role": "ASA"},
+						fields=["parent"]
+					)
 
-							Please log in to the VMS Portal to review and verify the submitted form.
+					recipients = []
+					for u in user_list:
+						email = frappe.db.get_value("User", u.parent, "email")
+						if email:
+							recipients.append(email)
 
-							Regards,
-							VMS System
-							"""
+					if not recipients:
+						frappe.local.response["http_status_code"] = 404
+						frappe.log_error("No users with ASA role found", "ASA Completion Email")
+						return
 
-						frappe.custom_sendmail(
-							recipients=[vendor_master.registered_by],
-							subject=subject,
-							message=message
-						)
+					subject = f"The Vendor {vendor_master.vendor_name} has completed the ASA Form"
 
-		except Exception as e:
-			frappe.log_error(frappe.get_traceback(), "Error in ASAQ on_update")
+					message = f"""
+						Dear Sir/Madam,
+
+						The vendor has successfully completed the ASA Form.
+
+						Please log in to the VMS Portal to review and verify the submitted form.
+
+						Regards,
+						VMS System
+						"""
+
+					frappe.custom_sendmail(
+						recipients=recipients,
+						subject=subject,
+						message=message
+					)
+
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "Error in ASAQ on_update")
