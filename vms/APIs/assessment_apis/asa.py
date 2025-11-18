@@ -98,7 +98,7 @@ def get_asa_list():
 # Annual Supplier Form API
 
 @frappe.whitelist(allow_guest=True)
-def create_annual_ass_form(data):
+def create_annual_asa_form(data):
 	try:
 		if isinstance(data, str):
 			data = json.loads(data)
@@ -460,9 +460,13 @@ def create_gov_asa_form(data):
 
 		gov_doc.save(ignore_permissions=True)
 
+		annual_ass.form_is_submitted = 1
+		annual_ass.save(ignore_permissions=True)
+
 		return {"status": "success", "message": "Governance ASA updated successfully", "docname": gov_doc.name}
 
 	except Exception as e:
+		frappe.local.response["http_status_code"] = 500
 		frappe.log_error(frappe.get_traceback(), "create_gov_asa_form")
 		return {"status": "error", "message": str(e)}
 
@@ -470,7 +474,7 @@ def create_gov_asa_form(data):
 
 # send full data of asa form
 @frappe.whitelist(allow_guest=True)
-def get_data_ann_ass_form(vendor_ref_no):
+def get_data_ann_asa_form(vendor_ref_no):
 	try:
 		ann_doc = frappe.get_doc("Annual Supplier Assessment Questionnaire", {"vendor_ref_no": vendor_ref_no})
 
@@ -729,6 +733,7 @@ def get_data_ann_ass_form(vendor_ref_no):
 			"status": "success",
 			"message": "Data fetched successfully",
 			"name": ann_doc.name,
+			"form_is_submitted": ann_doc.form_is_submitted,
 			"governance_doctype": ann_doc.governance_doctype,
 			"environment_doctype": ann_doc.environment_doctype,
 			"social_doctype": ann_doc.social_doctype,
