@@ -428,12 +428,15 @@ def pending_asa_vendor_list(page_no=None, page_length=None, name=None, vendor_na
                 vm.office_email_primary,
                 vm.country,
                 vm.mobile_number,
-                vm.registered_date
+                vm.registered_date, vm.registered_by
             FROM `tabVendor Master` vm
             WHERE {filter_clause}
             ORDER BY vm.modified DESC
             LIMIT %(limit)s OFFSET %(offset)s
         """, values, as_dict=True)
+
+        for vm in vendor_masters:
+            vm["register_by_emp"] = frappe.db.get_value("Employee", {"user_id": vm.get("registered_by")}, "full_name") or ""
 
         return {
             "status": "success",
@@ -614,12 +617,15 @@ def approved_vendor_list(page_no=None, page_length=None, name=None, vendor_name=
                 vm.office_email_primary,
                 vm.country, 
                 vm.mobile_number, 
-                vm.registered_date
+                vm.registered_date, vm.registered_by
             FROM `tabVendor Master` vm
             WHERE {filter_clause}
             ORDER BY vm.modified DESC
             LIMIT %(limit)s OFFSET %(offset)s
         """, values, as_dict=True)
+
+        for vm in vendor_masters:
+            vm["register_by_emp"] = frappe.db.get_value("Employee", {"user_id": vm.get("registered_by")}, "full_name") or ""
 
         return {
             "status": "success",
