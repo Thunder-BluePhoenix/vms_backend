@@ -472,10 +472,9 @@ def create_gov_asa_form(data):
 
 
 # Verify the ASA Form
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=['POST'])
 def verify_asa_form(asa_name=None):
 	try:
-		# Validate inputs
 		if not asa_name:
 			frappe.local.response["http_status_code"] = 404
 			return {
@@ -485,9 +484,6 @@ def verify_asa_form(asa_name=None):
 
 		asa_doc = frappe.get_doc("Annual Supplier Assessment Questionnaire", asa_name)
 
-		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", asa_doc)
-
-		# Update the verification flag
 		asa_doc.verify_by_asa_team = 1
 		asa_doc.save(ignore_permissions=True)
 
