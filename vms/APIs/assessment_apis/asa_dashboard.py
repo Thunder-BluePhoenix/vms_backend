@@ -1,5 +1,6 @@
 import frappe
 from vms.utils.custom_send_mail import custom_sendmail
+import datetime
 
 # @frappe.whitelist(allow_guest=True)
 # def asa_dashboard(vendor_name=None, page_no=1, page_length=5):
@@ -141,6 +142,7 @@ def asa_dashboard(vendor_name=None, page_no=1, page_length=5):
             "message": "Failed to fetch ASA dashboard data."
         }
     
+# Not in Used
 # Approved Vendors count
 @frappe.whitelist(allow_guest=False)
 def approved_vendor_count():
@@ -171,7 +173,7 @@ def approved_vendor_count():
             "message": str(e)
         }
 
-
+# Not in Used
 # no of pending asa who doesnt fill the asa this academic year
 @frappe.whitelist(allow_guest=False)
 def pending_asa_count():
@@ -231,26 +233,171 @@ def pending_asa_count():
             "status": "error",
             "message": str(e)
         }
-        
-# data of pending asa who doesnt fill the asa this academic year
-@frappe.whitelist(allow_guest=False)
+
+
+# Data of pending ASA for vendors who have not filled the ASA form this academic year, where ‘ASA Form Filled’ is unchecked and 
+# ‘ASA Required’ is checked.
+
+# @frappe.whitelist(allow_guest=False)
+# def pending_asa_vendor_list(page_no=None, page_length=None, name=None, vendor_name=None):
+#     try:
+#         vendor_onboarding = frappe.get_all(
+#             "Vendor Onboarding",
+#             filters={"onboarding_form_status": "Approved"},
+#             pluck="ref_no"
+#         )
+
+#         if not vendor_onboarding:
+#             return {
+#                 "status": "success",
+#                 "pending_asa_count": 0,
+#                 "pending_asa_vendors": []
+#             }
+
+#         conditions = ["vm.name IN %(ref_nos)s"]
+#         values = {"ref_nos": vendor_onboarding}
+
+#         if name:
+#             conditions.append("vm.name LIKE %(name)s")
+#             values["name"] = f"%{name}%"
+
+#         if vendor_name:
+#             conditions.append("vm.vendor_name LIKE %(vendor_name)s")
+#             values["vendor_name"] = f"%{vendor_name}%"
+
+#         filter_clause = " AND ".join(conditions)
+
+#         page_no = int(page_no) if page_no else 1
+#         page_length = int(page_length) if page_length else 5
+#         offset = (page_no - 1) * page_length
+#         values.update({"limit": page_length, "offset": offset})
+
+#         total_count = frappe.db.sql(f"""
+#             SELECT COUNT(*) 
+#             FROM `tabVendor Master` vm
+#             WHERE {filter_clause}
+#         """, values)[0][0]
+
+#         if total_count == 0:
+#             return {
+#                 "status": "success",
+#                 "pending_asa_count": 0,
+#                 "pending_asa_vendors": []
+#             }
+
+#         vendor_masters = frappe.db.sql(f"""
+#             SELECT vm.name, vm.vendor_name, vm.office_email_primary,
+#                    vm.country, vm.mobile_number, vm.registered_date
+#             FROM `tabVendor Master` vm
+#             WHERE {filter_clause}
+#             ORDER BY vm.modified DESC
+#             LIMIT %(limit)s OFFSET %(offset)s
+#         """, values, as_dict=True)
+
+#         pending_vendors = []
+#         current_year = frappe.utils.now_datetime().year
+#         start_date = f"{current_year}-01-01"
+#         end_date = f"{current_year}-12-31"
+
+#         for vm in vendor_masters:
+#             # check if there is an assessment record in the current year
+#             has_child_this_year = frappe.db.exists(
+#                 "Assessment Form Records",
+#                 {
+#                     "parent": vm["name"],
+#                     "date_time": ["between", [start_date, end_date]]
+#                 }
+#             )
+
+#             # if no record in current year → pending
+#             if not has_child_this_year:
+#                 pending_vendors.append(vm)
+
+#         # Attach company vendor codes to each vendor
+#         for vm in vendor_masters:
+#             company_vendor = frappe.get_all(
+#                 "Company Vendor Code",
+#                 filters={"vendor_ref_no": vm["name"]},
+#                 fields=["name", "company_name", "company_code"]
+#             )
+
+#             filtered_codes = []
+#             for cvc in company_vendor:
+#                 vendor_code_children = frappe.get_all(
+#                     "Vendor Code",
+#                     filters={"parent": cvc.name},
+#                     fields=["state", "gst_no", "vendor_code"]
+#                 )
+
+#                 filtered_codes.append({
+#                     "company_name": cvc.company_name,
+#                     "company_code": cvc.company_code,
+#                     "vendor_codes": vendor_code_children
+#                 })
+
+#             vm["company_vendor_codes"] = filtered_codes
+
+#         return {
+#             "status": "success",
+#             "pending_asa_count": len(pending_vendors),
+#             "page_no": page_no,
+#             "page_length": page_length,
+#             "pending_asa_vendors": pending_vendors
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Pending ASA Count Error")
+#         return {
+#             "status": "error",
+#             "message": str(e)
+#         }
+
+
+@frappe.whitelist(allow_guest=False, methods=['GET'])
 def pending_asa_vendor_list(page_no=None, page_length=None, name=None, vendor_name=None):
     try:
-        vendor_onboarding = frappe.get_all(
-            "Vendor Onboarding",
-            filters={"onboarding_form_status": "Approved"},
-            pluck="ref_no"
+        vendor_master_docs = frappe.get_all(
+            "Vendor Master",
+            filters={"asa_required": 1},
+            pluck="name"
         )
 
-        if not vendor_onboarding:
+        pending_vendors = []
+
+        current_year = frappe.utils.now_datetime().year
+        start_date = f"{current_year}-01-01"
+        end_date = f"{current_year}-12-31"
+
+        for vm_name in vendor_master_docs:
+            doc = frappe.get_doc("Vendor Master", vm_name)
+
+            if not doc.form_records or len(doc.form_records) == 0:
+                pending_vendors.append(vm_name)
+                continue
+
+            record_found_but_not_submitted = False
+
+            for row in doc.form_records:
+                row_date = row.date_time.date()
+
+                if row_date and start_date <= str(row_date) <= end_date:
+                    if int(row.form_is_submitted) == 0:
+                        record_found_but_not_submitted = True
+
+            if record_found_but_not_submitted:
+                pending_vendors.append(vm_name)
+
+        if not pending_vendors:
+            frappe.local.response["http_status_code"] = 200
             return {
                 "status": "success",
-                "pending_asa_count": 0,
-                "pending_asa_vendors": []
+                "overall_count": 0,
+                "pending_vendor_count": 0,
+                "pending_vendors": []
             }
 
-        conditions = ["vm.name IN %(ref_nos)s"]
-        values = {"ref_nos": vendor_onboarding}
+        conditions = ["vm.name IN %(vendor_list)s"]
+        values = {"vendor_list": pending_vendors}
 
         if name:
             conditions.append("vm.name LIKE %(name)s")
@@ -265,107 +412,176 @@ def pending_asa_vendor_list(page_no=None, page_length=None, name=None, vendor_na
         page_no = int(page_no) if page_no else 1
         page_length = int(page_length) if page_length else 5
         offset = (page_no - 1) * page_length
+
         values.update({"limit": page_length, "offset": offset})
 
         total_count = frappe.db.sql(f"""
-            SELECT COUNT(*) 
+            SELECT COUNT(*)
             FROM `tabVendor Master` vm
             WHERE {filter_clause}
         """, values)[0][0]
 
-        if total_count == 0:
-            return {
-                "status": "success",
-                "pending_asa_count": 0,
-                "pending_asa_vendors": []
-            }
-
         vendor_masters = frappe.db.sql(f"""
-            SELECT vm.name, vm.vendor_name, vm.office_email_primary,
-                   vm.country, vm.mobile_number, vm.registered_date
+            SELECT 
+                vm.name,
+                vm.vendor_name,
+                vm.office_email_primary,
+                vm.country,
+                vm.mobile_number,
+                vm.registered_date
             FROM `tabVendor Master` vm
             WHERE {filter_clause}
             ORDER BY vm.modified DESC
             LIMIT %(limit)s OFFSET %(offset)s
         """, values, as_dict=True)
 
-        pending_vendors = []
-        current_year = frappe.utils.now_datetime().year
-        start_date = f"{current_year}-01-01"
-        end_date = f"{current_year}-12-31"
-
-        for vm in vendor_masters:
-            # check if there is an assessment record in the current year
-            has_child_this_year = frappe.db.exists(
-                "Assessment Form Records",
-                {
-                    "parent": vm["name"],
-                    "date_time": ["between", [start_date, end_date]]
-                }
-            )
-
-            # if no record in current year → pending
-            if not has_child_this_year:
-                pending_vendors.append(vm)
-
-        # Attach company vendor codes to each vendor
-        for vm in vendor_masters:
-            company_vendor = frappe.get_all(
-                "Company Vendor Code",
-                filters={"vendor_ref_no": vm["name"]},
-                fields=["name", "company_name", "company_code"]
-            )
-
-            filtered_codes = []
-            for cvc in company_vendor:
-                vendor_code_children = frappe.get_all(
-                    "Vendor Code",
-                    filters={"parent": cvc.name},
-                    fields=["state", "gst_no", "vendor_code"]
-                )
-
-                filtered_codes.append({
-                    "company_name": cvc.company_name,
-                    "company_code": cvc.company_code,
-                    "vendor_codes": vendor_code_children
-                })
-
-            vm["company_vendor_codes"] = filtered_codes
-
         return {
             "status": "success",
-            "pending_asa_count": len(pending_vendors),
+            "overall_count": len(pending_vendors),
+            "pending_vendor_count": total_count,
             "page_no": page_no,
             "page_length": page_length,
-            "pending_asa_vendors": pending_vendors
+            "pending_vendors": vendor_masters
         }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "Pending ASA Count Error")
         return {
             "status": "error",
             "message": str(e)
         }
+    
 
-# data of Approved vendor list
-@frappe.whitelist(allow_guest=False)
+# Data of the approved vendor list where the vendor code is available and ‘ASA Required’ is checked.
+
+# @frappe.whitelist(allow_guest=False)
+# def approved_vendor_list(page_no=None, page_length=None, name=None, vendor_name=None):
+#     try:
+#         vendor_onboarding = frappe.get_all(
+#             "Vendor Onboarding",
+#             filters={"onboarding_form_status": "Approved"},
+#             pluck="ref_no"
+#         )
+
+#         if not vendor_onboarding:
+#             return {
+#                 "status": "success",
+#                 "approved_vendor_count": 0,
+#                 "approved_vendors": []
+#             }
+
+#         conditions = ["vm.name IN %(ref_nos)s"]
+#         values = {"ref_nos": vendor_onboarding}
+
+#         if name:
+#             conditions.append("vm.name LIKE %(name)s")
+#             values["name"] = f"%{name}%"
+
+#         if vendor_name:
+#             conditions.append("vm.vendor_name LIKE %(vendor_name)s")
+#             values["vendor_name"] = f"%{vendor_name}%"
+
+#         filter_clause = " AND ".join(conditions)
+
+#         page_no = int(page_no) if page_no else 1
+#         page_length = int(page_length) if page_length else 5
+#         offset = (page_no - 1) * page_length
+#         values.update({"limit": page_length, "offset": offset})
+
+#         # Count vendors
+#         total_count = frappe.db.sql(f"""
+#             SELECT COUNT(*) 
+#             FROM `tabVendor Master` vm
+#             WHERE {filter_clause}
+#         """, values)[0][0]
+
+#         if total_count == 0:
+#             return {
+#                 "status": "success",
+#                 "approved_vendor_count": 0,
+#                 "approved_vendors": []
+#             }
+
+#         vendor_masters = frappe.db.sql(f"""
+#             SELECT vm.name, vm.vendor_name, vm.office_email_primary,
+#                    vm.country, vm.mobile_number, vm.registered_date
+#             FROM `tabVendor Master` vm
+#             WHERE {filter_clause}
+#             ORDER BY vm.modified DESC
+#             LIMIT %(limit)s OFFSET %(offset)s
+#         """, values, as_dict=True)
+
+#         # Attach company vendor codes to each vendor
+#         for vm in vendor_masters:
+#             company_vendor = frappe.get_all(
+#                 "Company Vendor Code",
+#                 filters={"vendor_ref_no": vm["name"]},
+#                 fields=["name", "company_name", "company_code"]
+#             )
+
+#             filtered_codes = []
+#             for cvc in company_vendor:
+#                 vendor_code_children = frappe.get_all(
+#                     "Vendor Code",
+#                     filters={"parent": cvc.name},
+#                     fields=["state", "gst_no", "vendor_code"]
+#                 )
+
+#                 filtered_codes.append({
+#                     "company_name": cvc.company_name,
+#                     "company_code": cvc.company_code,
+#                     "vendor_codes": vendor_code_children
+#                 })
+
+#             vm["company_vendor_codes"] = filtered_codes
+
+#         return {
+#             "status": "success",
+#             "approved_vendor_count": int(total_count),
+#             "page_no": page_no,
+#             "page_length": page_length,
+#             "approved_vendors": vendor_masters
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Approved Vendor List Error")
+#         return {
+#             "status": "error",
+#             "message": str(e)
+#         }
+
+
+@frappe.whitelist(allow_guest=False, methods=['GET'])
 def approved_vendor_list(page_no=None, page_length=None, name=None, vendor_name=None):
     try:
-        vendor_onboarding = frappe.get_all(
-            "Vendor Onboarding",
-            filters={"onboarding_form_status": "Approved"},
-            pluck="ref_no"
+        vendor_list = []
+
+        vendor_master_docs = frappe.get_all(
+            "Vendor Master",
+            filters={"asa_required": 1},
+            pluck="name"
         )
 
-        if not vendor_onboarding:
+        for vm_name in vendor_master_docs:
+            doc = frappe.get_doc("Vendor Master", vm_name)
+
+            has_vendor_code = any(row.company_vendor_code for row in doc.multiple_company_data)
+
+            if has_vendor_code:
+                vendor_list.append(vm_name)
+
+        if not vendor_list:
+            frappe.local.response["http_status_code"] = 200
             return {
                 "status": "success",
+                "overall_count": 0,
                 "approved_vendor_count": 0,
                 "approved_vendors": []
             }
 
-        conditions = ["vm.name IN %(ref_nos)s"]
-        values = {"ref_nos": vendor_onboarding}
+        conditions = ["vm.name IN %(vendor_list)s"]
+        values = {"vendor_list": vendor_list}
 
         if name:
             conditions.append("vm.name LIKE %(name)s")
@@ -380,57 +596,34 @@ def approved_vendor_list(page_no=None, page_length=None, name=None, vendor_name=
         page_no = int(page_no) if page_no else 1
         page_length = int(page_length) if page_length else 5
         offset = (page_no - 1) * page_length
+
         values.update({"limit": page_length, "offset": offset})
 
-        # Count vendors
         total_count = frappe.db.sql(f"""
-            SELECT COUNT(*) 
+            SELECT COUNT(*)
             FROM `tabVendor Master` vm
             WHERE {filter_clause}
         """, values)[0][0]
 
-        if total_count == 0:
-            return {
-                "status": "success",
-                "approved_vendor_count": 0,
-                "approved_vendors": []
-            }
+        overall_count = len(vendor_list)
 
         vendor_masters = frappe.db.sql(f"""
-            SELECT vm.name, vm.vendor_name, vm.office_email_primary,
-                   vm.country, vm.mobile_number, vm.registered_date
+            SELECT 
+                vm.name, 
+                vm.vendor_name, 
+                vm.office_email_primary,
+                vm.country, 
+                vm.mobile_number, 
+                vm.registered_date
             FROM `tabVendor Master` vm
             WHERE {filter_clause}
             ORDER BY vm.modified DESC
             LIMIT %(limit)s OFFSET %(offset)s
         """, values, as_dict=True)
 
-        # Attach company vendor codes to each vendor
-        for vm in vendor_masters:
-            company_vendor = frappe.get_all(
-                "Company Vendor Code",
-                filters={"vendor_ref_no": vm["name"]},
-                fields=["name", "company_name", "company_code"]
-            )
-
-            filtered_codes = []
-            for cvc in company_vendor:
-                vendor_code_children = frappe.get_all(
-                    "Vendor Code",
-                    filters={"parent": cvc.name},
-                    fields=["state", "gst_no", "vendor_code"]
-                )
-
-                filtered_codes.append({
-                    "company_name": cvc.company_name,
-                    "company_code": cvc.company_code,
-                    "vendor_codes": vendor_code_children
-                })
-
-            vm["company_vendor_codes"] = filtered_codes
-
         return {
             "status": "success",
+            "overall_count": overall_count,
             "approved_vendor_count": int(total_count),
             "page_no": page_no,
             "page_length": page_length,
@@ -438,6 +631,7 @@ def approved_vendor_list(page_no=None, page_length=None, name=None, vendor_name=
         }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "Approved Vendor List Error")
         return {
             "status": "error",
