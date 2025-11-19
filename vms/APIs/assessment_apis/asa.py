@@ -784,6 +784,7 @@ def get_data_ann_asa_form(vendor_ref_no):
 			"message": "Data fetched successfully",
 			"name": ann_doc.name,
 			"form_is_submitted": ann_doc.form_is_submitted,
+			"verify_by_asa_team": ann_doc.verify_by_asa_team,
 			"governance_doctype": ann_doc.governance_doctype,
 			"environment_doctype": ann_doc.environment_doctype,
 			"social_doctype": ann_doc.social_doctype,
