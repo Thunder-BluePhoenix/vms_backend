@@ -229,7 +229,7 @@ doc_events = {
 
 scheduler_events = {
     "all": [
-        "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
+        # "vms.cron_jobs.sent_asa_form_link.sent_asa_form_link"
     ],
     "daily": [
         "vms.APIs.req_for_quotation.rfq_reminder.send_reminder_notification",

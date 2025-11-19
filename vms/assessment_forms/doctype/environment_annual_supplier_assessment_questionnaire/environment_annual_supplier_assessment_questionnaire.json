@@ -391,7 +391,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Do you have products certified as Green by recognized certification bodies such as Green Label, FSC, or equivalent?",
-   "options": "\nYes\nNo"
+   "options": "Yes\nNo\nNA"
   },
   {
    "fieldname": "biodiversity_section",
@@ -683,10 +683,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:36:25.456347",
+ "modified": "2025-11-17 21:20:58.255022",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Environment Annual Supplier Assessment Questionnaire",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
@@ -703,6 +704,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

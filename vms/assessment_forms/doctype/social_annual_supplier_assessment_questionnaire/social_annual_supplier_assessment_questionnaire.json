@@ -214,7 +214,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Is there a grievance mechanism accessible to internal/external stakeholders in a language they understand?",
-   "options": "\nYes\nNo"
+   "options": "NA\nYes\nNo"
   },
   {
    "fieldname": "employee_well_being_section",
@@ -555,7 +555,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-22 14:36:27.014751",
+ "modified": "2025-11-18 01:26:28.576810",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Social Annual Supplier Assessment Questionnaire",
@@ -575,6 +575,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

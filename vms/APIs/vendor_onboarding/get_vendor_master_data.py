@@ -1,0 +1,95 @@
+import frappe
+from frappe import _
+
+
+#vms.APIs.vendor_onboarding.get_vendor_master_data.get_vendors_by_name
+@frappe.whitelist()
+def get_vendors_by_name(vendor_name):
+    
+    if not vendor_name:
+        frappe.throw(_("Vendor name is required"), frappe.ValidationError)
+    
+    if not isinstance(vendor_name, str):
+        frappe.throw(_("Vendor name must be a string"), frappe.ValidationError)
+    
+    try:
+        # vendor_name = frappe.db.escape(vendor_name.strip())
+        
+        
+        # Get vendor master records
+        vendors = frappe.db.get_all(
+            'Vendor Master',
+            filters={
+                'vendor_name': ['like', f'%{vendor_name}%']
+            },
+            fields=['name', 'vendor_name', 'office_email_primary', 'country', 
+                   'first_name', 'mobile_number', 'search_term'],
+            order_by='vendor_name asc',
+            limit_page_length=0 
+        )
+        
+        
+        
+        for vendor in vendors:
+            if not frappe.has_permission('Vendor Master', 'read', vendor.get('name')):
+                frappe.throw(_("Insufficient permissions"), frappe.PermissionError)
+        
+        for vendor in vendors:
+            vendor['gst_details'] = get_latest_gst_details(vendor.get('name'))
+        
+        return {
+            'status': 'success',
+            'data': vendors,
+            'count': len(vendors)
+        }
+    
+    except frappe.ValidationError:
+        raise
+    
+    except frappe.PermissionError:
+        raise
+    
+    except Exception as e:
+        frappe.log_error(
+            message=frappe.get_traceback(),
+            title='Get Vendors API Error'
+        )
+        frappe.throw(
+            _("An error occurred while fetching vendor data"),
+            frappe.ValidationError
+        )
+
+
+def get_latest_gst_details(vendor_name):
+    try:
+       
+        legal_doc = frappe.db.get_all(
+            'Legal Documents',
+            filters={'ref_no': vendor_name},
+            fields=['name'],
+            order_by='creation desc',
+            limit=1
+        )
+        
+        
+        if not legal_doc:
+            return []
+        
+        legal_doc_name = legal_doc[0].get('name')
+        
+       
+        gst_details = frappe.db.get_all(
+            'GST Details Table',  
+            filters={'parent': legal_doc_name},
+            fields=['gst_state', 'gst_number', 'pincode','company'],  
+            order_by='idx asc'
+        )
+        
+        return gst_details
+    
+    except Exception as e:
+        frappe.log_error(
+            message=frappe.get_traceback(),
+            title=f'Get GST Details Error for {vendor_name}'
+        )
+        return []
