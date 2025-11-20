@@ -630,7 +630,8 @@ def get_data_ann_asa_form(vendor_ref_no):
 				"list_plan_to_improve_energy_efficiency": env_doc.list_plan_to_improve_energy_efficiency,
 				"have_targets_to_reduce_emission": env_doc.have_targets_to_reduce_emission,
 				"details_of_targets_to_reduce_emission": env_doc.details_of_targets_to_reduce_emission,
-				"pcf_conducted": env_doc.pcf_conducted
+				"pcf_conducted": env_doc.pcf_conducted,
+				"details_12": env_doc.details_12
 			}
 			for i in range(4, 13):
 				field = f"upload_file_{i}"
@@ -779,6 +780,7 @@ def get_data_ann_asa_form(vendor_ref_no):
 			"message": "Data fetched successfully",
 			"name": ann_doc.name,
 			"form_is_submitted": ann_doc.form_is_submitted,
+			"verify_by_asa_team": ann_doc.verify_by_asa_team,
 			"governance_doctype": ann_doc.governance_doctype,
 			"environment_doctype": ann_doc.environment_doctype,
 			"social_doctype": ann_doc.social_doctype,

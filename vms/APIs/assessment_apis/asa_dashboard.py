@@ -1,3 +1,4 @@
+
 import frappe
 from vms.utils.custom_send_mail import custom_sendmail
 import datetime
@@ -626,6 +627,47 @@ def approved_vendor_list(page_no=None, page_length=None, name=None, vendor_name=
 
         for vm in vendor_masters:
             vm["register_by_emp"] = frappe.db.get_value("Employee", {"user_id": vm.get("registered_by")}, "full_name") or ""
+        # for vm in vendor_masters:
+            vm_name = vm["name"]
+            print("VM NAMe--->",vm_name)
+
+            # fetch DOC
+            doc = frappe.get_doc("Vendor Master", vm_name)
+
+            # Build vendor code list
+            ref_no = vm_name
+            print("REF NO --->", ref_no)
+
+            # main_company = doc.get("company")
+
+            company_vendor = frappe.get_all(
+                "Company Vendor Code",
+                filters={"vendor_ref_no": ref_no},
+                fields=["name", "company_name", "company_code"]
+            )
+
+            filtered_codes = []
+            for cvc in company_vendor:
+                # print("MAIN COMPANY --->", repr(main_company))
+                print("CVC COMPANY  --->", repr(cvc.company_name))
+                # print("MATCH? ---->", cvc.company_name == main_company)
+                if cvc.company_name:
+                    vendor_code_children = frappe.get_all(
+                        "Vendor Code",
+                        filters={"parent": cvc.name},
+                        fields=["state", "gst_no", "vendor_code"]
+                    )
+                    
+
+                    filtered_codes.append({
+                        "company_name": cvc.company_name,
+                        "company_code": cvc.company_code,
+                        "vendor_codes": vendor_code_children
+                    })
+
+            # Attach directly to API output dict
+            vm["company_vendor_codes"] = filtered_codes
+
 
         return {
             "status": "success",
