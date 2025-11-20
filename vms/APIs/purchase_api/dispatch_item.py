@@ -184,124 +184,136 @@ def update_dispatch_item(data=None):
 			"message": "Failed to submit Dispatch Item.",
 			"error": str(e)
 		}
+	
+# Conversion of QR Data to HEX	
+def json_to_hex(json_string):
+    return binascii.hexlify(json_string.encode()).decode()
+
 
 @frappe.whitelist(allow_guest=True)
 def full_data_dispatch_item(name):
-    try:
-        doc = frappe.get_doc("Dispatch Item", name)
-        if not doc:
-            return {
-                "status": "error",
-                "message": "Dispatch Item not found."
-            }
+	try:
+		doc = frappe.get_doc("Dispatch Item", name)
+		if not doc:
+			return {
+				"status": "error",
+				"message": "Dispatch Item not found."
+			}
 
-        data = doc.as_dict()
-        data["purchase_number"] = [row.as_dict() for row in doc.purchase_number]
-        data["vehicle_details"] = []
+		data = doc.as_dict()
+		data["purchase_number"] = [row.as_dict() for row in doc.purchase_number]
+		data["vehicle_details"] = []
 
-        for row in doc.vehicle_details_item:
-            row_data = row.as_dict()
-            if row.get("vehicle_details"):
-                try:
-                    vehicle_doc = frappe.get_doc("Vehicle Details", row.get("vehicle_details"))
-                    vehicle_data = vehicle_doc.as_dict()
+		for row in doc.vehicle_details_item:
+			row_data = row.as_dict()
+			if row.get("vehicle_details"):
+				try:
+					vehicle_doc = frappe.get_doc("Vehicle Details", row.get("vehicle_details"))
+					vehicle_data = vehicle_doc.as_dict()
 
-                    for vehicle_field in ["attachment", "image", "attach"]:
-                        if vehicle_doc.get(vehicle_field):
-                            try:
-                                file_doc = frappe.get_doc("File", {"file_url": vehicle_doc.get(vehicle_field)})
-                                vehicle_data[vehicle_field] = {
-                                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                                    "name": file_doc.name,
-                                    "file_name": file_doc.file_name
-                                }
-                            except:
-                                vehicle_data[vehicle_field] = {
-                                    "url": "",
-                                    "name": "",
-                                    "file_name": ""
-                                }
-                        else:
-                            vehicle_data[vehicle_field] = {
-                                "url": "",
-                                "name": "",
-                                "file_name": ""
-                            }
+					for vehicle_field in ["attachment", "image", "attach"]:
+						if vehicle_doc.get(vehicle_field):
+							try:
+								file_doc = frappe.get_doc("File", {"file_url": vehicle_doc.get(vehicle_field)})
+								vehicle_data[vehicle_field] = {
+									"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+									"name": file_doc.name,
+									"file_name": file_doc.file_name
+								}
+							except:
+								vehicle_data[vehicle_field] = {
+									"url": "",
+									"name": "",
+									"file_name": ""
+								}
+						else:
+							vehicle_data[vehicle_field] = {
+								"url": "",
+								"name": "",
+								"file_name": ""
+							}
 
-                    if hasattr(vehicle_doc, 'items') and vehicle_doc.items:
-                        vehicle_data["items"] = [item.as_dict() for item in vehicle_doc.items]
+					if hasattr(vehicle_doc, 'items') and vehicle_doc.items:
+						vehicle_data["items"] = [item.as_dict() for item in vehicle_doc.items]
 
-                    row_data = vehicle_data
+					row_data = vehicle_data
 
-                except Exception as ve:
-                    frappe.log_error(
-                        f"Error fetching vehicle {row.get('vehicle')}: {str(ve)}",
-                        "Vehicle Fetch Error"
-                    )
-                    row_data = {
-                        "error": f"Could not fetch vehicle details for {row.get('vehicle')}"
-                    }
-            else:
-                row_data = None
+				except Exception as ve:
+					frappe.log_error(
+						f"Error fetching vehicle {row.get('vehicle')}: {str(ve)}",
+						"Vehicle Fetch Error"
+					)
+					row_data = {
+						"error": f"Could not fetch vehicle details for {row.get('vehicle')}"
+					}
+			else:
+				row_data = None
 
-            data["vehicle_details"].append(row_data)
+			data["vehicle_details"].append(row_data)
 
-        # Process item child table with attachment formatting
-        data["items"] = []
-        for row in doc.items:
-            row_data = row.as_dict()
+		# Process item child table with attachment formatting
+		data["items"] = []
+		for row in doc.items:
+			row_data = row.as_dict()
 
-            for field in ["coa_document", "msds_document"]:
-                if row.get(field):
-                    file_doc = frappe.get_doc("File", {"file_url": row.get(field)})
-                    row_data[field] = {
-                        "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                        "name": file_doc.name,
-                        "file_name": file_doc.file_name
-                    }
-                else:
-                    row_data[field] = {
-                        "url": "",
-                        "name": "",
-                        "file_name": ""
-                    }
+			for field in ["coa_document", "msds_document"]:
+				if row.get(field):
+					file_doc = frappe.get_doc("File", {"file_url": row.get(field)})
+					row_data[field] = {
+						"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+						"name": file_doc.name,
+						"file_name": file_doc.file_name
+					}
+				else:
+					row_data[field] = {
+						"url": "",
+						"name": "",
+						"file_name": ""
+					}
 
-            data["items"].append(row_data)
+			data["items"].append(row_data)
 
-        # Handle top-level attachments
-        for top_field in [
-            "packing_list_attachment",
-            "invoice_attachment",
-            "commercial_attachment",
-            "e_way_bill_attachment",
-            "test_certificates_attachment"
-        ]:
-            if doc.get(top_field):
-                file_doc = frappe.get_doc("File", {"file_url": doc.get(top_field)})
-                data[top_field] = {
-                    "url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
-                    "name": file_doc.name,
-                    "file_name": file_doc.file_name
-                }
-            else:
-                data[top_field] = {
-                    "url": "",
-                    "name": "",
-                    "file_name": ""
-                }
+		# Handle top-level attachments
+		for top_field in [
+			"packing_list_attachment",
+			"invoice_attachment",
+			"commercial_attachment",
+			"e_way_bill_attachment",
+			"test_certificates_attachment"
+		]:
+			if doc.get(top_field):
+				file_doc = frappe.get_doc("File", {"file_url": doc.get(top_field)})
+				data[top_field] = {
+					"url": f"{frappe.get_site_config().get('backend_http', 'http://10.10.103.155:3301')}{file_doc.file_url}",
+					"name": file_doc.name,
+					"file_name": file_doc.file_name
+				}
+			else:
+				data[top_field] = {
+					"url": "",
+					"name": "",
+					"file_name": ""
+				}
 
-        return {
-            "status": "success",
-            "data": data
-        }
+		qr_json = doc.qr_code_data
+		if not qr_json:
+			data["hex_qr_code"] = ""
+		else:
+			data["hex_qr_code"] = json_to_hex(qr_json)
 
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Full Data Dispatch Item Error")
-        return {
-            "status": "error",
-            "message": "Failed to fetch Dispatch Item data.",
-            "error": str(e)
-        }
+		return {
+			"status": "success",
+			"data": data
+		}
+
+	except Exception as e:
+		frappe.local.response["http_status_code"] = 500
+		frappe.log_error(frappe.get_traceback(), "Full Data Dispatch Item Error")
+		return {
+			"status": "error",
+			"message": "Failed to fetch Dispatch Item data.",
+			"error": str(e)
+		}
 
 
 # not in use
@@ -549,8 +561,7 @@ def submit_child_dispatch_item(data):
 		}
 
 
-def json_to_hex(json_string):
-    return binascii.hexlify(json_string.encode()).decode()
+
 
 # submit the dispatch item doc
 @frappe.whitelist(allow_guest=True)
@@ -599,15 +610,15 @@ def submit_dispatch_item(data):
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
-		qr_json = doc.qr_code_data or "{}"
-		qr_hex = json_to_hex(qr_json)
+		# qr_json = doc.qr_code_data or "{}"
+		# qr_hex = json_to_hex(qr_json)
 
 		return {
 			"status": "success",
 			"message": "Dispatch item submitted successfully.",
 			"name": doc.name,
-			"qr_code": qr_hex,
-			"qr_code_image": doc.qr_code_image
+			# "qr_code": qr_hex,
+			# "qr_code_image": doc.qr_code_image
 		}
 
 	except Exception as e:

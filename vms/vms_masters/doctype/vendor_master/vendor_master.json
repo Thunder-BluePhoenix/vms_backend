@@ -26,6 +26,7 @@
   "created_from_registration",
   "user_create",
   "asa_required",
+  "asa_form_link_sent",
   "validity_status",
   "multiple_company_data_section",
   "multiple_company_data",
@@ -385,12 +386,19 @@
   {
    "fieldname": "section_break_meqv",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "Indicates that the first ASA Form email has already been sent. Prevents duplicate emails on update",
+   "fieldname": "asa_form_link_sent",
+   "fieldtype": "Check",
+   "label": "ASA Form Link Sent"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 10:41:22.775980",
+ "modified": "2025-11-17 16:00:53.276342",
  "modified_by": "Administrator",
  "module": "VMS Masters",
  "name": "Vendor Master",
