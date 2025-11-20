@@ -24,7 +24,10 @@ def get_vendors_by_name(vendor_name):
         for vendor in vendors:
             if not frappe.has_permission('Vendor Master', 'read', vendor.get('name')):
                 frappe.throw(_("Insufficient permissions"), frappe.PermissionError)
-            vendor['gst_data'] = get_latest_gst_details(vendor.get('name'))
+            gst_data = get_latest_gst_details(vendor.get("name"))
+
+            vendor["pan_number"] = gst_data.get("pan_number")      # PAN outside gst_details
+            vendor["gst_details"] = gst_data.get("gst_details")    # GST details only
         
         return {
             'status': 'success',
@@ -73,36 +76,39 @@ def get_latest_gst_details(vendor_name):
         legal_doc = frappe.db.get_all(
             'Legal Documents',
             filters={'ref_no': vendor_name},
-            fields=['name'],
+            fields=['name', 'pan_number'],  
             order_by='creation desc',
             limit=1
         )
         
         
         if not legal_doc:
-            return []
-        
+            return {
+                "pan_number": None,
+                "gst_details": []
+            }
+
         legal_doc_name = legal_doc[0].get('name')
         pan_number = legal_doc[0].get('pan_number')
-        
-        
-       
+
         gst_details = frappe.db.get_all(
-            'GST Details Table',  
+            'GST Details Table',
             filters={'parent': legal_doc_name},
-            fields=['gst_state', 'gst_number', 'pincode','company'],  
+            fields=['gst_state', 'gst_number', 'pincode', 'company'],
             order_by='idx asc'
         )
-    
-        
+
         return {
-            'pan_number': pan_number,
-            'gst_details': gst_details
+            "pan_number": pan_number,
+            "gst_details": gst_details
         }
-    
-    except Exception as e:
+
+    except Exception:
         frappe.log_error(
             message=frappe.get_traceback(),
             title=f'Get GST Details Error for {vendor_name}'
         )
-        return []
+        return {
+            "pan_number": None,
+            "gst_details": []
+        }
