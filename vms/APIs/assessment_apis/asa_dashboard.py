@@ -144,95 +144,95 @@ def asa_dashboard(vendor_name=None, page_no=1, page_length=5):
     
 # Not in Used
 # Approved Vendors count
-@frappe.whitelist(allow_guest=False)
-def approved_vendor_count():
-    try:
-        # Get all Vendor Onboarding docs with status = Approved
-        vendor_master = frappe.get_all(
-            "Vendor Onboarding",
-            filters={"onboarding_form_status": "Approved"},
-            pluck="ref_no"   # fetch only ref_no values
-        )
+# @frappe.whitelist(allow_guest=False)
+# def approved_vendor_count():
+#     try:
+#         # Get all Vendor Onboarding docs with status = Approved
+#         vendor_master = frappe.get_all(
+#             "Vendor Onboarding",
+#             filters={"onboarding_form_status": "Approved"},
+#             pluck="ref_no"   # fetch only ref_no values
+#         )
 
-        # Count matching records in Vendor Master
-        approved_vendor = frappe.db.count(
-            "Vendor Master",
-            {"name": ["in", vendor_master]}
-        )
+#         # Count matching records in Vendor Master
+#         approved_vendor = frappe.db.count(
+#             "Vendor Master",
+#             {"name": ["in", vendor_master]}
+#         )
 
-        return {
-            "status": "success",
-            "approved_vendor_count": approved_vendor
-        }
+#         return {
+#             "status": "success",
+#             "approved_vendor_count": approved_vendor
+#         }
 
-    except Exception as e:
-        frappe.local.response["http_status_code"] = 500
-        frappe.log_error(frappe.get_traceback(), "Approved Vendor Count Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+#     except Exception as e:
+#         frappe.local.response["http_status_code"] = 500
+#         frappe.log_error(frappe.get_traceback(), "Approved Vendor Count Error")
+#         return {
+#             "status": "error",
+#             "message": str(e)
+#         }
 
 # Not in Used
 # no of pending asa who doesnt fill the asa this academic year
-@frappe.whitelist(allow_guest=False)
-def pending_asa_count():
-    try:
-        # Get all Approved Vendor Onboarding ref_nos
-        vendor_onboarding = frappe.get_all(
-            "Vendor Onboarding",
-            filters={"onboarding_form_status": "Approved"},
-            pluck="ref_no"
-        )
+# @frappe.whitelist(allow_guest=False)
+# def pending_asa_count():
+#     try:
+#         # Get all Approved Vendor Onboarding ref_nos
+#         vendor_onboarding = frappe.get_all(
+#             "Vendor Onboarding",
+#             filters={"onboarding_form_status": "Approved"},
+#             pluck="ref_no"
+#         )
 
-        if not vendor_onboarding:
-            return {
-                "status": "success",
-                "pending_asa_count": 0
-            }
+#         if not vendor_onboarding:
+#             return {
+#                 "status": "success",
+#                 "pending_asa_count": 0
+#             }
 
-        # Get all Vendor Master docs with matching ref_nos
-        vendor_masters = frappe.get_all(
-            "Vendor Master",
-            filters={"name": ["in", vendor_onboarding]},
-            pluck="name"
-        )
+#         # Get all Vendor Master docs with matching ref_nos
+#         vendor_masters = frappe.get_all(
+#             "Vendor Master",
+#             filters={"name": ["in", vendor_onboarding]},
+#             pluck="name"
+#         )
 
-        if not vendor_masters:
-            return {
-                "status": "success",
-                "pending_asa_count": 0
-            }
+#         if not vendor_masters:
+#             return {
+#                 "status": "success",
+#                 "pending_asa_count": 0
+#             }
 
-        current_year = frappe.utils.now_datetime().year
-        start_date = f"{current_year}-01-01"
-        end_date = f"{current_year}-12-31"
+#         current_year = frappe.utils.now_datetime().year
+#         start_date = f"{current_year}-01-01"
+#         end_date = f"{current_year}-12-31"
 
-        pending_count = 0
+#         pending_count = 0
 
-        for vm in vendor_masters:
-            # check if there is an assessment record in the current year
-            has_child_this_year = frappe.db.exists(
-                "Assessment Form Records",
-                {
-                    "parent": vm,
-                    "date_time": ["between", [start_date, end_date]]
-                }
-            )
-            if not has_child_this_year:
-                pending_count += 1
+#         for vm in vendor_masters:
+#             # check if there is an assessment record in the current year
+#             has_child_this_year = frappe.db.exists(
+#                 "Assessment Form Records",
+#                 {
+#                     "parent": vm,
+#                     "date_time": ["between", [start_date, end_date]]
+#                 }
+#             )
+#             if not has_child_this_year:
+#                 pending_count += 1
 
-        return {
-            "status": "success",
-            "pending_asa_count": pending_count
-        }
+#         return {
+#             "status": "success",
+#             "pending_asa_count": pending_count
+#         }
 
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Pending ASA Count Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Pending ASA Count Error")
+#         return {
+#             "status": "error",
+#             "message": str(e)
+#         }
 
 
 # Data of pending ASA for vendors who have not filled the ASA form this academic year, where ‘ASA Form Filled’ is unchecked and 
@@ -428,7 +428,7 @@ def pending_asa_vendor_list(page_no=None, page_length=None, name=None, vendor_na
                 vm.office_email_primary,
                 vm.country,
                 vm.mobile_number,
-                vm.registered_date, vm.registered_by
+                vm.creation, vm.registered_by
             FROM `tabVendor Master` vm
             WHERE {filter_clause}
             ORDER BY vm.modified DESC
@@ -436,6 +436,9 @@ def pending_asa_vendor_list(page_no=None, page_length=None, name=None, vendor_na
         """, values, as_dict=True)
 
         for vm in vendor_masters:
+            if vm.get("creation"):
+                vm_date = vm.get("creation").date()
+                vm["registered_date"] = vm_date.strftime("%d-%m-%Y")
             vm["register_by_emp"] = frappe.db.get_value("Employee", {"user_id": vm.get("registered_by")}, "full_name") or ""
 
         return {
@@ -617,7 +620,7 @@ def approved_vendor_list(page_no=None, page_length=None, name=None, vendor_name=
                 vm.office_email_primary,
                 vm.country, 
                 vm.mobile_number, 
-                vm.registered_date, vm.registered_by
+                vm.creation, vm.registered_by
             FROM `tabVendor Master` vm
             WHERE {filter_clause}
             ORDER BY vm.modified DESC
@@ -625,6 +628,9 @@ def approved_vendor_list(page_no=None, page_length=None, name=None, vendor_name=
         """, values, as_dict=True)
 
         for vm in vendor_masters:
+            if vm.get("creation"):
+                vm_date = vm.get("creation").date()
+                vm["registered_date"] = vm_date.strftime("%d-%m-%Y")
             vm["register_by_emp"] = frappe.db.get_value("Employee", {"user_id": vm.get("registered_by")}, "full_name") or ""
 
         return {
@@ -653,7 +659,7 @@ def send_asa_reminder_email(name, remarks=None):
             frappe.local.response["http_status_code"] = 404
             return {
                 "status": "error",
-                "message": "Email not found"
+                "message": "Vendor Master not found"
             }
 
         vendor_master = frappe.get_doc("Vendor Master", name)
@@ -697,6 +703,7 @@ def send_asa_reminder_email(name, remarks=None):
         }
 
     except Exception as e:
+        frappe.local.response["http_status_code"] = 500
         frappe.log_error(frappe.get_traceback(), "ASA Reminder Email Error")
         return {
             "status": "error",
