@@ -1,40 +1,23 @@
 import frappe
 from frappe import _
+from vms.utils.validators import validate_string
 
 
 #vms.APIs.vendor_onboarding.get_vendor_master_data.get_vendors_by_name
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_vendors_by_name(vendor_name):
-    
-    if not vendor_name:
-        frappe.throw(_("Vendor name is required"), frappe.ValidationError)
-    
-    if not isinstance(vendor_name, str):
-        frappe.throw(_("Vendor name must be a string"), frappe.ValidationError)
+
+    vendor_name = validate_string(vendor_name, field_name="Vendor name")
+
     
     try:
-        # vendor_name = frappe.db.escape(vendor_name.strip())
         
-        
-        # Get vendor master records
-        vendors = frappe.db.get_all(
-            'Vendor Master',
-            filters={
-                'vendor_name': ['like', f'%{vendor_name}%']
-            },
-            fields=['name', 'vendor_name', 'office_email_primary', 'country', 
-                   'first_name', 'mobile_number', 'search_term'],
-            order_by='vendor_name asc',
-            limit_page_length=0 
-        )
-        
-        
+        # Fetch vendors matching the name pattern
+        vendors = fetch_vendors_by_name_pattern(vendor_name)
         
         for vendor in vendors:
             if not frappe.has_permission('Vendor Master', 'read', vendor.get('name')):
                 frappe.throw(_("Insufficient permissions"), frappe.PermissionError)
-        
-        for vendor in vendors:
             vendor['gst_details'] = get_latest_gst_details(vendor.get('name'))
         
         return {
@@ -43,10 +26,7 @@ def get_vendors_by_name(vendor_name):
             'count': len(vendors)
         }
     
-    except frappe.ValidationError:
-        raise
-    
-    except frappe.PermissionError:
+    except (frappe.ValidationError, frappe.PermissionError):
         raise
     
     except Exception as e:
@@ -59,6 +39,27 @@ def get_vendors_by_name(vendor_name):
             frappe.ValidationError
         )
 
+
+def fetch_vendors_by_name_pattern(vendor_name):
+    vendors = frappe.db.get_all(
+        'Vendor Master',
+        filters={
+            'vendor_name': ['like', f'%{vendor_name}%']
+        },
+        fields=[
+            'name', 
+            'vendor_name', 
+            'office_email_primary', 
+            'country', 
+            'first_name', 
+            'mobile_number', 
+            'search_term'
+        ],
+        order_by='vendor_name asc',
+        limit_page_length=0
+    )
+    
+    return vendors
 
 def get_latest_gst_details(vendor_name):
     try:
