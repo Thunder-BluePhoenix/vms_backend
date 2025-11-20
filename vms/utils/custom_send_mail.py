@@ -11,12 +11,14 @@ import mimetypes
 from vms.utils.notification import create_notification_log
 
 
+
 def is_email_sending_suspended():
     """Return True if email sending is suspended in system defaults"""
     try:
         return bool(int(frappe.db.get_default("suspend_email_queue") or 0))
     except Exception:
         return False
+
 
 
 def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=None, 
@@ -48,35 +50,21 @@ def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=No
     
     create_notification_log(recipients=recipients, subject=subject, message=message, **kwargs)
 
-    # 🛑 Check if email sending is suspended
-    if is_email_sending_suspended():
-        frappe.logger("debug").info("Email sending is suspended. Adding to Email Queue but not sending.")
-        
-        email_account = _get_email_account_settings() 
-
-        _create_email_queue_record(
-            subject=subject,
-            body=message,
-            all_recipients=_normalize_recipients(recipients) + _normalize_recipients(cc) + _normalize_recipients(bcc),
-            cc_emails=_normalize_recipients(cc),
-            # to_emails=_normalize_recipients(recipients),
-            # cc_emails=_normalize_recipients(cc),
-            # bcc_emails=_normalize_recipients(bcc),
-            sender_email=email_account["email_id"], 
-            sender_name=email_account["sender_name"],  
-            attachments=attachments,
-            status="Not Sent"
-        )
-        return
-
-    if not cc and not bcc and not attachments:
-        
+    # Normalize recipients
+    normalized_recipients = _normalize_recipients(recipients)
+    normalized_cc = _normalize_recipients(cc)
+    normalized_bcc = _normalize_recipients(bcc)
+    
+    # Check if we need custom CC/BCC handling
+    needs_custom_handling = bool(normalized_cc or normalized_bcc or attachments)
+    
+    # If no custom handling needed, use standard frappe.sendmail
+    if not needs_custom_handling:
         try:
             email_account = frappe.get_doc("Email Account", {"email_id": "noreply@merillife.com"})
             has_always_bcc = email_account and hasattr(email_account, 'always_bcc') and email_account.always_bcc
         except:
             has_always_bcc = False
-        
         
         if not has_always_bcc:
             return frappe.sendmail(
@@ -84,17 +72,18 @@ def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=No
                 subject=subject,
                 message=message,
                 attachments=attachments,
+                delayed=is_email_sending_suspended(),
                 **kwargs
             )
    
-   
+    #  For CC/BCC/attachments, use custom SMTP handling
     if kwargs.get('now', False):
         _send_email_with_cc_bcc_attachments(
             subject=subject,
             body=message,
-            to_emails=_normalize_recipients(recipients),
-            cc_emails=_normalize_recipients(cc),
-            bcc_emails=_normalize_recipients(bcc),
+            to_emails=normalized_recipients,
+            cc_emails=normalized_cc,
+            bcc_emails=normalized_bcc,
             attachments=attachments
         )
     else:
@@ -102,11 +91,12 @@ def custom_sendmail(recipients=None, subject=None, message=None, cc=None, bcc=No
             method=_send_email_with_cc_bcc_attachments,
             subject=subject,
             body=message,
-            to_emails=_normalize_recipients(recipients),
-            cc_emails=_normalize_recipients(cc),
-            bcc_emails=_normalize_recipients(bcc),
+            to_emails=normalized_recipients,
+            cc_emails=normalized_cc,
+            bcc_emails=normalized_bcc,
             attachments=attachments
         )
+
 
 
 def custom_send_mail(mail_template, recipient, email_context=None, cc_recepients=None, **kwargs):
@@ -124,10 +114,11 @@ def custom_send_mail(mail_template, recipient, email_context=None, cc_recepients
     )
 
 
+
 def _render_email_template(template_name, context):
     """Render Email Template with context"""
     try:
-        response = frappe.db.get_value("Email Template", template_name, "response_html")
+        response = frappe.db.get_value("Email Template", template_name, "response")
         subject = frappe.db.get_value("Email Template", template_name, "subject")
         
         # Handle empty rich text editor content
@@ -143,6 +134,7 @@ def _render_email_template(template_name, context):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), f"Error rendering email template {template_name}: {str(e)}")
         return "Email Template Error", "Failed to render email template"
+
 
 
 def _get_email_account_settings(email_id="noreply@merillife.com"):
@@ -177,26 +169,13 @@ def _get_email_account_settings(email_id="noreply@merillife.com"):
         }
 
 
+
 def _send_email_with_cc_bcc_attachments(subject, body, to_emails, cc_emails=None, bcc_emails=None, attachments=None):
+    """
+    Send email with CC/BCC using direct SMTP
+    If suspended, create a custom Email Queue entry that can be sent later
+    """
     
-    # 🛑 Stop if email sending is suspended
-    if is_email_sending_suspended():
-        frappe.logger("debug").info("Email sending is currently suspended. Skipping send.")
-
-        email_account = _get_email_account_settings() 
-
-        _create_email_queue_record(
-            subject=subject,
-            body=body,
-            all_recipients=(to_emails or []) + (cc_emails or []) + (bcc_emails or []),
-            cc_emails=cc_emails or [],
-            sender_email=email_account["email_id"], 
-            sender_name=email_account["sender_name"],
-            attachments=attachments,
-            status="Not Sent"
-        )
-        return
-
     cc_emails = cc_emails or []
     bcc_emails = bcc_emails or []
     
@@ -210,7 +189,7 @@ def _send_email_with_cc_bcc_attachments(subject, body, to_emails, cc_emails=None
             bcc_emails = email_settings['always_bcc']
         frappe.logger("debug").info(f"Using always_bcc from Email Account: {bcc_emails}")
    
-    
+    # Build the email message
     if attachments:
         msg = MIMEMultipart()
         msg["Subject"] = subject
@@ -219,6 +198,9 @@ def _send_email_with_cc_bcc_attachments(subject, body, to_emails, cc_emails=None
        
         if cc_emails:
             msg["Cc"] = ", ".join(cc_emails)
+        
+        if bcc_emails:
+            msg["Bcc"] = ", ".join(bcc_emails)
        
         # Add HTML body
         msg.attach(MIMEText(body, 'html'))
@@ -235,30 +217,33 @@ def _send_email_with_cc_bcc_attachments(subject, body, to_emails, cc_emails=None
        
         if cc_emails:
             msg["Cc"] = ", ".join(cc_emails)
+        
+        if bcc_emails:
+            msg["Bcc"] = ", ".join(bcc_emails)
        
         msg.add_alternative(body, subtype="html")
    
     all_recipients = to_emails + cc_emails + bcc_emails
     
+    #  If email sending is suspended, save to Email Queue with the full message
+    if is_email_sending_suspended():
+        frappe.logger("debug").info("Email sending is suspended. Saving to Email Queue with full message format.")
+        _save_to_email_queue_with_full_message(
+            msg=msg,
+            subject=subject,
+            to_emails=to_emails,
+            cc_emails=cc_emails,
+            bcc_emails=bcc_emails,
+            all_recipients=all_recipients,
+            email_settings=email_settings,
+            attachments=attachments
+        )
+        return
+    
     frappe.logger("debug").info(f"Sending email to: TO={to_emails}, CC={cc_emails}, BCC={bcc_emails}, Attachments={len(attachments) if attachments else 0}")
 
-    # First, always create Email Queue record (before attempting to send)
-    email_queue_name = _create_email_queue_record(
-        subject=subject,
-        body=body,
-        all_recipients=all_recipients,
-        cc_emails=cc_emails,
-        sender_email=email_settings['email_id'],
-        sender_name=email_settings['sender_name'],
-        attachments=attachments,
-        status="Not Sent"
-    )
-
-    # Attempt to send email
-    email_sent_successfully = False
-    
+    # Send the email via SMTP
     try:
-        # Check if we have password
         if not email_settings['password']:
             raise Exception("Email password not found in Email Account settings")
         
@@ -273,118 +258,151 @@ def _send_email_with_cc_bcc_attachments(subject, body, to_emails, cc_emails=None
         with server:
             server.login(email_settings['email_id'], email_settings['password'])
             server.send_message(msg, to_addrs=all_recipients)
-            email_sent_successfully = True
             
         frappe.logger("debug").info(f"Email sent successfully to {len(all_recipients)} recipients")
+        
+        # Log to Email Queue as "Sent"
+        _save_to_email_queue_with_full_message(
+            msg=msg,
+            subject=subject,
+            to_emails=to_emails,
+            cc_emails=cc_emails,
+            bcc_emails=bcc_emails,
+            all_recipients=all_recipients,
+            email_settings=email_settings,
+            attachments=attachments,
+            status="Sent"
+        )
             
     except Exception as e:
         frappe.logger("debug").error(f"Failed to send email: {str(e)}")
         frappe.log_error(frappe.get_traceback(), f"Error sending email: {str(e)}")
         
-        # Email sending failed, but we still have the record in Email Queue
-        frappe.logger("debug").info(f"Email could not be sent, but Email Queue record created: {email_queue_name}")
-    
-    # Update Email Queue status if email was sent successfully
-    if email_sent_successfully and email_queue_name:
-        try:
-            _update_email_queue_status(email_queue_name, "Sent")
-        except Exception as eq_error:
-            frappe.logger("debug").error(f"Failed to update Email Queue status: {str(eq_error)}")
+        # Save to queue for retry
+        _save_to_email_queue_with_full_message(
+            msg=msg,
+            subject=subject,
+            to_emails=to_emails,
+            cc_emails=cc_emails,
+            bcc_emails=bcc_emails,
+            all_recipients=all_recipients,
+            email_settings=email_settings,
+            attachments=attachments,
+            status="Not Sent"
+        )
 
 
-def _create_email_queue_record(subject, body, all_recipients, cc_emails, sender_email, sender_name, attachments=None, status="Not Sent"):
-    """Create Email Queue record with system permissions"""
-    email_queue_name = None
-    
+
+def _save_to_email_queue_with_full_message(msg, subject, to_emails, cc_emails, bcc_emails, 
+                                           all_recipients, email_settings, attachments=None, status="Not Sent"):
+    """
+    Save email to Email Queue with the FULL message (including all headers)
+    This allows it to be sent later with "Send Now" button
+    """
     try:
         frappe.flags.ignore_permissions = True
+        
+        # Convert the email message to string (this includes ALL headers)
+        full_message = msg.as_string()
+        
+        #  Format attachments as JSON (not comma-separated string)
+        attachments_json = None
+        if attachments:
+            attachments_json = _format_attachments_for_queue(attachments)
         
         email_queue = frappe.get_doc({
             "doctype": "Email Queue",
             "subject": subject,
-            "message": body,
+            "message": full_message,  
             "status": status,
             "show_as_cc": ",".join(cc_emails) if cc_emails else "",
-            "sender": sender_email,
-            "sender_full_name": sender_name,
+            "sender": email_settings['email_id'],
+            "sender_full_name": email_settings['sender_name'],
+            "attachments": attachments_json,  
         })
         
-        # Add all recipients to the queue record
-        for recipient in all_recipients:
+        #  IMPORTANT: Only add TO recipients to the recipients table
+        # CC and BCC are in the message headers, NOT in recipients table
+        for recipient in to_emails:
             email_queue.append("recipients", {
                 "recipient": recipient, 
-                "status": "Not Sent" if status == "Not Sent" else "Sent"
+                "status": status
             })
-        
-        # Add attachments to Email Queue record if any
-        if attachments:
-            _add_attachments_to_email_queue(email_queue, attachments)
         
         email_queue.insert(ignore_permissions=True)
-        email_queue_name = email_queue.name
         
-        frappe.logger("debug").info(f"Email Queue record created: {email_queue_name}")
+        frappe.logger("debug").info(f"Email Queue record created: {email_queue.name} with status {status}")
         
     except Exception as eq_error:
-        # Fallback method with Administrator user
-        try:
-            original_user = frappe.session.user
-            frappe.set_user("Administrator")
-            
-            email_queue = frappe.get_doc({
-                "doctype": "Email Queue",
-                "subject": subject,
-                "message": body,
-                "status": status,
-                "show_as_cc": ",".join(cc_emails) if cc_emails else "",
-                "sender": sender_email,
-                "sender_full_name": sender_name,
-            })
-            
-            for recipient in all_recipients:
-                email_queue.append("recipients", {
-                    "recipient": recipient, 
-                    "status": "Not Sent" if status == "Not Sent" else "Sent"
-                })
-            
-            if attachments:
-                _add_attachments_to_email_queue(email_queue, attachments)
-            
-            email_queue.insert()
-            email_queue_name = email_queue.name
-            
-            frappe.logger("debug").info(f"Email Queue record created with Administrator: {email_queue_name}")
-            
-        except Exception as admin_error:
-            frappe.logger("debug").error(f"Failed to create Email Queue record even with Administrator: {str(admin_error)}")
-        finally:
-            frappe.set_user(original_user)
+        frappe.logger("debug").error(f"Failed to create Email Queue record: {str(eq_error)}")
+        frappe.log_error(frappe.get_traceback(), f"Error creating Email Queue: {str(eq_error)}")
     finally:
         frappe.flags.ignore_permissions = False
+
+
+
+def _format_attachments_for_queue(attachments):
+    """
+    Format attachments as JSON string for Email Queue
+    Expected format: [{"fname": "file.pdf", "fcontent": "base64_content"}]
+    """
+    import json
+    import base64
     
-    return email_queue_name
-
-
-def _update_email_queue_status(email_queue_name, status):
-    """Update Email Queue record status"""
+    if not attachments:
+        return None
+    
     try:
-        frappe.flags.ignore_permissions = True
+        processed_attachments = _process_attachments(attachments)
         
-        email_queue = frappe.get_doc("Email Queue", email_queue_name)
-        email_queue.status = status
-        
-        # Update recipient status as well
-        for recipient in email_queue.recipients:
-            recipient.status = status
+        # Convert to the format Email Queue expects
+        formatted_attachments = []
+        for attachment in processed_attachments:
+            file_content = attachment.get('fcontent') or attachment.get('content')
+            filename = attachment.get('fname') or attachment.get('filename', 'attachment')
             
-        email_queue.save(ignore_permissions=True)
+            if file_content:
+                # Email Queue expects base64 encoded content
+                if isinstance(file_content, bytes):
+                    encoded_content = base64.b64encode(file_content).decode('utf-8')
+                else:
+                    encoded_content = file_content
+                
+                formatted_attachments.append({
+                    "fname": filename,
+                    "fcontent": encoded_content
+                })
         
-        frappe.logger("debug").info(f"Email Queue {email_queue_name} status updated to {status}")
+        # Return as JSON string
+        return json.dumps(formatted_attachments) if formatted_attachments else None
         
     except Exception as e:
-        frappe.logger("debug").error(f"Failed to update Email Queue status: {str(e)}")
-    finally:
-        frappe.flags.ignore_permissions = False
+        frappe.logger("debug").error(f"Failed to format attachments for queue: {str(e)}")
+        return None
+
+
+
+
+def _add_attachments_metadata_to_queue(email_queue, attachments):
+    """Add attachment names to Email Queue record"""
+    if not attachments:
+        return
+   
+    try:
+        processed_attachments = _process_attachments(attachments)
+        attachment_names = []
+        
+        for attachment in processed_attachments:
+            filename = attachment.get('fname') or attachment.get('filename', 'attachment')
+            if filename:
+                attachment_names.append(filename)
+       
+        if attachment_names:
+            email_queue.attachments = ", ".join(attachment_names)
+           
+    except Exception as e:
+        frappe.logger("debug").error(f"Failed to add attachments metadata to Email Queue: {str(e)}")
+
 
 
 def _add_attachments_to_message(msg, attachments):
@@ -414,26 +432,6 @@ def _add_attachments_to_message(msg, attachments):
         except Exception as e:
             frappe.logger("debug").error(f"Failed to attach file {filename}: {str(e)}")
 
-
-def _add_attachments_to_email_queue(email_queue, attachments):
-    """Add attachments to Email Queue record"""
-    if not attachments:
-        return
-   
-    try:
-        processed_attachments = _process_attachments(attachments)
-        attachment_names = []
-        
-        for attachment in processed_attachments:
-            filename = attachment.get('fname') or attachment.get('filename', 'attachment')
-            if filename:
-                attachment_names.append(filename)
-       
-        if attachment_names:
-            email_queue.attachments = ", ".join(attachment_names)
-           
-    except Exception as e:
-        frappe.logger("debug").error(f"Failed to add attachments to Email Queue: {str(e)}")
 
 
 def _process_attachments(attachments):
@@ -469,6 +467,7 @@ def _process_attachments(attachments):
     return processed
 
 
+
 def _normalize_recipients(recipients):
     if not recipients:
         return []
@@ -479,30 +478,12 @@ def _normalize_recipients(recipients):
     return [str(r).strip() for r in recipients if r]
 
 
+
 @frappe.whitelist()
 def toggle_sending(enable):
     frappe.only_for("System Manager")
     frappe.db.set_default("suspend_email_queue", 0 if frappe.utils.cint(enable) else 1)
 
-
-# @frappe.whitelist()
-# def resume_sending():
-#     """Re-send all 'Not Sent' emails when resuming"""
-#     if not frappe.has_permission("Email Queue", "write"):
-#         frappe.throw("Not permitted")
-#     unsent_emails = frappe.get_all("Email Queue", filters={"status": "Not Sent"})
-#     for e in unsent_emails:
-#         frappe.enqueue(_resend_email_queue, email_queue_name=e.name)
-
-
-# def _resend_email_queue(email_queue_name):
-#     email_doc = frappe.get_doc("Email Queue", email_queue_name)
-#     _send_email_with_cc_bcc_attachments(
-#         subject=email_doc.subject,
-#         body=email_doc.message,
-#         to_emails=[r.recipient for r in email_doc.recipients],
-#         attachments=None
-#     )
 
 
 frappe.custom_sendmail = custom_sendmail

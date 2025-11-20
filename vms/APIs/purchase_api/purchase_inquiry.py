@@ -783,6 +783,9 @@ def acknowledge_purchase_inquiry(data):
                 
 
             employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
+            
+           
+            hod_email = None
             hod = frappe.get_value("Employee", {"user_id": doc.user}, "reports_to")
             if hod:
                 hod_email = frappe.get_value("Employee", hod, "user_id")
@@ -824,7 +827,7 @@ def acknowledge_purchase_inquiry(data):
                 <p><b>Cart ID:</b> {doc.name}</p>
                 <p><b>Cart Date:</b> {cart_date_formatted}</p>
                 <p><b>Expected Delivery Date:</b> {acknowledged_date_formatted}</p>
-                <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks}</p>
+                <p><b>Acknowledged Remarks:</b> {doc.acknowledged_remarks or 'None'}</p>
 
                 {table_html}
 
@@ -837,7 +840,16 @@ def acknowledge_purchase_inquiry(data):
                 </div>
                 """
 
-            frappe.custom_sendmail(recipients=[doc.user], cc=[hod_email], subject=subject, message=message, now=True)
+            
+            cc_list = [hod_email] if hod_email else None
+            
+            frappe.custom_sendmail(
+                recipients=[doc.user], 
+                cc=cc_list, 
+                subject=subject, 
+                message=message, 
+                now=True
+            )
 
             return {
                 "status": "success",
