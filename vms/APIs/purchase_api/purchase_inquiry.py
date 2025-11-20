@@ -780,6 +780,7 @@ def acknowledge_purchase_inquiry(data):
                     acknowledged_date_formatted = str(doc.acknowledged_date)
             else:
                 acknowledged_date_formatted = "N/A"
+                
 
             employee_name = frappe.get_value("Employee", {"user_id": doc.user}, "full_name")
             
