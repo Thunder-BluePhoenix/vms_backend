@@ -18,7 +18,7 @@ def get_vendors_by_name(vendor_name):
         for vendor in vendors:
             if not frappe.has_permission('Vendor Master', 'read', vendor.get('name')):
                 frappe.throw(_("Insufficient permissions"), frappe.PermissionError)
-            vendor['gst_details'] = get_latest_gst_details(vendor.get('name'))
+            vendor['gst_data'] = get_latest_gst_details(vendor.get('name'))
         
         return {
             'status': 'success',
@@ -77,6 +77,8 @@ def get_latest_gst_details(vendor_name):
             return []
         
         legal_doc_name = legal_doc[0].get('name')
+        pan_number = legal_doc[0].get('pan_number')
+        
         
        
         gst_details = frappe.db.get_all(
@@ -85,8 +87,12 @@ def get_latest_gst_details(vendor_name):
             fields=['gst_state', 'gst_number', 'pincode','company'],  
             order_by='idx asc'
         )
+    
         
-        return gst_details
+        return {
+            'pan_number': pan_number,
+            'gst_details': gst_details
+        }
     
     except Exception as e:
         frappe.log_error(
