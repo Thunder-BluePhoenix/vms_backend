@@ -14,6 +14,12 @@ def get_vendors_by_name(vendor_name):
         
         # Fetch vendors matching the name pattern
         vendors = fetch_vendors_by_name_pattern(vendor_name)
+        if not vendors:
+            frappe.local.response["http_status_code"] = 404
+            return {
+                'status': 'error',
+                'message': 'No vendors found matching the given name'
+            }
         
         for vendor in vendors:
             if not frappe.has_permission('Vendor Master', 'read', vendor.get('name')):
