@@ -1,6 +1,6 @@
 import frappe
 @frappe.whitelist(allow_guest=False)
-def filtering_total_qms_onboarding(page_no=None, page_length=None, usr=None,  qms_status_filter=None):
+def filtering_total_qms_onboarding(page_no=None, page_length=None, usr=None, qms_status_filter=None, vendor_name=None):
     try:
         if usr is None:
             usr = frappe.session.user
@@ -56,8 +56,11 @@ def filtering_total_qms_onboarding(page_no=None, page_length=None, usr=None,  qm
             conditions.append("vo.qms_form_filled = 0")
         elif qms_status_filter == "completed":
             conditions.append("vo.qms_form_filled = 1")
-        #
 
+        if vendor_name:
+            conditions.append("vo.vendor_name LIKE %(vendor_name)s")
+            values["vendor_name"] = f"%{vendor_name}%"
+    
 
         filter_clause = " AND ".join(conditions)
 
@@ -90,6 +93,9 @@ def filtering_total_qms_onboarding(page_no=None, page_length=None, usr=None,  qm
             LIMIT %(limit)s OFFSET %(offset)s
         """, values, as_dict=True)
 
+        for onb_doc in onboarding_docs:
+            onb_doc["register_by_emp"] = frappe.db.get_value("Employee", {"user_id": onb_doc.get("registered_by")}, "full_name") or ""
+
         return {
             "status": "success",
             "message": "Filtered QMS onboarding records fetched.",
@@ -110,7 +116,7 @@ def filtering_total_qms_onboarding(page_no=None, page_length=None, usr=None,  qm
 
 
 @frappe.whitelist(allow_guest=False)
-def total_qms_onboarding_details(page_no=None, page_length=None,  usr=None,):
+def total_qms_onboarding_details(page_no=None, page_length=None, usr=None, vendor_name=None):
     try:
         if not usr:
             usr = frappe.session.user
@@ -120,7 +126,8 @@ def total_qms_onboarding_details(page_no=None, page_length=None,  usr=None,):
             page_no=page_no,
             page_length=page_length,
             usr=usr,
-            qms_status_filter=None  
+            qms_status_filter=None,
+            vendor_name=vendor_name
         )
 
         if result.get("status") != "success":
