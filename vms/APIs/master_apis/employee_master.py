@@ -49,13 +49,6 @@ def get_employee_list(limit=None, offset=0, order_by=None, search_term=None):
 
         frappe.response.http_status_code = 200
 
-        for employee in employees:
-            if employee.get("reports_to"):
-                manager_email = frappe.db.get_value("Employee", employee["reports_to"], "user_id")
-                employee["reports_to_email"] = manager_email
-            else:
-                employee["reports_to_email"] = None
-
         return {
             "message": "Success",
             "data": employees,
@@ -74,3 +67,49 @@ def get_employee_list(limit=None, offset=0, order_by=None, search_term=None):
     except Exception as e:
         frappe.response.http_status_code = 500
         return {"message": "Failed", "error": str(e)}
+
+
+#vms.APIs.master_apis.employee_master.get_employee_details
+@frappe.whitelist(allow_guest=True)
+def get_employee_details(employee_name):
+    try:
+        if not employee_name:
+            frappe.response.http_status_code = 400
+            return {
+                "message": "Failed",
+                "error": "employee_name is required"
+            }
+        
+
+        if not frappe.db.exists("Employee", employee_name):
+            frappe.response.http_status_code = 404
+            return {
+                "message": "Failed",
+                "error": "Employee not found"
+            }
+        
+        
+        employee = frappe.get_doc("Employee", employee_name)
+        
+        # Get reporting manager's email if reports_to exists
+        reports_to_email = None
+        if employee.reports_to:
+            reports_to_email = frappe.db.get_value("Employee", employee.reports_to, "user_id")
+        
+        frappe.response.http_status_code = 200
+        return {
+            "message": "Success",
+            "data": {
+                "name": employee.name,
+                "user_id": employee.user_id,
+                "reports_to": employee.reports_to,
+                "reports_to_email": reports_to_email
+            }
+        }
+    
+    except Exception as e:
+        frappe.response.http_status_code = 500
+        return {
+            "message": "Failed",
+            "error": str(e)
+        }
