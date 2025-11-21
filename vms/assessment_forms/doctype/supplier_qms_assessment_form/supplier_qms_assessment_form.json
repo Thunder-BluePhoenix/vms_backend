@@ -23,6 +23,7 @@
   "mobile_number",
   "status",
   "vendor_signature",
+  "vendor_sign_attachment",
   "qms_form_status",
   "mail_sent_to_qa_team",
   "form_fully_submitted",
@@ -1040,12 +1041,17 @@
    "fieldtype": "Link",
    "label": "Approval Matrix",
    "options": "Approval Matrix"
+  },
+  {
+   "fieldname": "vendor_sign_attachment",
+   "fieldtype": "Attach",
+   "label": "Vendor Signature Attachment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-01 10:15:41.072153",
+ "modified": "2025-11-21 14:13:45.766816",
  "modified_by": "Administrator",
  "module": "Assessment Forms",
  "name": "Supplier QMS Assessment Form",
