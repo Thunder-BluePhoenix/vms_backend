@@ -1,6 +1,7 @@
 import frappe
 import json
 
+#vms.APIs.master_apis.employee_master.get_employee_list
 @frappe.whitelist(allow_guest=True)
 def get_employee_list(limit=None, offset=0, order_by=None, search_term=None):
     try:
@@ -26,7 +27,7 @@ def get_employee_list(limit=None, offset=0, order_by=None, search_term=None):
                 start=offset,
                 order_by=order_by,
                 ignore_permissions=False,
-                fields=["name", "user_id", "first_name", "last_name", "full_name", "employee_code", "designation", "team"]
+                fields=["name", "user_id", "first_name", "last_name", "full_name", "employee_code", "designation", "team","reports_to"]
             )
             
             total_count = len(frappe.get_all(
@@ -41,7 +42,7 @@ def get_employee_list(limit=None, offset=0, order_by=None, search_term=None):
                 start=offset,
                 order_by=order_by,
                 ignore_permissions=False,
-                fields=["name", "user_id", "first_name", "last_name", "full_name", "employee_code", "designation", "team"]
+                fields=["name", "user_id", "first_name", "last_name", "full_name", "employee_code", "designation", "team","reports_to"]
             )
             
             total_count = frappe.db.count("Employee")
