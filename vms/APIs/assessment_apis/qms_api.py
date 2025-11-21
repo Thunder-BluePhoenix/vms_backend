@@ -270,7 +270,7 @@ def err(code, msg):
     return {"status": "error", "message": msg}
 
 
-@frappe.whitelist(allow_guest=False, methods='GET')
+@frappe.whitelist(allow_guest=True, methods='GET')
 def send_signature_image(user_id=None, esign_passkey=None):
     try:
         if not user_id or not esign_passkey:

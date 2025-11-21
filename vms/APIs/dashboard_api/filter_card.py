@@ -694,8 +694,9 @@ def vendor_data_for_super_head (usr, user_roles):
 @frappe.whitelist(allow_guest=True)
 def approved_vendor_details(usr):
     try:
-        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head"}
+        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "QA Team", "QA Head", "Finance", "Finance Head"}
         user_roles = frappe.get_roles(usr)
+        print("User Roles---->",user_roles)
 
         if not any(role in allowed_roles for role in user_roles):
             return {
@@ -712,7 +713,7 @@ def approved_vendor_details(usr):
             "payee_in_document", "check_double_invoice", "gr_based_inv_ver", "service_based_inv_ver"
             ]
 
-        if "Accounts Team" in user_roles:
+        if "Accounts Team" in user_roles or "Finance" in user_roles:
             # Filter by company for Accounts Team
             employee = frappe.get_doc("Employee", {"user_id": usr})
             company_list = [row.company_name for row in employee.company]

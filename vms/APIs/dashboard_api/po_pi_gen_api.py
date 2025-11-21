@@ -7,7 +7,7 @@ import json
 def dashboard_card(usr):
     try:
         
-        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "Accounts Head", "Super Head", "QA Team", "QA Head", "Treasury"}
+        allowed_roles = {"Purchase Team", "Accounts Team", "Purchase Head", "Accounts Head", "Super Head", "QA Team", "QA Head", "Treasury", "Finance", "Finance Head"}
         user_roles = frappe.get_roles(usr)
 
         if not any(role in allowed_roles for role in user_roles):
@@ -23,10 +23,12 @@ def dashboard_card(usr):
 
         if "Accounts Team" in user_roles or "Accounts Head" in user_roles:
             return vendor_data_for_accounts(usr, user_roles)
-        elif "Super Head" in user_roles:
+        elif "Super Head" in user_roles or "Finance Head" in user_roles:
             return vendor_data_for_super_head(usr, user_roles)
         elif "Treasury" in user_roles:
             return vendor_data_for_treasury(usr, user_roles)
+        elif "Finance" in user_roles:
+            return vendor_data_for_finance(usr, user_roles)
         else:
             return vendor_data_for_purchase(usr, user_roles)
 
@@ -59,6 +61,101 @@ def normal_data_for_employee(usr):
             "all_carts":cart_count,
             "all_pr_count":pr_count
         }
+
+def vendor_data_for_finance(usr, user_roles):  
+    try:
+        employee = frappe.get_doc("Employee", {"user_id": usr})
+        company_list = [row.company_name for row in employee.company]
+
+        if not company_list:
+            return {
+                "status": "error",
+                "message": "No company records found in Employee.",
+                "vendor_count": 0
+            }
+
+        # vendor_onboarding = frappe.get_all(
+        #     "Vendor Onboarding",
+        #     filters={"company_name": ["in", company_list]},
+        #     pluck="ref_no"
+        # )
+
+        values = {"company_list": company_list}
+        total_vendor_count = frappe.db.sql("""
+            SELECT COUNT(*) FROM (
+                SELECT ref_no FROM `tabVendor Onboarding`
+                WHERE company_name IN %(company_list)s
+                GROUP BY ref_no
+            ) AS grouped
+        """, values)[0][0]
+
+        start_date = get_first_day(today())
+        end_date = get_last_day(today())
+
+        # total_vendor_count = frappe.db.count(
+        #     "Vendor Master",
+        #     filters={"name": ["in", vendor_onboarding]}
+        # )
+
+        # counts for Purchase team flow
+
+        approved_vendor_count = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Approved",
+                "company_name": ["in", company_list]
+            }
+        )
+        pr_count = frappe.db.count("Purchase Requisition Webform")
+
+
+        # counts for accounts team flow
+
+        vend_onb = frappe.get_all(
+            "Vendor Onboarding",
+            filters={"register_by_account_team": 1},  
+            pluck="name"
+        )
+
+        approved_vendor_count_by_accounts_team = frappe.db.count(
+            "Vendor Onboarding",
+            filters={
+                "onboarding_form_status": "Approved",
+                "name": ["in", vend_onb]
+            }
+        )
+
+        if employee.show_all_purchase_groups == 1:
+            purchase_order_count = frappe.db.count(
+                "Purchase Order",
+            )
+        if employee.show_all_purchase_groups == 1:
+            pr_count = frappe.db.count("Purchase Requisition Webform")
+
+        return {
+            "status": "success",
+            "message": "Vendor Onboarding dashboard counts fetched successfully.",
+            "role": user_roles,
+            "companies": company_list,
+            "total_vendor_count": total_vendor_count,
+            "approved_vendor_count": approved_vendor_count,
+            "pr_count":pr_count,
+            "purchase_order_count": purchase_order_count,
+
+            #counts for accounts team flow
+            "approved_vendor_count_by_accounts_team": approved_vendor_count_by_accounts_team,
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Vendor Onboarding Dashboard Card API Error")
+        return {
+            "status": "error",
+            "message": "Failed to fetch vendor onboarding dashboard data.",
+            "error": str(e),
+            "vendor_count": 0
+        }
+
+
 
 
 def vendor_data_for_accounts(usr, user_roles):  
@@ -777,6 +874,8 @@ def vendor_data_for_super_head (usr, user_roles):
         )
 
         pr_count = frappe.db.count("Purchase Requisition Webform")
+        purchase_order_count = frappe.db.count("Purchase Order",)
+    
 
 
         return {
@@ -796,9 +895,8 @@ def vendor_data_for_super_head (usr, user_roles):
             "rejected_vendor_count_by_accounts_team": rejected_vendor_count_by_accounts_team,
             "sap_error_vendor_count_by_accounts_team": sap_error_vendor_count_by_accounts_team,
             "expired_vendor_count_by_accounts_team": expired_vendor_count_by_accounts_team,
-
-
-            "pr_count":pr_count
+            "pr_count":pr_count,
+            "purchase_order_count": purchase_order_count
         }
 
     except Exception as e:

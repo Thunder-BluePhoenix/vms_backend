@@ -531,6 +531,10 @@ def get_pur_req_table_data(name):
 			if not head_id:
 				continue
 
+			cc_description = frappe.db.get_value("Cost Center", row.cost_center_head, "description") or ""
+			cost_center_code = frappe.db.get_value("Cost Center", row.cost_center_head, "cost_center_code") or ""
+			cost_center_combined = f"{cost_center_code}-{cc_description}" if row.cost_center_head else cc_description
+
 			# Add head if not present
 			if head_id not in grouped_data:
 				grouped_data[head_id] = {
@@ -548,8 +552,8 @@ def get_pur_req_table_data(name):
 					"material_group_head": row.material_group_head,
 					"material_group_head_desc": frappe.db.get_value("Material Group Master", row.material_group_head, "material_group_description") or "",
 					"uom_head": row.uom_head,
-					"cost_center_head": row.cost_center_head, 
-					"cost_center_head_desc": frappe.db.get_value("Cost Center", row.cost_center_head, "description") or "", 
+					"cost_center_head": row.cost_center_head,
+					"cost_center_head_desc": cost_center_combined, 
 					"main_asset_no_head": row.main_asset_no_head,
 					"asset_subnumber_head": row.asset_subnumber_head,
 					"profit_ctr_head": row.profit_ctr_head,
@@ -587,6 +591,10 @@ def get_pur_req_table_data(name):
 					"mpn_number_head": row.mpn_number_head,
 					"subhead_fields": []
 				}
+			
+			cc_description = frappe.db.get_value("Cost Center", row.cost_center_subhead, "description") or ""
+			cost_center_subcode = frappe.db.get_value("Cost Center", row.cost_center_subhead, "cost_center_code") or ""
+			cost_center_subcombined = f"{cost_center_subcode}-{cc_description}" if row.cost_center_subhead else cc_description
 
 			# Add subhead if created, not deleted, and not same row as head
 			if row.is_created and not row.is_deleted:
@@ -602,6 +610,7 @@ def get_pur_req_table_data(name):
 					"material_group_subhead": row.material_group_subhead,
 					"uom_subhead": row.uom_subhead,
 					"cost_center_subhead": row.cost_center_subhead,
+					"cost_center_subhead_desc": cost_center_subcombined,
 					"main_asset_no_subhead": row.main_asset_no_subhead,
 					"asset_subnumber_subhead": row.asset_subnumber_subhead,
 					"profit_ctr_subhead": row.profit_ctr_subhead,
@@ -609,6 +618,7 @@ def get_pur_req_table_data(name):
 					"quantity_subhead": row.quantity_subhead,
 					"price_of_purchase_requisition_subhead": row.price_of_purchase_requisition_subhead,
 					"gl_account_number_subhead": row.gl_account_number_subhead,
+					"gl_account_number_subhead_desc": frappe.db.get_value("GL Account", row.gl_account_number_subhead, "description") or "",
 					"material_code_subhead": row.material_code_subhead,
 					"account_assignment_category_subhead": row.account_assignment_category_subhead,
 					"purchase_group_subhead": row.purchase_group_subhead,
