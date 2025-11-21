@@ -19,6 +19,7 @@
   "division",
   "material_description",
   "quantity",
+  "declaration__letter",
   "reporting_head_approval_section",
   "approval_status",
   "column_break_mrnd",
@@ -36,6 +37,7 @@
   "port_of_discharge",
   "port_code",
   "exrate",
+  "invoice_copy",
   "accounts_details_section",
   "accountsapproval_status",
   "bank",
@@ -47,17 +49,20 @@
   "awb_no",
   "shipping_amount_in_fc",
   "shipping_exrate",
+  "shiping_bill",
   "column_break_lszc",
   "sb_date",
   "awb_date",
   "dispatch_currency",
   "shipping_amount_in_inr",
+  "aw_bill",
   "account_approval_section",
   "account_approval_status",
   "column_break_ddzs",
   "account_approval_remark",
   "closure_form_section",
   "boe_no",
+  "boe",
   "column_break_qbkg",
   "boe_date",
   "account_closer_detail_section",
@@ -74,33 +79,38 @@
   },
   {
    "fieldname": "requestor_name",
-   "fieldtype": "Data",
-   "label": "Requestor Name"
+   "fieldtype": "Link",
+   "label": "Requestor Name",
+   "options": "Employee"
   },
   {
+   "fetch_from": "requestor_name.reports_to",
    "fieldname": "reporting_head_name",
-   "fieldtype": "Data",
-   "label": "Reporting Head Name"
+   "fieldtype": "Link",
+   "label": "Reporting Head Name",
+   "options": "Employee"
   },
   {
    "fieldname": "column_break_ikqj",
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "requestor_name.user_id",
    "fieldname": "email_id",
    "fieldtype": "Data",
    "label": "Email Id"
   },
   {
+   "fetch_from": "reporting_head_name.user_id",
    "fieldname": "reporting_head_email_id",
    "fieldtype": "Data",
    "label": "Reporting Head Email Id"
   },
   {
    "fieldname": "request_type",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Request Type",
-   "options": "\nTesting & Returnable\nTesting & Non-Returnable\nRepair/Coating & Returnable\nExport Promotion\nDemo/Exhibition & Return\nMaterial Return"
+   "options": "Request Type"
   },
   {
    "fieldname": "division",
@@ -367,12 +377,37 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "\nApproved\nRejected\nPending"
+  },
+  {
+   "fieldname": "declaration__letter",
+   "fieldtype": "Attach",
+   "label": "Declaration  Letter"
+  },
+  {
+   "fieldname": "invoice_copy",
+   "fieldtype": "Attach",
+   "label": "Invoice Copy"
+  },
+  {
+   "fieldname": "shiping_bill",
+   "fieldtype": "Attach",
+   "label": "Shiping Bill"
+  },
+  {
+   "fieldname": "aw_bill",
+   "fieldtype": "Attach",
+   "label": "AW Bill"
+  },
+  {
+   "fieldname": "boe",
+   "fieldtype": "Attach",
+   "label": "BOE"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-06 10:45:14.413388",
+ "modified": "2025-11-21 11:47:41.475770",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "GR Waiver",
