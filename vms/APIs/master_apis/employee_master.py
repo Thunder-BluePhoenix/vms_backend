@@ -48,6 +48,14 @@ def get_employee_list(limit=None, offset=0, order_by=None, search_term=None):
             total_count = frappe.db.count("Employee")
 
         frappe.response.http_status_code = 200
+
+        for employee in employees:
+            if employee.get("reports_to"):
+                manager_email = frappe.db.get_value("Employee", employee["reports_to"], "user_id")
+                employee["reports_to_email"] = manager_email
+            else:
+                employee["reports_to_email"] = None
+
         return {
             "message": "Success",
             "data": employees,
