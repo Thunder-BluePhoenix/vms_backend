@@ -246,3 +246,135 @@ def approve_qms_form(data):
             "error": str(e)
         }
 
+
+# Verify the Employee and Send the Encrypted Signature Image
+from cryptography.fernet import Fernet
+import base64
+import hashlib
+
+def encrypt_with_temp_key(data: bytes):
+    """
+    Generate a one-time temporary Fernet key (valid for only 1 API response)
+    and encrypt the image bytes with it.
+    """
+    temp_key = Fernet.generate_key()
+    f = Fernet(temp_key)
+
+    encrypted = f.encrypt(data)
+
+    return encrypted.decode(), temp_key.decode()
+
+
+def err(code, msg):
+    frappe.local.response["http_status_code"] = code
+    return {"status": "error", "message": msg}
+
+
+@frappe.whitelist(allow_guest=False, methods='GET')
+def send_signature_image(user_id=None, esign_passkey=None):
+    try:
+        if not user_id or not esign_passkey:
+            return err(400, "user_id or esign_passkey is missing")
+
+        employee = frappe.db.get_value(
+            "Employee",
+            {"user_id": user_id},
+            ["name", "full_name", "esign_passkey", "sign_attach"],
+            as_dict=True
+        )
+
+        if not employee:
+            return err(404, "Employee not found for this User ID")
+        
+
+        if not employee.esign_passkey:
+            return err(400, f"esign_passkey is not set for Employee {employee.full_name}")
+        
+
+        if esign_passkey != employee.esign_passkey:
+            return err(400, "Incorrect esign_passkey")
+
+
+        if not employee.sign_attach:
+            return err(404, "No signature image uploaded")
+
+
+        file_path = frappe.get_site_path("public", employee.sign_attach.lstrip("/"))
+
+        with open(file_path, "rb") as f:
+            file_bytes = f.read()
+
+        encrypted_image, temp_key = encrypt_with_temp_key(file_bytes)
+
+        return {
+            "status": "success",
+            "message": "Signature retrieved successfully",
+            "employee_name": employee.full_name,
+            "encrypted_image": encrypted_image,
+            "token_key": temp_key
+        }
+
+    except Exception as e:
+        frappe.local.response["http_status_code"] = 500
+        frappe.log_error(frappe.get_traceback(), "Signature API Error")
+        return err(500, str(e))
+
+
+
+# @frappe.whitelist(allow_guest=False, methods='GET')
+# def send_signature_image(user_id=None, esign_passkey=None):
+#     try:
+#         if not user_id:
+#             frappe.local.response["http_status_code"] = 404
+#             return {"status": "error", "message": "user_id not provided"}
+
+#         employee = frappe.db.get_value(
+#             "Employee",
+#             {"user_id": user_id},
+#             ["name", "full_name", "esign_passkey", "sign_attach"],
+#             as_dict=True
+#         )
+
+#         if not employee:
+#             frappe.local.response["http_status_code"] = 404
+#             return {"status": "error", "message": "Employee not found"}
+
+#         if not esign_passkey:
+#             frappe.local.response["http_status_code"] = 400
+#             return {"status": "error", "message": "esign_passkey not provided"}
+
+#         if esign_passkey != employee.esign_passkey:
+#             frappe.local.response["http_status_code"] = 400
+#             return {"status": "error", "message": "Incorrect esign_passkey"}
+
+#         if not employee.sign_attach:
+#             frappe.local.response["http_status_code"] = 404
+#             return {"status": "error", "message": "No signature image uploaded"}
+
+#         # Get file
+#         file_path = frappe.get_site_path("public", employee.sign_attach.lstrip("/"))
+#         with open(file_path, "rb") as f:
+#             file_bytes = f.read()
+
+#         # NEW: Encrypt using temporary 1-time key
+#         encrypted_image, temp_key = encrypt_with_temp_key(file_bytes)
+
+#         return {
+#             "status": "success",
+#             "message": "Signature retrieved successfully",
+#             "employee_name": employee.full_name,
+
+#             # Encrypted image
+#             "encrypted_image": encrypted_image,
+
+#             # Send temporary Fernet key to frontend for decryption
+#             "token_key": temp_key,
+
+#             # Optional — for security monitoring
+#             "expires_in": 60
+#         }
+
+#     except Exception as e:
+#         frappe.local.response["http_status_code"] = 500
+#         frappe.log_error(frappe.get_traceback(), "Signature API Error")
+#         return {"status": "error", "message": str(e)}

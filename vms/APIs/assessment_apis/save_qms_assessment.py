@@ -476,9 +476,10 @@ from frappe.utils import nowdate, now
 import json
 import base64
 import os
+from frappe.utils.file_manager import save_file
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
-def save_qms_assessment_complete():
+def save_qms_assessment_complete(data):
     """
     Complete API to create or update QMS Assessment Form with support for:
     - Regular fields
@@ -496,7 +497,9 @@ def save_qms_assessment_complete():
     """
     try:
         # Get the request data
-        data = frappe.local.form_dict
+        # data = frappe.local.form_dict
+        if isinstance(data, str):
+            data = json.loads(data)
         
         vendor_onboarding_input = data.get('vendor_onboarding')
         ref_no_input = data.get('ref_no')
@@ -553,6 +556,11 @@ def save_qms_assessment_complete():
                 
                 # Update multiselect_data_json for processing
                 update_multiselect_json(doc, form_data)
+
+                if 'file' in frappe.request.files:
+                    file = frappe.request.files['file']
+                    saved_file = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=0)
+                    doc.vendor_sign_attachment = saved_file.file_url
                 
                 # Save the document
                 doc.save()
@@ -590,6 +598,13 @@ def save_qms_assessment_complete():
             # Insert the document
             doc.insert()
             frappe.db.commit()
+
+            if 'file' in frappe.request.files:
+                file = frappe.request.files['file']
+                saved_file = save_file(file.filename, file.stream.read(), doc.doctype, doc.name, is_private=0)
+                doc.vendor_sign_attachment = saved_file.file_url
+                doc.save(ignore_permissions=True)
+
             action = "created"
         
         return {

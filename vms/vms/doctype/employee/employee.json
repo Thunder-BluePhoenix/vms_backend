@@ -50,14 +50,29 @@
   "personal_email",
   "column_break_dhwa",
   "company_email",
-  "section_break_jknp",
-  "sign_attach",
-  "column_break_maws",
-  "esignature",
   "address_section",
   "current_address",
   "column_break_oztg",
   "permanent_address",
+  "section_break_jknp",
+  "sign_attach",
+  "esign_passkey",
+  "column_break_maws",
+  "esignature",
+  "emergency_contact_section",
+  "emergency_contact_name",
+  "column_break_vwyw",
+  "emergency_phone",
+  "column_break_hmmx",
+  "relation",
+  "personal_details_tab",
+  "marital_status",
+  "family_background",
+  "aadhar_no",
+  "pan_number",
+  "column_break_rwnd",
+  "blood_group",
+  "health_details",
   "more_info_tab",
   "restricted"
  ],
@@ -356,12 +371,88 @@
    "fieldname": "is_material_cp",
    "fieldtype": "Check",
    "label": "Is Material CP"
+  },
+  {
+   "fieldname": "emergency_contact_section",
+   "fieldtype": "Section Break",
+   "label": "Emergency Contact"
+  },
+  {
+   "fieldname": "emergency_contact_name",
+   "fieldtype": "Data",
+   "label": "Emergency Contact Name"
+  },
+  {
+   "fieldname": "column_break_vwyw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "emergency_phone",
+   "fieldtype": "Data",
+   "label": "Emergency Phone"
+  },
+  {
+   "fieldname": "column_break_hmmx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "relation",
+   "fieldtype": "Data",
+   "label": "Relation"
+  },
+  {
+   "fieldname": "personal_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Personal Details"
+  },
+  {
+   "fieldname": "marital_status",
+   "fieldtype": "Select",
+   "label": "Marital Status",
+   "options": "\nSingle\nMarried\nDivorced\nWidowed"
+  },
+  {
+   "description": "Here you can maintain family details like name and occupation of parent, spouse and children",
+   "fieldname": "family_background",
+   "fieldtype": "Small Text",
+   "label": "Family Background"
+  },
+  {
+   "fieldname": "aadhar_no",
+   "fieldtype": "Data",
+   "label": "Aadhar No"
+  },
+  {
+   "fieldname": "pan_number",
+   "fieldtype": "Data",
+   "label": "PAN Number"
+  },
+  {
+   "fieldname": "column_break_rwnd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "blood_group",
+   "fieldtype": "Select",
+   "label": "Blood Group",
+   "options": "\nA+\nA-\nB+\nB-\nAB+\nAB-\nO+\nO-"
+  },
+  {
+   "description": "Here you can maintain height, weight, allergies, medical concerns etc",
+   "fieldname": "health_details",
+   "fieldtype": "Small Text",
+   "label": "Health Details"
+  },
+  {
+   "fieldname": "esign_passkey",
+   "fieldtype": "Data",
+   "label": "E-signature Passkey"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-14 11:15:36.997720",
+ "modified": "2025-11-21 10:45:12.353039",
  "modified_by": "Administrator",
  "module": "Vms",
  "name": "Employee",
