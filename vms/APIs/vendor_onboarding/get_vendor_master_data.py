@@ -1,41 +1,33 @@
 import frappe
 from frappe import _
+from vms.utils.validators import validate_string
 
 
 #vms.APIs.vendor_onboarding.get_vendor_master_data.get_vendors_by_name
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_vendors_by_name(vendor_name):
-    
-    if not vendor_name:
-        frappe.throw(_("Vendor name is required"), frappe.ValidationError)
-    
-    if not isinstance(vendor_name, str):
-        frappe.throw(_("Vendor name must be a string"), frappe.ValidationError)
+
+    vendor_name = validate_string(vendor_name, field_name="Vendor name")
+
     
     try:
-        # vendor_name = frappe.db.escape(vendor_name.strip())
         
-        
-        # Get vendor master records
-        vendors = frappe.db.get_all(
-            'Vendor Master',
-            filters={
-                'vendor_name': ['like', f'%{vendor_name}%']
-            },
-            fields=['name', 'vendor_name', 'office_email_primary', 'country', 
-                   'first_name', 'mobile_number', 'search_term'],
-            order_by='vendor_name asc',
-            limit_page_length=0 
-        )
-        
-        
+        # Fetch vendors matching the name pattern
+        vendors = fetch_vendors_by_name_pattern(vendor_name)
+        if not vendors:
+            frappe.local.response["http_status_code"] = 404
+            return {
+                'status': 'error',
+                'message': 'No vendors found matching the given name'
+            }
         
         for vendor in vendors:
             if not frappe.has_permission('Vendor Master', 'read', vendor.get('name')):
                 frappe.throw(_("Insufficient permissions"), frappe.PermissionError)
-        
-        for vendor in vendors:
-            vendor['gst_details'] = get_latest_gst_details(vendor.get('name'))
+            gst_data = get_latest_gst_details(vendor.get("name"))
+
+            vendor["pan_number"] = gst_data.get("pan_number")      # PAN outside gst_details
+            vendor["gst_details"] = gst_data.get("gst_details")    # GST details only
         
         return {
             'status': 'success',
@@ -43,10 +35,7 @@ def get_vendors_by_name(vendor_name):
             'count': len(vendors)
         }
     
-    except frappe.ValidationError:
-        raise
-    
-    except frappe.PermissionError:
+    except (frappe.ValidationError, frappe.PermissionError):
         raise
     
     except Exception as e:
@@ -60,36 +49,66 @@ def get_vendors_by_name(vendor_name):
         )
 
 
+def fetch_vendors_by_name_pattern(vendor_name):
+    vendors = frappe.db.get_all(
+        'Vendor Master',
+        filters={
+            'vendor_name': ['like', f'%{vendor_name}%']
+        },
+        fields=[
+            'name', 
+            'vendor_name', 
+            'office_email_primary', 
+            'country', 
+            'first_name', 
+            'mobile_number', 
+            'search_term'
+        ],
+        order_by='vendor_name asc',
+        limit_page_length=0
+    )
+    
+    return vendors
+
 def get_latest_gst_details(vendor_name):
     try:
        
         legal_doc = frappe.db.get_all(
             'Legal Documents',
             filters={'ref_no': vendor_name},
-            fields=['name'],
+            fields=['name', 'pan_number'],  
             order_by='creation desc',
             limit=1
         )
         
         
         if not legal_doc:
-            return []
-        
+            return {
+                "pan_number": None,
+                "gst_details": []
+            }
+
         legal_doc_name = legal_doc[0].get('name')
-        
-       
+        pan_number = legal_doc[0].get('pan_number')
+
         gst_details = frappe.db.get_all(
-            'GST Details Table',  
+            'GST Details Table',
             filters={'parent': legal_doc_name},
-            fields=['gst_state', 'gst_number', 'pincode','company'],  
+            fields=['gst_state', 'gst_number', 'pincode', 'company'],
             order_by='idx asc'
         )
-        
-        return gst_details
-    
-    except Exception as e:
+
+        return {
+            "pan_number": pan_number,
+            "gst_details": gst_details
+        }
+
+    except Exception:
         frappe.log_error(
             message=frappe.get_traceback(),
             title=f'Get GST Details Error for {vendor_name}'
         )
-        return []
+        return {
+            "pan_number": None,
+            "gst_details": []
+        }
