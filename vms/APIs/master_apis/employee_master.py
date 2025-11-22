@@ -2,7 +2,7 @@ import frappe
 import json
 
 #vms.APIs.master_apis.employee_master.get_employee_list
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(methods=["GET"], allow_guest=True)
 def get_employee_list(limit=None, offset=0, order_by=None, search_term=None):
     try:
         limit = int(limit) if limit else 20
@@ -69,8 +69,9 @@ def get_employee_list(limit=None, offset=0, order_by=None, search_term=None):
         return {"message": "Failed", "error": str(e)}
 
 
+
 #vms.APIs.master_apis.employee_master.get_employee_details
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(methods=["GET"])
 def get_employee_details(employee_name):
     try:
         if not employee_name:
