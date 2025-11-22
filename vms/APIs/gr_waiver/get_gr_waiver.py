@@ -4,7 +4,7 @@ import frappe
 from frappe.model.document import Document
 
 # vms.APIs.gr_waiver.get_gr_waiver.get_gr_waiver_details
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_gr_waiver_details(name):
     try:
         # Check if name parameter is provided
@@ -17,6 +17,54 @@ def get_gr_waiver_details(name):
         
         # Convert to dictionary and include all fields
         doc_dict = gr_waiver.as_dict()
+        
+        # Get all attach/image fields from the doctype
+        meta = frappe.get_meta("GR Waiver")
+        attach_fields = [df.fieldname for df in meta.fields if df.fieldtype in ['Attach', 'Attach Image']]
+        
+        # Replace file URLs with detailed file information
+        for field in attach_fields:
+            file_url = doc_dict.get(field)
+            if file_url:
+                try:
+                    # Get file document details
+                    file_doc = frappe.get_all(
+                        "File",
+                        filters={
+                            "file_url": file_url,
+                            "attached_to_doctype": "GR Waiver",
+                            "attached_to_name": name
+                        },
+                        fields=["name", "file_name", "file_url", "file_size", "is_private", "creation"]
+                    )
+                    
+                    if file_doc:
+                        file_info = file_doc[0]
+                        # Replace the file field with detailed information
+                        doc_dict[field] = {
+                            "file_url": file_info.get("file_url"),
+                            "file_name": file_info.get("file_name"),
+                            "file_size": file_info.get("file_size"),
+                            "is_private": file_info.get("is_private"),
+                            "uploaded_on": file_info.get("creation"),
+                            "full_url": frappe.utils.get_url() + file_info.get("file_url") if file_info.get("file_url") else None
+                        }
+                    else:
+                        # If file document not found, provide basic info
+                        doc_dict[field] = {
+                            "file_url": file_url,
+                            "full_url": frappe.utils.get_url() + file_url if file_url else None
+                        }
+                except Exception as file_error:
+                    frappe.log_error(
+                        f"Error fetching file details for field {field}: {str(file_error)}",
+                        "GR Waiver File Details Error"
+                    )
+                    # Keep basic URL if detailed fetch fails
+                    doc_dict[field] = {
+                        "file_url": file_url,
+                        "full_url": frappe.utils.get_url() + file_url if file_url else None
+                    }
         
         return {
             "message": "Success",
@@ -33,9 +81,8 @@ def get_gr_waiver_details(name):
     
     except Exception as e:
         frappe.response.http_status_code = 500
+        frappe.log_error(frappe.get_traceback(), "GR Waiver Get Details Error")
         return {"message": "Failed", "error": str(e)}
-
-
 
 # vms.APIs.gr_waiver.get_gr_waiver.get_gr_waiver_list
 @frappe.whitelist()
