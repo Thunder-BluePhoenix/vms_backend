@@ -1520,7 +1520,7 @@ def filtering_total_vendor_details(page_no=None, page_length=None, company=None,
 
 
 @frappe.whitelist(allow_guest=False)
-def filtering_po_details(page_no=None, page_length=None, company=None, status=None, usr=None):
+def filtering_po_details(page_no=None, page_length=None, company=None, status=None, usr=None, vendor_name=None):
     try:
         if usr is None:
             usr = frappe.session.user
@@ -1586,6 +1586,10 @@ def filtering_po_details(page_no=None, page_length=None, company=None, status=No
                 conditions.append("po.vendor_status = %(status)s")
                 values["status"] = status
 
+            if vendor_name:
+                conditions.append("po.supplier_name = %(supplier_name)s")
+                values["supplier_name"] = vendor_name
+
             where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
             # Count total records
@@ -1628,6 +1632,10 @@ def filtering_po_details(page_no=None, page_length=None, company=None, status=No
             if status:
                 conditions.append("po.vendor_status = %(status)s")
                 values["status"] = status
+
+            if vendor_name:
+                conditions.append("po.supplier_name = %(supplier_name)s")
+                values["supplier_name"] = vendor_name
 
             where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
